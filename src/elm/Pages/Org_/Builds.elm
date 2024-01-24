@@ -243,7 +243,7 @@ view shared route model =
             , showHideActionsMenus = ShowHideActionsMenus
             }
     in
-    { title = route.params.org ++ " Builds"
+    { title = "Builds"
     , body =
         [ Components.Builds.viewHeader
             { maybeEvent = Dict.get "event" route.query

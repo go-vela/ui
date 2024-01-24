@@ -13,7 +13,7 @@ import Http
 import Http.Detailed
 import Layouts
 import Page exposing (Page)
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Route.Path
 import Shared
@@ -108,45 +108,40 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String } -> Model -> View Msg
 view shared route model =
-    { title = route.params.org
+    { title = "Repos"
     , body =
-        [ viewOrgRepos shared route model
+        [ case model.repos of
+            RemoteData.Success repos ->
+                if List.length repos == 0 then
+                    div []
+                        [ h1 [] [ text "No Repositories are enabled for this Organization!" ]
+                        , p [] [ text "Enable repositories" ]
+                        , a
+                            [ class "button"
+                            , class "-outline"
+                            , Util.testAttribute "source-repos"
+                            , Route.Path.href Route.Path.AccountSourceRepos
+                            ]
+                            [ text "Source Repositories" ]
+                        ]
+
+                else
+                    div [] (List.map viewRepo repos)
+
+            RemoteData.Loading ->
+                Util.largeLoader
+
+            RemoteData.NotAsked ->
+                Util.largeLoader
+
+            RemoteData.Failure _ ->
+                div [ Util.testAttribute "repos-error" ]
+                    [ p []
+                        [ text "There was an error fetching repos, please refresh or try again later!"
+                        ]
+                    ]
         ]
     }
-
-
-viewOrgRepos : Shared.Model -> Route { org : String } -> Model -> Html Msg
-viewOrgRepos shared route model =
-    case model.repos of
-        Success repos ->
-            if List.length repos == 0 then
-                div []
-                    [ h1 [] [ text "No Repositories are enabled for this Organization!" ]
-                    , p [] [ text "Enable repositories" ]
-                    , a
-                        [ class "button"
-                        , class "-outline"
-                        , Util.testAttribute "source-repos"
-                        , Route.Path.href Route.Path.AccountSourceRepos
-                        ]
-                        [ text "Source Repositories" ]
-                    ]
-
-            else
-                div [] (List.map viewRepo repos)
-
-        Loading ->
-            Util.largeLoader
-
-        NotAsked ->
-            Util.largeLoader
-
-        Failure _ ->
-            div [ Util.testAttribute "repos-error" ]
-                [ p []
-                    [ text "There was an error fetching repos, please refresh or try again later!"
-                    ]
-                ]
 
 
 {-| viewRepo : renders row of repos with action buttons

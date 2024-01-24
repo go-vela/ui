@@ -86,7 +86,7 @@ subscriptions model =
 -}
 view : Shared.Model -> Model -> View Msg
 view shared model =
-    { title = "Pages.NotFound_"
+    { title = "Not Found"
     , body =
         [ text "page not found"
         ]

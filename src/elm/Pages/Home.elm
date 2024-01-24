@@ -139,47 +139,40 @@ subscriptions model =
 -}
 view : Shared.Model -> Model -> View Msg
 view shared model =
-    let
-        blankMessage : Html msg
-        blankMessage =
-            div [ class "overview" ]
-                [ h1 [] [ text "Let's get Started!" ]
-                , p [] [ text "To have Vela start building your projects we need to get them enabled." ]
-                , p []
-                    [ text "To display a repository here, click the "
-                    , SvgBuilder.star False
-                    ]
-                , p [] [ text "Enable repositories from your GitHub account on Vela now!" ]
-                , a [ class "button", Route.Path.href Route.Path.AccountSourceRepos ] [ text "Source Repositories" ]
-                ]
-
-        body =
-            div [ Util.testAttribute "overview" ] <|
-                case shared.user of
-                    Success u ->
-                        if List.length u.favorites > 0 then
-                            [ homeSearchBar model.favoritesFilter SearchFavorites
-                            , viewFavorites u.favorites model.favoritesFilter
-                            ]
-
-                        else
-                            [ blankMessage ]
-
-                    Loading ->
-                        [ h1 [] [ Util.largeLoader ] ]
-
-                    NotAsked ->
-                        [ homeSearchBar model.favoritesFilter SearchFavorites
-                        , viewFavorites [] model.favoritesFilter
-                        ]
-
-                    -- [ text "not asked" ]
-                    Failure _ ->
-                        [ text "failed" ]
-    in
     { title = "Home"
     , body =
-        [ body
+        [ div [ Util.testAttribute "overview" ] <|
+            case shared.user of
+                Success u ->
+                    if List.length u.favorites > 0 then
+                        [ homeSearchBar model.favoritesFilter SearchFavorites
+                        , viewFavorites u.favorites model.favoritesFilter
+                        ]
+
+                    else
+                        [ div [ class "overview" ]
+                            [ h1 [] [ text "Let's get Started!" ]
+                            , p [] [ text "To have Vela start building your projects we need to get them enabled." ]
+                            , p []
+                                [ text "To display a repository here, click the "
+                                , SvgBuilder.star False
+                                ]
+                            , p [] [ text "Enable repositories from your GitHub account on Vela now!" ]
+                            , a [ class "button", Route.Path.href Route.Path.AccountSourceRepos ] [ text "Source Repositories" ]
+                            ]
+                        ]
+
+                Loading ->
+                    [ h1 [] [ Util.largeLoader ] ]
+
+                NotAsked ->
+                    [ homeSearchBar model.favoritesFilter SearchFavorites
+                    , viewFavorites [] model.favoritesFilter
+                    ]
+
+                -- [ text "not asked" ]
+                Failure _ ->
+                    [ text "failed" ]
         ]
     }
 

@@ -229,7 +229,7 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
-    { title = route.params.org ++ "/" ++ route.params.repo ++ " Settings"
+    { title = "Settings"
     , body =
         [ case model.repo of
             Success repo ->
@@ -371,24 +371,6 @@ viewAccess repo msg =
                 }
             ]
         ]
-
-
-{-| viewUpdateForkPolicyTip : takes field and returns the tip to display after the label.
--}
-viewUpdateForkPolicyTip : String -> Html msg
-viewUpdateForkPolicyTip field =
-    case field of
-        "fork-always" ->
-            text " (repository admin must approve all builds from outside contributors)"
-
-        "fork-no-write" ->
-            text " (repository admin must approve all builds from outside contributors with read-only access to the repo)"
-
-        "never" ->
-            text " (any outside contributor can run a PR build)"
-
-        _ ->
-            text ""
 
 
 {-| viewForkPolicy : takes model and repo and renders the settings category for updating repo fork policy

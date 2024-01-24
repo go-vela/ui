@@ -263,7 +263,7 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
-    { title = route.params.org ++ "/" ++ route.params.repo ++ " Add Deployment"
+    { title = "Add Deployment"
     , body =
         [ div [ class "manage-deployment", Util.testAttribute "manage-deployment" ]
             [ div []

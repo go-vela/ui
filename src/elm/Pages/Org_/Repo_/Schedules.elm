@@ -146,7 +146,7 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
-    { title = "Pages.Schedules"
+    { title = "Schedules"
     , body =
         [ viewRepoSchedules shared model route.params.org route.params.repo
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage

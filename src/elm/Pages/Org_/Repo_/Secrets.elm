@@ -152,43 +152,38 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
-    let
-        manageOrgSecretsButton =
-            a
-                [ class "button"
-                , class "-outline"
-                , Route.Path.href <|
-                    Route.Path.Org_Secrets { org = route.params.org }
-                , Util.testAttribute "manage-org-secrets"
-                ]
-                [ text "Manage Org Secrets" ]
-
-        addRepoSecretButton =
-            a
-                [ class "button"
-                , class "-outline"
-                , class "button-with-icon"
-                , Util.testAttribute "add-repo-secret"
-                , Route.Path.href <|
-                    Route.Path.Org_Repo_SecretsAdd { org = route.params.org, repo = route.params.repo }
-                ]
-                [ text "Add Repo Secret"
-                , FeatherIcons.plus
-                    |> FeatherIcons.withSize 18
-                    |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
-                ]
-
-        msgs =
-            { showCopyAlert = AddAlertCopiedToClipboard
-            }
-    in
-    { title = route.params.org ++ "/" ++ route.params.repo ++ " Secrets"
+    { title = "Secrets"
     , body =
         [ Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
         , Components.Secrets.viewRepoSecrets shared
-            { msgs = msgs
+            { msgs =
+                { showCopyAlert = AddAlertCopiedToClipboard
+                }
             , secrets = model.secrets
-            , tableButtons = Just [ manageOrgSecretsButton, addRepoSecretButton ]
+            , tableButtons =
+                Just
+                    [ a
+                        [ class "button"
+                        , class "-outline"
+                        , Route.Path.href <|
+                            Route.Path.Org_Secrets { org = route.params.org }
+                        , Util.testAttribute "manage-org-secrets"
+                        ]
+                        [ text "Manage Org Secrets" ]
+                    , a
+                        [ class "button"
+                        , class "-outline"
+                        , class "button-with-icon"
+                        , Util.testAttribute "add-repo-secret"
+                        , Route.Path.href <|
+                            Route.Path.Org_Repo_SecretsAdd { org = route.params.org, repo = route.params.repo }
+                        ]
+                        [ text "Add Repo Secret"
+                        , FeatherIcons.plus
+                            |> FeatherIcons.withSize 18
+                            |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
+                        ]
+                    ]
             }
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
         ]

@@ -113,6 +113,6 @@ subscriptions model =
 
 view : Props contentMsg -> Shared.Model -> Route () -> { toContentMsg : Msg -> contentMsg, content : View contentMsg, model : Model } -> View contentMsg
 view props shared route { toContentMsg, model, content } =
-    { title = content.title
+    { title = props.org ++ "/" ++ props.repo ++ " " ++ content.title
     , body = content.body
     }

@@ -190,7 +190,7 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
-    { title = route.params.org ++ "/" ++ route.params.repo ++ " Hooks"
+    { title = "Audit"
     , body =
         [ viewHooks shared route.params.org route.params.repo shared.hooks
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage

@@ -312,7 +312,7 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> Model -> View Msg
 view shared route model =
-    { title = "#" ++ route.params.buildNumber
+    { title = ""
     , body =
         [ case model.steps of
             RemoteData.Success steps ->

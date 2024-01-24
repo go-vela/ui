@@ -149,33 +149,30 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String } -> Model -> View Msg
 view shared route model =
-    let
-        addOrgSecretButton =
-            a
-                [ class "button"
-                , class "-outline"
-                , class "button-with-icon"
-                , Util.testAttribute "add-org-secret"
-                , Route.Path.href <|
-                    Route.Path.Org_SecretsAdd { org = route.params.org }
-                ]
-                [ text "Add Org Secret"
-                , FeatherIcons.plus
-                    |> FeatherIcons.withSize 18
-                    |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
-                ]
-
-        msgs =
-            { showCopyAlert = AddAlertCopiedToClipboard
-            }
-    in
-    { title = route.params.org ++ " Secrets"
+    { title = "Secrets"
     , body =
         [ Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
         , Components.Secrets.viewOrgSecrets shared
-            { msgs = msgs
+            { msgs =
+                { showCopyAlert = AddAlertCopiedToClipboard
+                }
             , secrets = model.secrets
-            , tableButtons = Just [ addOrgSecretButton ]
+            , tableButtons =
+                Just
+                    [ a
+                        [ class "button"
+                        , class "-outline"
+                        , class "button-with-icon"
+                        , Util.testAttribute "add-org-secret"
+                        , Route.Path.href <|
+                            Route.Path.Org_SecretsAdd { org = route.params.org }
+                        ]
+                        [ text "Add Org Secret"
+                        , FeatherIcons.plus
+                            |> FeatherIcons.withSize 18
+                            |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
+                        ]
+                    ]
             }
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
         ]

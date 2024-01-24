@@ -246,18 +246,13 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String, repo : String, name : String } -> Model -> View Msg
 view shared route model =
-    let
-        disableForm =
-            not <| RemoteData.isSuccess model.secret
-    in
-    { title = route.params.org ++ "/" ++ route.params.repo ++ "/" ++ route.params.name ++ " Edit Secret"
+    { title = "Edit Secret"
     , body =
         [ div [ class "manage-secret", Util.testAttribute "manage-secret" ]
             [ div []
                 [ h2 [] [ text <| String.Extra.toTitleCase <| "edit " ++ Vela.secretTypeToString Vela.RepoSecret ++ " secret" ]
                 , div [ class "secret-form" ]
-                    [ -- todo: convert this into a select form that uses list of secrets as input
-                      Components.Form.viewInput
+                    [ Components.Form.viewInput
                         { label_ = Just "Name"
                         , id_ = "name"
                         , val = RemoteData.unwrap "" .name model.secret
@@ -274,18 +269,18 @@ view shared route model =
                         , val = model.value
                         , placeholder_ = RemoteData.unwrap "loading..." (\_ -> "<leave blank to make no change to the value>") model.secret
                         , classList_ = [ ( "secret-value", True ) ]
-                        , disabled_ = disableForm
+                        , disabled_ = not <| RemoteData.isSuccess model.secret
                         , rows_ = Just 2
                         , wrap_ = Just "soft"
                         , msg = ValueOnInput
                         }
                     , Components.SecretForm.viewEventsSelect shared
-                        { disabled_ = False
+                        { disabled_ = not <| RemoteData.isSuccess model.secret
                         , msg = EventOnCheck
                         , events = model.events
                         }
                     , Components.SecretForm.viewImagesInput
-                        { disabled_ = False
+                        { disabled_ = not <| RemoteData.isSuccess model.secret
                         , onInput_ = ImageOnInput
                         , addImage = AddImage
                         , removeImage = RemoveImage

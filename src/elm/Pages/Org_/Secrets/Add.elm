@@ -216,7 +216,7 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String } -> Model -> View Msg
 view shared route model =
-    { title = route.params.org ++ " Add Secret"
+    { title = "Add Secret"
     , body =
         [ div [ class "manage-secret", Util.testAttribute "manage-secret" ]
             [ div []
