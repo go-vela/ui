@@ -7,22 +7,18 @@ module Pages.Org_.Repo_.Settings exposing (Model, Msg, page, view)
 
 import Auth
 import Components.Form
-import Dict
 import Effect exposing (Effect)
 import FeatherIcons
-import Html exposing (Html, a, br, button, code, div, em, h2, h3, img, input, label, p, section, small, span, strong, text, textarea)
-import Html.Attributes exposing (alt, attribute, checked, class, classList, disabled, for, href, id, readonly, rows, src, type_, value, wrap)
-import Html.Events exposing (onCheck, onClick, onInput)
+import Html exposing (Html, a, br, button, div, em, h2, h3, img, input, label, p, section, small, span, strong, text, textarea)
+import Html.Attributes exposing (alt, attribute, class, classList, disabled, for, href, id, readonly, rows, src, type_, value, wrap)
+import Html.Events exposing (onClick, onInput)
 import Http
 import Http.Detailed
 import Layouts
-import List.Extra
 import Page exposing (Page)
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
-import String.Extra
-import Url
 import Utils.Helpers as Util
 import Vela
 import View exposing (View)
@@ -232,7 +228,7 @@ view shared route model =
     { title = "Settings"
     , body =
         [ case model.repo of
-            Success repo ->
+            RemoteData.Success repo ->
                 div [ class "repo-settings", Util.testAttribute "repo-settings" ]
                     [ viewEvents repo
                     , viewAccess repo AccessUpdate

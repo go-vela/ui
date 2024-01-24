@@ -16,7 +16,6 @@ import Html
         , div
         , h1
         , p
-        , span
         , text
         )
 import Html.Attributes
@@ -27,7 +26,6 @@ import Html.Attributes
 import Html.Events exposing (onClick)
 import Layouts
 import Page exposing (Page)
-import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import Shared
 import Utils.Helpers as Util
@@ -90,8 +88,6 @@ update shared msg model =
             )
 
         SignInRequested ->
-            -- Login on server needs to accept redirect URL and pass it along to as part of 'state' encoded as base64
-            -- so we can parse it when the source provider redirects back to the API
             ( model
             , (Browser.Navigation.load <| Api.Endpoint.toUrl shared.velaAPI Api.Endpoint.Login) |> Effect.sendCmd
             )
@@ -110,8 +106,6 @@ subscriptions model =
 -- VIEW
 
 
-{-| view : takes current user, user input and action params and renders home page with favorited repos
--}
 view : Shared.Model -> Model -> View Msg
 view shared model =
     let

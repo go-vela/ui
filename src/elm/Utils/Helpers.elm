@@ -61,7 +61,7 @@ import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (custom)
 import Json.Decode
 import List.Extra
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (WebData)
 import String.Extra
 import Task exposing (perform, succeed)
 import Time exposing (Posix, Zone, posixToMillis, toHour, toMinute, utc)
@@ -501,7 +501,7 @@ successful =
     List.filterMap
         (\item ->
             case item of
-                Success item_ ->
+                RemoteData.Success item_ ->
                     Just item_
 
                 _ ->

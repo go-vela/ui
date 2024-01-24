@@ -21,7 +21,7 @@ import Html.Attributes
         , classList
         )
 import Html.Events exposing (onClick)
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
 import Utils.Helpers as Util

@@ -22,7 +22,7 @@ import Interop
 import Json.Decode
 import Json.Decode.Pipeline exposing (required)
 import Json.Encode
-import RemoteData exposing (RemoteData(..))
+import RemoteData
 import Route exposing (Route)
 import Route.Path
 import Route.Query
@@ -132,7 +132,7 @@ init flagsResult route =
       , session = Auth.Session.Unauthenticated
 
       -- USER
-      , user = NotAsked
+      , user = RemoteData.NotAsked
 
       -- TIME
       , zone = Time.utc
@@ -370,7 +370,7 @@ update route msg model =
 
         -- USER
         Shared.Msg.GetCurrentUser ->
-            ( { model | user = Loading }
+            ( { model | user = RemoteData.Loading }
             , Api.try
                 Shared.Msg.CurrentUserResponse
                 (Api.Operations.getCurrentUser model.velaAPI model.session)

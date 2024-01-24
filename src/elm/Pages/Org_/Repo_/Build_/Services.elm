@@ -20,7 +20,7 @@ import Http.Detailed
 import Layouts
 import List.Extra
 import Page exposing (Page)
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Route.Path
 import Shared

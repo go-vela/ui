@@ -19,7 +19,7 @@ import Http.Detailed
 import Layouts
 import LinkHeader exposing (WebLink)
 import Page exposing (Page)
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Route.Path
 import Shared

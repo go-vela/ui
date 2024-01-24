@@ -38,7 +38,7 @@ import LinkHeader exposing (WebLink)
 import List
 import Maybe.Extra
 import Page exposing (Page)
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Route.Path
 import Shared

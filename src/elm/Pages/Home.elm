@@ -36,7 +36,7 @@ import Layouts
 import List
 import List.Extra
 import Page exposing (Page)
-import RemoteData exposing (RemoteData(..))
+import RemoteData
 import Route exposing (Route)
 import Route.Path
 import Shared
@@ -135,15 +135,13 @@ subscriptions model =
 -- VIEW
 
 
-{-| view : takes current user, user input and action params and renders home page with favorited repos
--}
 view : Shared.Model -> Model -> View Msg
 view shared model =
     { title = "Home"
     , body =
         [ div [ Util.testAttribute "overview" ] <|
             case shared.user of
-                Success u ->
+                RemoteData.Success u ->
                     if List.length u.favorites > 0 then
                         [ homeSearchBar model.favoritesFilter SearchFavorites
                         , viewFavorites u.favorites model.favoritesFilter
@@ -162,17 +160,10 @@ view shared model =
                             ]
                         ]
 
-                Loading ->
-                    [ h1 [] [ Util.largeLoader ] ]
-
-                NotAsked ->
+                _ ->
                     [ homeSearchBar model.favoritesFilter SearchFavorites
                     , viewFavorites [] model.favoritesFilter
                     ]
-
-                -- [ text "not asked" ]
-                Failure _ ->
-                    [ text "failed" ]
         ]
     }
 

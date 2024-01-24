@@ -46,7 +46,7 @@ import Http.Detailed
 import Layouts
 import List.Extra
 import Page exposing (Page)
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
 import Utils.Errors as Errors
@@ -80,11 +80,11 @@ toLayout user shared model =
                     , ( "-outline", True )
                     ]
                 , onClick (GetUserSourceRepos True)
-                , disabled (model.sourceRepos == Loading)
+                , disabled (model.sourceRepos == RemoteData.Loading)
                 , Util.testAttribute "refresh-source-repos"
                 ]
                 [ case model.sourceRepos of
-                    Loading ->
+                    RemoteData.Loading ->
                         text "Loading…"
 
                     _ ->
@@ -108,7 +108,7 @@ type alias Model =
 init : () -> ( Model, Effect Msg )
 init () =
     ( { searchFilters = Dict.empty
-      , sourceRepos = NotAsked
+      , sourceRepos = RemoteData.NotAsked
       }
     , Effect.batch
         [ Effect.getCurrentUser {}
@@ -143,8 +143,8 @@ update shared msg model =
         GetUserSourceRepos isReload ->
             ( { model
                 | sourceRepos =
-                    if isReload || model.sourceRepos == NotAsked then
-                        Loading
+                    if isReload || model.sourceRepos == RemoteData.NotAsked then
+                        RemoteData.Loading
 
                     else
                         model.sourceRepos
@@ -186,7 +186,7 @@ update shared msg model =
 
         EnableRepo repo ->
             ( { model
-                | sourceRepos = Vela.enableUpdate repo Loading model.sourceRepos
+                | sourceRepos = Vela.enableUpdate repo RemoteData.Loading model.sourceRepos
 
                 -- todo: need this moved to the repo settings page
                 -- , repo = updateRepoEnabling Vela.Enabling rm
@@ -253,8 +253,6 @@ subscriptions model =
 -- VIEW
 
 
-{-| view : takes current user with repos fetched from source control
--}
 view : Shared.Model -> Model -> View Msg
 view shared model =
     let

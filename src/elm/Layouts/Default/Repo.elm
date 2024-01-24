@@ -10,10 +10,8 @@ import Effect exposing (Effect)
 import Html exposing (..)
 import Layout exposing (Layout)
 import Layouts.Default
-import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
-import Vela
 import View exposing (View)
 
 

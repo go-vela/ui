@@ -1,17 +1,12 @@
 module Components.Builds exposing (view, viewHeader)
 
-import Ansi
-import Ansi.Log
 import Components.Build
-import DateFormat.Relative exposing (relativeTime)
-import FeatherIcons
 import Html
     exposing
         ( Html
         , a
         , br
         , code
-        , details
         , div
         , em
         , h1
@@ -20,38 +15,24 @@ import Html
         , li
         , ol
         , p
-        , span
-        , strong
-        , summary
-        , table
-        , td
         , text
-        , tr
-        , ul
         )
 import Html.Attributes
     exposing
         ( attribute
         , checked
         , class
-        , classList
         , for
         , href
         , id
         , name
-        , style
-        , title
         , type_
         )
 import Html.Events exposing (onClick)
-import List.Extra
 import RemoteData exposing (WebData)
-import Route.Path
 import Shared
 import String
-import Time
-import Utils.Errors as Errors
-import Utils.Helpers as Util exposing (getNameFromRef)
+import Utils.Helpers as Util
 import Vela
 
 

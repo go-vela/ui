@@ -5,7 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 module Layouts.Default exposing (Model, Msg, Props, layout, map)
 
-import Components.Alerts as Alerts exposing (Alert)
+import Components.Alerts exposing (Alert)
 import Components.Footer
 import Components.Header
 import Components.Nav

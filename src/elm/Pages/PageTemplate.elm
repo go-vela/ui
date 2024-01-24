@@ -13,7 +13,6 @@ import Html
         )
 import Layouts
 import Page exposing (Page)
-import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
 import Shared
 import View exposing (View)

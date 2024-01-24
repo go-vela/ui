@@ -39,12 +39,11 @@ import Layouts
 import LinkHeader exposing (WebLink)
 import List
 import Page exposing (Page)
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
 import Time
 import Utils.Ansi
-import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Vela
 import View exposing (View)

@@ -1,9 +1,6 @@
 {--
 SPDX-License-Identifier: Apache-2.0
 --}
---todo: known issues:
--- favicon fails to load sometimes on fresh visit
--- not found redirects are weird, refreshing 404 goes to the home page?
 
 
 module Main exposing (main)

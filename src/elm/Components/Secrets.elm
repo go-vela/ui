@@ -6,11 +6,9 @@ import Html exposing (Html, a, button, div, span, td, text, tr)
 import Html.Attributes exposing (attribute, class, scope)
 import Html.Events exposing (onClick)
 import Http
-import Maybe.Extra
 import RemoteData exposing (WebData)
 import Route.Path
 import Shared
-import Url
 import Utils.Helpers as Util
 import Vela
 

@@ -10,7 +10,6 @@ import Auth.Session exposing (Session(..))
 import Dict
 import Route exposing (Route)
 import Route.Path
-import Route.Query
 import Shared
 import View exposing (View)
 

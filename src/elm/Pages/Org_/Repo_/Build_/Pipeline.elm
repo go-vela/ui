@@ -8,21 +8,18 @@ module Pages.Org_.Repo_.Build_.Pipeline exposing (..)
 import Ansi.Log
 import Array
 import Auth
-import Components.Svgs
-import Debug exposing (log)
 import Dict exposing (Dict)
-import Effect exposing (Effect, getPipelineConfig)
+import Effect exposing (Effect)
 import FeatherIcons
-import Html exposing (Html, a, button, code, details, div, small, span, strong, summary, td, text, tr)
+import Html exposing (Html, a, button, code, div, small, span, strong, td, text, tr)
 import Html.Attributes exposing (attribute, class, id)
 import Html.Events exposing (onClick)
 import Http
 import Http.Detailed
 import Layouts
-import List.Extra
 import Maybe.Extra
 import Page exposing (Page)
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Route.Path
 import Shared
@@ -397,7 +394,7 @@ view shared route model =
                                 , let
                                     toggle =
                                         case model.build of
-                                            Success build ->
+                                            RemoteData.Success build ->
                                                 div [ class "action", class "expand-pipeline", Util.testAttribute "pipeline-expand" ]
                                                     [ viewExpandToggleButton model
                                                     , if model.expanding then

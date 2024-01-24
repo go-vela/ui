@@ -1,13 +1,10 @@
 module Components.Build exposing (..)
 
-import Ansi
-import Ansi.Log
 import Components.Svgs
 import DateFormat.Relative
 import FeatherIcons
-import Html exposing (Html, a, details, div, input, label, li, span, strong, summary, text, ul)
-import Html.Attributes exposing (attribute, checked, class, classList, for, href, id, name, style, title, type_)
-import Html.Events exposing (onClick)
+import Html exposing (Html, a, details, div, label, li, span, strong, summary, text, ul)
+import Html.Attributes exposing (attribute, class, classList, href, id, title)
 import List.Extra
 import RemoteData exposing (WebData)
 import Route.Path

@@ -82,7 +82,6 @@ module Vela exposing
     , defaultEnableRepositoryPayload
     , defaultSecret
     , defaultStep
-    , enableRepoDict
     , enableRepoList
     , enableUpdate
     , encodeBuildGraphRenderData
@@ -107,7 +106,7 @@ import Json.Decode exposing (Decoder, andThen, bool, int, string, succeed)
 import Json.Decode.Extra exposing (dict2)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (WebData)
 
 
 
@@ -271,7 +270,7 @@ decodeRepository =
         |> optional "allow_comment" bool False
         |> optional "allow_events" (Json.Decode.maybe decodeAllowEvents) Nothing
         -- "enabled"
-        |> optional "active" enabledDecoder NotAsked
+        |> optional "active" enabledDecoder RemoteData.NotAsked
         -- "enabling"
         |> optional "active" enablingDecoder NotAsked_
         |> optional "pipeline_type" string ""
@@ -295,33 +294,25 @@ type alias Enabled =
     WebData Bool
 
 
-{-| enabledDecoder : decodes string field "status" to the union type Enabled
--}
 enabledDecoder : Decoder Enabled
 enabledDecoder =
     bool |> andThen toEnabled
 
 
-{-| toEnabled : helper to decode string to Enabled
--}
 toEnabled : Bool -> Decoder Enabled
 toEnabled active =
     if active then
         succeed <| RemoteData.succeed True
 
     else
-        succeed NotAsked
+        succeed RemoteData.NotAsked
 
 
-{-| enablingDecoder : decodes string field "status" to the union type Enabling
--}
 enablingDecoder : Decoder Enabling
 enablingDecoder =
     bool |> andThen toEnabling
 
 
-{-| toEnabling : helper to decode string to Enabling
--}
 toEnabling : Bool -> Decoder Enabling
 toEnabling active =
     if active then
@@ -478,8 +469,6 @@ encodeCommentActions comment =
         ]
 
 
-{-| SourceRepositories : type alias for repositories available for creation
--}
 type alias SourceRepositories =
     Dict String (List Repository)
 
@@ -514,8 +503,6 @@ decodeSourceRepositories =
     Json.Decode.dict (Json.Decode.list decodeRepository)
 
 
-{-| enableUpdate : takes repo, enabled status and source repos and sets enabled status of the specified repo
--}
 enableUpdate : Repository -> Enabled -> WebData SourceRepositories -> WebData SourceRepositories
 enableUpdate repo status sourceRepos =
     case sourceRepos of
@@ -531,15 +518,11 @@ enableUpdate repo status sourceRepos =
             sourceRepos
 
 
-{-| enableRepoDict : update the dictionary containing org source repo lists
--}
 enableRepoDict : Repository -> Enabled -> Dict String (List Repository) -> List Repository -> Dict String (List Repository)
 enableRepoDict repo status repos orgRepos =
     Dict.update repo.org (\_ -> Just <| enableRepoList repo status orgRepos) repos
 
 
-{-| enableRepoList : list map for updating single repo status by repo name
--}
 enableRepoList : Repository -> Enabled -> List Repository -> List Repository
 enableRepoList repo status orgRepos =
     List.map
@@ -1048,22 +1031,16 @@ decodeGraphInteraction =
         |> optional "nodeID" string "-1"
 
 
-{-| decodeBuilds : decodes json from vela into list of builds
--}
 decodeBuilds : Decoder (List Build)
 decodeBuilds =
     Json.Decode.list decodeBuild
 
 
-{-| buildStatusDecoder : decodes string field "status" to the union type BuildStatus
--}
 buildStatusDecoder : Decoder Status
 buildStatusDecoder =
     string |> andThen toStatus
 
 
-{-| Status : type enum to represent the possible statuses a vela object can be in
--}
 type Status
     = Pending
     | Running
@@ -1075,8 +1052,6 @@ type Status
     | PendingApproval
 
 
-{-| toStatus : helper to decode string to Status
--}
 toStatus : String -> Decoder Status
 toStatus status =
     case status of
@@ -1108,8 +1083,6 @@ toStatus status =
             succeed Error
 
 
-{-| stringToStatus : helper to convert string to Status
--}
 stringToStatus : String -> Status
 stringToStatus status =
     case status of
@@ -1138,8 +1111,6 @@ stringToStatus status =
             Error
 
 
-{-| statusToString : helper to convert Status to string
--}
 statusToString : Status -> String
 statusToString status =
     case status of
@@ -1168,8 +1139,6 @@ statusToString status =
             "error"
 
 
-{-| isComplete : helper to determine if status is 'complete'
--}
 isComplete : Status -> Bool
 isComplete status =
     case status of
@@ -1356,8 +1325,6 @@ decodeLog =
 -- HOOKS
 
 
-{-| Hook : record type for vela repo hooks
--}
 type alias Hook =
     { id : Int
     , repo_id : Int
@@ -1391,8 +1358,6 @@ decodeHook =
         |> optional "link" string ""
 
 
-{-| decodeHooks : decodes json from vela into list of hooks
--}
 decodeHooks : Decoder (List Hook)
 decodeHooks =
     Json.Decode.list decodeHook
@@ -1512,15 +1477,11 @@ defaultSecret secretType =
     Secret -1 "" "" "" "" "" secretType [] [ "push" ] True
 
 
-{-| secretTypeDecoder : decodes string field "type" to the union type SecretType
--}
 secretTypeDecoder : Decoder SecretType
 secretTypeDecoder =
     string |> andThen toSecretTypeDecoder
 
 
-{-| toSecretTypeDecoder : helper to decode string to SecretType
--}
 toSecretTypeDecoder : String -> Decoder SecretType
 toSecretTypeDecoder type_ =
     case type_ of
@@ -1537,8 +1498,6 @@ toSecretTypeDecoder type_ =
             Json.Decode.fail "unrecognized secret type"
 
 
-{-| secretTypeToString : helper to convert SecretType to string
--}
 secretTypeToString : SecretType -> String
 secretTypeToString type_ =
     case type_ of
@@ -1552,8 +1511,6 @@ secretTypeToString type_ =
             "repo"
 
 
-{-| secretsErrorLabel : helper to convert SecretType to string for printing GET secrets resource errors
--}
 secretsErrorLabel : SecretType -> Org -> Maybe Key -> String
 secretsErrorLabel type_ org key =
     case type_ of
@@ -1567,8 +1524,6 @@ secretsErrorLabel type_ org key =
             "shared secrets for " ++ org ++ "/" ++ Maybe.withDefault "" key
 
 
-{-| maybeSecretTypeToMaybeString : helper to convert Maybe SecretType to Maybe string
--}
 maybeSecretTypeToMaybeString : Maybe SecretType -> Maybe String
 maybeSecretTypeToMaybeString type_ =
     case type_ of

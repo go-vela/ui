@@ -19,7 +19,7 @@ import Http.Detailed
 import Layouts
 import LinkHeader exposing (WebLink)
 import Page exposing (Page)
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
 import Svg.Attributes
@@ -188,12 +188,12 @@ viewRepoSchedules shared model org repo =
         ( noRowsView, rows ) =
             if schedulesAllowed then
                 case model.schedules of
-                    Success s ->
+                    RemoteData.Success s ->
                         ( text "No schedules found for this repo"
                         , schedulesToRows shared.zone org repo s
                         )
 
-                    Failure error ->
+                    RemoteData.Failure error ->
                         ( span [ Util.testAttribute "repo-schedule-error" ]
                             [ text <|
                                 case error of

@@ -20,8 +20,6 @@ import String.Extra
 import Vela
 
 
-{-| Model : wrapper for help args, meant to slim down the input required to render contextual help for each page
--}
 type alias Model msg =
     { user : Arg
     , sourceRepos : Arg
@@ -36,14 +34,10 @@ type alias Model msg =
     , toggle : Maybe Bool -> msg
     , copy : String -> msg
     , noOp : msg
-
-    -- , page : Page
     , velaDocsURL : String
     }
 
 
-{-| Arg : type alias for extracting remotedata information
--}
 type alias Arg =
     { loading : Bool
     , success : Bool
@@ -63,72 +57,6 @@ type alias Command =
 commands : Route.Path.Path -> List Command
 commands path =
     []
-
-
-
--- case page of
--- Pages.Overview ->
---     [ listFavorites ]
--- Pages.SourceRepositories ->
---     []
--- Pages.OrgRepositories _ _ _ ->
---     []
--- Pages.Hooks org repo _ _ ->
---     [ validate, listHooks org repo, viewHook org repo ]
--- Pages.OrgBuilds _ _ _ _ ->
---     []
--- Pages.RepositoryBuilds org repo _ _ _ ->
---     [ listBuilds org repo ]
--- Pages.RepositoryBuildsPulls org repo _ _ ->
---     [ listBuilds org repo ]
--- Pages.RepositoryBuildsTags org repo _ _ ->
---     [ listBuilds org repo ]
--- Pages.RepositoryDeployments org repo _ _ ->
---     [ listDeployments org repo ]
--- Pages.Build org repo buildNumber _ ->
---     [ viewBuild org repo buildNumber, approveBuild org repo buildNumber, restartBuild org repo buildNumber, cancelBuild org repo buildNumber, listSteps org repo buildNumber, viewStep org repo buildNumber ]
--- Pages.BuildServices org repo buildNumber _ ->
---     [ viewBuild org repo buildNumber, approveBuild org repo buildNumber, restartBuild org repo buildNumber, cancelBuild org repo buildNumber, listServices org repo buildNumber, viewService org repo buildNumber ]
--- Pages.BuildPipeline org repo buildNumber _ _ ->
---     [ viewBuild org repo buildNumber, approveBuild org repo buildNumber, restartBuild org repo buildNumber ]
--- Pages.BuildGraph org repo buildNumber ->
---     [ viewBuild org repo buildNumber, restartBuild org repo buildNumber ]
--- Pages.RepoSettings org repo ->
---     [ viewRepo org repo, repairRepo org repo, chownRepo org repo ]
--- Pages.OrgSecrets secretEngine org _ _ ->
---     [ listSecrets secretEngine Vela.OrgSecret org Nothing ]
--- Pages.RepoSecrets secretEngine org repo _ _ ->
---     [ listSecrets secretEngine Vela.RepoSecret org <| Just repo ]
--- Pages.SharedSecrets secretEngine org key _ _ ->
---     [ listSecrets secretEngine Vela.SharedSecret org <| Just key ]
--- Pages.AddOrgSecret secretEngine org ->
---     [ addSecret secretEngine Vela.OrgSecret org Nothing ]
--- Pages.AddRepoSecret secretEngine org repo ->
---     [ addSecret secretEngine Vela.RepoSecret org <| Just repo ]
--- Pages.AddDeployment org repo ->
---     [ addDeployment org repo ]
--- Pages.PromoteDeployment org repo _ ->
---     [ addDeployment org repo ]
--- Pages.AddSharedSecret secretEngine org team ->
---     [ addSecret secretEngine Vela.SharedSecret org <| Just team ]
--- Pages.OrgSecret secretEngine org name ->
---     [ viewSecret secretEngine Vela.OrgSecret org Nothing name, updateSecret secretEngine Vela.OrgSecret org Nothing name ]
--- Pages.RepoSecret secretEngine org repo name ->
---     [ viewSecret secretEngine Vela.RepoSecret org (Just repo) name, updateSecret secretEngine Vela.RepoSecret org (Just repo) name ]
--- Pages.SharedSecret secretEngine org team name ->
---     [ viewSecret secretEngine Vela.SharedSecret org (Just team) name, updateSecret secretEngine Vela.SharedSecret org (Just team) name ]
--- Pages.Settings ->
---     []
--- Pages.Login ->
---     [ authenticate ]
--- Pages.NotFound ->
---     []
--- Pages.AddSchedule org repo ->
---     [ addSchedule org repo ]
--- Pages.Schedule org repo name ->
---     [ viewSchedule org repo name, updateSchedule org repo name ]
--- Pages.Schedules org repo _ _ ->
---     [ listSchedules org repo ]
 
 
 {-| listFavorites : returns cli command for listing favorites

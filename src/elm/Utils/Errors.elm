@@ -8,7 +8,7 @@ module Utils.Errors exposing (Error, addError, addErrorString, detailedErrorToSt
 import Http
 import Http.Detailed
 import Json.Decode as Decode
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (WebData)
 import Task exposing (perform, succeed)
 
 
@@ -108,7 +108,7 @@ wrapErrorContent content =
 -}
 toFailure : Http.Detailed.Error String -> WebData a
 toFailure error =
-    Failure <| detailedErrorToError error
+    RemoteData.Failure <| detailedErrorToError error
 
 
 {-| addError : takes a detailed http error and produces a Cmd Msg that invokes an action in the Errors module

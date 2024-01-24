@@ -16,7 +16,6 @@ import Http.Detailed
 import Layouts
 import List.Extra
 import Page exposing (Page)
-import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
 import Shared
 import String.Extra

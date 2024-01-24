@@ -10,7 +10,7 @@ import Html exposing (Html, button)
 import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (onClick)
 import List.Extra
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (WebData)
 import Utils.Helpers as Util
 import Vela
 
@@ -79,7 +79,7 @@ isFavorited user favorite =
 toggleFavorite : WebData Vela.CurrentUser -> String -> ( List String, Bool )
 toggleFavorite user favorite =
     case user of
-        Success u ->
+        RemoteData.Success u ->
             let
                 favorited =
                     List.member favorite u.favorites
@@ -102,7 +102,7 @@ toggleFavorite user favorite =
 addFavorite : WebData Vela.CurrentUser -> String -> ( List String, Bool )
 addFavorite user favorite =
     case user of
-        Success u ->
+        RemoteData.Success u ->
             let
                 favorites =
                     List.Extra.unique <| favorite :: u.favorites

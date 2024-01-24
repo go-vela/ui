@@ -8,7 +8,7 @@ module Shared.Model exposing (Model)
 import Auth.Session exposing (Session(..))
 import Browser.Events exposing (Visibility(..))
 import Components.Alerts exposing (Alert)
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (WebData)
 import Time exposing (Posix, Zone)
 import Toasty exposing (Stack)
 import Utils.Favicons as Favicons

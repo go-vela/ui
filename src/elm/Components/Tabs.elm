@@ -3,11 +3,10 @@ module Components.Tabs exposing (Tab, view, viewBuildTabs, viewOrgTabs, viewRepo
 import Api.Pagination as Pagination
 import Html exposing (Html, a, div, span, text)
 import Html.Attributes exposing (class, classList)
-import RemoteData exposing (WebData)
+import RemoteData
 import Route.Path
 import Shared
 import Utils.Helpers as Util
-import Vela
 
 
 {-| Tab : record to represent information used by page navigation tab

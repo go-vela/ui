@@ -9,7 +9,7 @@ import Components.Build
 import Components.RecentBuilds
 import Components.Tabs
 import Effect exposing (Effect)
-import Html exposing (..)
+import Html exposing (Html)
 import Http
 import Http.Detailed
 import Layout exposing (Layout)

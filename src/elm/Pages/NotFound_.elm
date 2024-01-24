@@ -82,8 +82,6 @@ subscriptions model =
 -- VIEW
 
 
-{-| view : takes current user, user input and action params and renders home page with favorited repos
--}
 view : Shared.Model -> Model -> View Msg
 view shared model =
     { title = "Not Found"

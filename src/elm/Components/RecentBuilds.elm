@@ -2,7 +2,7 @@ module Components.RecentBuilds exposing (..)
 
 import Components.Svgs
 import Html exposing (Html, a, div, em, li, p, span, text, ul)
-import Html.Attributes exposing (attribute, class, href)
+import Html.Attributes exposing (attribute, class)
 import RemoteData exposing (WebData)
 import Route.Path
 import Shared
