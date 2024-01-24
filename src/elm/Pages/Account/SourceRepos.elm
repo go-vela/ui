@@ -48,6 +48,7 @@ import List.Extra
 import Page exposing (Page)
 import RemoteData exposing (WebData)
 import Route exposing (Route)
+import Route.Path
 import Shared
 import Utils.Errors
 import Utils.Helpers as Util
@@ -514,8 +515,7 @@ enableRepoButton repo enableRepo toggleFavorite favorited =
                     , a
                         [ class "button"
                         , Util.testAttribute <| String.join "-" [ "view", repo.org, repo.name ]
-
-                        -- , Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing Nothing
+                        , Route.Path.href <| Route.Path.Org_Repo_ { org = repo.org, repo = repo.name }
                         ]
                         [ text "View" ]
                     ]
