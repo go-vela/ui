@@ -59,8 +59,7 @@ toLayout user route model =
 
 
 type alias Model =
-    { builds : WebData (List Vela.Build)
-    , pager : List WebLink
+    { pager : List WebLink
     , showFullTimestamps : Bool
     , showActionsMenus : List Int
     }
@@ -68,8 +67,7 @@ type alias Model =
 
 init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
 init shared route () =
-    ( { builds = RemoteData.Loading
-      , pager = []
+    ( { pager = []
       , showFullTimestamps = False
       , showActionsMenus = []
       }
@@ -105,19 +103,19 @@ update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -
 update shared route msg model =
     case msg of
         GetRepoBuildsResponse response ->
-            case response of
-                Ok ( meta, builds ) ->
-                    ( { model
-                        | builds = RemoteData.Success builds
-                        , pager = Api.Pagination.get meta.headers
-                      }
-                    , Effect.none
-                    )
+            Tuple.mapSecond (\_ -> Effect.sendSharedRepoBuildsResponse { response = response }) <|
+                case response of
+                    Ok ( meta, _ ) ->
+                        ( { model
+                            | pager = Api.Pagination.get meta.headers
+                          }
+                        , Effect.none
+                        )
 
-                Err error ->
-                    ( { model | builds = Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
-                    )
+                    Err error ->
+                        ( model
+                        , Effect.none
+                        )
 
         GotoPage pageNumber ->
             ( model
@@ -202,8 +200,7 @@ update shared route msg model =
 
         FilterByEvent maybeEvent ->
             ( { model
-                | builds = RemoteData.Loading
-                , pager = []
+                | pager = []
               }
             , Effect.batch
                 [ Effect.pushRoute
@@ -263,7 +260,7 @@ view shared route model =
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
         , Components.Builds.view shared
             { msgs = msgs
-            , builds = model.builds
+            , builds = shared.builds
             , maybeEvent = Dict.get "event" route.query
             , showFullTimestamps = model.showFullTimestamps
             , viewActionsMenu =

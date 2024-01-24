@@ -205,12 +205,12 @@ helpArgs shared model =
 
     -- todo: this needs to also be a layout prop input
     , sourceRepos = helpArg RemoteData.NotAsked
-    , orgRepos = helpArg shared.repo.orgRepos.orgRepos
-    , builds = helpArg shared.repo.builds.builds
-    , deployments = helpArg shared.repo.deployments.deployments
-    , build = helpArg shared.repo.build.build
-    , repo = helpArg shared.repo.repo
-    , hooks = helpArg shared.repo.hooks.hooks
+    , orgRepos = helpArg RemoteData.NotAsked
+    , builds = helpArg RemoteData.NotAsked
+    , deployments = helpArg RemoteData.NotAsked
+    , build = helpArg RemoteData.NotAsked
+    , repo = helpArg RemoteData.NotAsked
+    , hooks = helpArg RemoteData.NotAsked
 
     -- , secrets = helpArg secretsModel.repoSecrets
     , secrets = helpArg RemoteData.NotAsked

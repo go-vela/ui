@@ -50,4 +50,10 @@ type alias Model =
 
     -- ALERTS
     , toasties : Stack Alert
+
+    -- BUILDS
+    , builds : WebData (List Vela.Build)
+
+    -- HOOKS
+    , hooks : WebData (List Vela.Hook)
     }

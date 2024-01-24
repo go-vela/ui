@@ -3,7 +3,7 @@ module Components.Tabs exposing (Tab, view, viewBuildTabs, viewOrgTabs, viewRepo
 import Api.Pagination as Pagination
 import Html exposing (Html, a, div, span, text)
 import Html.Attributes exposing (class, classList)
-import RemoteData
+import RemoteData exposing (WebData)
 import Route.Path
 import Shared
 import Utils.Helpers as Util
@@ -126,16 +126,12 @@ viewRepoTabs :
         { currentPath : Route.Path.Path
         , org : String
         , repo : String
-        , scheduleAllowlist : List ( Vela.Org, Vela.Repo )
         }
     -> Html msg
 viewRepoTabs shared props =
     let
-        rm =
-            shared.repo
-
         lastHook =
-            case rm.hooks.hooks of
+            case shared.hooks of
                 RemoteData.Success hooks ->
                     List.head hooks
 
@@ -143,7 +139,7 @@ viewRepoTabs shared props =
                     Nothing
 
         lastBuild =
-            case rm.builds.builds of
+            case shared.builds of
                 RemoteData.Success builds ->
                     List.head builds
 
@@ -164,7 +160,7 @@ viewRepoTabs shared props =
                     False
 
         showSchedules =
-            Util.checkScheduleAllowlist props.org props.repo props.scheduleAllowlist
+            Util.checkScheduleAllowlist props.org props.repo shared.velaScheduleAllowlist
 
         tabs =
             [ { name = "Builds"

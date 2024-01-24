@@ -152,6 +152,12 @@ init flagsResult route =
 
       -- ALERTS
       , toasties = Alerting.initialState
+
+      -- BUILDS
+      , builds = RemoteData.NotAsked
+
+      -- HOOKS
+      , hooks = RemoteData.NotAsked
       }
     , Effect.batch
         [ setTimeZone
@@ -430,6 +436,48 @@ update route msg model =
 
                 Err error ->
                     ( { model | user = Errors.toFailure error }
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
+        -- BUILDS
+        Shared.Msg.GetRepoBuilds options ->
+            ( model
+            , Api.try
+                Shared.Msg.GetRepoBuildsResponse
+                (Api.Operations.getRepoBuilds model.velaAPI model.session options)
+                |> Effect.sendCmd
+            )
+
+        Shared.Msg.GetRepoBuildsResponse response ->
+            case response of
+                Ok ( _, builds ) ->
+                    ( { model | builds = RemoteData.succeed builds }
+                    , Effect.none
+                    )
+
+                Err error ->
+                    ( { model | builds = Errors.toFailure error }
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
+        -- BUILDS
+        Shared.Msg.GetRepoHooks options ->
+            ( model
+            , Api.try
+                Shared.Msg.GetRepoHooksResponse
+                (Api.Operations.getRepoHooks model.velaAPI model.session options)
+                |> Effect.sendCmd
+            )
+
+        Shared.Msg.GetRepoHooksResponse response ->
+            case response of
+                Ok ( _, hooks ) ->
+                    ( { model | hooks = RemoteData.succeed hooks }
+                    , Effect.none
+                    )
+
+                Err error ->
+                    ( { model | hooks = Errors.toFailure error }
                     , Effect.handleHttpError { httpError = error }
                     )
 

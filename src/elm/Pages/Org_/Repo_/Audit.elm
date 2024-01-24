@@ -14,7 +14,6 @@ import Components.Svgs
 import Components.Table
 import Dict
 import Effect exposing (Effect)
-import FeatherIcons
 import Html
     exposing
         ( Html
@@ -33,7 +32,6 @@ import Html.Attributes
         , class
         , href
         , rows
-        , scope
         )
 import Http
 import Http.Detailed
@@ -44,7 +42,6 @@ import Page exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import Shared
-import Svg.Attributes
 import Time
 import Utils.Ansi
 import Utils.Errors as Errors
@@ -83,15 +80,13 @@ toLayout user route model =
 
 
 type alias Model =
-    { hooks : WebData (List Vela.Hook)
-    , pager : List WebLink
+    { pager : List WebLink
     }
 
 
 init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
 init shared route () =
-    ( { hooks = RemoteData.Loading
-      , pager = []
+    ( { pager = []
       }
     , Effect.getRepoHooks
         { baseUrl = shared.velaAPI
@@ -120,19 +115,19 @@ update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -
 update shared route msg model =
     case msg of
         GetRepoHooksResponse response ->
-            case response of
-                Ok ( meta, hooks ) ->
-                    ( { model
-                        | hooks = RemoteData.Success hooks
-                        , pager = Api.Pagination.get meta.headers
-                      }
-                    , Effect.none
-                    )
+            Tuple.mapSecond (\_ -> Effect.sendSharedRepoHooksResponse { response = response }) <|
+                case response of
+                    Ok ( meta, _ ) ->
+                        ( { model
+                            | pager = Api.Pagination.get meta.headers
+                          }
+                        , Effect.none
+                        )
 
-                Err error ->
-                    ( { model | hooks = Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
-                    )
+                    Err error ->
+                        ( model
+                        , Effect.none
+                        )
 
         RedeliverRepoHook options ->
             ( model
@@ -197,7 +192,7 @@ view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Ms
 view shared route model =
     { title = route.params.org ++ "/" ++ route.params.repo ++ " Hooks"
     , body =
-        [ viewHooks shared route.params.org route.params.repo model.hooks
+        [ viewHooks shared route.params.org route.params.repo shared.hooks
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
         ]
     }

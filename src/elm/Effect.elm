@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, addDeployment, addOrgSecret, addRepoSecret, alertsUpdate, clearRedirect, downloadFile, enableRepo, finishAuthentication, focusOn, getBuild, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoDeployments, getRepoHooks, getRepoSchedules, getRepoSecret, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, redeliverHook, setRedirect, setTheme, updateFavorites, updateOrgSecret, updateRepoSecret
+    , addAlertError, addAlertSuccess, addDeployment, addOrgSecret, addRepoSecret, alertsUpdate, clearRedirect, downloadFile, enableRepo, finishAuthentication, focusOn, getBuild, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoBuildsShared, getRepoDeployments, getRepoHooks, getRepoHooksShared, getRepoSchedules, getRepoSecret, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, redeliverHook, sendSharedRepoBuildsResponse, sendSharedRepoHooksResponse, setRedirect, setTheme, updateFavorites, updateOrgSecret, updateRepoSecret
     )
 
 {-|
@@ -483,6 +483,26 @@ getRepoBuilds options =
         |> sendCmd
 
 
+getRepoBuildsShared :
+    { pageNumber : Maybe Int
+    , perPage : Maybe Int
+    , maybeEvent : Maybe String
+    , org : String
+    , repo : String
+    }
+    -> Effect msg
+getRepoBuildsShared options =
+    SendSharedMsg <| Shared.Msg.GetRepoBuilds options
+
+
+sendSharedRepoBuildsResponse :
+    { response : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build )
+    }
+    -> Effect msg
+sendSharedRepoBuildsResponse options =
+    SendSharedMsg <| Shared.Msg.GetRepoBuildsResponse options.response
+
+
 getSharedSecrets :
     { baseUrl : String
     , session : Auth.Session.Session
@@ -564,6 +584,26 @@ getRepoHooks options =
             options
         )
         |> sendCmd
+
+
+getRepoHooksShared :
+    { pageNumber : Maybe Int
+    , perPage : Maybe Int
+    , maybeEvent : Maybe String
+    , org : String
+    , repo : String
+    }
+    -> Effect msg
+getRepoHooksShared options =
+    SendSharedMsg <| Shared.Msg.GetRepoHooks options
+
+
+sendSharedRepoHooksResponse :
+    { response : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Hook )
+    }
+    -> Effect msg
+sendSharedRepoHooksResponse options =
+    SendSharedMsg <| Shared.Msg.GetRepoHooksResponse options.response
 
 
 redeliverHook :

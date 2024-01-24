@@ -10,8 +10,10 @@ import Effect exposing (Effect)
 import Html exposing (..)
 import Layout exposing (Layout)
 import Layouts.Default
+import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
+import Vela
 import View exposing (View)
 
 
@@ -35,7 +37,7 @@ map fn props =
 layout : Props contentMsg -> Shared.Model -> Route () -> Layout (Layouts.Default.Props contentMsg) Model Msg contentMsg
 layout props shared route =
     Layout.new
-        { init = init shared
+        { init = init props shared
         , update = update
         , view = view props shared route
         , subscriptions = subscriptions
@@ -48,7 +50,6 @@ layout props shared route =
                     { org = props.org
                     , repo = props.repo
                     , currentPath = route.path
-                    , scheduleAllowlist = shared.velaScheduleAllowlist
                     }
                 ]
             }
@@ -62,10 +63,25 @@ type alias Model =
     {}
 
 
-init : Shared.Model -> () -> ( Model, Effect Msg )
-init shared _ =
+init : Props contentMsg -> Shared.Model -> () -> ( Model, Effect Msg )
+init props shared _ =
     ( {}
-    , Effect.none
+    , Effect.batch
+        [ Effect.getRepoBuildsShared
+            { pageNumber = Nothing
+            , perPage = Nothing
+            , maybeEvent = Nothing
+            , org = props.org
+            , repo = props.repo
+            }
+        , Effect.getRepoHooksShared
+            { pageNumber = Nothing
+            , perPage = Nothing
+            , maybeEvent = Nothing
+            , org = props.org
+            , repo = props.repo
+            }
+        ]
     )
 
 
@@ -98,7 +114,5 @@ subscriptions model =
 view : Props contentMsg -> Shared.Model -> Route () -> { toContentMsg : Msg -> contentMsg, content : View contentMsg, model : Model } -> View contentMsg
 view props shared route { toContentMsg, model, content } =
     { title = content.title
-    , body =
-        [ Html.span [] content.body
-        ]
+    , body = content.body
     }

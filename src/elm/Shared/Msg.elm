@@ -38,6 +38,12 @@ type Msg
       -- FAVORITES
     | UpdateFavorites { org : String, maybeRepo : Maybe String, updateType : Favorites.UpdateType }
     | RepoFavoriteResponse { favorite : String, favorited : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.CurrentUser ))
+      -- BUILDS
+    | GetRepoBuilds { org : String, repo : String, pageNumber : Maybe Int, perPage : Maybe Int, maybeEvent : Maybe String }
+    | GetRepoBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))
+      -- HOOKS
+    | GetRepoHooks { org : String, repo : String, pageNumber : Maybe Int, perPage : Maybe Int, maybeEvent : Maybe String }
+    | GetRepoHooksResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Hook ))
       -- BUILD GRAPH
     | BuildGraphInteraction Vela.BuildGraphInteraction
       -- THEME

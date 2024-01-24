@@ -75,11 +75,8 @@ init props shared _ =
       , build = RemoteData.Loading
       }
     , Effect.batch
-        [ Effect.getRepoBuilds
-            { baseUrl = shared.velaAPI
-            , session = shared.session
-            , onResponse = GetBuildsResponse
-            , pageNumber = Nothing
+        [ Effect.getRepoBuildsShared
+            { pageNumber = Nothing
             , perPage = Nothing
             , maybeEvent = Nothing
             , org = props.org
@@ -113,11 +110,8 @@ update props shared msg model =
         OnUrlChanged _ ->
             ( model
             , Effect.batch
-                [ Effect.getRepoBuilds
-                    { baseUrl = shared.velaAPI
-                    , session = shared.session
-                    , onResponse = GetBuildsResponse
-                    , pageNumber = Nothing
+                [ Effect.getRepoBuildsShared
+                    { pageNumber = Nothing
                     , perPage = Nothing
                     , maybeEvent = Nothing
                     , org = props.org
