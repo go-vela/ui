@@ -11,7 +11,7 @@ import Auth
 import Components.Svgs
 import Debug exposing (log)
 import Dict exposing (Dict)
-import Effect exposing (Effect)
+import Effect exposing (Effect, getPipelineConfig)
 import FeatherIcons
 import Html exposing (Html, a, button, code, details, div, small, span, strong, summary, td, text, tr)
 import Html.Attributes exposing (attribute, class, id)
@@ -20,6 +20,7 @@ import Http
 import Http.Detailed
 import Layouts
 import List.Extra
+import Maybe.Extra
 import Page exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
@@ -43,6 +44,7 @@ page user shared route =
         }
         |> Page.withLayout (toLayout user route)
         |> Page.withOnHashChanged OnHashChanged
+        |> Page.withOnQueryParameterChanged { key = "expand", onChange = OnExpandQueryParameterChanged }
 
 
 
@@ -77,18 +79,9 @@ type alias Model =
     , templates : WebData (Dict String Vela.Template)
     , lineFocus : ( Maybe Int, ( Maybe Int, Maybe Int ) )
     , showTemplates : Bool
+    , expand : Bool
+    , expanding : Bool
     }
-
-
-
--- type alias PipelineModel =
---     { config : ( WebData PipelineConfig, Errors.Error )
---     , expanded : Bool
---     , expanding : Bool
---     , expand : Maybe String
---     , lineFocus : LogFocus
---     , focusFragment : FocusFragment
---     }
 
 
 init : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> () -> ( Model, Effect Msg )
@@ -101,6 +94,12 @@ init shared route () =
                 |> Focus.parseFocusFragment
                 |> (\ft -> ( ft.resourceNumber, ( ft.lineA, ft.lineB ) ))
       , showTemplates = True
+      , expand =
+            route.query
+                |> Dict.get "expand"
+                |> Maybe.Extra.unwrap False
+                    (\e -> String.toLower e == "true")
+      , expanding = False
       }
     , Effect.getBuild
         { baseUrl = shared.velaAPI
@@ -119,13 +118,17 @@ init shared route () =
 
 type Msg
     = -- BROWSER
-      OnHashChanged { from : Maybe String, to : Maybe String }
+      OnExpandQueryParameterChanged { from : Maybe String, to : Maybe String }
+    | PushUrlQueryParameter { key : String, value : String }
+    | OnHashChanged { from : Maybe String, to : Maybe String }
     | PushUrlHash { hash : String }
     | FocusOn { target : String }
       -- BUILD
     | GetBuildResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
       -- PIPELINE
     | GetBuildPipelineConfigResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.PipelineConfig ))
+    | GetExpandBuildPipelineConfigResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | ToggleExpand
     | DownloadPipeline { filename : String, content : String, map : String -> String }
       -- TEMPLATES
     | GetBuildPipelineTemplatesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Dict String Vela.Template ))
@@ -136,6 +139,67 @@ update : Shared.Model -> Route { org : String, repo : String, buildNumber : Stri
 update shared route msg model =
     case msg of
         -- BROWSER
+        OnExpandQueryParameterChanged options ->
+            let
+                expand =
+                    options.to
+                        |> Maybe.Extra.unwrap False
+                            (\e -> String.toLower e == "true")
+
+                expanding =
+                    options.from /= options.to
+
+                sideEffect =
+                    case model.build of
+                        RemoteData.Success build ->
+                            if expand then
+                                Effect.expandPipelineConfig
+                                    { baseUrl = shared.velaAPI
+                                    , session = shared.session
+                                    , onResponse = GetExpandBuildPipelineConfigResponse
+                                    , org = route.params.org
+                                    , repo = route.params.repo
+                                    , ref = build.commit
+                                    }
+
+                            else
+                                Effect.getPipelineConfig
+                                    { baseUrl = shared.velaAPI
+                                    , session = shared.session
+                                    , onResponse = GetBuildPipelineConfigResponse
+                                    , org = route.params.org
+                                    , repo = route.params.repo
+                                    , ref = build.commit
+                                    }
+
+                        _ ->
+                            Effect.getBuild
+                                { baseUrl = shared.velaAPI
+                                , session = shared.session
+                                , onResponse = GetBuildResponse
+                                , org = route.params.org
+                                , repo = route.params.repo
+                                , buildNumber = route.params.buildNumber
+                                }
+            in
+            ( { model | expand = expand, expanding = expanding }
+            , sideEffect
+            )
+
+        PushUrlQueryParameter options ->
+            ( model
+            , Effect.pushRoute
+                { path =
+                    Route.Path.Org_Repo_Build_Pipeline
+                        { org = route.params.org
+                        , repo = route.params.repo
+                        , buildNumber = route.params.buildNumber
+                        }
+                , query = Dict.insert options.key options.value route.query
+                , hash = route.hash
+                }
+            )
+
         OnHashChanged _ ->
             ( { model
                 | lineFocus =
@@ -167,16 +231,31 @@ update shared route msg model =
         GetBuildResponse response ->
             case response of
                 Ok ( _, build ) ->
+                    let
+                        getPipelineConfigEffect =
+                            if model.expand then
+                                Effect.expandPipelineConfig
+                                    { baseUrl = shared.velaAPI
+                                    , session = shared.session
+                                    , onResponse = GetExpandBuildPipelineConfigResponse
+                                    , org = route.params.org
+                                    , repo = route.params.repo
+                                    , ref = build.commit
+                                    }
+
+                            else
+                                Effect.getPipelineConfig
+                                    { baseUrl = shared.velaAPI
+                                    , session = shared.session
+                                    , onResponse = GetBuildPipelineConfigResponse
+                                    , org = route.params.org
+                                    , repo = route.params.repo
+                                    , ref = build.commit
+                                    }
+                    in
                     ( { model | build = RemoteData.Success build }
                     , Effect.batch
-                        [ Effect.getPipelineConfig
-                            { baseUrl = shared.velaAPI
-                            , session = shared.session
-                            , onResponse = GetBuildPipelineConfigResponse
-                            , org = route.params.org
-                            , repo = route.params.repo
-                            , ref = build.commit
-                            }
+                        [ getPipelineConfigEffect
                         , Effect.getPipelineTemplates
                             { baseUrl = shared.velaAPI
                             , session = shared.session
@@ -197,14 +276,53 @@ update shared route msg model =
         GetBuildPipelineConfigResponse response ->
             case response of
                 Ok ( _, pipeline ) ->
-                    ( { model | pipeline = RemoteData.Success { pipeline | decodedData = Util.base64Decode pipeline.rawData } }
+                    ( { model
+                        | pipeline =
+                            RemoteData.Success
+                                { pipeline
+                                    | decodedData = Util.base64Decode pipeline.rawData
+                                }
+                        , expanding = False
+                      }
                     , Effect.none
                     )
 
                 Err error ->
-                    ( { model | pipeline = Errors.toFailure error }
+                    ( { model | pipeline = Errors.toFailure error, expanding = False }
                     , Effect.handleHttpError { httpError = error }
                     )
+
+        GetExpandBuildPipelineConfigResponse response ->
+            case response of
+                Ok ( _, expandedPipeline ) ->
+                    ( { model
+                        | pipeline =
+                            RemoteData.Success
+                                { rawData = ""
+                                , decodedData = expandedPipeline
+                                }
+                        , expanding = False
+                      }
+                    , Effect.none
+                    )
+
+                Err error ->
+                    ( { model | pipeline = Errors.toFailure error, expanding = False }
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
+        ToggleExpand ->
+            let
+                value =
+                    if model.expand then
+                        "false"
+
+                    else
+                        "true"
+            in
+            ( model
+            , Effect.sendMsg <| PushUrlQueryParameter { key = "expand", value = value }
+            )
 
         DownloadPipeline options ->
             ( model
@@ -266,7 +384,7 @@ view shared route model =
                     Util.smallLoaderWithText "loading pipeline templates"
             , case model.pipeline of
                 RemoteData.Success pipeline ->
-                    if String.length pipeline.rawData > 0 then
+                    if String.length pipeline.decodedData > 0 then
                         div [ class "logs-container", class "-pipeline" ]
                             [ Html.table
                                 [ class "logs-table"
@@ -281,9 +399,16 @@ view shared route model =
                                         case model.build of
                                             Success build ->
                                                 div [ class "action", class "expand-pipeline", Util.testAttribute "pipeline-expand" ]
-                                                    [--     expandPipelineToggleButton model build.commit get expand
-                                                     -- , expandPipelineToggleIcon pipeline
-                                                     -- , expandPipelineTip
+                                                    [ viewExpandToggleButton model
+                                                    , if model.expanding then
+                                                        Util.smallLoader
+
+                                                      else if model.expand then
+                                                        div [ class "icon" ] [ FeatherIcons.checkCircle |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [] ]
+
+                                                      else
+                                                        div [ class "icon" ] [ FeatherIcons.circle |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [] ]
+                                                    , small [ class "tip" ] [ text "note: yaml fields will be sorted alphabetically when the pipeline is expanded." ]
                                                     ]
 
                                             _ ->
@@ -292,7 +417,25 @@ view shared route model =
                                   div [ class "actions" ]
                                     [ toggle
                                     , div [ class "action" ]
-                                        [-- downloadButton config pipeline.expanded download
+                                        [ button
+                                            [ class "button"
+                                            , class "-link"
+                                            , Util.testAttribute <| "download-yml"
+                                            , onClick <|
+                                                DownloadPipeline
+                                                    { filename = "vela.yml"
+                                                    , content = pipeline.decodedData
+                                                    , map = identity
+                                                    }
+                                            , attribute "aria-label" <| "download pipeline configuration file for "
+                                            ]
+                                            [ text <|
+                                                if model.expand then
+                                                    "download (expanded) " ++ "vela.yml"
+
+                                                else
+                                                    "download " ++ "vela.yml"
+                                            ]
                                         ]
                                     ]
                                 , div [ class "logs", Util.testAttribute "pipeline-configuration-data" ] <|
@@ -310,8 +453,22 @@ view shared route model =
     }
 
 
-{-| viewTemplate : takes template and renders view with name, source and HTML url.
--}
+viewExpandToggleButton : Model -> Html Msg
+viewExpandToggleButton model =
+    button
+        [ class "button"
+        , class "-link"
+        , Util.onClickPreventDefault ToggleExpand
+        , Util.testAttribute "pipeline-expand-toggle"
+        ]
+        [ if model.expand then
+            text "revert pipeline expansion"
+
+          else
+            text "expand pipeline"
+        ]
+
+
 viewTemplate : ( String, Vela.Template ) -> Html msg
 viewTemplate ( _, t ) =
     div [ class "template", Util.testAttribute <| "pipeline-template-" ++ t.name ]
@@ -328,8 +485,6 @@ viewTemplate ( _, t ) =
         ]
 
 
-{-| viewTemplatesDetails : takes templates content and wraps it in a details/summary.
--}
 viewTemplatesDetails : Html.Attribute msg -> Bool -> msg -> List (Html msg) -> Html msg
 viewTemplatesDetails cls open showHide content =
     Html.details
@@ -346,11 +501,6 @@ viewTemplatesDetails cls open showHide content =
         ]
 
 
-{-| viewLines : takes pipeline configuration, line focus and shift key.
-
-    returns a list of rendered data lines with focusable line numbers.
-
--}
 viewLines : Shared.Model -> Vela.PipelineConfig -> Maybe Focus.LineFocus -> List (Html Msg)
 viewLines shared config lineFocus =
     config.decodedData
@@ -370,8 +520,6 @@ viewLines shared config lineFocus =
         |> List.filterMap identity
 
 
-{-| viewLine : takes line and focus information and renders line number button and data.
--}
 viewLine : Shared.Model -> String -> Int -> Maybe Ansi.Log.Line -> String -> Maybe Focus.LineFocus -> Html Msg
 viewLine shared id lineNumber line resource lineFocus =
     tr

@@ -12,7 +12,6 @@ import Components.Builds
 import Components.Pager
 import Dict
 import Effect exposing (Effect)
-import Html exposing (text)
 import Http
 import Http.Detailed
 import Layouts
@@ -20,10 +19,9 @@ import LinkHeader exposing (WebLink)
 import List
 import Maybe.Extra
 import Page exposing (Page)
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
 import Shared
-import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Vela
 import View exposing (View)

@@ -9,6 +9,7 @@ module Api.Operations exposing
     , addRepoSecret
     , addSharedSecret
     , enableRepo
+    , expandPipelineConfig
     , finishAuthentication
     , getBuild
     , getBuildGraph
@@ -650,6 +651,30 @@ getPipelineConfig baseUrl session options =
             options.ref
         )
         Vela.decodePipelineConfig
+        |> withAuth session
+
+
+{-| expandPipelineConfig: retrieves an expanded pipeline config for a ref
+-}
+expandPipelineConfig :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , ref : String
+        }
+    -> Request String
+expandPipelineConfig baseUrl session options =
+    post baseUrl
+        (Api.Endpoint.ExpandPipelineConfig
+            options.org
+            options.repo
+            options.ref
+        )
+        Http.emptyBody
+        Json.Decode.string
         |> withAuth session
 
 
