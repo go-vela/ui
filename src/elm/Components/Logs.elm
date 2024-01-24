@@ -149,7 +149,19 @@ viewLine shared props logLine lineNumber =
             , class <| Focus.lineFocusStyles props.lineFocus lineNumber
             ]
             [ td []
-                [ lineFocusButton shared props lineNumber
+                [ button
+                    [ Util.onClickPreventDefault <|
+                        props.msgs.pushUrlHash
+                            { hash = Focus.lineRangeId props.resourceType props.resourceNumber lineNumber props.lineFocus shared.shift
+                            }
+                    , Util.testAttribute <| String.join "-" [ "log", "line", "num", props.resourceType, props.resourceNumber, String.fromInt lineNumber ]
+                    , id <| Focus.resourceAndLineToFocusId props.resourceType props.resourceNumber lineNumber
+                    , class "line-number"
+                    , class "button"
+                    , class "-link"
+                    , attribute "aria-label" <| "focus " ++ props.resourceType ++ " " ++ props.resourceNumber
+                    ]
+                    [ span [] [ text <| String.fromInt lineNumber ] ]
                 ]
             , td [ class "break-text", class "overflow-auto" ]
                 [ code [ Util.testAttribute <| String.join "-" [ "log", "data", props.resourceType, props.resourceNumber, String.fromInt lineNumber ] ]
@@ -277,25 +289,6 @@ viewLogLink : Url.Url -> String -> Html msg
 viewLogLink link txt =
     -- use toString in href to make the link safe
     a [ Util.testAttribute "log-line-link", href <| Url.toString link ] [ text txt ]
-
-
-{-| lineFocusButton : renders button for focusing log line ranges
--}
-lineFocusButton : Shared.Model -> Props msg -> Int -> Html msg
-lineFocusButton shared props lineNumber =
-    button
-        [ Util.onClickPreventDefault <|
-            props.msgs.pushUrlHash
-                { hash = Focus.lineRangeId props.resourceType props.resourceNumber lineNumber props.lineFocus shared.shift
-                }
-        , Util.testAttribute <| String.join "-" [ "log", "line", "num", props.resourceType, props.resourceNumber, String.fromInt lineNumber ]
-        , id <| Focus.resourceAndLineToFocusId props.resourceType props.resourceNumber lineNumber
-        , class "line-number"
-        , class "button"
-        , class "-link"
-        , attribute "aria-label" <| "focus " ++ props.resourceType ++ " " ++ props.resourceNumber
-        ]
-        [ span [] [ text <| String.fromInt lineNumber ] ]
 
 
 {-| logsHeader : takes number, filename and decoded log and renders logs header

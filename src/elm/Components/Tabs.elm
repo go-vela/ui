@@ -260,13 +260,23 @@ viewBuildTabs shared props =
               }
             , { name = "Pipeline"
               , currentPath = props.currentPath
-              , toPath = Route.Path.NotFound_
+              , toPath =
+                    Route.Path.Org_Repo_Build_Pipeline
+                        { org = props.org
+                        , repo = props.repo
+                        , buildNumber = props.buildNumber
+                        }
               , isAlerting = False
               , show = True
               }
             , { name = "Visualize"
               , currentPath = props.currentPath
-              , toPath = Route.Path.NotFound_
+              , toPath =
+                    Route.Path.Org_Repo_Build_Graph
+                        { org = props.org
+                        , repo = props.repo
+                        , buildNumber = props.buildNumber
+                        }
               , isAlerting = False
               , show = True
               }

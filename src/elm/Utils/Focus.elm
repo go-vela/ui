@@ -4,11 +4,8 @@ SPDX-License-Identifier: Apache-2.0
 
 
 module Utils.Focus exposing
-    ( ExpandTemplatesQuery
-    , FocusTarget
-    , Fragment
-    , RefQuery
-    , ResourceType
+    ( FocusTarget
+    , LineFocus
     , focusFragmentToFocusId
     , lineFocusStyles
     , lineRangeId
@@ -21,20 +18,8 @@ module Utils.Focus exposing
 import Maybe.Extra
 
 
-type alias RefQuery =
-    String
-
-
-type alias ExpandTemplatesQuery =
-    String
-
-
-type alias Fragment =
-    String
-
-
-type alias ResourceType =
-    String
+type alias LineFocus =
+    ( Maybe Int, Maybe Int )
 
 
 type alias FocusTarget =
@@ -47,28 +32,28 @@ type alias FocusTarget =
 
 {-| resourceFocusFragment : takes resource tag and maybe line numbers and produces URL fragment for focusing line ranges
 -}
-resourceFocusFragment : ResourceType -> String -> List String -> String
+resourceFocusFragment : String -> String -> List String -> String
 resourceFocusFragment resource resourceId args =
     String.join ":" <| resource :: resourceId :: args
 
 
 {-| resourceToFocusId : takes resource and id and returns the resource focus id for auto focusing on page load
 -}
-resourceToFocusId : ResourceType -> String -> String
+resourceToFocusId : String -> String -> String
 resourceToFocusId resource resourceNumber =
     String.join "-" [ resource, resourceNumber ]
 
 
 {-| resourceAndLineToFocusId : takes resource, id and line number and returns the line focus id for auto focusing on page load
 -}
-resourceAndLineToFocusId : ResourceType -> String -> Int -> String
+resourceAndLineToFocusId : String -> String -> Int -> String
 resourceAndLineToFocusId resource resourceNumber lineNumber =
     String.join "-" [ resource, resourceNumber, "line", String.fromInt lineNumber ]
 
 
 {-| focusFragmentToFocusId : takes URL fragment and parses it into appropriate line focus id for auto focusing on page load
 -}
-focusFragmentToFocusId : ResourceType -> Maybe String -> String
+focusFragmentToFocusId : String -> Maybe String -> String
 focusFragmentToFocusId resource focusFragment =
     let
         parsed =
@@ -108,7 +93,7 @@ parseFocusFragment focusFragment =
 
 {-| lineRangeId : takes resource, line, and focus information and returns the fragment for focusing a range of lines
 -}
-lineRangeId : ResourceType -> String -> Int -> Maybe ( Maybe Int, Maybe Int ) -> Bool -> String
+lineRangeId : String -> String -> Int -> Maybe LineFocus -> Bool -> String
 lineRangeId resource resourceNumber lineNumber maybeLineFocus shiftDown =
     resourceFocusFragment resource resourceNumber <|
         List.map String.fromInt
@@ -140,9 +125,9 @@ lineRangeId resource resourceNumber lineNumber maybeLineFocus shiftDown =
 
 {-| lineFocusStyles : takes maybe linefocus and linenumber and returns the appropriate style for highlighting a focused line
 -}
-lineFocusStyles : Maybe ( Maybe Int, Maybe Int ) -> Int -> String
-lineFocusStyles logFocus lineNumber =
-    logFocus
+lineFocusStyles : Maybe LineFocus -> Int -> String
+lineFocusStyles lineFocus lineNumber =
+    lineFocus
         |> Maybe.Extra.unwrap ""
             (\focus ->
                 case focus of

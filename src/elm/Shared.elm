@@ -31,7 +31,6 @@ import Shared.Msg
 import Task
 import Time
 import Toasty as Alerting
-import Url
 import Utils.Errors as Errors
 import Utils.Favicons as Favicons
 import Utils.Helpers as Util
@@ -120,14 +119,8 @@ init flagsResult route =
             else
                 Effect.none
     in
-    ( { -- AUTH
-        session = Auth.Session.Unauthenticated
-
-      -- USER
-      , user = NotAsked
-
-      -- FLAGS
-      , velaAPI = flags.velaAPI
+    ( { -- FLAGS
+        velaAPI = flags.velaAPI
       , velaFeedbackURL = flags.velaFeedbackURL
       , velaDocsURL = flags.velaDocsURL
       , velaRedirect = flags.velaRedirect
@@ -135,15 +128,15 @@ init flagsResult route =
       , velaMaxBuildLimit = flags.velaMaxBuildLimit
       , velaScheduleAllowlist = Util.stringToAllowlist flags.velaScheduleAllowlist
 
+      -- AUTH
+      , session = Auth.Session.Unauthenticated
+
+      -- USER
+      , user = NotAsked
+
       -- TIME
       , zone = Time.utc
       , time = Time.millisToPosix 0
-
-      -- FAVICON
-      , favicon = Favicons.defaultFavicon
-
-      -- THEME
-      , theme = Theme.stringToTheme flags.velaTheme
 
       -- KEY MODIFIERS
       , shift = False
@@ -151,14 +144,14 @@ init flagsResult route =
       -- VISIBILITY
       , visibility = Visible
 
+      -- FAVICON
+      , favicon = Favicons.defaultFavicon
+
+      -- THEME
+      , theme = Theme.stringToTheme flags.velaTheme
+
       -- ALERTS
       , toasties = Alerting.initialState
-
-      -- todo: migrate these
-      , repo = Vela.defaultRepoModel
-      , buildMenuOpen = []
-      , pipeline = Vela.defaultPipeline
-      , templates = Vela.defaultPipelineTemplates
       }
     , Effect.batch
         [ setTimeZone
@@ -234,15 +227,14 @@ update route msg model =
                         _ ->
                             model.velaRedirect
 
-                ( redirectPath, redirectQuery ) =
-                    case String.split "?" velaRedirect of
-                        path :: query ->
-                            ( Maybe.withDefault Route.Path.Home <| Route.Path.fromString path
-                            , Route.Query.fromString <| String.join "" query
-                            )
-
-                        _ ->
-                            ( Route.Path.Home, Dict.empty )
+                redirectRoute =
+                    Route.Path.parsePath velaRedirect
+                        |> (\parsed ->
+                                { path = Maybe.withDefault Route.Path.Home <| Route.Path.fromString parsed.path
+                                , query = Route.Query.fromString <| Maybe.withDefault "" parsed.query
+                                , hash = parsed.hash
+                                }
+                           )
             in
             case response of
                 Ok ( _, token ) ->
@@ -260,10 +252,7 @@ update route msg model =
                             case currentSession of
                                 Auth.Session.Unauthenticated ->
                                     Effect.pushRoute
-                                        { path = redirectPath
-                                        , query = redirectQuery
-                                        , hash = Nothing
-                                        }
+                                        redirectRoute
 
                                 Auth.Session.Authenticated _ ->
                                     Effect.none

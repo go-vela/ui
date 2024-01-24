@@ -526,6 +526,32 @@ toCrumbs path =
                     in
                     [ overviewCrumbLink, orgReposCrumbLink, repoBuildsCrumbLink, buildNumberCrumbStatic ]
 
+                Route.Path.Org_Repo_Build_Pipeline params ->
+                    let
+                        orgReposCrumbLink =
+                            ( params.org, Just <| Route.Path.Org_ { org = params.org } )
+
+                        repoBuildsCrumbLink =
+                            ( params.repo, Just <| Route.Path.Org_Repo_ { org = params.org, repo = params.repo } )
+
+                        buildNumberCrumbStatic =
+                            ( "#" ++ params.buildNumber, Nothing )
+                    in
+                    [ overviewCrumbLink, orgReposCrumbLink, repoBuildsCrumbLink, buildNumberCrumbStatic ]
+
+                Route.Path.Org_Repo_Build_Graph params ->
+                    let
+                        orgReposCrumbLink =
+                            ( params.org, Just <| Route.Path.Org_ { org = params.org } )
+
+                        repoBuildsCrumbLink =
+                            ( params.repo, Just <| Route.Path.Org_Repo_ { org = params.org, repo = params.repo } )
+
+                        buildNumberCrumbStatic =
+                            ( "#" ++ params.buildNumber, Nothing )
+                    in
+                    [ overviewCrumbLink, orgReposCrumbLink, repoBuildsCrumbLink, buildNumberCrumbStatic ]
+
                 Route.Path.NotFound_ ->
                     let
                         notFoundCrumbStatic =

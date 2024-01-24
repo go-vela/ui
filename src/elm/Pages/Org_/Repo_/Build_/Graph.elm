@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Org_.Repo_.Build_.Services exposing (..)
+module Pages.Org_.Repo_.Build_.Graph exposing (..)
 
 import Auth
 import Components.Logs

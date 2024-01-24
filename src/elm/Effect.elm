@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, addDeployment, addOrgSecret, addRepoSecret, alertsUpdate, clearRedirect, downloadFile, enableRepo, finishAuthentication, focusOn, getBuild, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getRepo, getRepoBuilds, getRepoDeployments, getRepoHooks, getRepoSchedules, getRepoSecret, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, redeliverHook, setRedirect, setTheme, updateFavorites, updateOrgSecret, updateRepoSecret
+    , addAlertError, addAlertSuccess, addDeployment, addOrgSecret, addRepoSecret, alertsUpdate, clearRedirect, downloadFile, enableRepo, finishAuthentication, focusOn, getBuild, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoDeployments, getRepoHooks, getRepoSchedules, getRepoSecret, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, redeliverHook, setRedirect, setTheme, updateFavorites, updateOrgSecret, updateRepoSecret
     )
 
 {-|
@@ -706,6 +706,46 @@ getBuildServiceLog options =
     Api.try
         options.onResponse
         (Api.Operations.getBuildServiceLog
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+getPipelineConfig :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.PipelineConfig ) -> msg
+    , org : String
+    , repo : String
+    , ref : String
+    }
+    -> Effect msg
+getPipelineConfig options =
+    Api.try
+        options.onResponse
+        (Api.Operations.getPipelineConfig
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+getPipelineTemplates :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Dict String Vela.Template ) -> msg
+    , org : String
+    , repo : String
+    , ref : String
+    }
+    -> Effect msg
+getPipelineTemplates options =
+    Api.try
+        options.onResponse
+        (Api.Operations.getPipelineTemplates
             options.baseUrl
             options.session
             options

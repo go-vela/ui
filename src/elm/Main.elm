@@ -40,6 +40,8 @@ import Pages.Org_.Builds
 import Pages.Org_.Repo_
 import Pages.Org_.Repo_.Audit
 import Pages.Org_.Repo_.Build_
+import Pages.Org_.Repo_.Build_.Graph
+import Pages.Org_.Repo_.Build_.Pipeline
 import Pages.Org_.Repo_.Build_.Services
 import Pages.Org_.Repo_.Deployments
 import Pages.Org_.Repo_.Deployments.Add
@@ -806,6 +808,54 @@ initPageAndLayout model =
                     }
                 )
 
+        Route.Path.Org_Repo_Build_Pipeline params ->
+            runWhenAuthenticatedWithLayout
+                model
+                (\user ->
+                    let
+                        page : Page.Page Pages.Org_.Repo_.Build_.Pipeline.Model Pages.Org_.Repo_.Build_.Pipeline.Msg
+                        page =
+                            Pages.Org_.Repo_.Build_.Pipeline.page user model.shared (Route.fromUrl params model.url)
+
+                        ( pageModel, pageEffect ) =
+                            Page.init page ()
+                    in
+                    { page =
+                        Tuple.mapBoth
+                            (Main.Pages.Model.Org_Repo_Build_Pipeline params)
+                            (Effect.map Main.Pages.Msg.Org_Repo_Build_Pipeline >> fromPageEffect model)
+                            ( pageModel, pageEffect )
+                    , layout =
+                        Page.layout pageModel page
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_Build_Pipeline >> Page))
+                            |> Maybe.map (initLayout model)
+                    }
+                )
+
+        Route.Path.Org_Repo_Build_Graph params ->
+            runWhenAuthenticatedWithLayout
+                model
+                (\user ->
+                    let
+                        page : Page.Page Pages.Org_.Repo_.Build_.Graph.Model Pages.Org_.Repo_.Build_.Graph.Msg
+                        page =
+                            Pages.Org_.Repo_.Build_.Graph.page user model.shared (Route.fromUrl params model.url)
+
+                        ( pageModel, pageEffect ) =
+                            Page.init page ()
+                    in
+                    { page =
+                        Tuple.mapBoth
+                            (Main.Pages.Model.Org_Repo_Build_Graph params)
+                            (Effect.map Main.Pages.Msg.Org_Repo_Build_Graph >> fromPageEffect model)
+                            ( pageModel, pageEffect )
+                    , layout =
+                        Page.layout pageModel page
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_Build_Graph >> Page))
+                            |> Maybe.map (initLayout model)
+                    }
+                )
+
         Route.Path.NotFound_ ->
             let
                 page : Page.Page Pages.NotFound_.Model Pages.NotFound_.Msg
@@ -1239,6 +1289,26 @@ updateFromPage msg model =
                         (Page.update (Pages.Org_.Repo_.Build_.Services.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
+        ( Main.Pages.Msg.Org_Repo_Build_Pipeline pageMsg, Main.Pages.Model.Org_Repo_Build_Pipeline params pageModel ) ->
+            runWhenAuthenticated
+                model
+                (\user ->
+                    Tuple.mapBoth
+                        (Main.Pages.Model.Org_Repo_Build_Pipeline params)
+                        (Effect.map Main.Pages.Msg.Org_Repo_Build_Pipeline >> fromPageEffect model)
+                        (Page.update (Pages.Org_.Repo_.Build_.Pipeline.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
+                )
+
+        ( Main.Pages.Msg.Org_Repo_Build_Graph pageMsg, Main.Pages.Model.Org_Repo_Build_Graph params pageModel ) ->
+            runWhenAuthenticated
+                model
+                (\user ->
+                    Tuple.mapBoth
+                        (Main.Pages.Model.Org_Repo_Build_Graph params)
+                        (Effect.map Main.Pages.Msg.Org_Repo_Build_Graph >> fromPageEffect model)
+                        (Page.update (Pages.Org_.Repo_.Build_.Graph.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
+                )
+
         ( Main.Pages.Msg.NotFound_ pageMsg, Main.Pages.Model.NotFound_ pageModel ) ->
             Tuple.mapBoth
                 Main.Pages.Model.NotFound_
@@ -1445,6 +1515,18 @@ toLayoutFromPage model =
                 |> toAuthProtectedPage model Pages.Org_.Repo_.Build_.Services.page
                 |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_Build_Services >> Page))
+
+        Main.Pages.Model.Org_Repo_Build_Pipeline params pageModel ->
+            Route.fromUrl params model.url
+                |> toAuthProtectedPage model Pages.Org_.Repo_.Build_.Pipeline.page
+                |> Maybe.andThen (Page.layout pageModel)
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_Build_Pipeline >> Page))
+
+        Main.Pages.Model.Org_Repo_Build_Graph params pageModel ->
+            Route.fromUrl params model.url
+                |> toAuthProtectedPage model Pages.Org_.Repo_.Build_.Graph.page
+                |> Maybe.andThen (Page.layout pageModel)
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_Build_Graph >> Page))
 
         Main.Pages.Model.NotFound_ pageModel ->
             Route.fromUrl () model.url
@@ -1655,6 +1737,24 @@ subscriptions model =
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
+                Main.Pages.Model.Org_Repo_Build_Pipeline params pageModel ->
+                    Auth.Action.subscriptions
+                        (\user ->
+                            Page.subscriptions (Pages.Org_.Repo_.Build_.Pipeline.page user model.shared (Route.fromUrl params model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.Org_Repo_Build_Pipeline
+                                |> Sub.map Page
+                        )
+                        (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+                Main.Pages.Model.Org_Repo_Build_Graph params pageModel ->
+                    Auth.Action.subscriptions
+                        (\user ->
+                            Page.subscriptions (Pages.Org_.Repo_.Build_.Graph.page user model.shared (Route.fromUrl params model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.Org_Repo_Build_Graph
+                                |> Sub.map Page
+                        )
+                        (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
                 Main.Pages.Model.NotFound_ pageModel ->
                     Page.subscriptions (Pages.NotFound_.page model.shared (Route.fromUrl () model.url)) pageModel
                         |> Sub.map Main.Pages.Msg.NotFound_
@@ -1748,8 +1848,6 @@ view model =
         view_ : View Msg
         view_ =
             toView model
-
-        -- |> legacyLayout model
     in
     View.toBrowserDocument
         { shared = model.shared
@@ -2010,6 +2108,24 @@ viewPage model =
                 (\user ->
                     Page.view (Pages.Org_.Repo_.Build_.Services.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Org_Repo_Build_Services
+                        |> View.map Page
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+        Main.Pages.Model.Org_Repo_Build_Pipeline params pageModel ->
+            Auth.Action.view
+                (\user ->
+                    Page.view (Pages.Org_.Repo_.Build_.Pipeline.page user model.shared (Route.fromUrl params model.url)) pageModel
+                        |> View.map Main.Pages.Msg.Org_Repo_Build_Pipeline
+                        |> View.map Page
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+        Main.Pages.Model.Org_Repo_Build_Graph params pageModel ->
+            Auth.Action.view
+                (\user ->
+                    Page.view (Pages.Org_.Repo_.Build_.Graph.page user model.shared (Route.fromUrl params model.url)) pageModel
+                        |> View.map Main.Pages.Msg.Org_Repo_Build_Graph
                         |> View.map Page
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -2279,6 +2395,26 @@ toPageUrlHookCmd model routes =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
+        Main.Pages.Model.Org_Repo_Build_Pipeline params pageModel ->
+            Auth.Action.command
+                (\user ->
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.Build_.Pipeline.page user model.shared (Route.fromUrl params model.url))
+                        |> List.map Main.Pages.Msg.Org_Repo_Build_Pipeline
+                        |> List.map Page
+                        |> toCommands
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+        Main.Pages.Model.Org_Repo_Build_Graph params pageModel ->
+            Auth.Action.command
+                (\user ->
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.Build_.Graph.page user model.shared (Route.fromUrl params model.url))
+                        |> List.map Main.Pages.Msg.Org_Repo_Build_Graph
+                        |> List.map Page
+                        |> toCommands
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
         Main.Pages.Model.NotFound_ pageModel ->
             Page.toUrlMessages routes (Pages.NotFound_.page model.shared (Route.fromUrl () model.url))
                 |> List.map Main.Pages.Msg.NotFound_
@@ -2477,6 +2613,12 @@ isAuthProtected routePath =
             True
 
         Route.Path.Org_Repo_Build_Services _ ->
+            True
+
+        Route.Path.Org_Repo_Build_Pipeline _ ->
+            True
+
+        Route.Path.Org_Repo_Build_Graph _ ->
             True
 
         Route.Path.NotFound_ ->

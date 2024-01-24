@@ -15,6 +15,8 @@ import Pages.Org_.Builds
 import Pages.Org_.Repo_
 import Pages.Org_.Repo_.Audit
 import Pages.Org_.Repo_.Build_
+import Pages.Org_.Repo_.Build_.Graph
+import Pages.Org_.Repo_.Build_.Pipeline
 import Pages.Org_.Repo_.Build_.Services
 import Pages.Org_.Repo_.Deployments
 import Pages.Org_.Repo_.Deployments.Add
@@ -49,6 +51,8 @@ type Model
     | Org_Repo_SecretsEdit_ { org : String, repo : String, name : String } Pages.Org_.Repo_.Secrets.Edit_.Model
     | Org_Repo_Build_ { org : String, repo : String, buildNumber : String } Pages.Org_.Repo_.Build_.Model
     | Org_Repo_Build_Services { org : String, repo : String, buildNumber : String } Pages.Org_.Repo_.Build_.Services.Model
+    | Org_Repo_Build_Pipeline { org : String, repo : String, buildNumber : String } Pages.Org_.Repo_.Build_.Pipeline.Model
+    | Org_Repo_Build_Graph { org : String, repo : String, buildNumber : String } Pages.Org_.Repo_.Build_.Graph.Model
     | Redirecting_
     | Loading_
     | NotFound_ Pages.NotFound_.Model

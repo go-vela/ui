@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Route.Path exposing (Path(..), fromString, fromUrl, href, toString)
+module Route.Path exposing (Path(..), fromString, fromUrl, href, parsePath, toString)
 
 import Html
 import Html.Attributes exposing (name)
@@ -34,6 +34,8 @@ type Path
     | Org_Repo_SecretsEdit_ { org : String, repo : String, name : String }
     | Org_Repo_Build_ { org : String, repo : String, buildNumber : String }
     | Org_Repo_Build_Services { org : String, repo : String, buildNumber : String }
+    | Org_Repo_Build_Pipeline { org : String, repo : String, buildNumber : String }
+    | Org_Repo_Build_Graph { org : String, repo : String, buildNumber : String }
     | NotFound_
 
 
@@ -182,6 +184,22 @@ fromString urlPath =
                 }
                 |> Just
 
+        org :: repo :: buildNumber :: "pipeline" :: [] ->
+            Org_Repo_Build_Pipeline
+                { org = org
+                , repo = repo
+                , buildNumber = buildNumber
+                }
+                |> Just
+
+        org :: repo :: buildNumber :: "graph" :: [] ->
+            Org_Repo_Build_Graph
+                { org = org
+                , repo = repo
+                , buildNumber = buildNumber
+                }
+                |> Just
+
         _ ->
             Nothing
 
@@ -263,9 +281,42 @@ toString path =
                 Org_Repo_Build_Services params ->
                     [ params.org, params.repo, params.buildNumber, "services" ]
 
+                Org_Repo_Build_Pipeline params ->
+                    [ params.org, params.repo, params.buildNumber, "pipeline" ]
+
+                Org_Repo_Build_Graph params ->
+                    [ params.org, params.repo, params.buildNumber, "graph" ]
+
                 NotFound_ ->
                     [ "not-found" ]
     in
     pieces
         |> String.join "/"
         |> String.append "/"
+
+
+parsePath :
+    String
+    ->
+        { path : String
+        , query : Maybe String
+        , hash : Maybe String
+        }
+parsePath urlString =
+    let
+        pathsAndHash =
+            String.split "#" urlString
+
+        maybeHash =
+            List.head <| List.drop 1 pathsAndHash
+
+        pathsAndQuery =
+            String.split "?" <| Maybe.withDefault "" <| List.head pathsAndHash
+
+        pathSegments =
+            String.split "/" <| Maybe.withDefault "" <| List.head pathsAndQuery
+
+        maybeQuery =
+            List.head <| List.drop 1 pathsAndQuery
+    in
+    { path = String.join "/" pathSegments, query = maybeQuery, hash = maybeHash }

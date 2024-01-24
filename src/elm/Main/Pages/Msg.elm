@@ -15,6 +15,8 @@ import Pages.Org_.Builds
 import Pages.Org_.Repo_
 import Pages.Org_.Repo_.Audit
 import Pages.Org_.Repo_.Build_
+import Pages.Org_.Repo_.Build_.Graph
+import Pages.Org_.Repo_.Build_.Pipeline
 import Pages.Org_.Repo_.Build_.Services
 import Pages.Org_.Repo_.Deployments
 import Pages.Org_.Repo_.Deployments.Add
@@ -49,4 +51,6 @@ type Msg
     | Org_Repo_SecretsEdit_ Pages.Org_.Repo_.Secrets.Edit_.Msg
     | Org_Repo_Build_ Pages.Org_.Repo_.Build_.Msg
     | Org_Repo_Build_Services Pages.Org_.Repo_.Build_.Services.Msg
+    | Org_Repo_Build_Pipeline Pages.Org_.Repo_.Build_.Pipeline.Msg
+    | Org_Repo_Build_Graph Pages.Org_.Repo_.Build_.Graph.Msg
     | NotFound_ Pages.NotFound_.Msg

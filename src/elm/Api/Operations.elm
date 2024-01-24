@@ -11,6 +11,7 @@ module Api.Operations exposing
     , enableRepo
     , finishAuthentication
     , getBuild
+    , getBuildGraph
     , getBuildServiceLog
     , getBuildServices
     , getBuildStepLog
@@ -20,6 +21,8 @@ module Api.Operations exposing
     , getOrgRepos
     , getOrgSecret
     , getOrgSecrets
+    , getPipelineConfig
+    , getPipelineTemplates
     , getRepo
     , getRepoBuilds
     , getRepoDeployments
@@ -41,6 +44,7 @@ import Api.Api exposing (Request, delete, get, patch, post, put, withAuth)
 import Api.Endpoint
 import Auth.Jwt exposing (JwtAccessToken)
 import Auth.Session exposing (Session(..))
+import Dict exposing (Dict)
 import Html exposing (option)
 import Http
 import Json.Decode
@@ -623,6 +627,75 @@ getBuildServiceLog baseUrl session options =
             options.serviceNumber
         )
         Vela.decodeLog
+        |> withAuth session
+
+
+{-| getPipelineConfig: retrieves a pipeline config for a ref
+-}
+getPipelineConfig :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , ref : String
+        }
+    -> Request Vela.PipelineConfig
+getPipelineConfig baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.PipelineConfig
+            options.org
+            options.repo
+            options.ref
+        )
+        Vela.decodePipelineConfig
+        |> withAuth session
+
+
+{-| getPipelineTemplates: retrieves templates for a pipeline ref
+-}
+getPipelineTemplates :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , ref : String
+        }
+    -> Request (Dict String Vela.Template)
+getPipelineTemplates baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.PipelineTemplates
+            options.org
+            options.repo
+            options.ref
+        )
+        Vela.decodePipelineTemplates
+        |> withAuth session
+
+
+{-| getBuildGraph: retrieves a graph for a build
+-}
+getBuildGraph :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , buildNumber : String
+        }
+    -> Request Vela.BuildGraph
+getBuildGraph baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.BuildGraph
+            options.org
+            options.repo
+            options.buildNumber
+        )
+        Vela.decodeBuildGraph
         |> withAuth session
 
 
