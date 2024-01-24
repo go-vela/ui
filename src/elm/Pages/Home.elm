@@ -282,8 +282,7 @@ viewFavorite favorites filtered favorite =
             , a
                 [ class "button"
                 , class "-outline"
-
-                -- , Routes.href <| Routes.RepoSettings org repo
+                , Route.Path.href <| Route.Path.Org_Repo_Settings { org = org, repo = repo }
                 ]
                 [ text "Settings" ]
             , a

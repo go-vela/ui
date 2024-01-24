@@ -224,6 +224,7 @@ viewAllowCommandsInput { msg, value } =
                 { value = Util.boolToYesNo value
                 , field = "yes"
                 , title = "Yes"
+                , subtitle = ""
                 , msg = msg "yes"
                 , disabled_ = False
                 }
@@ -231,6 +232,7 @@ viewAllowCommandsInput { msg, value } =
                 { value = Util.boolToYesNo value
                 , field = "no"
                 , title = "No"
+                , subtitle = ""
                 , msg = msg "no"
                 , disabled_ = False
                 }

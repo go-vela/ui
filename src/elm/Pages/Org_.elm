@@ -160,8 +160,7 @@ viewRepo repo =
                 [ class "button"
                 , class "-outline"
                 , Util.testAttribute "repo-settings"
-
-                -- , Routes.href <| Routes.RepoSettings repo.org repo.name
+                , Route.Path.href <| Route.Path.Org_Repo_Settings { org = repo.org, repo = repo.name }
                 ]
                 [ text "Settings" ]
             , a

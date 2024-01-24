@@ -22,6 +22,7 @@ import Pages.Org_.Repo_.Schedules
 import Pages.Org_.Repo_.Secrets
 import Pages.Org_.Repo_.Secrets.Add
 import Pages.Org_.Repo_.Secrets.Edit_
+import Pages.Org_.Repo_.Settings
 import Pages.Org_.Secrets
 import Pages.Org_.Secrets.Add
 import Pages.Org_.Secrets.Edit_
@@ -42,6 +43,7 @@ type Msg
     | Org_Repo_DeploymentsAdd Pages.Org_.Repo_.Deployments.Add.Msg
     | Org_Repo_Schedules Pages.Org_.Repo_.Schedules.Msg
     | Org_Repo_Audit Pages.Org_.Repo_.Audit.Msg
+    | Org_Repo_Settings Pages.Org_.Repo_.Settings.Msg
     | Org_Repo_Secrets Pages.Org_.Repo_.Secrets.Msg
     | Org_Repo_SecretsAdd Pages.Org_.Repo_.Secrets.Add.Msg
     | Org_Repo_SecretsEdit_ Pages.Org_.Repo_.Secrets.Edit_.Msg

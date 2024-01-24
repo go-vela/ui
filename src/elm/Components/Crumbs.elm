@@ -451,6 +451,16 @@ toCrumbs path =
                     in
                     [ overviewCrumbLink, orgReposCrumbLink, repoCrumbStatic ]
 
+                Route.Path.Org_Repo_Settings params ->
+                    let
+                        orgReposCrumbLink =
+                            ( params.org, Just <| Route.Path.Org_ { org = params.org } )
+
+                        repoCrumbStatic =
+                            ( params.repo, Nothing )
+                    in
+                    [ overviewCrumbLink, orgReposCrumbLink, repoCrumbStatic ]
+
                 Route.Path.Org_Repo_Secrets params ->
                     let
                         orgReposCrumbLink =

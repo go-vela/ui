@@ -104,8 +104,8 @@ viewCheckbox { name, field, state, disabled_, msg } =
         ]
 
 
-viewRadio : { value : String, field : String, title : String, disabled_ : Bool, msg : msg } -> Html msg
-viewRadio { value, field, title, disabled_, msg } =
+viewRadio : { value : String, field : String, title : String, subtitle : String, disabled_ : Bool, msg : msg } -> Html msg
+viewRadio { value, field, title, subtitle, disabled_, msg } =
     div [ class "form-control", Util.testAttribute <| "radio-" ++ field ]
         [ input
             [ type_ "radio"
@@ -116,5 +116,5 @@ viewRadio { value, field, title, disabled_, msg } =
             ]
             []
         , label [ class "form-label", for <| "radio-" ++ field ]
-            [ strong [] [ text title ] ]
+            [ strong [] [ text title ], text <| " " ++ subtitle ]
         ]

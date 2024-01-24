@@ -16,7 +16,6 @@ import Http
 import Http.Detailed
 import Layouts
 import List.Extra
-import Maybe.Extra
 import Page exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
@@ -40,7 +39,6 @@ page user shared route =
 
 
 
--- |> Page.withOnQueryParameterChanged { key = "target", onChange = OnQueryParamChanged }
 -- LAYOUT
 
 
