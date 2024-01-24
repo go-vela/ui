@@ -24,7 +24,7 @@ import Route exposing (Route)
 import Route.Path
 import Shared
 import Utils.Ansi
-import Utils.Errors as Errors
+import Utils.Errors
 import Utils.Focus as Focus
 import Utils.Helpers as Util
 import Vela
@@ -265,7 +265,7 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | build = Errors.toFailure error }
+                    ( { model | build = Utils.Errors.toFailure error }
                     , Effect.handleHttpError { httpError = error }
                     )
 
@@ -285,7 +285,7 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | pipeline = Errors.toFailure error, expanding = False }
+                    ( { model | pipeline = Utils.Errors.toFailure error, expanding = False }
                     , Effect.handleHttpError { httpError = error }
                     )
 
@@ -304,7 +304,7 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | pipeline = Errors.toFailure error, expanding = False }
+                    ( { model | pipeline = Utils.Errors.toFailure error, expanding = False }
                     , Effect.handleHttpError { httpError = error }
                     )
 
@@ -335,7 +335,7 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | templates = Errors.toFailure error }
+                    ( { model | templates = Utils.Errors.toFailure error }
                     , Effect.handleHttpError { httpError = error }
                     )
 

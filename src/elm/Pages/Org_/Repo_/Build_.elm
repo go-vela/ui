@@ -24,7 +24,7 @@ import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Route.Path
 import Shared
-import Utils.Errors as Errors
+import Utils.Errors
 import Utils.Focus as Focus
 import Utils.Helpers as Util
 import Vela
@@ -187,7 +187,7 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | steps = Errors.toFailure error }
+                    ( { model | steps = Utils.Errors.toFailure error }
                     , Effect.handleHttpError { httpError = error }
                     )
 
@@ -205,7 +205,7 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | steps = Errors.toFailure error }
+                    ( { model | steps = Utils.Errors.toFailure error }
                     , Effect.handleHttpError { httpError = error }
                     )
 

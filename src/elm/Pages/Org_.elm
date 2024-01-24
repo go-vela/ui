@@ -17,7 +17,7 @@ import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Route.Path
 import Shared
-import Utils.Errors as Errors
+import Utils.Errors
 import Utils.Helpers as Util
 import Vela
 import View exposing (View)
@@ -88,7 +88,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( { model | repos = Errors.toFailure error }
+                    ( { model | repos = Utils.Errors.toFailure error }
                     , Effect.handleHttpError { httpError = error }
                     )
 

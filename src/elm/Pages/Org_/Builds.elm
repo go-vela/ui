@@ -22,7 +22,7 @@ import Page exposing (Page)
 import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
-import Utils.Errors as Errors
+import Utils.Errors
 import Utils.Helpers as Util
 import Vela
 import View exposing (View)
@@ -114,7 +114,7 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | builds = Errors.toFailure error }
+                    ( { model | builds = Utils.Errors.toFailure error }
                     , Effect.handleHttpError { httpError = error }
                     )
 

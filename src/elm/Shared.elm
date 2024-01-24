@@ -31,7 +31,7 @@ import Shared.Msg
 import Task
 import Time
 import Toasty as Alerting
-import Utils.Errors as Errors
+import Utils.Errors
 import Utils.Favicons as Favicons
 import Utils.Helpers as Util
 import Utils.Interval as Interval
@@ -385,7 +385,7 @@ update route msg model =
                     )
 
                 Err error ->
-                    ( { model | user = Errors.toFailure error }
+                    ( { model | user = Utils.Errors.toFailure error }
                     , Effect.handleHttpError { httpError = error }
                     )
 
@@ -435,7 +435,7 @@ update route msg model =
                     )
 
                 Err error ->
-                    ( { model | user = Errors.toFailure error }
+                    ( { model | user = Utils.Errors.toFailure error }
                     , Effect.handleHttpError { httpError = error }
                     )
 
@@ -456,7 +456,7 @@ update route msg model =
                     )
 
                 Err error ->
-                    ( { model | builds = Errors.toFailure error }
+                    ( { model | builds = Utils.Errors.toFailure error }
                     , Effect.handleHttpError { httpError = error }
                     )
 
@@ -477,7 +477,7 @@ update route msg model =
                     )
 
                 Err error ->
-                    ( { model | hooks = Errors.toFailure error }
+                    ( { model | hooks = Utils.Errors.toFailure error }
                     , Effect.handleHttpError { httpError = error }
                     )
 
@@ -548,7 +548,7 @@ update route msg model =
             in
             ( shared
             , Effect.batch
-                [ Effect.addAlertError { content = Errors.detailedErrorToString error, addToastIfUnique = True }
+                [ Effect.addAlertError { content = Utils.Errors.detailedErrorToString error, addToastIfUnique = True }
                 , redirect
                 ]
             )

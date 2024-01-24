@@ -24,7 +24,7 @@ import Route exposing (Route)
 import Route.Path
 import Shared
 import Svg.Attributes
-import Utils.Errors as Errors
+import Utils.Errors
 import Utils.Helpers as Util
 import Vela
 import View exposing (View)
@@ -106,7 +106,7 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | secrets = Errors.toFailure error }
+                    ( { model | secrets = Utils.Errors.toFailure error }
                     , Effect.handleHttpError { httpError = error }
                     )
 

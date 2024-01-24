@@ -49,7 +49,7 @@ import Page exposing (Page)
 import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
-import Utils.Errors as Errors
+import Utils.Errors
 import Utils.Helpers as Util
 import Vela
 import View exposing (View)
@@ -166,7 +166,7 @@ update shared msg model =
 
                 Err error ->
                     ( { model
-                        | sourceRepos = Errors.toFailure error
+                        | sourceRepos = Utils.Errors.toFailure error
                       }
                     , Effect.handleHttpError { httpError = error }
                     )
@@ -223,10 +223,10 @@ update shared msg model =
                                     ( RemoteData.succeed True, Effect.none )
 
                                 _ ->
-                                    ( Errors.toFailure error, Effect.handleHttpError { httpError = error } )
+                                    ( Utils.Errors.toFailure error, Effect.handleHttpError { httpError = error } )
 
                         _ ->
-                            ( Errors.toFailure error, Effect.handleHttpError { httpError = error } )
+                            ( Utils.Errors.toFailure error, Effect.handleHttpError { httpError = error } )
                     )
                         |> Tuple.mapFirst (\m -> Vela.enableUpdate repo m model.sourceRepos)
                         |> Tuple.mapFirst (\m -> { model | sourceRepos = m })
