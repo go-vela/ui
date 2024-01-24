@@ -77,6 +77,18 @@ type alias Model =
     }
 
 
+
+-- type alias BuildGraphModel =
+--     { buildNumber : BuildNumber
+--     , graph : WebData BuildGraph
+--     , rankdir : DOT.Rankdir
+--     , filter : String
+--     , focusedNode : Int
+--     , showServices : Bool
+--     , showSteps : Bool
+--     }
+
+
 init : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { services = RemoteData.Loading

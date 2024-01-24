@@ -64,15 +64,13 @@ layout props shared route =
 
 
 type alias Model =
-    { builds : WebData (List Vela.Build)
-    , build : WebData Vela.Build
+    { build : WebData Vela.Build
     }
 
 
 init : Props contentMsg -> Shared.Model -> () -> ( Model, Effect Msg )
 init props shared _ =
-    ( { builds = RemoteData.Loading
-      , build = RemoteData.Loading
+    ( { build = RemoteData.Loading
       }
     , Effect.batch
         [ Effect.getRepoBuildsShared
@@ -101,7 +99,6 @@ init props shared _ =
 type Msg
     = OnUrlChanged { from : Route (), to : Route () }
     | GetBuildResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
-    | GetBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))
 
 
 update : Props contentMsg -> Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
@@ -138,21 +135,7 @@ update props shared msg model =
                     )
 
                 Err error ->
-                    ( { model | builds = Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
-                    )
-
-        GetBuildsResponse response ->
-            case response of
-                Ok ( _, builds ) ->
-                    ( { model
-                        | builds = RemoteData.Success builds
-                      }
-                    , Effect.none
-                    )
-
-                Err error ->
-                    ( { model | builds = Errors.toFailure error }
+                    ( { model | build = Errors.toFailure error }
                     , Effect.handleHttpError { httpError = error }
                     )
 
@@ -171,7 +154,7 @@ view props shared route { toContentMsg, model, content } =
     { title = props.org ++ "/" ++ props.repo ++ " #" ++ props.buildNumber
     , body =
         [ Components.RecentBuilds.view shared
-            { builds = model.builds
+            { builds = shared.builds
             , build = model.build
             , num = 10
             , toPath = props.toBuildPath

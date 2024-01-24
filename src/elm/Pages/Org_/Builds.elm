@@ -59,7 +59,7 @@ toLayout user route model =
 
 
 type alias Model =
-    { builds : WebData Vela.Builds
+    { builds : WebData (List Vela.Build)
     , pager : List WebLink
     , showFullTimestamps : Bool
     , showActionsMenus : List Int

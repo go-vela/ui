@@ -25,7 +25,7 @@ type Endpoint
     | Login
     | Logout
     | CurrentUser
-    | Deployment Vela.Org Vela.Repo (Maybe Vela.DeploymentId)
+    | Deployment Vela.Org Vela.Repo (Maybe String)
     | Deployments (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Org Vela.Repo
     | Token
     | Repositories (Maybe Pagination.Page) (Maybe Pagination.PerPage)
@@ -46,7 +46,7 @@ type Endpoint
     | Steps (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Org Vela.Repo Vela.BuildNumber
     | StepLogs Vela.Org Vela.Repo Vela.BuildNumber Vela.StepNumber
     | BuildGraph Vela.Org Vela.Repo Vela.BuildNumber
-    | Schedule Vela.Org Vela.Repo Vela.ScheduleName
+    | Schedule Vela.Org Vela.Repo String
     | Schedules (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Org Vela.Repo
     | Secrets (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Engine Vela.Type Vela.Org Vela.Name
     | Secret Vela.Engine Vela.Type Vela.Org String Vela.Name

@@ -731,7 +731,7 @@ listSchedules org repo =
       vela view schedule --org <org> --repo <repo>  --schedule <name>
 
 -}
-viewSchedule : Vela.Org -> Vela.Repo -> Vela.ScheduleName -> Command
+viewSchedule : Vela.Org -> Vela.Repo -> String -> Command
 viewSchedule org repo name =
     let
         name_ =
@@ -752,7 +752,7 @@ viewSchedule org repo name =
       vela update schedule --org <org> --repo <repo> --schedule <name> --entry <entry>
 
 -}
-updateSchedule : Vela.Org -> Vela.Repo -> Vela.ScheduleName -> Command
+updateSchedule : Vela.Org -> Vela.Repo -> String -> Command
 updateSchedule org repo name =
     let
         name_ =

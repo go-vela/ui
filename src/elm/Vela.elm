@@ -9,62 +9,37 @@ module Vela exposing
     , BuildGraph
     , BuildGraphEdge
     , BuildGraphInteraction
-    , BuildGraphModel
     , BuildGraphNode
-    , BuildModel
     , BuildNumber
-    , Builds
-    , BuildsModel
     , CurrentUser
     , Deployment
-    , DeploymentId
     , DeploymentPayload
-    , DeploymentsModel
     , EnableRepositoryPayload
     , Enabled
     , Enabling(..)
     , Engine
     , Event
-    , Field
-    , FocusFragment
     , Hook
     , HookNumber
-    , Hooks
-    , HooksModel
     , Key
     , KeyValuePair
     , Log
-    , LogFocus
-    , Logs
     , Name
     , Org
-    , OrgReposModel
     , PipelineConfig
-    , PipelineModel
-    , PipelineTemplates
     , Ref
     , Repo
-    , RepoModel
-    , RepoResourceIdentifier
-    , Repositories
     , Repository
-    , Resource
-    , Resources
     , Schedule
-    , ScheduleName
-    , Schedules
     , Secret
     , SecretPayload
     , SecretType(..)
-    , Secrets
     , Service
     , ServiceNumber
-    , Services
     , SourceRepositories
     , Status(..)
     , Step
     , StepNumber
-    , Steps
     , Team
     , Template
     , Templates
@@ -104,11 +79,7 @@ module Vela exposing
     , decodeSourceRepositories
     , decodeStep
     , decodeSteps
-    , defaultBuildGraph
     , defaultEnableRepositoryPayload
-    , defaultPipeline
-    , defaultPipelineTemplates
-    , defaultRepoModel
     , defaultSecret
     , defaultStep
     , enableRepoDict
@@ -128,60 +99,15 @@ module Vela exposing
     , secretsErrorLabel
     , statusToString
     , stringToStatus
-    , updateBuild
-    , updateBuildGraph
-    , updateBuildGraphFilter
-    , updateBuildGraphShowServices
-    , updateBuildGraphShowSteps
-    , updateBuildNumber
-    , updateBuildPipelineConfig
-    , updateBuildPipelineExpand
-    , updateBuildPipelineFocusFragment
-    , updateBuildPipelineLineFocus
-    , updateBuildServices
-    , updateBuildServicesFocusFragment
-    , updateBuildServicesFollowing
-    , updateBuildServicesLogs
-    , updateBuildSteps
-    , updateBuildStepsFocusFragment
-    , updateBuildStepsFollowing
-    , updateBuildStepsLogs
-    , updateBuilds
-    , updateBuildsEvent
-    , updateBuildsPage
-    , updateBuildsPager
-    , updateBuildsPerPage
-    , updateBuildsShowTimeStamp
-    , updateDeployments
-    , updateDeploymentsPage
-    , updateDeploymentsPager
-    , updateDeploymentsPerPage
-    , updateHooks
-    , updateHooksPage
-    , updateHooksPager
-    , updateHooksPerPage
-    , updateOrgRepo
-    , updateOrgReposPage
-    , updateOrgReposPager
-    , updateOrgReposPerPage
-    , updateOrgRepositories
-    , updateRepo
-    , updateRepoEnabling
-    , updateRepoInitialized
-    , updateRepoModels
     )
 
-import Api.Pagination as Pagination
 import Bytes.Encode
 import Dict exposing (Dict)
 import Json.Decode exposing (Decoder, andThen, bool, int, string, succeed)
 import Json.Decode.Extra exposing (dict2)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode
-import LinkHeader exposing (WebLink)
 import RemoteData exposing (RemoteData(..), WebData)
-import Utils.Errors as Errors
-import Visualization.DOT as DOT
 
 
 
@@ -220,10 +146,6 @@ type alias HookNumber =
     String
 
 
-type alias DeploymentId =
-    String
-
-
 type alias StepNumber =
     String
 
@@ -244,32 +166,8 @@ type alias Ref =
     String
 
 
-type alias Task =
-    String
 
-
-type alias Commit =
-    String
-
-
-type alias Description =
-    String
-
-
-type alias Payload =
-    List KeyValuePair
-
-
-type alias Target =
-    String
-
-
-type alias ScheduleName =
-    String
-
-
-
--- CURRENTUSER
+-- USER
 
 
 type alias CurrentUser =
@@ -318,523 +216,6 @@ buildUpdateFavoritesPayload value =
 -- REPOSITORY
 
 
-{-| RepoModel : model to contain repository information that is crucial for rendering repo pages
--}
-type alias RepoModel =
-    { org : Org
-    , name : Repo
-    , repo : WebData Repository
-    , orgRepos : OrgReposModel
-    , hooks : HooksModel
-    , builds : BuildsModel
-    , deployments : DeploymentsModel
-    , build : BuildModel
-    , initialized : Bool
-    }
-
-
-{-| OrgReposModel : model to contain repositories belonging to an org crucial for rendering the repositories tab on the org page
--}
-type alias OrgReposModel =
-    { orgRepos : WebData (List Repository)
-    , pager : List WebLink
-    , maybePage : Maybe Pagination.Page
-    , maybePerPage : Maybe Pagination.PerPage
-    }
-
-
-defaultOrgReposModel : OrgReposModel
-defaultOrgReposModel =
-    OrgReposModel RemoteData.NotAsked [] Nothing Nothing
-
-
-{-| BuildModel : model to contain build information that is crucial for rendering a pipeline
--}
-type alias BuildModel =
-    { buildNumber : BuildNumber
-    , build : WebData Build
-    , steps : StepsModel
-    , services : ServicesModel
-    , graph : BuildGraphModel
-    }
-
-
-type alias StepsModel =
-    { steps : WebData Steps
-    , logs : Logs
-    , focusFragment : FocusFragment
-    , followingStep : Int
-    }
-
-
-type alias ServicesModel =
-    { services : WebData Services
-    , logs : Logs
-    , focusFragment : FocusFragment
-    , followingService : Int
-    }
-
-
-updateRepoModels : { a | repo : RepoModel } -> RepoModel -> BuildModel -> BuildGraphModel -> { a | repo : RepoModel }
-updateRepoModels m rm bm gm =
-    { m
-        | repo =
-            { rm
-                | build =
-                    { bm
-                        | graph =
-                            gm
-                    }
-            }
-    }
-
-
-defaultBuildModel : BuildModel
-defaultBuildModel =
-    BuildModel "" NotAsked defaultStepsModel defaultServicesModel defaultBuildGraphModel
-
-
-defaultRepoModel : RepoModel
-defaultRepoModel =
-    RepoModel "" "" NotAsked defaultOrgReposModel defaultHooks defaultBuilds defaultDeployments defaultBuildModel False
-
-
-defaultStepsModel : StepsModel
-defaultStepsModel =
-    StepsModel NotAsked [] Nothing 0
-
-
-defaultServicesModel : ServicesModel
-defaultServicesModel =
-    ServicesModel NotAsked [] Nothing 0
-
-
-updateRepoInitialized : Bool -> RepoModel -> RepoModel
-updateRepoInitialized update rm =
-    { rm | initialized = update }
-
-
-updateOrgRepo : Org -> Repo -> RepoModel -> RepoModel
-updateOrgRepo org repo rm =
-    { rm | org = org, name = repo }
-
-
-updateRepo : WebData Repository -> RepoModel -> RepoModel
-updateRepo update rm =
-    { rm | repo = update }
-
-
-updateOrgRepositories : WebData (List Repository) -> RepoModel -> RepoModel
-updateOrgRepositories update rm =
-    let
-        orm =
-            rm.orgRepos
-    in
-    { rm | orgRepos = { orm | orgRepos = update } }
-
-
-updateRepoEnabling : Enabling -> RepoModel -> RepoModel
-updateRepoEnabling update rm =
-    let
-        repo =
-            rm.repo
-    in
-    case repo of
-        RemoteData.Success r ->
-            { rm | repo = RemoteData.succeed { r | enabling = update } }
-
-        _ ->
-            rm
-
-
-updateBuild : WebData Build -> RepoModel -> RepoModel
-updateBuild update rm =
-    let
-        b =
-            rm.build
-    in
-    { rm | build = { b | build = update } }
-
-
-updateBuildNumber : BuildNumber -> RepoModel -> RepoModel
-updateBuildNumber update rm =
-    let
-        b =
-            rm.build
-    in
-    { rm | build = { b | buildNumber = update } }
-
-
-updateBuildStepsFocusFragment : FocusFragment -> RepoModel -> RepoModel
-updateBuildStepsFocusFragment update rm =
-    let
-        b =
-            rm.build
-
-        s =
-            b.steps
-    in
-    { rm | build = { b | steps = { s | focusFragment = update } } }
-
-
-updateBuildStepsFollowing : Int -> RepoModel -> RepoModel
-updateBuildStepsFollowing update rm =
-    let
-        b =
-            rm.build
-
-        s =
-            b.steps
-    in
-    { rm | build = { b | steps = { s | followingStep = update } } }
-
-
-updateBuildStepsLogs : Logs -> RepoModel -> RepoModel
-updateBuildStepsLogs update rm =
-    let
-        b =
-            rm.build
-
-        s =
-            b.steps
-    in
-    { rm | build = { b | steps = { s | logs = update } } }
-
-
-updateBuilds : WebData Builds -> RepoModel -> RepoModel
-updateBuilds update rm =
-    let
-        bm =
-            rm.builds
-    in
-    { rm | builds = { bm | builds = update } }
-
-
-updateBuildsPager : List WebLink -> RepoModel -> RepoModel
-updateBuildsPager update rm =
-    let
-        bm =
-            rm.builds
-    in
-    { rm | builds = { bm | pager = update } }
-
-
-updateBuildsShowTimeStamp : RepoModel -> RepoModel
-updateBuildsShowTimeStamp rm =
-    let
-        bm =
-            rm.builds
-    in
-    { rm | builds = { bm | showTimestamp = not bm.showTimestamp } }
-
-
-updateDeployments : WebData (List Deployment) -> RepoModel -> RepoModel
-updateDeployments update rm =
-    let
-        dm =
-            rm.deployments
-    in
-    { rm | deployments = { dm | deployments = update } }
-
-
-updateDeploymentsPager : List WebLink -> RepoModel -> RepoModel
-updateDeploymentsPager update rm =
-    let
-        dm =
-            rm.deployments
-    in
-    { rm | deployments = { dm | pager = update } }
-
-
-updateDeploymentsPage : Maybe Pagination.Page -> RepoModel -> RepoModel
-updateDeploymentsPage maybePage rm =
-    let
-        dm =
-            rm.deployments
-    in
-    { rm | deployments = { dm | maybePage = maybePage } }
-
-
-updateDeploymentsPerPage : Maybe Pagination.PerPage -> RepoModel -> RepoModel
-updateDeploymentsPerPage maybePerPage rm =
-    let
-        dm =
-            rm.deployments
-    in
-    { rm | deployments = { dm | maybePerPage = maybePerPage } }
-
-
-updateOrgReposPage : Maybe Pagination.Page -> RepoModel -> RepoModel
-updateOrgReposPage maybePage rm =
-    let
-        orm =
-            rm.orgRepos
-    in
-    { rm | orgRepos = { orm | maybePage = maybePage } }
-
-
-updateOrgReposPerPage : Maybe Pagination.PerPage -> RepoModel -> RepoModel
-updateOrgReposPerPage maybePerPage rm =
-    let
-        orm =
-            rm.orgRepos
-    in
-    { rm | orgRepos = { orm | maybePerPage = maybePerPage } }
-
-
-updateOrgReposPager : List WebLink -> RepoModel -> RepoModel
-updateOrgReposPager update rm =
-    let
-        orm =
-            rm.orgRepos
-    in
-    { rm | orgRepos = { orm | pager = update } }
-
-
-updateBuildsPage : Maybe Pagination.Page -> RepoModel -> RepoModel
-updateBuildsPage maybePage rm =
-    let
-        bm =
-            rm.builds
-    in
-    { rm | builds = { bm | maybePage = maybePage } }
-
-
-updateBuildsPerPage : Maybe Pagination.PerPage -> RepoModel -> RepoModel
-updateBuildsPerPage maybePerPage rm =
-    let
-        bm =
-            rm.builds
-    in
-    { rm | builds = { bm | maybePerPage = maybePerPage } }
-
-
-updateBuildsEvent : Maybe Event -> RepoModel -> RepoModel
-updateBuildsEvent maybeEvent rm =
-    let
-        bm =
-            rm.builds
-    in
-    { rm | builds = { bm | maybeEvent = maybeEvent } }
-
-
-updateBuildSteps : WebData Steps -> RepoModel -> RepoModel
-updateBuildSteps update rm =
-    let
-        b =
-            rm.build
-
-        s =
-            b.steps
-    in
-    { rm | build = { b | steps = { s | steps = update } } }
-
-
-updateBuildGraph : WebData BuildGraph -> RepoModel -> RepoModel
-updateBuildGraph update rm =
-    let
-        b =
-            rm.build
-
-        g =
-            b.graph
-    in
-    { rm | build = { b | graph = { g | graph = update } } }
-
-
-updateBuildGraphShowServices : Bool -> RepoModel -> RepoModel
-updateBuildGraphShowServices update rm =
-    let
-        b =
-            rm.build
-
-        g =
-            b.graph
-    in
-    { rm | build = { b | graph = { g | showServices = update } } }
-
-
-updateBuildGraphShowSteps : Bool -> RepoModel -> RepoModel
-updateBuildGraphShowSteps update rm =
-    let
-        b =
-            rm.build
-
-        g =
-            b.graph
-    in
-    { rm | build = { b | graph = { g | showSteps = update } } }
-
-
-updateBuildGraphFilter : String -> RepoModel -> RepoModel
-updateBuildGraphFilter update rm =
-    let
-        b =
-            rm.build
-
-        g =
-            b.graph
-    in
-    { rm | build = { b | graph = { g | filter = update } } }
-
-
-updateBuildServices : WebData Services -> RepoModel -> RepoModel
-updateBuildServices update rm =
-    let
-        b =
-            rm.build
-
-        s =
-            b.services
-    in
-    { rm | build = { b | services = { s | services = update } } }
-
-
-updateBuildServicesFocusFragment : FocusFragment -> RepoModel -> RepoModel
-updateBuildServicesFocusFragment update rm =
-    let
-        b =
-            rm.build
-
-        s =
-            b.services
-    in
-    { rm | build = { b | services = { s | focusFragment = update } } }
-
-
-updateBuildServicesFollowing : Int -> RepoModel -> RepoModel
-updateBuildServicesFollowing update rm =
-    let
-        b =
-            rm.build
-
-        s =
-            b.services
-    in
-    { rm | build = { b | services = { s | followingService = update } } }
-
-
-updateBuildServicesLogs : Logs -> RepoModel -> RepoModel
-updateBuildServicesLogs update rm =
-    let
-        b =
-            rm.build
-
-        s =
-            b.services
-    in
-    { rm | build = { b | services = { s | logs = update } } }
-
-
-updateBuildPipelineConfig : ( WebData PipelineConfig, Errors.Error ) -> PipelineModel -> PipelineModel
-updateBuildPipelineConfig update pipeline =
-    { pipeline | config = update }
-
-
-updateBuildPipelineExpand : Maybe String -> PipelineModel -> PipelineModel
-updateBuildPipelineExpand update pipeline =
-    { pipeline | expand = update }
-
-
-updateBuildPipelineLineFocus : LogFocus -> PipelineModel -> PipelineModel
-updateBuildPipelineLineFocus update pipeline =
-    { pipeline | lineFocus = update }
-
-
-updateBuildPipelineFocusFragment : FocusFragment -> PipelineModel -> PipelineModel
-updateBuildPipelineFocusFragment update pipeline =
-    { pipeline | focusFragment = update }
-
-
-updateHooks : WebData Hooks -> RepoModel -> RepoModel
-updateHooks update rm =
-    let
-        h =
-            rm.hooks
-    in
-    { rm | hooks = { h | hooks = update } }
-
-
-updateHooksPager : List WebLink -> RepoModel -> RepoModel
-updateHooksPager update rm =
-    let
-        h =
-            rm.hooks
-    in
-    { rm | hooks = { h | pager = update } }
-
-
-updateHooksPage : Maybe Pagination.Page -> RepoModel -> RepoModel
-updateHooksPage maybePage rm =
-    let
-        h =
-            rm.hooks
-    in
-    { rm | hooks = { h | maybePage = maybePage } }
-
-
-updateHooksPerPage : Maybe Pagination.PerPage -> RepoModel -> RepoModel
-updateHooksPerPage maybePerPage rm =
-    let
-        h =
-            rm.hooks
-    in
-    { rm | hooks = { h | maybePerPage = maybePerPage } }
-
-
-type alias KeyValuePair =
-    { key : String
-    , value : String
-    }
-
-
-type alias Deployment =
-    { id : Int
-    , repo_id : Int
-    , url : String
-    , user : String
-    , commit : String
-    , ref : String
-    , task : String
-    , target : String
-    , description : String
-    , payload : Maybe (List KeyValuePair)
-    }
-
-
-type alias PushActions =
-    { branch : Bool
-    , tag : Bool
-    }
-
-
-type alias PullActions =
-    { opened : Bool
-    , synchronize : Bool
-    , edited : Bool
-    , reopened : Bool
-    }
-
-
-type alias DeployActions =
-    { created : Bool
-    }
-
-
-type alias CommentActions =
-    { created : Bool
-    , edited : Bool
-    }
-
-
-type alias AllowEvents =
-    { push : PushActions
-    , pull : PullActions
-    , deploy : DeployActions
-    , comment : CommentActions
-    }
-
-
 type alias Repository =
     { id : Int
     , user_id : Int
@@ -862,62 +243,6 @@ type alias Repository =
     , enabling : Enabling
     , pipeline_type : String
     }
-
-
-type alias Enabled =
-    WebData Bool
-
-
-type Enabling
-    = ConfirmDisable
-    | Disabling
-    | Disabled
-    | Enabling
-    | Enabled
-    | NotAsked_
-
-
-decodePushActions : Decoder PushActions
-decodePushActions =
-    Json.Decode.succeed PushActions
-        |> required "branch" bool
-        |> required "tag" bool
-
-
-decodePullActions : Decoder PullActions
-decodePullActions =
-    Json.Decode.succeed PullActions
-        |> required "opened" bool
-        |> required "synchronize" bool
-        |> required "edited" bool
-        |> required "reopened" bool
-
-
-decodeDeployActions : Decoder DeployActions
-decodeDeployActions =
-    Json.Decode.succeed DeployActions
-        |> required "created" bool
-
-
-decodeCommentActions : Decoder CommentActions
-decodeCommentActions =
-    Json.Decode.succeed CommentActions
-        |> required "created" bool
-        |> required "edited" bool
-
-
-decodeAllowEvents : Decoder AllowEvents
-decodeAllowEvents =
-    Json.Decode.succeed AllowEvents
-        |> required "push" decodePushActions
-        |> required "pull_request" decodePullActions
-        |> required "deployment" decodeDeployActions
-        |> required "comment" decodeCommentActions
-
-
-decodeRepositories : Decoder (List Repository)
-decodeRepositories =
-    Json.Decode.list decodeRepository
 
 
 decodeRepository : Decoder Repository
@@ -950,6 +275,24 @@ decodeRepository =
         -- "enabling"
         |> optional "active" enablingDecoder NotAsked_
         |> optional "pipeline_type" string ""
+
+
+decodeRepositories : Decoder (List Repository)
+decodeRepositories =
+    Json.Decode.list decodeRepository
+
+
+type Enabling
+    = ConfirmDisable
+    | Disabling
+    | Disabled
+    | Enabling
+    | Enabled
+    | NotAsked_
+
+
+type alias Enabled =
+    WebData Bool
 
 
 {-| enabledDecoder : decodes string field "status" to the union type Enabled
@@ -988,85 +331,108 @@ toEnabling active =
         succeed Disabled
 
 
-decodeSourceRepositories : Decoder SourceRepositories
-decodeSourceRepositories =
-    Json.Decode.dict (Json.Decode.list decodeRepository)
+type alias PushActions =
+    { branch : Bool
+    , tag : Bool
+    }
 
 
-{-| enableUpdate : takes repo, enabled status and source repos and sets enabled status of the specified repo
--}
-enableUpdate : Repository -> Enabled -> WebData SourceRepositories -> WebData SourceRepositories
-enableUpdate repo status sourceRepos =
-    case sourceRepos of
-        RemoteData.Success repos ->
-            case Dict.get repo.org repos of
-                Just orgRepos ->
-                    RemoteData.succeed <| enableRepoDict repo status repos orgRepos
-
-                _ ->
-                    sourceRepos
-
-        _ ->
-            sourceRepos
+type alias PullActions =
+    { opened : Bool
+    , synchronize : Bool
+    , edited : Bool
+    , reopened : Bool
+    }
 
 
-{-| enableRepoDict : update the dictionary containing org source repo lists
--}
-enableRepoDict : Repository -> Enabled -> Dict String Repositories -> Repositories -> Dict String Repositories
-enableRepoDict repo status repos orgRepos =
-    Dict.update repo.org (\_ -> Just <| enableRepoList repo status orgRepos) repos
+type alias DeployActions =
+    { created : Bool
+    }
 
 
-{-| enableRepoList : list map for updating single repo status by repo name
--}
-enableRepoList : Repository -> Enabled -> Repositories -> Repositories
-enableRepoList repo status orgRepos =
-    List.map
-        (\sourceRepo ->
-            if sourceRepo.name == repo.name then
-                { sourceRepo | enabled = status }
-
-            else
-                sourceRepo
-        )
-        orgRepos
+type alias CommentActions =
+    { created : Bool
+    , edited : Bool
+    }
 
 
-{-| Repositories : type alias for list of enabled repositories
--}
-type alias Repositories =
-    List Repository
+type alias AllowEvents =
+    { push : PushActions
+    , pull : PullActions
+    , deploy : DeployActions
+    , comment : CommentActions
+    }
 
 
-{-| SourceRepositories : type alias for repositories available for creation
--}
-type alias SourceRepositories =
-    Dict String Repositories
+type alias AllowEventsPayload =
+    { push : PushActionsPayload
+    , pull : PullActionsPayload
+    , deploy : DeployActionsPayload
+    , comment : CommentActionsPayload
+    }
 
 
-buildEnableRepositoryPayload : Repository -> EnableRepositoryPayload
-buildEnableRepositoryPayload repo =
-    EnableRepositoryPayload repo.org repo.name repo.full_name repo.link repo.clone repo.private repo.trusted repo.active repo.allow_pull repo.allow_push repo.allow_deploy repo.allow_tag repo.allow_comment repo.allow_events
+type alias PushActionsPayload =
+    { branch : Bool
+    , tag : Bool
+    }
 
 
-encodeEnableRepository : EnableRepositoryPayload -> Json.Encode.Value
-encodeEnableRepository repo =
-    Json.Encode.object
-        [ ( "org", Json.Encode.string <| repo.org )
-        , ( "name", Json.Encode.string <| repo.name )
-        , ( "full_name", Json.Encode.string <| repo.full_name )
-        , ( "link", Json.Encode.string <| repo.link )
-        , ( "clone", Json.Encode.string <| repo.clone )
-        , ( "private", Json.Encode.bool <| repo.private )
-        , ( "trusted", Json.Encode.bool <| repo.trusted )
-        , ( "active", Json.Encode.bool <| repo.active )
-        , ( "allow_pull", Json.Encode.bool <| repo.allow_pull )
-        , ( "allow_push", Json.Encode.bool <| repo.allow_push )
-        , ( "allow_deploy", Json.Encode.bool <| repo.allow_deploy )
-        , ( "allow_tag", Json.Encode.bool <| repo.allow_tag )
-        , ( "allow_comment", Json.Encode.bool <| repo.allow_comment )
-        , ( "allow_events", encodeOptional encodeAllowEvents repo.allow_events )
-        ]
+type alias PullActionsPayload =
+    { opened : Bool
+    , synchronize : Bool
+    , edited : Bool
+    , reopened : Bool
+    }
+
+
+type alias DeployActionsPayload =
+    { created : Bool
+    }
+
+
+type alias CommentActionsPayload =
+    { created : Bool
+    , edited : Bool
+    }
+
+
+decodePushActions : Decoder PushActions
+decodePushActions =
+    Json.Decode.succeed PushActions
+        |> required "branch" bool
+        |> required "tag" bool
+
+
+decodePullActions : Decoder PullActions
+decodePullActions =
+    Json.Decode.succeed PullActions
+        |> required "opened" bool
+        |> required "synchronize" bool
+        |> required "edited" bool
+        |> required "reopened" bool
+
+
+decodeDeployActions : Decoder DeployActions
+decodeDeployActions =
+    Json.Decode.succeed DeployActions
+        |> required "created" bool
+
+
+decodeCommentActions : Decoder CommentActions
+decodeCommentActions =
+    Json.Decode.succeed CommentActions
+        |> required "created" bool
+        |> required "edited" bool
+
+
+decodeAllowEvents : Decoder AllowEvents
+decodeAllowEvents =
+    Json.Decode.succeed AllowEvents
+        |> required "push" decodePushActions
+        |> required "pull_request" decodePullActions
+        |> required "deployment" decodeDeployActions
+        |> required "comment" decodeCommentActions
 
 
 encodeAllowEvents : AllowEventsPayload -> Json.Encode.Value
@@ -1112,6 +478,81 @@ encodeCommentActions comment =
         ]
 
 
+{-| SourceRepositories : type alias for repositories available for creation
+-}
+type alias SourceRepositories =
+    Dict String (List Repository)
+
+
+buildEnableRepositoryPayload : Repository -> EnableRepositoryPayload
+buildEnableRepositoryPayload repo =
+    EnableRepositoryPayload repo.org repo.name repo.full_name repo.link repo.clone repo.private repo.trusted repo.active repo.allow_pull repo.allow_push repo.allow_deploy repo.allow_tag repo.allow_comment repo.allow_events
+
+
+encodeEnableRepository : EnableRepositoryPayload -> Json.Encode.Value
+encodeEnableRepository repo =
+    Json.Encode.object
+        [ ( "org", Json.Encode.string <| repo.org )
+        , ( "name", Json.Encode.string <| repo.name )
+        , ( "full_name", Json.Encode.string <| repo.full_name )
+        , ( "link", Json.Encode.string <| repo.link )
+        , ( "clone", Json.Encode.string <| repo.clone )
+        , ( "private", Json.Encode.bool <| repo.private )
+        , ( "trusted", Json.Encode.bool <| repo.trusted )
+        , ( "active", Json.Encode.bool <| repo.active )
+        , ( "allow_pull", Json.Encode.bool <| repo.allow_pull )
+        , ( "allow_push", Json.Encode.bool <| repo.allow_push )
+        , ( "allow_deploy", Json.Encode.bool <| repo.allow_deploy )
+        , ( "allow_tag", Json.Encode.bool <| repo.allow_tag )
+        , ( "allow_comment", Json.Encode.bool <| repo.allow_comment )
+        , ( "allow_events", encodeOptional encodeAllowEvents repo.allow_events )
+        ]
+
+
+decodeSourceRepositories : Decoder SourceRepositories
+decodeSourceRepositories =
+    Json.Decode.dict (Json.Decode.list decodeRepository)
+
+
+{-| enableUpdate : takes repo, enabled status and source repos and sets enabled status of the specified repo
+-}
+enableUpdate : Repository -> Enabled -> WebData SourceRepositories -> WebData SourceRepositories
+enableUpdate repo status sourceRepos =
+    case sourceRepos of
+        RemoteData.Success repos ->
+            case Dict.get repo.org repos of
+                Just orgRepos ->
+                    RemoteData.succeed <| enableRepoDict repo status repos orgRepos
+
+                _ ->
+                    sourceRepos
+
+        _ ->
+            sourceRepos
+
+
+{-| enableRepoDict : update the dictionary containing org source repo lists
+-}
+enableRepoDict : Repository -> Enabled -> Dict String (List Repository) -> List Repository -> Dict String (List Repository)
+enableRepoDict repo status repos orgRepos =
+    Dict.update repo.org (\_ -> Just <| enableRepoList repo status orgRepos) repos
+
+
+{-| enableRepoList : list map for updating single repo status by repo name
+-}
+enableRepoList : Repository -> Enabled -> List Repository -> List Repository
+enableRepoList repo status orgRepos =
+    List.map
+        (\sourceRepo ->
+            if sourceRepo.name == repo.name then
+                { sourceRepo | enabled = status }
+
+            else
+                sourceRepo
+        )
+        orgRepos
+
+
 type alias EnableRepositoryPayload =
     { org : String
     , name : String
@@ -1127,39 +568,6 @@ type alias EnableRepositoryPayload =
     , allow_tag : Bool
     , allow_comment : Bool
     , allow_events : Maybe AllowEventsPayload
-    }
-
-
-type alias AllowEventsPayload =
-    { push : PushActionsPayload
-    , pull : PullActionsPayload
-    , deploy : DeployActionsPayload
-    , comment : CommentActionsPayload
-    }
-
-
-type alias PushActionsPayload =
-    { branch : Bool
-    , tag : Bool
-    }
-
-
-type alias PullActionsPayload =
-    { opened : Bool
-    , synchronize : Bool
-    , edited : Bool
-    , reopened : Bool
-    }
-
-
-type alias DeployActionsPayload =
-    { created : Bool
-    }
-
-
-type alias CommentActionsPayload =
-    { created : Bool
-    , edited : Bool
     }
 
 
@@ -1185,10 +593,6 @@ type alias UpdateRepositoryPayload =
     , counter : Maybe Int
     , pipeline_type : Maybe String
     }
-
-
-type alias Field =
-    String
 
 
 defaultUpdateRepositoryPayload : UpdateRepositoryPayload
@@ -1287,7 +691,7 @@ encodeOptionalList encoder value =
             Json.Encode.null
 
 
-buildUpdateRepoEventsPayload : Repository -> Field -> Bool -> UpdateRepositoryPayload
+buildUpdateRepoEventsPayload : Repository -> String -> Bool -> UpdateRepositoryPayload
 buildUpdateRepoEventsPayload repository field value =
     let
         events =
@@ -1337,7 +741,7 @@ buildUpdateRepoEventsPayload repository field value =
             defaultUpdateRepositoryPayload
 
 
-buildUpdateRepoBoolPayload : Field -> Bool -> UpdateRepositoryPayload
+buildUpdateRepoBoolPayload : String -> Bool -> UpdateRepositoryPayload
 buildUpdateRepoBoolPayload field value =
     case field of
         "private" ->
@@ -1368,7 +772,7 @@ buildUpdateRepoBoolPayload field value =
             defaultUpdateRepositoryPayload
 
 
-buildUpdateRepoStringPayload : Field -> String -> UpdateRepositoryPayload
+buildUpdateRepoStringPayload : String -> String -> UpdateRepositoryPayload
 buildUpdateRepoStringPayload field value =
     case field of
         "visibility" ->
@@ -1384,7 +788,7 @@ buildUpdateRepoStringPayload field value =
             defaultUpdateRepositoryPayload
 
 
-buildUpdateRepoIntPayload : Field -> Int -> UpdateRepositoryPayload
+buildUpdateRepoIntPayload : String -> Int -> UpdateRepositoryPayload
 buildUpdateRepoIntPayload field value =
     case field of
         "build_limit" ->
@@ -1404,31 +808,9 @@ buildUpdateRepoIntPayload field value =
 -- PIPELINE
 
 
-type alias PipelineModel =
-    { config : ( WebData PipelineConfig, Errors.Error )
-    , expanded : Bool
-    , expanding : Bool
-    , expand : Maybe String
-    , lineFocus : LogFocus
-    , focusFragment : FocusFragment
-    }
-
-
-defaultPipeline : PipelineModel
-defaultPipeline =
-    PipelineModel ( NotAsked, "" ) False False Nothing ( Nothing, Nothing ) Nothing
-
-
 type alias PipelineConfig =
     { rawData : String
     , decodedData : String
-    }
-
-
-type alias PipelineTemplates =
-    { data : WebData Templates
-    , error : Errors.Error
-    , show : Bool
     }
 
 
@@ -1442,11 +824,6 @@ type alias Template =
 
 type alias Templates =
     Dict String Template
-
-
-defaultPipelineTemplates : PipelineTemplates
-defaultPipelineTemplates =
-    PipelineTemplates NotAsked "" True
 
 
 decodePipelineConfig : Json.Decode.Decoder PipelineConfig
@@ -1484,18 +861,6 @@ decodeTemplate =
 -- BUILDS
 
 
-type alias BuildsModel =
-    { builds : WebData Builds
-    , pager : List WebLink
-    , maybePage : Maybe Pagination.Page
-    , maybePerPage : Maybe Pagination.PerPage
-    , maybeEvent : Maybe Event
-    , showTimestamp : Bool
-    }
-
-
-{-| Build : record type for vela build
--}
 type alias Build =
     { id : Int
     , repository_id : Int
@@ -1563,14 +928,8 @@ decodeBuild =
         |> optional "deploy_payload" decodeDeploymentParameters Nothing
 
 
-defaultBuildGraphModel : BuildGraphModel
-defaultBuildGraphModel =
-    BuildGraphModel "" NotAsked DOT.LR "" -1 True True
 
-
-defaultBuildGraph : BuildGraph
-defaultBuildGraph =
-    BuildGraph -1 -1 "" "" Dict.empty []
+-- GRAPH
 
 
 encodeBuildGraphRenderData : BuildGraphRenderInteropData -> Json.Encode.Value
@@ -1586,28 +945,6 @@ encodeBuildGraphRenderData graphData =
         ]
 
 
-type alias BuildGraphRenderInteropData =
-    { dot : String
-    , buildID : Int
-    , filter : String
-    , focusedNode : Int
-    , showServices : Bool
-    , showSteps : Bool
-    , freshDraw : Bool
-    }
-
-
-type alias BuildGraphModel =
-    { buildNumber : BuildNumber
-    , graph : WebData BuildGraph
-    , rankdir : DOT.Rankdir
-    , filter : String
-    , focusedNode : Int
-    , showServices : Bool
-    , showSteps : Bool
-    }
-
-
 type alias BuildGraph =
     { buildID : Int
     , buildNumber : Int
@@ -1618,24 +955,14 @@ type alias BuildGraph =
     }
 
 
-type alias BuildGraphNode =
-    { cluster : Int
-    , id : Int
-    , name : String
-    , status : String
-    , startedAt : Int
-    , finishedAt : Int
-    , steps : List Step
-    , focused : Bool
-    }
-
-
-type alias BuildGraphEdge =
-    { cluster : Int
-    , source : Int
-    , destination : Int
-    , status : String
-    , focused : Bool
+type alias BuildGraphRenderInteropData =
+    { dot : String
+    , buildID : Int
+    , filter : String
+    , focusedNode : Int
+    , showServices : Bool
+    , showSteps : Bool
+    , freshDraw : Bool
     }
 
 
@@ -1650,6 +977,18 @@ decodeBuildGraph =
         |> optional "edges" (Json.Decode.list decodeEdge) []
 
 
+type alias BuildGraphNode =
+    { cluster : Int
+    , id : Int
+    , name : String
+    , status : String
+    , startedAt : Int
+    , finishedAt : Int
+    , steps : List Step
+    , focused : Bool
+    }
+
+
 decodeBuildGraphNode : Decoder BuildGraphNode
 decodeBuildGraphNode =
     Json.Decode.succeed BuildGraphNode
@@ -1662,6 +1001,15 @@ decodeBuildGraphNode =
         |> optional "steps" decodeSteps []
         -- focused
         |> hardcoded False
+
+
+type alias BuildGraphEdge =
+    { cluster : Int
+    , source : Int
+    , destination : Int
+    , status : String
+    , focused : Bool
+    }
 
 
 decodeEdge : Decoder BuildGraphEdge
@@ -1702,7 +1050,7 @@ decodeGraphInteraction =
 
 {-| decodeBuilds : decodes json from vela into list of builds
 -}
-decodeBuilds : Decoder Builds
+decodeBuilds : Decoder (List Build)
 decodeBuilds =
     Json.Decode.list decodeBuild
 
@@ -1712,20 +1060,6 @@ decodeBuilds =
 buildStatusDecoder : Decoder Status
 buildStatusDecoder =
     string |> andThen toStatus
-
-
-defaultBuilds : BuildsModel
-defaultBuilds =
-    BuildsModel RemoteData.NotAsked [] Nothing Nothing Nothing False
-
-
-defaultDeployments : DeploymentsModel
-defaultDeployments =
-    DeploymentsModel RemoteData.NotAsked [] Nothing Nothing
-
-
-type alias Builds =
-    List Build
 
 
 {-| Status : type enum to represent the possible statuses a vela object can be in
@@ -1886,19 +1220,14 @@ type alias Step =
     , distribution : String
     , image : String
     , viewing : Bool
-    , logFocus : LogFocus
     }
 
 
-{-| defaultStep : returns default, empty step
--}
 defaultStep : Step
 defaultStep =
-    Step 0 0 0 0 "" "" Pending "" 0 0 0 0 "" "" "" "" False ( Nothing, Nothing )
+    Step 0 0 0 0 "" "" Pending "" 0 0 0 0 "" "" "" "" False
 
 
-{-| decodeStep : decodes json from vela into step
--}
 decodeStep : Decoder Step
 decodeStep =
     Json.Decode.succeed Step
@@ -1920,17 +1249,11 @@ decodeStep =
         |> optional "image" string ""
         -- "viewing"
         |> hardcoded False
-        -- "logFocus"
-        |> hardcoded ( Nothing, Nothing )
 
 
 decodeSteps : Decoder (List Step)
 decodeSteps =
     Json.Decode.list decodeStep
-
-
-type alias Steps =
-    List Step
 
 
 
@@ -1954,12 +1277,9 @@ type alias Service =
     , distribution : String
     , image : String
     , viewing : Bool
-    , logFocus : LogFocus
     }
 
 
-{-| decodeService : decodes json from vela into service
--}
 decodeService : Decoder Service
 decodeService =
     Json.Decode.succeed Service
@@ -1980,40 +1300,11 @@ decodeService =
         |> optional "image" string ""
         -- "viewing"
         |> hardcoded False
-        -- "logFocus"
-        |> hardcoded ( Nothing, Nothing )
 
 
 decodeServices : Decoder (List Service)
 decodeServices =
     Json.Decode.list decodeService
-
-
-type alias Services =
-    List Service
-
-
-type alias LogFocus =
-    ( Maybe Int, Maybe Int )
-
-
-
--- RESOURCE
-
-
-type alias Resource a =
-    { a
-        | id : Int
-        , number : Int
-        , status : Status
-        , viewing : Bool
-        , logFocus : LogFocus
-        , error : String
-    }
-
-
-type alias Resources a =
-    List (Resource a)
 
 
 
@@ -2037,8 +1328,6 @@ newStepLog id =
     Log id -1 -1 -1 -1 "" "" -1
 
 
-{-| decodeLog : decodes json from vela into log
--}
 decodeLog : Decoder Log
 decodeLog =
     Json.Decode.succeed
@@ -2063,29 +1352,8 @@ decodeLog =
         |> optional "data" string ""
 
 
-type alias Logs =
-    List (WebData Log)
-
-
-type alias FocusFragment =
-    Maybe String
-
-
 
 -- HOOKS
-
-
-type alias HooksModel =
-    { hooks : WebData Hooks
-    , pager : List WebLink
-    , maybePage : Maybe Pagination.Page
-    , maybePerPage : Maybe Pagination.PerPage
-    }
-
-
-defaultHooks : HooksModel
-defaultHooks =
-    HooksModel RemoteData.NotAsked [] Nothing Nothing
 
 
 {-| Hook : record type for vela repo hooks
@@ -2125,17 +1393,9 @@ decodeHook =
 
 {-| decodeHooks : decodes json from vela into list of hooks
 -}
-decodeHooks : Decoder Hooks
+decodeHooks : Decoder (List Hook)
 decodeHooks =
     Json.Decode.list decodeHook
-
-
-type alias Hooks =
-    List Hook
-
-
-type alias RepoResourceIdentifier =
-    ( Org, Repo, String )
 
 
 
@@ -2156,10 +1416,6 @@ type alias Schedule =
     , updated_by : String
     , branch : String
     }
-
-
-type alias Schedules =
-    List Schedule
 
 
 type alias AddSchedulePayload =
@@ -2212,7 +1468,7 @@ decodeSchedule =
         |> optional "branch" string ""
 
 
-decodeSchedules : Decoder Schedules
+decodeSchedules : Decoder (List Schedule)
 decodeSchedules =
     Json.Decode.list decodeSchedule
 
@@ -2231,8 +1487,6 @@ encodeUpdateSchedule schedule =
 -- SECRETS
 
 
-{-| Secret : record type for vela secrets
--}
 type alias Secret =
     { id : Int
     , org : Org
@@ -2331,8 +1585,6 @@ maybeSecretTypeToMaybeString type_ =
             Nothing
 
 
-{-| secretToKey : helper to create secret key
--}
 secretToKey : Secret -> String
 secretToKey secret =
     case secret.type_ of
@@ -2361,15 +1613,9 @@ decodeSecret =
         |> optional "allow_command" bool False
 
 
-{-| decodeSecrets : decodes json from vela into list of secrets
--}
-decodeSecrets : Decoder Secrets
+decodeSecrets : Decoder (List Secret)
 decodeSecrets =
     Json.Decode.list decodeSecret
-
-
-type alias Secrets =
-    List Secret
 
 
 type alias SecretPayload =
@@ -2420,11 +1666,17 @@ buildSecretPayload { type_, org, repo, team, name, value, events, images, allowC
 -- DEPLOYMENT
 
 
-type alias DeploymentsModel =
-    { deployments : WebData (List Deployment)
-    , pager : List WebLink
-    , maybePage : Maybe Pagination.Page
-    , maybePerPage : Maybe Pagination.PerPage
+type alias Deployment =
+    { id : Int
+    , repo_id : Int
+    , url : String
+    , user : String
+    , commit : String
+    , ref : String
+    , task : String
+    , target : String
+    , description : String
+    , payload : Maybe (List KeyValuePair)
     }
 
 
@@ -2446,44 +1698,6 @@ decodeDeployment =
 decodeDeployments : Decoder (List Deployment)
 decodeDeployments =
     Json.Decode.list decodeDeployment
-
-
-
-{- payload -}
-
-
-encodeKeyValuePair : KeyValuePair -> ( String, Json.Encode.Value )
-encodeKeyValuePair kvp =
-    ( kvp.key, Json.Encode.string kvp.value )
-
-
-encodeOptionalKeyValuePairList : Maybe (List KeyValuePair) -> Json.Encode.Value
-encodeOptionalKeyValuePairList value =
-    case value of
-        Just value_ ->
-            Json.Encode.object (List.map encodeKeyValuePair value_)
-
-        Nothing ->
-            Json.Encode.null
-
-
-decodeKeyValuePair : ( String, String ) -> KeyValuePair
-decodeKeyValuePair ( k, v ) =
-    KeyValuePair k v
-
-
-decodeKeyValuePairs : List ( String, String ) -> Maybe (List KeyValuePair)
-decodeKeyValuePairs o =
-    if List.isEmpty o then
-        Nothing
-
-    else
-        Just <| List.map decodeKeyValuePair <| o
-
-
-decodeDeploymentParameters : Decoder (Maybe (List KeyValuePair))
-decodeDeploymentParameters =
-    Json.Decode.map decodeKeyValuePairs <| Json.Decode.keyValuePairs Json.Decode.string
 
 
 type alias DeploymentPayload =
@@ -2525,3 +1739,43 @@ encodeDeploymentPayload deployment =
         , ( "task", encodeOptional Json.Encode.string deployment.task )
         , ( "payload", encodeOptionalKeyValuePairList deployment.payload )
         ]
+
+
+type alias KeyValuePair =
+    { key : String
+    , value : String
+    }
+
+
+encodeKeyValuePair : KeyValuePair -> ( String, Json.Encode.Value )
+encodeKeyValuePair kvp =
+    ( kvp.key, Json.Encode.string kvp.value )
+
+
+encodeOptionalKeyValuePairList : Maybe (List KeyValuePair) -> Json.Encode.Value
+encodeOptionalKeyValuePairList value =
+    case value of
+        Just value_ ->
+            Json.Encode.object (List.map encodeKeyValuePair value_)
+
+        Nothing ->
+            Json.Encode.null
+
+
+decodeKeyValuePair : ( String, String ) -> KeyValuePair
+decodeKeyValuePair ( k, v ) =
+    KeyValuePair k v
+
+
+decodeKeyValuePairs : List ( String, String ) -> Maybe (List KeyValuePair)
+decodeKeyValuePairs o =
+    if List.isEmpty o then
+        Nothing
+
+    else
+        Just <| List.map decodeKeyValuePair <| o
+
+
+decodeDeploymentParameters : Decoder (Maybe (List KeyValuePair))
+decodeDeploymentParameters =
+    Json.Decode.map decodeKeyValuePairs <| Json.Decode.keyValuePairs Json.Decode.string

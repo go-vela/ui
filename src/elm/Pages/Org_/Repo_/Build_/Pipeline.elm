@@ -80,6 +80,17 @@ type alias Model =
     }
 
 
+
+-- type alias PipelineModel =
+--     { config : ( WebData PipelineConfig, Errors.Error )
+--     , expanded : Bool
+--     , expanding : Bool
+--     , expand : Maybe String
+--     , lineFocus : LogFocus
+--     , focusFragment : FocusFragment
+--     }
+
+
 init : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { build = RemoteData.Loading
