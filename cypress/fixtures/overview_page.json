@@ -17,7 +17,6 @@
     "active": true,
     "allow_pull": false,
     "allow_push": true,
-    "allow_delete": false,
     "allow_deploy": false,
     "allow_tag": false
   },
@@ -39,7 +38,6 @@
     "active": false,
     "allow_pull": false,
     "allow_push": true,
-    "allow_delete": false,
     "allow_deploy": false,
     "allow_tag": false
   },
@@ -61,7 +59,6 @@
     "active": true,
     "allow_pull": false,
     "allow_push": true,
-    "allow_delete": false,
     "allow_deploy": false,
     "allow_tag": false
   },
@@ -83,7 +80,6 @@
     "active": true,
     "allow_pull": false,
     "allow_push": true,
-    "allow_delete": false,
     "allow_deploy": false,
     "allow_tag": false
   }
