@@ -95,7 +95,7 @@ init shared route () =
       , logs = Dict.empty
       , lineFocus =
             route.hash
-                |> Focus.parseFocusFragment
+                |> Focus.parseResourceFocusTargetFromFragment
                 |> (\ft -> ( ft.resourceNumber, ( ft.lineA, ft.lineB ) ))
       , logFollow = 0
       }
@@ -141,7 +141,7 @@ update shared route msg model =
             ( { model
                 | lineFocus =
                     route.hash
-                        |> Focus.parseFocusFragment
+                        |> Focus.parseResourceFocusTargetFromFragment
                         |> (\ft -> ( ft.resourceNumber, ( ft.lineA, ft.lineB ) ))
               }
             , Effect.none

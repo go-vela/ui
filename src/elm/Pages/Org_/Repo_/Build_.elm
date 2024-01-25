@@ -12,8 +12,8 @@ import Debug exposing (log)
 import Dict exposing (Dict)
 import Effect exposing (Effect)
 import FeatherIcons
-import Html exposing (Html, code, details, div, small, summary, text)
-import Html.Attributes exposing (attribute, class, id)
+import Html exposing (Html, button, code, details, div, small, summary, text)
+import Html.Attributes exposing (attribute, class, classList, id)
 import Html.Events exposing (onClick)
 import Http
 import Http.Detailed
@@ -83,7 +83,7 @@ init shared route () =
       , logs = Dict.empty
       , logLineFocus =
             route.hash
-                |> Focus.parseFocusFragment
+                |> Focus.parseResourceFocusTargetFromFragment
                 |> (\ft -> ( ft.resourceNumber, ( ft.lineA, ft.lineB ) ))
       , logFollow = 0
       }
@@ -129,10 +129,27 @@ update shared route msg model =
             ( { model
                 | logLineFocus =
                     route.hash
-                        |> Focus.parseFocusFragment
+                        |> Focus.parseResourceFocusTargetFromFragment
                         |> (\ft -> ( ft.resourceNumber, ( ft.lineA, ft.lineB ) ))
               }
-            , Effect.none
+            , case model.steps of
+                RemoteData.Success steps ->
+                    let
+                        resourceNumber =
+                            route.hash
+                                |> Focus.parseResourceFocusTargetFromFragment
+                                |> (\ft -> ( ft.resourceNumber, ( ft.lineA, ft.lineB ) ))
+                                |> Tuple.first
+                                |> Maybe.withDefault -1
+                    in
+                    steps
+                        |> List.filter (\s -> resourceNumber == s.number)
+                        |> List.map (\s -> ExpandStep { step = s, updateUrlHash = False })
+                        |> List.map Effect.sendMsg
+                        |> Effect.batch
+
+                _ ->
+                    Effect.none
             )
 
         PushUrlHash options ->
@@ -201,7 +218,10 @@ update shared route msg model =
                                 model.logs
                     in
                     ( { model | logs = logs }
-                    , Effect.none
+                    , model.logLineFocus
+                        |> Focus.resourceLineFocusToFocusId "step"
+                        |> (\t -> FocusOn { target = t })
+                        |> Effect.sendMsg
                     )
 
                 Err error ->
@@ -242,7 +262,7 @@ update shared route msg model =
                                 , buildNumber = route.params.buildNumber
                                 }
                         , query = route.query
-                        , hash = Just <| "step:" ++ String.fromInt options.step.number
+                        , hash = Just <| Focus.resourceFocusId "step" (String.fromInt options.step.number)
                         }
 
                   else
@@ -324,14 +344,14 @@ view shared route model =
                             , class "flowline-left"
                             , Util.testAttribute "log-actions"
                             ]
-                            [ Html.button
+                            [ button
                                 [ class "button"
                                 , class "-link"
                                 , onClick CollapseAll
                                 , Util.testAttribute "collapse-all"
                                 ]
                                 [ small [] [ text "collapse all" ] ]
-                            , Html.button
+                            , button
                                 [ class "button"
                                 , class "-link"
                                 , onClick ExpandAll
@@ -374,11 +394,17 @@ viewStep shared model route step =
             else
                 ExpandStep
     in
-    div [ Html.Attributes.classList [ ( "step", True ), ( "flowline-left", True ) ], Util.testAttribute "step" ]
+    div
+        [ classList
+            [ ( "step", True )
+            , ( "flowline-left", True )
+            ]
+        , Util.testAttribute "step"
+        ]
         [ div [ class "-status" ]
             [ div [ class "-icon-container" ] [ Components.Svgs.statusToIcon step.status ] ]
         , details
-            (Html.Attributes.classList
+            (classList
                 [ ( "details", True )
                 , ( "-with-border", True )
                 , ( "-running", step.status == Vela.Running )

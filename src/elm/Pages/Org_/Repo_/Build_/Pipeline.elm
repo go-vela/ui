@@ -11,8 +11,8 @@ import Auth
 import Dict exposing (Dict)
 import Effect exposing (Effect)
 import FeatherIcons
-import Html exposing (Html, a, button, code, div, small, span, strong, td, text, tr)
-import Html.Attributes exposing (attribute, class, id)
+import Html exposing (Html, a, button, code, details, div, small, span, strong, summary, table, td, text, tr)
+import Html.Attributes exposing (attribute, class, href, id, target)
 import Html.Events exposing (onClick)
 import Http
 import Http.Detailed
@@ -74,7 +74,7 @@ type alias Model =
     { build : WebData Vela.Build
     , pipeline : WebData Vela.PipelineConfig
     , templates : WebData (Dict String Vela.Template)
-    , lineFocus : ( Maybe Int, ( Maybe Int, Maybe Int ) )
+    , lineFocus : ( Maybe Int, Maybe Int )
     , showTemplates : Bool
     , expand : Bool
     , expanding : Bool
@@ -88,8 +88,8 @@ init shared route () =
       , templates = RemoteData.Loading
       , lineFocus =
             route.hash
-                |> Focus.parseFocusFragment
-                |> (\ft -> ( ft.resourceNumber, ( ft.lineA, ft.lineB ) ))
+                |> Focus.parseFocusTargetFromFragment
+                |> (\ft -> ( ft.lineA, ft.lineB ))
       , showTemplates = True
       , expand =
             route.query
@@ -201,8 +201,8 @@ update shared route msg model =
             ( { model
                 | lineFocus =
                     route.hash
-                        |> Focus.parseFocusFragment
-                        |> (\ft -> ( ft.resourceNumber, ( ft.lineA, ft.lineB ) ))
+                        |> Focus.parseFocusTargetFromFragment
+                        |> (\ft -> ( ft.lineA, ft.lineB ))
               }
             , Effect.none
             )
@@ -281,7 +281,10 @@ update shared route msg model =
                                 }
                         , expanding = False
                       }
-                    , Effect.none
+                    , model.lineFocus
+                        |> Focus.lineFocusToFocusId
+                        |> (\t -> FocusOn { target = t })
+                        |> Effect.sendMsg
                     )
 
                 Err error ->
@@ -383,7 +386,7 @@ view shared route model =
                 RemoteData.Success pipeline ->
                     if String.length pipeline.decodedData > 0 then
                         div [ class "logs-container", class "-pipeline" ]
-                            [ Html.table
+                            [ table
                                 [ class "logs-table"
                                 ]
                                 [ div [ class "header" ]
@@ -436,7 +439,7 @@ view shared route model =
                                         ]
                                     ]
                                 , div [ class "logs", Util.testAttribute "pipeline-configuration-data" ] <|
-                                    viewLines shared pipeline (Just <| Tuple.second model.lineFocus)
+                                    viewLines shared pipeline model.lineFocus
                                 ]
                             ]
 
@@ -474,8 +477,8 @@ viewTemplate ( _, t ) =
             [ span [] [ text t.name ]
             , span [] [ text t.source ]
             , a
-                [ Html.Attributes.target "_blank"
-                , Html.Attributes.href t.link
+                [ target "_blank"
+                , href t.link
                 ]
                 [ text t.link ]
             ]
@@ -484,13 +487,13 @@ viewTemplate ( _, t ) =
 
 viewTemplatesDetails : Html.Attribute msg -> Bool -> msg -> List (Html msg) -> Html msg
 viewTemplatesDetails cls open showHide content =
-    Html.details
+    details
         (class "details"
             :: class "templates"
             :: Util.testAttribute "pipeline-templates"
             :: Util.open open
         )
-        [ Html.summary [ class "summary", Util.onClickPreventDefault showHide ]
+        [ summary [ class "summary", Util.onClickPreventDefault showHide ]
             [ div [] [ text "Templates" ]
             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
             ]
@@ -498,7 +501,7 @@ viewTemplatesDetails cls open showHide content =
         ]
 
 
-viewLines : Shared.Model -> Vela.PipelineConfig -> Maybe Focus.LineFocus -> List (Html Msg)
+viewLines : Shared.Model -> Vela.PipelineConfig -> Focus.LineFocus -> List (Html Msg)
 viewLines shared config lineFocus =
     config.decodedData
         |> Utils.Ansi.decodeAnsi
@@ -507,49 +510,44 @@ viewLines shared config lineFocus =
                 Just <|
                     viewLine
                         shared
-                        "0"
                         (idx + 1)
                         (Just line)
-                        "0"
                         lineFocus
             )
         |> Array.toList
         |> List.filterMap identity
 
 
-viewLine : Shared.Model -> String -> Int -> Maybe Ansi.Log.Line -> String -> Maybe Focus.LineFocus -> Html Msg
-viewLine shared id lineNumber line resource lineFocus =
+viewLine : Shared.Model -> Int -> Maybe Ansi.Log.Line -> Focus.LineFocus -> Html Msg
+viewLine shared lineNumber line lineFocus =
     tr
-        [ Html.Attributes.id <|
-            id
-                ++ ":"
-                ++ String.fromInt lineNumber
+        [ id <| String.fromInt lineNumber
         , class "line"
         ]
         [ case line of
             Just l ->
                 div
                     [ class "wrapper"
-                    , Util.testAttribute <| String.join "-" [ "config", "line", resource, String.fromInt lineNumber ]
-                    , class <| Focus.lineFocusStyles lineFocus lineNumber
+                    , Util.testAttribute <| String.join "-" [ "config", "line", String.fromInt lineNumber ]
+                    , class <| Focus.lineFocusStyles (Just lineFocus) lineNumber
                     ]
                     [ td []
                         [ button
                             [ Util.onClickPreventDefault <|
                                 PushUrlHash
-                                    { hash = Focus.lineRangeId "pipeline" "0" lineNumber lineFocus shared.shift
+                                    { hash = Focus.lineRangeId lineNumber (Just lineFocus) shared.shift
                                     }
-                            , Util.testAttribute <| String.join "-" [ "config", "line", "num", resource, String.fromInt lineNumber ]
-                            , Html.Attributes.id <| Focus.resourceAndLineToFocusId "config" resource lineNumber
+                            , Util.testAttribute <| String.join "-" [ "config", "line", "num", String.fromInt lineNumber ]
+                            , id <| Focus.lineNumberToFocusId lineNumber
                             , class "line-number"
                             , class "button"
                             , class "-link"
-                            , attribute "aria-label" <| "focus resource " ++ resource
+                            , attribute "aria-label" "focus this line"
                             ]
                             [ span [] [ text <| String.fromInt lineNumber ] ]
                         ]
                     , td [ class "break-text", class "overflow-auto" ]
-                        [ code [ Util.testAttribute <| String.join "-" [ "config", "data", resource, String.fromInt lineNumber ] ]
+                        [ code [ Util.testAttribute <| String.join "-" [ "config", "data", String.fromInt lineNumber ] ]
                             [ Ansi.Log.viewLine l
                             ]
                         ]

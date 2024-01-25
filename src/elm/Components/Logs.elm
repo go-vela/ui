@@ -152,7 +152,7 @@ viewLine shared props logLine lineNumber =
                 [ button
                     [ Util.onClickPreventDefault <|
                         props.msgs.pushUrlHash
-                            { hash = Focus.lineRangeId props.resourceType props.resourceNumber lineNumber props.lineFocus shared.shift
+                            { hash = Focus.resourceLineRangeId props.resourceType props.resourceNumber lineNumber props.lineFocus shared.shift
                             }
                     , Util.testAttribute <| String.join "-" [ "log", "line", "num", props.resourceType, props.resourceNumber, String.fromInt lineNumber ]
                     , id <| Focus.resourceAndLineToFocusId props.resourceType props.resourceNumber lineNumber

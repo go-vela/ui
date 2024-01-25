@@ -12,8 +12,8 @@ import Debug exposing (log)
 import Dict exposing (Dict)
 import Effect exposing (Effect)
 import FeatherIcons
-import Html exposing (Html, code, details, div, small, summary, text)
-import Html.Attributes exposing (attribute, class, id)
+import Html exposing (Html, button, code, details, div, small, summary, text)
+import Html.Attributes exposing (attribute, class, classList, id)
 import Html.Events exposing (onClick)
 import Http
 import Http.Detailed
@@ -72,7 +72,7 @@ toLayout user route model =
 type alias Model =
     { services : WebData (List Vela.Service)
     , logs : Dict Int (WebData Vela.Log)
-    , lineFocus : ( Maybe Int, ( Maybe Int, Maybe Int ) )
+    , logLineFocus : ( Maybe Int, ( Maybe Int, Maybe Int ) )
     , logFollow : Int
     }
 
@@ -81,9 +81,9 @@ init : Shared.Model -> Route { org : String, repo : String, buildNumber : String
 init shared route () =
     ( { services = RemoteData.Loading
       , logs = Dict.empty
-      , lineFocus =
+      , logLineFocus =
             route.hash
-                |> Focus.parseFocusFragment
+                |> Focus.parseResourceFocusTargetFromFragment
                 |> (\ft -> ( ft.resourceNumber, ( ft.lineA, ft.lineB ) ))
       , logFollow = 0
       }
@@ -127,12 +127,29 @@ update shared route msg model =
         -- BROWSER
         OnHashChanged _ ->
             ( { model
-                | lineFocus =
+                | logLineFocus =
                     route.hash
-                        |> Focus.parseFocusFragment
+                        |> Focus.parseResourceFocusTargetFromFragment
                         |> (\ft -> ( ft.resourceNumber, ( ft.lineA, ft.lineB ) ))
               }
-            , Effect.none
+            , case model.services of
+                RemoteData.Success services ->
+                    let
+                        resourceNumber =
+                            route.hash
+                                |> Focus.parseResourceFocusTargetFromFragment
+                                |> (\ft -> ( ft.resourceNumber, ( ft.lineA, ft.lineB ) ))
+                                |> Tuple.first
+                                |> Maybe.withDefault -1
+                    in
+                    services
+                        |> List.filter (\s -> resourceNumber == s.number)
+                        |> List.map (\s -> ExpandService { service = s, updateUrlHash = False })
+                        |> List.map Effect.sendMsg
+                        |> Effect.batch
+
+                _ ->
+                    Effect.none
             )
 
         PushUrlHash options ->
@@ -161,7 +178,7 @@ update shared route msg model =
                             services
                                 |> List.map
                                     (\service ->
-                                        case model.lineFocus of
+                                        case model.logLineFocus of
                                             ( Just resourceNumber, _ ) ->
                                                 if service.number == resourceNumber then
                                                     ( { service | viewing = True }
@@ -201,7 +218,10 @@ update shared route msg model =
                                 model.logs
                     in
                     ( { model | logs = logs }
-                    , Effect.none
+                    , model.logLineFocus
+                        |> Focus.resourceLineFocusToFocusId "service"
+                        |> (\t -> FocusOn { target = t })
+                        |> Effect.sendMsg
                     )
 
                 Err error ->
@@ -242,7 +262,7 @@ update shared route msg model =
                                 , buildNumber = route.params.buildNumber
                                 }
                         , query = route.query
-                        , hash = Just <| "service:" ++ String.fromInt options.service.number
+                        , hash = Just <| Focus.resourceFocusId "service" (String.fromInt options.service.number)
                         }
 
                   else
@@ -324,14 +344,14 @@ view shared route model =
                             , class "flowline-left"
                             , Util.testAttribute "log-actions"
                             ]
-                            [ Html.button
+                            [ button
                                 [ class "button"
                                 , class "-link"
                                 , onClick CollapseAll
                                 , Util.testAttribute "collapse-all"
                                 ]
                                 [ small [] [ text "collapse all" ] ]
-                            , Html.button
+                            , button
                                 [ class "button"
                                 , class "-link"
                                 , onClick ExpandAll
@@ -369,11 +389,11 @@ viewService shared model route service =
             else
                 ExpandService
     in
-    div [ Html.Attributes.classList [ ( "service", True ), ( "flowline-left", True ) ], Util.testAttribute "service" ]
+    div [ classList [ ( "service", True ), ( "flowline-left", True ) ], Util.testAttribute "service" ]
         [ div [ class "-status" ]
             [ div [ class "-icon-container" ] [ Components.Svgs.statusToIcon service.status ] ]
         , details
-            (Html.Attributes.classList
+            (classList
                 [ ( "details", True )
                 , ( "-with-border", True )
                 , ( "-running", service.status == Vela.Running )
@@ -437,8 +457,8 @@ viewLogs shared model route service log =
                 , resourceType = "service"
                 , resourceNumber = String.fromInt service.number
                 , lineFocus =
-                    if service.number == Maybe.withDefault -1 (Tuple.first model.lineFocus) then
-                        Just <| Tuple.second model.lineFocus
+                    if service.number == Maybe.withDefault -1 (Tuple.first model.logLineFocus) then
+                        Just <| Tuple.second model.logLineFocus
 
                     else
                         Nothing
