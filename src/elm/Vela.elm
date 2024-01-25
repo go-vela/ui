@@ -914,6 +914,7 @@ type alias Deployment =
     , repo_id : Int
     , url : String
     , created_by : String
+    , created_at : Int
     , commit : String
     , ref : String
     , task : String
@@ -2598,6 +2599,7 @@ decodeDeployment =
         |> optional "repo_id" int -1
         |> optional "url" string ""
         |> optional "created_by" string ""
+        |> optional "created_at" int 0
         |> optional "commit" string ""
         |> optional "ref" string ""
         |> optional "task" string ""
