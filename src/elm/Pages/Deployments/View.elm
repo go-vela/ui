@@ -21,6 +21,7 @@ import Routes
 import Svg.Attributes
 import SvgBuilder exposing (hookSuccess)
 import Table
+import Time exposing (Zone)
 import Util exposing (largeLoader)
 import Vela exposing (Deployment, Org, Repo, RepoModel, Repository)
 
@@ -73,8 +74,8 @@ addForm deploymentModel =
 
 {-| viewDeployments : renders a list of deployments
 -}
-viewDeployments : RepoModel -> Org -> Repo -> Html msg
-viewDeployments repoModel org repo =
+viewDeployments : Zone -> RepoModel -> Org -> Repo -> Html msg
+viewDeployments zone repoModel org repo =
     let
         addButton =
             a
@@ -101,7 +102,7 @@ viewDeployments repoModel org repo =
             case ( repoModel.repo, repoModel.deployments.deployments ) of
                 ( RemoteData.Success repo_, RemoteData.Success s ) ->
                     ( text "No deployments found for this repo"
-                    , deploymentsToRows repo_ s
+                    , deploymentsToRows zone repo_ s
                     )
 
                 ( _, RemoteData.Failure error ) ->
@@ -161,9 +162,9 @@ viewDeployments repoModel org repo =
 
 {-| deploymentsToRows : takes list of deployments and produces list of Table rows
 -}
-deploymentsToRows : Repository -> List Deployment -> Table.Rows Deployment msg
-deploymentsToRows repo_ deployments =
-    List.map (\deployment -> Table.Row deployment (renderDeployment repo_)) deployments
+deploymentsToRows : Zone -> Repository -> List Deployment -> Table.Rows Deployment msg
+deploymentsToRows zone repo_ deployments =
+    List.map (\deployment -> Table.Row deployment (renderDeployment zone repo_)) deployments
 
 
 {-| tableHeaders : returns table headers for deployments table
@@ -171,7 +172,6 @@ deploymentsToRows repo_ deployments =
 tableHeaders : Table.Columns
 tableHeaders =
     [ ( Just "-icon", "" )
-    , ( Nothing, "id" )
     , ( Nothing, "number" )
     , ( Nothing, "target" )
     , ( Nothing, "commit" )
@@ -179,14 +179,15 @@ tableHeaders =
     , ( Nothing, "description" )
     , ( Nothing, "builds" )
     , ( Nothing, "created by" )
+    , ( Nothing, "created at" )
     , ( Nothing, "" )
     ]
 
 
 {-| renderDeployment : takes deployment and renders a table row
 -}
-renderDeployment : Repository -> Deployment -> Html msg
-renderDeployment repo_ deployment =
+renderDeployment : Zone -> Repository -> Deployment -> Html msg
+renderDeployment zone repo_ deployment =
     tr [ Util.testAttribute <| "deployments-row" ]
         [ td
             [ attribute "data-label" ""
@@ -195,13 +196,6 @@ renderDeployment repo_ deployment =
             , class "-icon"
             ]
             [ hookSuccess ]
-        , td
-            [ attribute "data-label" "id"
-            , scope "row"
-            , class "break-word"
-            , Util.testAttribute <| "deployments-row-id"
-            ]
-            [ text <| String.fromInt deployment.id ]
         , td
             [ attribute "data-label" "number"
             , scope "row"
@@ -253,6 +247,12 @@ renderDeployment repo_ deployment =
             , class "break-word"
             ]
             [ text deployment.created_by ]
+        , td
+            [ attribute "data-label" "created at"
+            , scope "row"
+            , class "break-word"
+            ]
+            [ text <| Util.humanReadableDateTimeWithDefault zone deployment.created_at ]
         , td
             [ attribute "data-label" ""
             , scope "row"
