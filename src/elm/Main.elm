@@ -2908,6 +2908,7 @@ viewBuildsFilter shouldRender org repo maybeEvent =
                 , "deployment"
                 , "schedule"
                 , "comment"
+                , "delete"
                 ]
         in
         div [ class "form-controls", class "build-filters", Util.testAttribute "build-filter" ] <|
