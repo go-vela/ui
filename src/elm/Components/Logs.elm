@@ -31,7 +31,7 @@ type alias Props msg =
     , buildNumber : String
     , resourceType : String
     , resourceNumber : String
-    , lineFocus : Maybe LogFocus
+    , focus : Focus.Focus
     , follow : Int
     }
 
@@ -39,10 +39,6 @@ type alias Props msg =
 type alias LogLine msg =
     { view : Html msg
     }
-
-
-type alias LogFocus =
-    ( Maybe Int, Maybe Int )
 
 
 view : Shared.Model -> Props msg -> Html msg
@@ -146,16 +142,21 @@ viewLine shared props logLine lineNumber =
         [ div
             [ class "wrapper"
             , Util.testAttribute <| String.join "-" [ "log", "line", props.resourceType, props.resourceNumber, String.fromInt lineNumber ]
-            , class <| Focus.lineFocusStyles props.lineFocus lineNumber
+            , class <| Focus.lineRangeStyles props.focus lineNumber
             ]
             [ td []
                 [ button
                     [ Util.onClickPreventDefault <|
                         props.msgs.pushUrlHash
-                            { hash = Focus.resourceLineRangeId props.resourceType props.resourceNumber lineNumber props.lineFocus shared.shift
+                            { hash =
+                                Focus.toString <| Focus.updateLineRange shared props.focus lineNumber
                             }
                     , Util.testAttribute <| String.join "-" [ "log", "line", "num", props.resourceType, props.resourceNumber, String.fromInt lineNumber ]
-                    , id <| Focus.resourceAndLineToFocusId props.resourceType props.resourceNumber lineNumber
+                    , Focus.toAttr
+                        { group = String.toInt props.resourceNumber
+                        , a = Just lineNumber
+                        , b = Nothing
+                        }
                     , class "line-number"
                     , class "button"
                     , class "-link"

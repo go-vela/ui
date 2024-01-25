@@ -204,7 +204,7 @@ update route msg model =
         Shared.Msg.Tick options ->
             case options.interval of
                 Interval.OneSecond ->
-                    ( model, Effect.none )
+                    ( { model | time = options.time }, Effect.none )
 
                 Interval.FiveSeconds ->
                     ( model, Effect.none )
@@ -595,15 +595,6 @@ update route msg model =
             )
 
         Shared.Msg.VisibilityChanged options ->
-            -- todo: refresh the page when visibility changes to Visible
-            -- let
-            --     sideEffect =
-            --         case options.visibility of
-            --             Browser.Events.Visibility.Visible ->
-            --                 refreshPage model
-            --             Browser.Events.Visibility.Hidden ->
-            --                 Effect.none
-            -- in
             ( { model | visibility = options.visibility, shift = False }
             , Effect.none
             )
@@ -626,8 +617,4 @@ subscriptions _ model =
             )
         , Browser.Events.onVisibilityChange
             (\visibility -> Shared.Msg.VisibilityChanged { visibility = visibility })
-
-        -- todo: move this to the build graph page, when we have one
-        , Interop.onGraphInteraction
-            (Vela.decodeOnGraphInteraction Shared.Msg.BuildGraphInteraction Shared.Msg.NoOp)
         ]

@@ -72,7 +72,7 @@ toLayout user route model =
 type alias Model =
     { services : WebData (List Vela.Service)
     , logs : Dict Int (WebData Vela.Log)
-    , logLineFocus : ( Maybe Int, ( Maybe Int, Maybe Int ) )
+    , focus : Focus.Focus
     , logFollow : Int
     }
 
@@ -81,10 +81,7 @@ init : Shared.Model -> Route { org : String, repo : String, buildNumber : String
 init shared route () =
     ( { services = RemoteData.Loading
       , logs = Dict.empty
-      , logLineFocus =
-            route.hash
-                |> Focus.parseResourceFocusTargetFromFragment
-                |> (\ft -> ( ft.resourceNumber, ( ft.lineA, ft.lineB ) ))
+      , focus = Focus.fromString route.hash
       , logFollow = 0
       }
     , Effect.getBuildServices
@@ -126,30 +123,20 @@ update shared route msg model =
     case msg of
         -- BROWSER
         OnHashChanged _ ->
-            ( { model
-                | logLineFocus =
-                    route.hash
-                        |> Focus.parseResourceFocusTargetFromFragment
-                        |> (\ft -> ( ft.resourceNumber, ( ft.lineA, ft.lineB ) ))
-              }
-            , case model.services of
-                RemoteData.Success services ->
-                    let
-                        resourceNumber =
-                            route.hash
-                                |> Focus.parseResourceFocusTargetFromFragment
-                                |> (\ft -> ( ft.resourceNumber, ( ft.lineA, ft.lineB ) ))
-                                |> Tuple.first
-                                |> Maybe.withDefault -1
-                    in
-                    services
-                        |> List.filter (\s -> resourceNumber == s.number)
-                        |> List.map (\s -> ExpandService { service = s, updateUrlHash = False })
-                        |> List.map Effect.sendMsg
-                        |> Effect.batch
-
-                _ ->
-                    Effect.none
+            let
+                focus =
+                    Focus.fromString route.hash
+            in
+            ( { model | focus = focus }
+            , model.services
+                |> RemoteData.unwrap Effect.none
+                    (\services ->
+                        services
+                            |> List.Extra.find (\s -> s.number == Maybe.withDefault -1 focus.group)
+                            |> Maybe.map (\s -> ExpandService { service = s, updateUrlHash = False })
+                            |> Maybe.map Effect.sendMsg
+                            |> Maybe.withDefault Effect.none
+                    )
             )
 
         PushUrlHash options ->
@@ -178,8 +165,8 @@ update shared route msg model =
                             services
                                 |> List.map
                                     (\service ->
-                                        case model.logLineFocus of
-                                            ( Just resourceNumber, _ ) ->
+                                        case model.focus.group of
+                                            Just resourceNumber ->
                                                 if service.number == resourceNumber then
                                                     ( { service | viewing = True }
                                                     , ExpandService { service = service, updateUrlHash = False }
@@ -211,17 +198,18 @@ update shared route msg model =
         GetBuildServiceLogResponse service response ->
             case response of
                 Ok ( _, log ) ->
-                    let
-                        logs =
+                    ( { model
+                        | logs =
                             Dict.update service.id
                                 (Components.Logs.safeDecodeLogData shared.velaLogBytesLimit log)
                                 model.logs
-                    in
-                    ( { model | logs = logs }
-                    , model.logLineFocus
-                        |> Focus.resourceLineFocusToFocusId "service"
-                        |> (\t -> FocusOn { target = t })
-                        |> Effect.sendMsg
+                      }
+                    , if Focus.canTarget model.focus then
+                        FocusOn { target = Focus.toDomTarget model.focus }
+                            |> Effect.sendMsg
+
+                      else
+                        Effect.none
                     )
 
                 Err error ->
@@ -262,7 +250,13 @@ update shared route msg model =
                                 , buildNumber = route.params.buildNumber
                                 }
                         , query = route.query
-                        , hash = Just <| Focus.resourceFocusId "service" (String.fromInt options.service.number)
+                        , hash =
+                            Just <|
+                                Focus.toString
+                                    { group = Just options.service.number
+                                    , a = Nothing
+                                    , b = Nothing
+                                    }
                         }
 
                   else
@@ -404,7 +398,7 @@ viewService shared model route service =
                 [ class "summary"
                 , Util.testAttribute <| "service-header-" ++ serviceNumber
                 , onClick <| clickService { service = service, updateUrlHash = True }
-                , id <| "service-" ++ serviceNumber
+                , Focus.toAttr { group = Just service.number, a = Nothing, b = Nothing }
                 ]
                 [ div
                     [ class "-info" ]
@@ -456,11 +450,6 @@ viewLogs shared model route service log =
                 , buildNumber = route.params.buildNumber
                 , resourceType = "service"
                 , resourceNumber = String.fromInt service.number
-                , lineFocus =
-                    if service.number == Maybe.withDefault -1 (Tuple.first model.logLineFocus) then
-                        Just <| Tuple.second model.logLineFocus
-
-                    else
-                        Nothing
+                , focus = model.focus
                 , follow = model.logFollow
                 }

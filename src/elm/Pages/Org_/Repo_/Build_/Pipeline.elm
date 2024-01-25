@@ -74,7 +74,7 @@ type alias Model =
     { build : WebData Vela.Build
     , pipeline : WebData Vela.PipelineConfig
     , templates : WebData (Dict String Vela.Template)
-    , lineFocus : ( Maybe Int, Maybe Int )
+    , focus : Focus.Focus
     , showTemplates : Bool
     , expand : Bool
     , expanding : Bool
@@ -86,10 +86,7 @@ init shared route () =
     ( { build = RemoteData.Loading
       , pipeline = RemoteData.Loading
       , templates = RemoteData.Loading
-      , lineFocus =
-            route.hash
-                |> Focus.parseFocusTargetFromFragment
-                |> (\ft -> ( ft.lineA, ft.lineB ))
+      , focus = route.hash |> Focus.fromStringNoGroup
       , showTemplates = True
       , expand =
             route.query
@@ -198,13 +195,20 @@ update shared route msg model =
             )
 
         OnHashChanged _ ->
+            let
+                focus =
+                    route.hash |> Focus.fromStringNoGroup
+            in
             ( { model
-                | lineFocus =
-                    route.hash
-                        |> Focus.parseFocusTargetFromFragment
-                        |> (\ft -> ( ft.lineA, ft.lineB ))
+                | focus =
+                    focus
               }
-            , Effect.none
+            , if Focus.canTarget focus then
+                FocusOn { target = Focus.toDomTarget focus }
+                    |> Effect.sendMsg
+
+              else
+                Effect.none
             )
 
         PushUrlHash options ->
@@ -281,10 +285,12 @@ update shared route msg model =
                                 }
                         , expanding = False
                       }
-                    , model.lineFocus
-                        |> Focus.lineFocusToFocusId
-                        |> (\t -> FocusOn { target = t })
-                        |> Effect.sendMsg
+                    , if Focus.canTarget model.focus then
+                        FocusOn { target = Focus.toDomTarget model.focus }
+                            |> Effect.sendMsg
+
+                      else
+                        Effect.none
                     )
 
                 Err error ->
@@ -439,7 +445,7 @@ view shared route model =
                                         ]
                                     ]
                                 , div [ class "logs", Util.testAttribute "pipeline-configuration-data" ] <|
-                                    viewLines shared pipeline model.lineFocus
+                                    viewLines shared pipeline model.focus
                                 ]
                             ]
 
@@ -501,8 +507,8 @@ viewTemplatesDetails cls open showHide content =
         ]
 
 
-viewLines : Shared.Model -> Vela.PipelineConfig -> Focus.LineFocus -> List (Html Msg)
-viewLines shared config lineFocus =
+viewLines : Shared.Model -> Vela.PipelineConfig -> Focus.Focus -> List (Html Msg)
+viewLines shared config focus =
     config.decodedData
         |> Utils.Ansi.decodeAnsi
         |> Array.indexedMap
@@ -512,14 +518,14 @@ viewLines shared config lineFocus =
                         shared
                         (idx + 1)
                         (Just line)
-                        lineFocus
+                        focus
             )
         |> Array.toList
         |> List.filterMap identity
 
 
-viewLine : Shared.Model -> Int -> Maybe Ansi.Log.Line -> Focus.LineFocus -> Html Msg
-viewLine shared lineNumber line lineFocus =
+viewLine : Shared.Model -> Int -> Maybe Ansi.Log.Line -> Focus.Focus -> Html Msg
+viewLine shared lineNumber line focus =
     tr
         [ id <| String.fromInt lineNumber
         , class "line"
@@ -529,16 +535,21 @@ viewLine shared lineNumber line lineFocus =
                 div
                     [ class "wrapper"
                     , Util.testAttribute <| String.join "-" [ "config", "line", String.fromInt lineNumber ]
-                    , class <| Focus.lineFocusStyles (Just lineFocus) lineNumber
+                    , class <| Focus.lineRangeStyles focus lineNumber
                     ]
                     [ td []
                         [ button
                             [ Util.onClickPreventDefault <|
                                 PushUrlHash
-                                    { hash = Focus.lineRangeId lineNumber (Just lineFocus) shared.shift
+                                    { hash =
+                                        Focus.toString <| Focus.updateLineRange shared focus lineNumber
                                     }
                             , Util.testAttribute <| String.join "-" [ "config", "line", "num", String.fromInt lineNumber ]
-                            , id <| Focus.lineNumberToFocusId lineNumber
+                            , Focus.toAttr
+                                { group = Nothing
+                                , a = Just lineNumber
+                                , b = Nothing
+                                }
                             , class "line-number"
                             , class "button"
                             , class "-link"

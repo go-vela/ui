@@ -19,6 +19,7 @@ import Http
 import Http.Detailed
 import Layouts
 import List.Extra
+import Maybe.Extra
 import Page exposing (Page)
 import RemoteData exposing (WebData)
 import Route exposing (Route)
@@ -72,7 +73,7 @@ toLayout user route model =
 type alias Model =
     { steps : WebData (List Vela.Step)
     , logs : Dict Int (WebData Vela.Log)
-    , logLineFocus : ( Maybe Int, ( Maybe Int, Maybe Int ) )
+    , focus : Focus.Focus
     , logFollow : Int
     }
 
@@ -81,10 +82,7 @@ init : Shared.Model -> Route { org : String, repo : String, buildNumber : String
 init shared route () =
     ( { steps = RemoteData.Loading
       , logs = Dict.empty
-      , logLineFocus =
-            route.hash
-                |> Focus.parseResourceFocusTargetFromFragment
-                |> (\ft -> ( ft.resourceNumber, ( ft.lineA, ft.lineB ) ))
+      , focus = Focus.fromString route.hash
       , logFollow = 0
       }
     , Effect.getBuildSteps
@@ -92,7 +90,7 @@ init shared route () =
         , session = shared.session
         , onResponse = GetBuildStepsResponse
         , pageNumber = Nothing
-        , perPage = Nothing
+        , perPage = Just 100
         , org = route.params.org
         , repo = route.params.repo
         , buildNumber = route.params.buildNumber
@@ -125,31 +123,21 @@ update : Shared.Model -> Route { org : String, repo : String, buildNumber : Stri
 update shared route msg model =
     case msg of
         -- BROWSER
-        OnHashChanged _ ->
-            ( { model
-                | logLineFocus =
-                    route.hash
-                        |> Focus.parseResourceFocusTargetFromFragment
-                        |> (\ft -> ( ft.resourceNumber, ( ft.lineA, ft.lineB ) ))
-              }
-            , case model.steps of
-                RemoteData.Success steps ->
-                    let
-                        resourceNumber =
-                            route.hash
-                                |> Focus.parseResourceFocusTargetFromFragment
-                                |> (\ft -> ( ft.resourceNumber, ( ft.lineA, ft.lineB ) ))
-                                |> Tuple.first
-                                |> Maybe.withDefault -1
-                    in
-                    steps
-                        |> List.filter (\s -> resourceNumber == s.number)
-                        |> List.map (\s -> ExpandStep { step = s, updateUrlHash = False })
-                        |> List.map Effect.sendMsg
-                        |> Effect.batch
-
-                _ ->
-                    Effect.none
+        OnHashChanged options ->
+            let
+                focus =
+                    Focus.fromString route.hash
+            in
+            ( { model | focus = focus }
+            , model.steps
+                |> RemoteData.unwrap Effect.none
+                    (\steps ->
+                        steps
+                            |> List.Extra.find (\s -> s.number == Maybe.withDefault -1 focus.group)
+                            |> Maybe.map (\s -> ExpandStep { step = s, updateUrlHash = False })
+                            |> Maybe.map Effect.sendMsg
+                            |> Maybe.withDefault Effect.none
+                    )
             )
 
         PushUrlHash options ->
@@ -178,12 +166,19 @@ update shared route msg model =
                             steps
                                 |> List.map
                                     (\step ->
-                                        case model.logLineFocus of
-                                            ( Just resourceNumber, _ ) ->
+                                        case model.focus.group of
+                                            Just resourceNumber ->
                                                 if step.number == resourceNumber then
                                                     ( { step | viewing = True }
-                                                    , ExpandStep { step = step, updateUrlHash = False }
-                                                        |> Effect.sendMsg
+                                                    , Effect.batch
+                                                        [ ExpandStep { step = step, updateUrlHash = False }
+                                                            |> Effect.sendMsg
+                                                        , FocusOn
+                                                            { target =
+                                                                Focus.toDomTarget model.focus
+                                                            }
+                                                            |> Effect.sendMsg
+                                                        ]
                                                     )
 
                                                 else
@@ -211,17 +206,18 @@ update shared route msg model =
         GetBuildStepLogResponse step response ->
             case response of
                 Ok ( _, log ) ->
-                    let
-                        logs =
+                    ( { model
+                        | logs =
                             Dict.update step.id
                                 (Components.Logs.safeDecodeLogData shared.velaLogBytesLimit log)
                                 model.logs
-                    in
-                    ( { model | logs = logs }
-                    , model.logLineFocus
-                        |> Focus.resourceLineFocusToFocusId "step"
-                        |> (\t -> FocusOn { target = t })
-                        |> Effect.sendMsg
+                      }
+                    , if Focus.canTarget model.focus then
+                        FocusOn { target = Focus.toDomTarget model.focus }
+                            |> Effect.sendMsg
+
+                      else
+                        Effect.none
                     )
 
                 Err error ->
@@ -262,7 +258,13 @@ update shared route msg model =
                                 , buildNumber = route.params.buildNumber
                                 }
                         , query = route.query
-                        , hash = Just <| Focus.resourceFocusId "step" (String.fromInt options.step.number)
+                        , hash =
+                            Just <|
+                                Focus.toString
+                                    { group = Just options.step.number
+                                    , a = Nothing
+                                    , b = Nothing
+                                    }
                         }
 
                   else
@@ -415,7 +417,11 @@ viewStep shared model route step =
                 [ class "summary"
                 , Util.testAttribute <| "step-header-" ++ stepNumber
                 , onClick <| clickStep { step = step, updateUrlHash = True }
-                , id <| "step-" ++ stepNumber
+                , Focus.toAttr
+                    { group = Just step.number
+                    , a = Nothing
+                    , b = Nothing
+                    }
                 ]
                 [ div
                     [ class "-info" ]
@@ -467,11 +473,6 @@ viewLogs shared model route step log =
                 , buildNumber = route.params.buildNumber
                 , resourceType = "step"
                 , resourceNumber = String.fromInt step.number
-                , lineFocus =
-                    if step.number == Maybe.withDefault -1 (Tuple.first model.logLineFocus) then
-                        Just <| Tuple.second model.logLineFocus
-
-                    else
-                        Nothing
+                , focus = model.focus
                 , follow = model.logFollow
                 }

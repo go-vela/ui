@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, addDeployment, addOrgSecret, addRepoSecret, alertsUpdate, clearRedirect, downloadFile, enableRepo, expandPipelineConfig, finishAuthentication, focusOn, getBuild, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoBuildsShared, getRepoDeployments, getRepoHooks, getRepoHooksShared, getRepoSchedules, getRepoSecret, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, redeliverHook, sendSharedRepoBuildsResponse, sendSharedRepoHooksResponse, setRedirect, setTheme, updateFavorites, updateOrgSecret, updateRepoSecret
+    , addAlertError, addAlertSuccess, addDeployment, addOrgSecret, addRepoSecret, alertsUpdate, clearRedirect, downloadFile, enableRepo, expandPipelineConfig, finishAuthentication, focusOn, getBuild, getBuildGraph, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoBuildsShared, getRepoDeployments, getRepoHooks, getRepoHooksShared, getRepoSchedules, getRepoSecret, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, redeliverHook, sendSharedRepoBuildsResponse, sendSharedRepoHooksResponse, setRedirect, setTheme, updateFavorites, updateOrgSecret, updateRepoSecret
     )
 
 {-|
@@ -746,6 +746,26 @@ getBuildServiceLog options =
     Api.try
         options.onResponse
         (Api.Operations.getBuildServiceLog
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+getBuildGraph :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.BuildGraph ) -> msg
+    , org : String
+    , repo : String
+    , buildNumber : String
+    }
+    -> Effect msg
+getBuildGraph options =
+    Api.try
+        options.onResponse
+        (Api.Operations.getBuildGraph
             options.baseUrl
             options.session
             options

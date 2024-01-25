@@ -4,241 +4,247 @@ SPDX-License-Identifier: Apache-2.0
 
 
 module Utils.Focus exposing
-    ( FocusTarget
-    , LineFocus
-    , focusFragmentToFocusId
-    , lineFocusStyles
-    , lineFocusToFocusId
-    , lineNumberToFocusId
-    , lineRangeId
-    , parseFocusTargetFromFragment
-    , parseResourceFocusTargetFromFragment
-    , resourceAndLineToFocusId
-    , resourceFocusId
-    , resourceLineFocusToFocusId
-    , resourceLineRangeId
-    , resourceToFocusId
+    ( Focus
+    , canTarget
+    , fromAttrId
+    , fromString
+    , fromStringNoGroup
+    , lineRangeStyles
+    , toAttr
+    , toDomTarget
+    , toString
+    , updateLineRange
     )
 
+import Html
+import Html.Attributes
 import Maybe.Extra
+import Shared
 
 
-type alias LineFocus =
-    ( Maybe Int, Maybe Int )
-
-
-type alias FocusTarget =
-    { target : Maybe String
-    , resourceNumber : Maybe Int
-    , lineA : Maybe Int
-    , lineB : Maybe Int
+type alias Focus =
+    { group : Maybe Int
+    , a : Maybe Int
+    , b : Maybe Int
     }
 
 
-{-| resourceToFocusId : takes resource and id and returns the resource focus id for auto focusing on page load
--}
-resourceToFocusId : String -> String -> String
-resourceToFocusId resource resourceNumber =
-    String.join "-" [ resource, resourceNumber ]
+fromString : Maybe String -> Focus
+fromString =
+    Maybe.Extra.unwrap
+        { group = Nothing
+        , a = Nothing
+        , b = Nothing
+        }
+        (\str ->
+            case String.split ":" str of
+                a :: b :: c :: _ ->
+                    { group = String.toInt a
+                    , a = String.toInt b
+                    , b = String.toInt c
+                    }
+
+                a :: b :: _ ->
+                    { group = String.toInt a
+                    , a = String.toInt b
+                    , b = Nothing
+                    }
+
+                a :: _ ->
+                    { group = String.toInt a
+                    , a = Nothing
+                    , b = Nothing
+                    }
+
+                _ ->
+                    { group = String.toInt str
+                    , a = Nothing
+                    , b = Nothing
+                    }
+        )
 
 
-{-| lineNumberToFocusId : takes resource, id and line number and returns the line focus id for auto focusing on page load
--}
-lineNumberToFocusId : Int -> String
-lineNumberToFocusId lineNumber =
-    String.join "-" [ "line", String.fromInt lineNumber ]
+fromStringNoGroup : Maybe String -> Focus
+fromStringNoGroup =
+    Maybe.Extra.unwrap
+        { group = Nothing
+        , a = Nothing
+        , b = Nothing
+        }
+        (\str ->
+            case String.split ":" str of
+                a :: b :: _ ->
+                    { group = Nothing
+                    , a = String.toInt a
+                    , b = String.toInt b
+                    }
+
+                a :: _ ->
+                    { group = Nothing
+                    , a = String.toInt a
+                    , b = Nothing
+                    }
+
+                _ ->
+                    { group = Nothing
+                    , a = String.toInt str
+                    , b = Nothing
+                    }
+        )
 
 
-{-| lineFocusToFocusId : takes resource, id and line number and returns the line focus id for auto focusing on page load
--}
-lineFocusToFocusId : LineFocus -> String
-lineFocusToFocusId lineFocus =
-    lineFocus
-        |> Tuple.first
-        |> List.singleton
+toString : Focus -> String
+toString focus =
+    [ focus.group, focus.a, focus.b ]
         |> List.filterMap identity
         |> List.map String.fromInt
-        |> (::) "line"
+        |> String.join ":"
+
+
+fromAttrId : String -> Focus
+fromAttrId id_ =
+    case String.split "-" id_ of
+        _ :: a :: b :: c :: [] ->
+            { group = String.toInt a
+            , a = String.toInt b
+            , b = String.toInt c
+            }
+
+        _ :: a :: b :: [] ->
+            { group = String.toInt a
+            , a = String.toInt b
+            , b = Nothing
+            }
+
+        _ :: a :: [] ->
+            { group = String.toInt a
+            , a = Nothing
+            , b = Nothing
+            }
+
+        _ ->
+            { group = String.toInt id_
+            , a = Nothing
+            , b = Nothing
+            }
+
+
+toDomTarget : Focus -> String
+toDomTarget focus =
+    (case ( focus.group, focus.a, focus.b ) of
+        ( Just group, Just a, Just _ ) ->
+            [ group, a ]
+
+        ( Just group, Just a, _ ) ->
+            [ group, a ]
+
+        ( Just group, _, Just b ) ->
+            [ group, b ]
+
+        ( Just group, Nothing, Nothing ) ->
+            [ group ]
+
+        ( _, Just a, _ ) ->
+            [ a ]
+
+        _ ->
+            []
+    )
+        |> List.map String.fromInt
+        |> (::) "focus"
         |> String.join "-"
 
 
-{-| resourceLineFocusToFocusId : takes resource, id and line number and returns the line focus id for auto focusing on page load
--}
-resourceLineFocusToFocusId : String -> ( Maybe Int, LineFocus ) -> String
-resourceLineFocusToFocusId resource resourceLineFocus =
-    resourceLineFocus
-        |> (\( resourceNumber, lineFocus ) -> ( resourceNumber, Tuple.first lineFocus ))
-        |> Tuple.mapBoth (Maybe.map String.fromInt) (Maybe.map String.fromInt)
-        |> (\( resourceNumber, maybeLineA ) -> [ Just resource, resourceNumber, Just "line", maybeLineA ])
+toAttr : Focus -> Html.Attribute msg
+toAttr focus =
+    [ focus.group, focus.a, focus.b ]
         |> List.filterMap identity
+        |> List.map String.fromInt
+        |> (::) "focus"
         |> String.join "-"
+        |> Html.Attributes.id
 
 
-{-| resourceAndLineToFocusId : takes resource, id and line number and returns the line focus id for auto focusing on page load
--}
-resourceAndLineToFocusId : String -> String -> Int -> String
-resourceAndLineToFocusId resource resourceNumber lineNumber =
-    String.join "-" [ resource, resourceNumber, "line", String.fromInt lineNumber ]
+canTarget : Focus -> Bool
+canTarget focus =
+    case ( focus.group, focus.a, focus.b ) of
+        ( Just _, _, _ ) ->
+            True
+
+        ( _, Just _, _ ) ->
+            True
+
+        _ ->
+            False
 
 
-{-| focusFragmentToFocusId : takes URL fragment and parses it into appropriate line focus id for auto focusing on page load
--}
-focusFragmentToFocusId : String -> Maybe String -> String
-focusFragmentToFocusId resource focusFragment =
-    let
-        parsed =
-            parseResourceFocusTargetFromFragment focusFragment
-    in
-    case ( parsed.resourceNumber, parsed.lineA, parsed.lineB ) of
-        ( Just resourceNumber, Just lineA, Nothing ) ->
-            resource ++ "-" ++ String.fromInt resourceNumber ++ "-line-" ++ String.fromInt lineA
+updateLineRange : Shared.Model -> Focus -> Int -> Focus
+updateLineRange shared focus lineNumber =
+    (case ( shared.shift, ( focus.a, focus.b ) ) of
+        ( True, ( Just lineA, Just lineB ) ) ->
+            if lineNumber < lineA then
+                [ lineNumber, lineB ]
 
-        ( Just resourceNumber, Just lineA, Just lineB ) ->
-            resource ++ "-" ++ String.fromInt resourceNumber ++ "-line-" ++ String.fromInt lineA ++ "-" ++ String.fromInt lineB
+            else
+                [ lineA, lineNumber ]
 
-        ( Just resourceNumber, Nothing, Nothing ) ->
-            resource ++ "-" ++ String.fromInt resourceNumber
+        ( True, ( Just lineA, _ ) ) ->
+            if lineNumber < lineA then
+                [ lineNumber, lineA ]
+
+            else
+                [ lineA, lineNumber ]
+
+        _ ->
+            [ lineNumber ]
+    )
+        |> List.sort
+        |> (\range ->
+                case range of
+                    a :: b :: [] ->
+                        { focus
+                            | a = Just a
+                            , b = Just b
+                        }
+
+                    a :: [] ->
+                        { focus
+                            | a = Just a
+                            , b = Nothing
+                        }
+
+                    _ ->
+                        { focus
+                            | a = Nothing
+                            , b = Nothing
+                        }
+           )
+
+
+lineRangeStyles : Focus -> Int -> String
+lineRangeStyles focus lineNumber =
+    case ( focus.a, focus.b ) of
+        ( Just lineA, Just lineB ) ->
+            let
+                ( a, b ) =
+                    if lineA < lineB then
+                        ( lineA, lineB )
+
+                    else
+                        ( lineB, lineA )
+            in
+            if lineNumber >= a && lineNumber <= b then
+                "-focus"
+
+            else
+                ""
+
+        ( Just lineA, Nothing ) ->
+            if lineA == lineNumber then
+                "-focus"
+
+            else
+                ""
 
         _ ->
             ""
-
-
-{-| parseFocusTargetFromFragment : takes URL fragment and parses it into appropriate line focus chunks
--}
-parseFocusTargetFromFragment : Maybe String -> FocusTarget
-parseFocusTargetFromFragment focusFragment =
-    case String.split ":" (Maybe.withDefault "" focusFragment) of
-        lineA :: lineB :: _ ->
-            { target = Nothing, resourceNumber = Nothing, lineA = String.toInt lineA, lineB = String.toInt lineB }
-
-        lineA :: _ ->
-            { target = Nothing, resourceNumber = Nothing, lineA = String.toInt lineA, lineB = Nothing }
-
-        _ ->
-            { target = Nothing, resourceNumber = Nothing, lineA = Nothing, lineB = Nothing }
-
-
-{-| parseResourceFocusTargetFromFragment : takes URL fragment and parses it into appropriate line focus chunks
--}
-parseResourceFocusTargetFromFragment : Maybe String -> FocusTarget
-parseResourceFocusTargetFromFragment focusFragment =
-    case String.split ":" (Maybe.withDefault "" focusFragment) of
-        target :: resourceNumber :: lineA :: lineB :: _ ->
-            { target = Just target, resourceNumber = String.toInt resourceNumber, lineA = String.toInt lineA, lineB = String.toInt lineB }
-
-        target :: resourceNumber :: lineA :: _ ->
-            { target = Just target, resourceNumber = String.toInt resourceNumber, lineA = String.toInt lineA, lineB = Nothing }
-
-        target :: resourceNumber :: _ ->
-            { target = Just target, resourceNumber = String.toInt resourceNumber, lineA = Nothing, lineB = Nothing }
-
-        _ ->
-            { target = Nothing, resourceNumber = Nothing, lineA = Nothing, lineB = Nothing }
-
-
-{-| lineRangeId : takes line and focus information and returns the fragment for focusing a range of lines
--}
-lineRangeId : Int -> Maybe LineFocus -> Bool -> String
-lineRangeId lineNumber maybeLineFocus shiftDown =
-    String.join ":" <|
-        List.map String.fromInt
-            (List.sort <|
-                case maybeLineFocus of
-                    Just lineFocus ->
-                        case ( shiftDown, lineFocus ) of
-                            ( True, ( Just lineA, Just lineB ) ) ->
-                                if lineNumber < lineA then
-                                    [ lineNumber, lineB ]
-
-                                else
-                                    [ lineA, lineNumber ]
-
-                            ( True, ( Just lineA, _ ) ) ->
-                                if lineNumber < lineA then
-                                    [ lineNumber, lineA ]
-
-                                else
-                                    [ lineA, lineNumber ]
-
-                            _ ->
-                                [ lineNumber ]
-
-                    Nothing ->
-                        [ lineNumber ]
-            )
-
-
-{-| resourceFocusId : takes resource and returns the fragment for focusing a resource
--}
-resourceFocusId : String -> String -> String
-resourceFocusId resource resourceNumber =
-    String.join ":" [ resource, resourceNumber ]
-
-
-{-| resourceLineRangeId : takes resource, line, and focus information and returns the fragment for focusing a range of lines
--}
-resourceLineRangeId : String -> String -> Int -> Maybe LineFocus -> Bool -> String
-resourceLineRangeId resource resourceNumber lineNumber maybeLineFocus shiftDown =
-    String.join ":" <|
-        resource
-            :: resourceNumber
-            :: List.map String.fromInt
-                (List.sort <|
-                    case maybeLineFocus of
-                        Just lineFocus ->
-                            case ( shiftDown, lineFocus ) of
-                                ( True, ( Just lineA, Just lineB ) ) ->
-                                    if lineNumber < lineA then
-                                        [ lineNumber, lineB ]
-
-                                    else
-                                        [ lineA, lineNumber ]
-
-                                ( True, ( Just lineA, _ ) ) ->
-                                    if lineNumber < lineA then
-                                        [ lineNumber, lineA ]
-
-                                    else
-                                        [ lineA, lineNumber ]
-
-                                _ ->
-                                    [ lineNumber ]
-
-                        Nothing ->
-                            [ lineNumber ]
-                )
-
-
-{-| lineFocusStyles : takes maybe linefocus and linenumber and returns the appropriate style for highlighting a focused line
--}
-lineFocusStyles : Maybe LineFocus -> Int -> String
-lineFocusStyles lineFocus lineNumber =
-    lineFocus
-        |> Maybe.Extra.unwrap ""
-            (\focus ->
-                case focus of
-                    ( Just lineA, Just lineB ) ->
-                        let
-                            ( a, b ) =
-                                if lineA < lineB then
-                                    ( lineA, lineB )
-
-                                else
-                                    ( lineB, lineA )
-                        in
-                        if lineNumber >= a && lineNumber <= b then
-                            "-focus"
-
-                        else
-                            ""
-
-                    ( Just lineA, Nothing ) ->
-                        if lineA == lineNumber then
-                            "-focus"
-
-                        else
-                            ""
-
-                    _ ->
-                        ""
-            )
