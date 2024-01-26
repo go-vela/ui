@@ -555,7 +555,9 @@ update route msg model =
 
         -- DOM
         Shared.Msg.FocusOn options ->
-            ( model, Browser.Dom.focus options.target |> Task.attempt Shared.Msg.FocusResult |> Effect.sendCmd )
+            ( model
+            , Browser.Dom.focus options.target |> Task.attempt Shared.Msg.FocusResult |> Effect.sendCmd
+            )
 
         Shared.Msg.FocusResult result ->
             case result of

@@ -451,7 +451,7 @@ view shared route model =
                                         ]
                                     ]
                                 , div [ class "logs", Util.testAttribute "pipeline-configuration-data" ] <|
-                                    viewLines shared pipeline model.focus
+                                    viewLines pipeline model.focus shared.shift
                                 ]
                             ]
 
@@ -513,15 +513,15 @@ viewTemplatesDetails cls open showHide content =
         ]
 
 
-viewLines : Shared.Model -> Vela.PipelineConfig -> Focus.Focus -> List (Html Msg)
-viewLines shared config focus =
+viewLines : Vela.PipelineConfig -> Focus.Focus -> Bool -> List (Html Msg)
+viewLines config focus shift =
     config.decodedData
         |> Utils.Ansi.decodeAnsi
         |> Array.indexedMap
             (\idx line ->
                 Just <|
                     viewLine
-                        shared
+                        shift
                         (idx + 1)
                         (Just line)
                         focus
@@ -530,8 +530,8 @@ viewLines shared config focus =
         |> List.filterMap identity
 
 
-viewLine : Shared.Model -> Int -> Maybe Ansi.Log.Line -> Focus.Focus -> Html Msg
-viewLine shared lineNumber line focus =
+viewLine : Bool -> Int -> Maybe Ansi.Log.Line -> Focus.Focus -> Html Msg
+viewLine shiftKeyDown lineNumber line focus =
     tr
         [ id <| String.fromInt lineNumber
         , class "line"
@@ -548,7 +548,7 @@ viewLine shared lineNumber line focus =
                             [ Util.onClickPreventDefault <|
                                 PushUrlHash
                                     { hash =
-                                        Focus.toString <| Focus.updateLineRange shared Nothing lineNumber focus
+                                        Focus.toString <| Focus.updateLineRange shiftKeyDown Nothing lineNumber focus
                                     }
                             , Util.testAttribute <| String.join "-" [ "config", "line", "num", String.fromInt lineNumber ]
                             , Focus.toAttr

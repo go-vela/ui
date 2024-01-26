@@ -20,6 +20,7 @@ import Http
 import Http.Detailed
 import Layouts
 import List.Extra
+import Maybe.Extra
 import Page exposing (Page)
 import RemoteData exposing (WebData)
 import Route exposing (Route)
@@ -30,6 +31,7 @@ import Utils.Errors
 import Utils.Focus as Focus
 import Utils.Helpers as Util
 import Utils.Interval as Interval exposing (Interval)
+import Utils.Logs as Logs
 import Vela
 import View exposing (View)
 
@@ -225,7 +227,7 @@ update shared route msg model =
                     ( { model
                         | logs =
                             Dict.update options.step.id
-                                (Components.Logs.safeDecodeLogData shared.velaLogBytesLimit log)
+                                (Logs.safeDecodeLogData shared.velaLogBytesLimit log)
                                 model.logs
                       }
                     , if options.applyDomFocus then
@@ -267,13 +269,24 @@ update shared route msg model =
         GetBuildStepLogRefreshResponse options response ->
             case response of
                 Ok ( _, log ) ->
+                    let
+                        changed =
+                            Dict.get options.step.id model.logs
+                                |> Maybe.Extra.unwrap log (RemoteData.withDefault log)
+                                |> (\l -> l.rawData /= log.rawData)
+                    in
                     ( { model
                         | logs =
                             Dict.update options.step.id
-                                (Components.Logs.safeDecodeLogData shared.velaLogBytesLimit log)
+                                (Logs.safeDecodeLogData shared.velaLogBytesLimit log)
                                 model.logs
                       }
-                    , Effect.none
+                    , if model.logFollow == options.step.number && changed then
+                        FocusOn { target = Logs.bottomTrackerFocusId (String.fromInt options.step.number) }
+                            |> Effect.sendMsg
+
+                      else
+                        Effect.none
                     )
 
                 Err error ->
@@ -291,15 +304,20 @@ update shared route msg model =
                 Effect.batch
                     [ ExpandStep { step = options.step, applyDomFocus = False, previousFocus = Nothing }
                         |> Effect.sendMsg
-                    , { hash =
-                            Focus.toString
-                                { group = Just options.step.number
-                                , a = Nothing
-                                , b = Nothing
+                    , case model.focus.a of
+                        Nothing ->
+                            PushUrlHash
+                                { hash =
+                                    Focus.toString
+                                        { group = Just options.step.number
+                                        , a = Nothing
+                                        , b = Nothing
+                                        }
                                 }
-                      }
-                        |> PushUrlHash
-                        |> Effect.sendMsg
+                                |> Effect.sendMsg
+
+                        _ ->
+                            Effect.none
                     ]
             )
 
@@ -350,6 +368,12 @@ update shared route msg model =
                     Dict.update options.step.id
                         (\_ -> Nothing)
                         model.logs
+                , logFollow =
+                    if model.logFollow == options.step.number then
+                        0
+
+                    else
+                        model.logFollow
               }
             , Effect.none
             )
@@ -412,7 +436,7 @@ update shared route msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Interval.tickEveryFiveSeconds Tick
+    Interval.tickEveryOneSecond Tick
 
 
 
@@ -543,6 +567,7 @@ viewLogs shared model route step log =
                     , download = DownloadLog
                     , follow = FollowLog
                     }
+                , shift = shared.shift
                 , log = log
                 , org = route.params.org
                 , repo = route.params.repo

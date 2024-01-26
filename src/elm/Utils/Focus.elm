@@ -179,9 +179,9 @@ canTarget focus =
             False
 
 
-updateLineRange : Shared.Model -> Maybe Int -> Int -> Focus -> Focus
-updateLineRange shared group lineNumber focus =
-    (case ( shared.shift, ( focus.a, focus.b ) ) of
+updateLineRange : Bool -> Maybe Int -> Int -> Focus -> Focus
+updateLineRange shiftKeyDown group lineNumber focus =
+    (case ( shiftKeyDown, ( focus.a, focus.b ) ) of
         ( True, ( Just lineA, Just lineB ) ) ->
             if lineNumber < lineA then
                 [ lineNumber, lineB ]

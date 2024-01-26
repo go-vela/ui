@@ -1,17 +1,20 @@
-module Components.Logs exposing (safeDecodeLogData, view)
+module Components.Logs exposing (view)
 
 import Ansi.Log
 import Array
+import Browser.Dom exposing (focus)
 import FeatherIcons
 import Html exposing (Html, a, button, code, div, span, table, td, text, tr)
 import Html.Attributes exposing (attribute, class, href, id)
 import Html.Events exposing (onClick)
+import Html.Lazy
 import RemoteData exposing (WebData)
 import Shared
 import Url
 import Utils.Ansi
 import Utils.Focus as Focus
 import Utils.Helpers as Util
+import Utils.Logs as Logs
 import Vela
 
 
@@ -25,6 +28,7 @@ type alias Msgs msg =
 
 type alias Props msg =
     { msgs : Msgs msg
+    , shift : Bool
     , log : WebData Vela.Log
     , org : String
     , repo : String
@@ -45,7 +49,7 @@ view : Shared.Model -> Props msg -> Html msg
 view shared props =
     case props.log of
         RemoteData.Success log ->
-            viewLogLines shared props log
+            viewLogLines props log
 
         RemoteData.Failure _ ->
             code [ Util.testAttribute "logs-error" ] [ text "error fetching logs" ]
@@ -61,37 +65,47 @@ view shared props =
 
 {-| viewLogLines : takes number linefocus log and clickAction shiftDown and renders logs for a build resource
 -}
-viewLogLines : Shared.Model -> Props msg -> Vela.Log -> Html msg
-viewLogLines shared props log =
+viewLogLines : Props msg -> Vela.Log -> Html msg
+viewLogLines props log =
     let
-        ( lines, numLines ) =
-            viewLines shared props log
+        -- deconstructing props here to make lazy rendering work properly
+        lines =
+            Html.Lazy.lazy6
+                viewLines
+                props.msgs.pushUrlHash
+                props.resourceType
+                props.resourceNumber
+                props.shift
+                props.focus
+                log.decodedLogs
     in
     div
         [ class "logs"
         , Util.testAttribute <| "logs-" ++ props.resourceNumber
         ]
-        [ logsHeader props log
-        , logsSidebar props numLines
+        [ viewLogsHeader props log
+        , viewLogsSidebar props
         , lines
         ]
 
 
 {-| viewLines : takes number, line focus information and click action and renders logs
 -}
-viewLines : Shared.Model -> Props msg -> Vela.Log -> ( Html msg, Int )
-viewLines shared props log =
+viewLines : ({ hash : String } -> msg) -> String -> String -> Bool -> Focus.Focus -> String -> Html msg
+viewLines pushUrlHashMsg resourceType resourceNumber shift focus log =
     let
         lines =
-            log.decodedLogs
-                -- this is where link parsing happens
+            log
                 |> processLogLines
                 |> List.indexedMap
                     (\idx logLine ->
                         Just <|
                             viewLine
-                                shared
-                                props
+                                pushUrlHashMsg
+                                resourceType
+                                resourceNumber
+                                shift
+                                focus
                                 logLine
                                 (idx + 1)
                     )
@@ -103,8 +117,8 @@ viewLines shared props log =
         topTracker =
             tr [ class "line", class "tracker" ]
                 [ a
-                    [ id <| topTrackerFocusId props.resourceType props.resourceNumber
-                    , Util.testAttribute <| "top-log-tracker-" ++ props.resourceNumber
+                    [ id <| Logs.topTrackerFocusId resourceNumber
+                    , Util.testAttribute <| "top-log-tracker-" ++ resourceNumber
                     , Html.Attributes.tabindex -1
                     ]
                     []
@@ -113,59 +127,57 @@ viewLines shared props log =
         bottomTracker =
             tr [ class "line", class "tracker" ]
                 [ a
-                    [ id <| bottomTrackerFocusId props.resourceType props.resourceNumber
-                    , Util.testAttribute <| "bottom-log-tracker-" ++ props.resourceNumber
+                    [ id <| Logs.bottomTrackerFocusId resourceNumber
+                    , Util.testAttribute <| "bottom-log-tracker-" ++ resourceNumber
                     , Html.Attributes.tabindex -1
                     ]
                     []
                 ]
     in
-    ( table [ class "logs-table", class "scrollable" ] <|
+    table [ class "logs-table", class "scrollable" ] <|
         topTracker
             :: logs
             ++ [ bottomTracker ]
-    , List.length lines
-    )
 
 
 {-| viewLine : takes log line and focus information and renders line number button and log
 -}
-viewLine : Shared.Model -> Props msg -> LogLine msg -> Int -> Html msg
-viewLine shared props logLine lineNumber =
+viewLine : ({ hash : String } -> msg) -> String -> String -> Bool -> Focus.Focus -> LogLine msg -> Int -> Html msg
+viewLine pushUrlHashMsg resourceType resourceNumber shift focus logLine lineNumber =
     tr
         [ Html.Attributes.id <|
-            props.resourceNumber
+            resourceNumber
                 ++ ":"
                 ++ String.fromInt lineNumber
         , class "line"
         ]
         [ div
             [ class "wrapper"
-            , Util.testAttribute <| String.join "-" [ "log", "line", props.resourceType, props.resourceNumber, String.fromInt lineNumber ]
-            , class <| Focus.lineRangeStyles (String.toInt props.resourceNumber) lineNumber props.focus
+            , Util.testAttribute <| String.join "-" [ "log", "line", resourceType, resourceNumber, String.fromInt lineNumber ]
+            , class <| Focus.lineRangeStyles (String.toInt resourceNumber) lineNumber focus
             ]
             [ td []
                 [ button
                     [ Util.onClickPreventDefault <|
-                        props.msgs.pushUrlHash
+                        pushUrlHashMsg
                             { hash =
-                                Focus.toString <| Focus.updateLineRange shared (String.toInt props.resourceNumber) lineNumber props.focus
+                                Focus.toString <| Focus.updateLineRange shift (String.toInt resourceNumber) lineNumber focus
                             }
-                    , Util.testAttribute <| String.join "-" [ "log", "line", "num", props.resourceType, props.resourceNumber, String.fromInt lineNumber ]
+                    , Util.testAttribute <| String.join "-" [ "log", "line", "num", resourceType, resourceNumber, String.fromInt lineNumber ]
                     , Focus.toAttr
-                        { group = String.toInt props.resourceNumber
+                        { group = String.toInt resourceNumber
                         , a = Just lineNumber
                         , b = Nothing
                         }
                     , class "line-number"
                     , class "button"
                     , class "-link"
-                    , attribute "aria-label" <| "focus " ++ props.resourceType ++ " " ++ props.resourceNumber
+                    , attribute "aria-label" <| "focus " ++ resourceType ++ " " ++ resourceNumber
                     ]
                     [ span [] [ text <| String.fromInt lineNumber ] ]
                 ]
             , td [ class "break-text", class "overflow-auto" ]
-                [ code [ Util.testAttribute <| String.join "-" [ "log", "data", props.resourceType, props.resourceNumber, String.fromInt lineNumber ] ]
+                [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resourceType, resourceNumber, String.fromInt lineNumber ] ]
                     [ logLine.view
                     ]
                 ]
@@ -292,10 +304,10 @@ viewLogLink link txt =
     a [ Util.testAttribute "log-line-link", href <| Url.toString link ] [ text txt ]
 
 
-{-| logsHeader : takes number, filename and decoded log and renders logs header
+{-| viewLogsHeader : takes number, filename and decoded log and renders logs header
 -}
-logsHeader : Props msg -> Vela.Log -> Html msg
-logsHeader props log =
+viewLogsHeader : Props msg -> Vela.Log -> Html msg
+viewLogsHeader props log =
     div
         [ class "logs-header"
         , class "buttons"
@@ -305,31 +317,20 @@ logsHeader props log =
         ]
 
 
-{-| logsSidebar : takes number/following and renders the logs sidebar
+{-| viewLogsSidebar : takes number/following and renders the logs sidebar
 -}
-logsSidebar : Props msg -> Int -> Html msg
-logsSidebar props numLines =
-    let
-        long =
-            numLines > 25
-    in
+viewLogsSidebar : Props msg -> Html msg
+viewLogsSidebar props =
     div [ class "logs-sidebar" ]
         [ div [ class "inner-container" ]
             [ div
                 [ class "actions"
                 , Util.testAttribute <| "logs-sidebar-actions-" ++ props.resourceNumber
                 ]
-              <|
-                (if long then
-                    [ viewJumpToTopButton props
-                    , viewJumpToBottomButton props
-                    ]
-
-                 else
-                    []
-                )
-                    ++ [ viewFollowButton props
-                       ]
+                [ viewJumpToTopButton props
+                , viewJumpToBottomButton props
+                , viewFollowButton props
+                ]
             ]
         ]
 
@@ -344,7 +345,7 @@ viewJumpToBottomButton props =
         , class "tooltip-left"
         , attribute "data-tooltip" "jump to bottom"
         , Util.testAttribute <| "jump-to-bottom-" ++ props.resourceNumber
-        , onClick <| props.msgs.focusOn { target = bottomTrackerFocusId props.resourceType props.resourceNumber }
+        , onClick <| props.msgs.focusOn { target = Logs.bottomTrackerFocusId props.resourceNumber }
         , attribute "aria-label" <| "jump to bottom of logs for " ++ props.resourceType ++ " " ++ props.resourceNumber
         ]
         [ FeatherIcons.arrowDown |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
@@ -360,7 +361,7 @@ viewJumpToTopButton props =
         , class "tooltip-left"
         , attribute "data-tooltip" "jump to top"
         , Util.testAttribute <| "jump-to-top-" ++ props.resourceNumber
-        , onClick <| props.msgs.focusOn { target = topTrackerFocusId props.resourceType props.resourceNumber }
+        , onClick <| props.msgs.focusOn { target = Logs.topTrackerFocusId props.resourceNumber }
         , attribute "aria-label" <| "jump to top of logs for " ++ props.resourceType ++ " " ++ props.resourceNumber
         ]
         [ FeatherIcons.arrowUp |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
@@ -422,51 +423,3 @@ viewFollowButton props =
         , attribute "aria-label" <| tooltip ++ " for " ++ props.resourceType ++ " " ++ props.resourceNumber
         ]
         [ icon |> FeatherIcons.toHtml [ attribute "role" "img", attribute "aria-label" "show build actions" ] ]
-
-
-{-| topTrackerFocusId : takes resource number and returns the line focus id for auto focusing on log follow
--}
-topTrackerFocusId : String -> String -> String
-topTrackerFocusId resource number =
-    resource ++ "-" ++ number ++ "-line-tracker-top"
-
-
-{-| bottomTrackerFocusId : takes resource number and returns the line focus id for auto focusing on log follow
--}
-bottomTrackerFocusId : String -> String -> String
-bottomTrackerFocusId resource number =
-    resource ++ "-" ++ number ++ "-line-tracker-bottom"
-
-
-
--- HELPERS
-
-
-{-| safeDecodeLogData : takes log and decodes the data if it exists and does not exceed the size limit.
--}
-safeDecodeLogData : Int -> Vela.Log -> Maybe (WebData Vela.Log) -> Maybe (WebData Vela.Log)
-safeDecodeLogData sizeLimitBytes inLog inExistingLog =
-    let
-        existingLog =
-            inExistingLog
-                |> Maybe.withDefault RemoteData.NotAsked
-                |> RemoteData.unwrap { rawData = "", decodedLogs = "" }
-                    (\l -> { rawData = l.rawData, decodedLogs = l.decodedLogs })
-
-        decoded =
-            if inLog.size == 0 then
-                "The build has not written anything to this log yet."
-
-            else if inLog.size > sizeLimitBytes then
-                "The data for this log exceeds the size limit of "
-                    ++ Util.formatFilesize sizeLimitBytes
-                    ++ ".\n"
-                    ++ "To view this log use the CLI or click the 'download' link in the top right corner (downloading may take a few moments, depending on the size of the file)."
-
-            else if inLog.rawData == existingLog.rawData then
-                existingLog.decodedLogs
-
-            else
-                Util.base64Decode inLog.rawData
-    in
-    Just <| RemoteData.succeed { inLog | decodedLogs = decoded }
