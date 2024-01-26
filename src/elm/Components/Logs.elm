@@ -142,14 +142,14 @@ viewLine shared props logLine lineNumber =
         [ div
             [ class "wrapper"
             , Util.testAttribute <| String.join "-" [ "log", "line", props.resourceType, props.resourceNumber, String.fromInt lineNumber ]
-            , class <| Focus.lineRangeStyles props.focus lineNumber
+            , class <| Focus.lineRangeStyles (String.toInt props.resourceNumber) lineNumber props.focus
             ]
             [ td []
                 [ button
                     [ Util.onClickPreventDefault <|
                         props.msgs.pushUrlHash
                             { hash =
-                                Focus.toString <| Focus.updateLineRange shared props.focus lineNumber
+                                Focus.toString <| Focus.updateLineRange shared (String.toInt props.resourceNumber) lineNumber props.focus
                             }
                     , Util.testAttribute <| String.join "-" [ "log", "line", "num", props.resourceType, props.resourceNumber, String.fromInt lineNumber ]
                     , Focus.toAttr

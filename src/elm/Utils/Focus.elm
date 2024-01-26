@@ -9,6 +9,7 @@ module Utils.Focus exposing
     , fromAttrId
     , fromString
     , fromStringNoGroup
+    , lineNumberChanged
     , lineRangeStyles
     , toAttr
     , toDomTarget
@@ -178,8 +179,8 @@ canTarget focus =
             False
 
 
-updateLineRange : Shared.Model -> Focus -> Int -> Focus
-updateLineRange shared focus lineNumber =
+updateLineRange : Shared.Model -> Maybe Int -> Int -> Focus -> Focus
+updateLineRange shared group lineNumber focus =
     (case ( shared.shift, ( focus.a, focus.b ) ) of
         ( True, ( Just lineA, Just lineB ) ) ->
             if lineNumber < lineA then
@@ -202,29 +203,29 @@ updateLineRange shared focus lineNumber =
         |> (\range ->
                 case range of
                     a :: b :: [] ->
-                        { focus
-                            | a = Just a
-                            , b = Just b
+                        { group = group
+                        , a = Just a
+                        , b = Just b
                         }
 
                     a :: [] ->
-                        { focus
-                            | a = Just a
-                            , b = Nothing
+                        { group = group
+                        , a = Just a
+                        , b = Nothing
                         }
 
                     _ ->
-                        { focus
-                            | a = Nothing
-                            , b = Nothing
+                        { group = group
+                        , a = Nothing
+                        , b = Nothing
                         }
            )
 
 
-lineRangeStyles : Focus -> Int -> String
-lineRangeStyles focus lineNumber =
-    case ( focus.a, focus.b ) of
-        ( Just lineA, Just lineB ) ->
+lineRangeStyles : Maybe Int -> Int -> Focus -> String
+lineRangeStyles group lineNumber focus =
+    case ( focus.group, focus.a, focus.b ) of
+        ( _, Just lineA, Just lineB ) ->
             let
                 ( a, b ) =
                     if lineA < lineB then
@@ -233,14 +234,14 @@ lineRangeStyles focus lineNumber =
                     else
                         ( lineB, lineA )
             in
-            if lineNumber >= a && lineNumber <= b then
+            if group == focus.group && lineNumber >= a && lineNumber <= b then
                 "-focus"
 
             else
                 ""
 
-        ( Just lineA, Nothing ) ->
-            if lineA == lineNumber then
+        ( _, Just lineA, Nothing ) ->
+            if group == focus.group && lineA == lineNumber then
                 "-focus"
 
             else
@@ -248,3 +249,52 @@ lineRangeStyles focus lineNumber =
 
         _ ->
             ""
+
+
+lineNumberChanged : Maybe Focus -> Focus -> Maybe Int
+lineNumberChanged maybeBefore after =
+    case maybeBefore of
+        Just before ->
+            case ( ( before.a, before.b ), ( after.a, after.b ) ) of
+                ( ( Just a1, Just b1 ), ( Just a2, Just b2 ) ) ->
+                    if a1 /= a2 then
+                        Just a2
+
+                    else if b1 /= b2 then
+                        Just b2
+
+                    else
+                        Nothing
+
+                ( ( Just _, Just _ ), ( Just a2, Nothing ) ) ->
+                    Just a2
+
+                ( ( Just _, Just _ ), ( Nothing, Nothing ) ) ->
+                    Nothing
+
+                ( ( Just a1, Nothing ), ( Just a2, Just b2 ) ) ->
+                    if a1 /= a2 then
+                        Just a2
+
+                    else
+                        Just b2
+
+                ( ( Nothing, Nothing ), ( Just a2, Just _ ) ) ->
+                    Just a2
+
+                ( ( Nothing, Nothing ), ( Just a2, Nothing ) ) ->
+                    Just a2
+
+                ( ( Just _, Nothing ), ( Just a2, Nothing ) ) ->
+                    Just a2
+
+                _ ->
+                    Nothing
+
+        _ ->
+            case ( after.a, after.b ) of
+                ( Just a, _ ) ->
+                    Just a
+
+                _ ->
+                    Nothing

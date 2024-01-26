@@ -6,6 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 module Pages.Org_.Repo_.Build_ exposing (..)
 
 import Auth
+import Browser.Dom exposing (focus)
 import Components.Logs
 import Components.Svgs
 import Debug exposing (log)
@@ -13,21 +14,22 @@ import Dict exposing (Dict)
 import Effect exposing (Effect)
 import FeatherIcons
 import Html exposing (Html, button, code, details, div, small, summary, text)
-import Html.Attributes exposing (attribute, class, classList, id)
+import Html.Attributes exposing (attribute, class, classList)
 import Html.Events exposing (onClick)
 import Http
 import Http.Detailed
 import Layouts
 import List.Extra
-import Maybe.Extra
 import Page exposing (Page)
 import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Route.Path
 import Shared
+import Time
 import Utils.Errors
 import Utils.Focus as Focus
 import Utils.Helpers as Util
+import Utils.Interval as Interval exposing (Interval)
 import Vela
 import View exposing (View)
 
@@ -73,6 +75,7 @@ toLayout user route model =
 type alias Model =
     { steps : WebData (List Vela.Step)
     , logs : Dict Int (WebData Vela.Log)
+    , viewing : List Int
     , focus : Focus.Focus
     , logFollow : Int
     }
@@ -82,6 +85,7 @@ init : Shared.Model -> Route { org : String, repo : String, buildNumber : String
 init shared route () =
     ( { steps = RemoteData.Loading
       , logs = Dict.empty
+      , viewing = []
       , focus = Focus.fromString route.hash
       , logFollow = 0
       }
@@ -103,41 +107,48 @@ init shared route () =
 
 
 type Msg
-    = -- BROWSER
+    = NoOp
+    | -- BROWSER
       OnHashChanged { from : Maybe String, to : Maybe String }
     | PushUrlHash { hash : String }
     | FocusOn { target : String }
       -- STEPS
     | GetBuildStepsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Step ))
-    | GetBuildStepLogResponse Vela.Step (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Log ))
-    | ExpandStep { step : Vela.Step, updateUrlHash : Bool }
-    | CollapseStep { step : Vela.Step, updateUrlHash : Bool }
+    | GetBuildStepsRefreshResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Step ))
+    | GetBuildStepLogResponse { step : Vela.Step, applyDomFocus : Bool, previousFocus : Maybe Focus.Focus } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Log ))
+    | GetBuildStepLogRefreshResponse { step : Vela.Step } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Log ))
+    | ClickStep { step : Vela.Step }
+    | ExpandStep { step : Vela.Step, applyDomFocus : Bool, previousFocus : Maybe Focus.Focus }
+    | CollapseStep { step : Vela.Step }
     | ExpandAll
     | CollapseAll
       -- LOGS
     | DownloadLog { filename : String, content : String, map : String -> String }
     | FollowLog { number : Int }
+      -- REFRESH
+    | Tick { time : Time.Posix, interval : Interval }
 
 
 update : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
+        NoOp ->
+            ( model, Effect.none )
+
         -- BROWSER
         OnHashChanged options ->
             let
                 focus =
-                    Focus.fromString route.hash
+                    Focus.fromString options.to
             in
-            ( { model | focus = focus }
-            , model.steps
-                |> RemoteData.unwrap Effect.none
-                    (\steps ->
-                        steps
-                            |> List.Extra.find (\s -> s.number == Maybe.withDefault -1 focus.group)
-                            |> Maybe.map (\s -> ExpandStep { step = s, updateUrlHash = False })
-                            |> Maybe.map Effect.sendMsg
-                            |> Maybe.withDefault Effect.none
-                    )
+            ( { model
+                | focus = focus
+              }
+            , RemoteData.withDefault [] model.steps
+                |> List.filter (\s -> Maybe.withDefault -1 focus.group == s.number)
+                |> List.map (\s -> ExpandStep { step = s, applyDomFocus = True, previousFocus = Just model.focus })
+                |> List.map Effect.sendMsg
+                |> Effect.batch
             )
 
         PushUrlHash options ->
@@ -161,41 +172,20 @@ update shared route msg model =
         GetBuildStepsResponse response ->
             case response of
                 Ok ( _, steps ) ->
-                    let
-                        ( steps_, sideEffects ) =
-                            steps
-                                |> List.map
-                                    (\step ->
-                                        case model.focus.group of
-                                            Just resourceNumber ->
-                                                if step.number == resourceNumber then
-                                                    ( { step | viewing = True }
-                                                    , Effect.batch
-                                                        [ ExpandStep { step = step, updateUrlHash = False }
-                                                            |> Effect.sendMsg
-                                                        , FocusOn
-                                                            { target =
-                                                                Focus.toDomTarget model.focus
-                                                            }
-                                                            |> Effect.sendMsg
-                                                        ]
-                                                    )
-
-                                                else
-                                                    ( { step | viewing = False }, Effect.none )
-
-                                            _ ->
-                                                ( { step | viewing = False }, Effect.none )
-                                    )
-                                |> List.unzip
-                                |> Tuple.mapFirst RemoteData.succeed
-                                |> Tuple.mapSecond Effect.batch
-                    in
-                    ( { model
-                        | steps =
-                            steps_
-                      }
-                    , sideEffects
+                    ( { model | steps = RemoteData.succeed steps }
+                    , steps
+                        |> List.Extra.find (\step -> Maybe.withDefault -1 model.focus.group == step.number)
+                        |> Maybe.map (\step -> step)
+                        |> Maybe.map
+                            (\step ->
+                                ExpandStep
+                                    { step = step
+                                    , applyDomFocus = True
+                                    , previousFocus = Nothing
+                                    }
+                                    |> Effect.sendMsg
+                            )
+                        |> Maybe.withDefault Effect.none
                     )
 
                 Err error ->
@@ -203,18 +193,67 @@ update shared route msg model =
                     , Effect.handleHttpError { httpError = error }
                     )
 
-        GetBuildStepLogResponse step response ->
+        GetBuildStepsRefreshResponse response ->
+            case response of
+                Ok ( _, steps ) ->
+                    ( { model | steps = RemoteData.succeed steps }
+                    , steps
+                        |> List.filter (\step -> List.member step.number model.viewing)
+                        |> List.map
+                            (\step ->
+                                Effect.getBuildStepLog
+                                    { baseUrl = shared.velaAPI
+                                    , session = shared.session
+                                    , onResponse = GetBuildStepLogRefreshResponse { step = step }
+                                    , org = route.params.org
+                                    , repo = route.params.repo
+                                    , buildNumber = route.params.buildNumber
+                                    , stepNumber = String.fromInt step.number
+                                    }
+                            )
+                        |> Effect.batch
+                    )
+
+                Err error ->
+                    ( { model | steps = Utils.Errors.toFailure error }
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
+        GetBuildStepLogResponse options response ->
             case response of
                 Ok ( _, log ) ->
                     ( { model
                         | logs =
-                            Dict.update step.id
+                            Dict.update options.step.id
                                 (Components.Logs.safeDecodeLogData shared.velaLogBytesLimit log)
                                 model.logs
                       }
-                    , if Focus.canTarget model.focus then
-                        FocusOn { target = Focus.toDomTarget model.focus }
-                            |> Effect.sendMsg
+                    , if options.applyDomFocus then
+                        case ( model.focus.group, model.focus.a, model.focus.b ) of
+                            ( Just g, Just _, Just _ ) ->
+                                FocusOn
+                                    { target =
+                                        Focus.toDomTarget
+                                            { group = Just g
+                                            , a = Focus.lineNumberChanged options.previousFocus model.focus
+                                            , b = Nothing
+                                            }
+                                    }
+                                    |> Effect.sendMsg
+
+                            ( Just g, Just a, _ ) ->
+                                FocusOn
+                                    { target =
+                                        Focus.toDomTarget
+                                            { group = Just g
+                                            , a = Just a
+                                            , b = Nothing
+                                            }
+                                    }
+                                    |> Effect.sendMsg
+
+                            _ ->
+                                Effect.none
 
                       else
                         Effect.none
@@ -225,47 +264,79 @@ update shared route msg model =
                     , Effect.handleHttpError { httpError = error }
                     )
 
+        GetBuildStepLogRefreshResponse options response ->
+            case response of
+                Ok ( _, log ) ->
+                    ( { model
+                        | logs =
+                            Dict.update options.step.id
+                                (Components.Logs.safeDecodeLogData shared.velaLogBytesLimit log)
+                                model.logs
+                      }
+                    , Effect.none
+                    )
+
+                Err error ->
+                    ( { model | steps = Utils.Errors.toFailure error }
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
+        ClickStep options ->
+            ( model
+            , if List.member options.step.number model.viewing then
+                CollapseStep { step = options.step }
+                    |> Effect.sendMsg
+
+              else
+                Effect.batch
+                    [ ExpandStep { step = options.step, applyDomFocus = False, previousFocus = Nothing }
+                        |> Effect.sendMsg
+                    , { hash =
+                            Focus.toString
+                                { group = Just options.step.number
+                                , a = Nothing
+                                , b = Nothing
+                                }
+                      }
+                        |> PushUrlHash
+                        |> Effect.sendMsg
+                    ]
+            )
+
         ExpandStep options ->
             ( { model
-                | steps =
-                    case model.steps of
-                        RemoteData.Success steps ->
-                            List.Extra.updateIf
-                                (\s -> s.id == options.step.id)
-                                (\s -> { s | viewing = True })
-                                steps
-                                |> RemoteData.succeed
-
-                        _ ->
-                            model.steps
+                | viewing = List.Extra.unique <| options.step.number :: model.viewing
               }
             , Effect.batch
                 [ Effect.getBuildStepLog
                     { baseUrl = shared.velaAPI
                     , session = shared.session
-                    , onResponse = GetBuildStepLogResponse options.step
+                    , onResponse =
+                        GetBuildStepLogResponse
+                            { step = options.step
+                            , applyDomFocus = options.applyDomFocus
+                            , previousFocus = options.previousFocus
+                            }
                     , org = route.params.org
                     , repo = route.params.repo
                     , buildNumber = route.params.buildNumber
                     , stepNumber = String.fromInt options.step.number
                     }
-                , if options.updateUrlHash then
-                    Effect.pushRoute
-                        { path =
-                            Route.Path.Org_Repo_Build_
-                                { org = route.params.org
-                                , repo = route.params.repo
-                                , buildNumber = route.params.buildNumber
+                , if options.applyDomFocus then
+                    case ( model.focus.group, model.focus.a, model.focus.b ) of
+                        ( Just g, Nothing, Nothing ) ->
+                            FocusOn
+                                { target =
+                                    Focus.toDomTarget
+                                        { group = Just g
+                                        , a = Nothing
+                                        , b = Nothing
+                                        }
                                 }
-                        , query = route.query
-                        , hash =
-                            Just <|
-                                Focus.toString
-                                    { group = Just options.step.number
-                                    , a = Nothing
-                                    , b = Nothing
-                                    }
-                        }
+                                |> Effect.sendMsg
+
+                        _ ->
+                            Effect.none
 
                   else
                     Effect.none
@@ -274,17 +345,7 @@ update shared route msg model =
 
         CollapseStep options ->
             ( { model
-                | steps =
-                    case model.steps of
-                        RemoteData.Success steps ->
-                            List.Extra.updateIf
-                                (\s -> s.id == options.step.id)
-                                (\s -> { s | viewing = False })
-                                steps
-                                |> RemoteData.succeed
-
-                        _ ->
-                            model.steps
+                | viewing = List.Extra.remove options.step.number model.viewing
               }
             , Effect.none
             )
@@ -293,7 +354,14 @@ update shared route msg model =
             ( model
             , model.steps
                 |> RemoteData.withDefault []
-                |> List.map (\step -> ExpandStep { step = step, updateUrlHash = False })
+                |> List.map
+                    (\step ->
+                        ExpandStep
+                            { step = step
+                            , applyDomFocus = False
+                            , previousFocus = Nothing
+                            }
+                    )
                 |> List.map Effect.sendMsg
                 |> Effect.batch
             )
@@ -302,7 +370,7 @@ update shared route msg model =
             ( model
             , model.steps
                 |> RemoteData.withDefault []
-                |> List.map (\step -> CollapseStep { step = step, updateUrlHash = False })
+                |> List.map (\step -> CollapseStep { step = step })
                 |> List.map Effect.sendMsg
                 |> Effect.batch
             )
@@ -318,6 +386,21 @@ update shared route msg model =
             , Effect.none
             )
 
+        -- REFRESH
+        Tick options ->
+            ( model
+            , Effect.getBuildSteps
+                { baseUrl = shared.velaAPI
+                , session = shared.session
+                , onResponse = GetBuildStepsRefreshResponse
+                , pageNumber = Nothing
+                , perPage = Just 100
+                , org = route.params.org
+                , repo = route.params.repo
+                , buildNumber = route.params.buildNumber
+                }
+            )
+
 
 
 -- SUBSCRIPTIONS
@@ -325,7 +408,7 @@ update shared route msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Interval.tickEveryFiveSeconds Tick
 
 
 
@@ -385,17 +468,6 @@ view shared route model =
 
 viewStep : Shared.Model -> Model -> Route { org : String, repo : String, buildNumber : String } -> Vela.Step -> Html Msg
 viewStep shared model route step =
-    let
-        stepNumber =
-            String.fromInt step.number
-
-        clickStep =
-            if step.viewing then
-                CollapseStep
-
-            else
-                ExpandStep
-    in
     div
         [ classList
             [ ( "step", True )
@@ -411,12 +483,12 @@ viewStep shared model route step =
                 , ( "-with-border", True )
                 , ( "-running", step.status == Vela.Running )
                 ]
-                :: Util.open step.viewing
+                :: Util.open (List.member step.number model.viewing)
             )
             [ summary
                 [ class "summary"
-                , Util.testAttribute <| "step-header-" ++ stepNumber
-                , onClick <| clickStep { step = step, updateUrlHash = True }
+                , Util.testAttribute <| "step-header-" ++ String.fromInt step.number
+                , onClick <| ClickStep { step = step }
                 , Focus.toAttr
                     { group = Just step.number
                     , a = Nothing

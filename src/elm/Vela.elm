@@ -1188,13 +1188,12 @@ type alias Step =
     , runtime : String
     , distribution : String
     , image : String
-    , viewing : Bool
     }
 
 
 defaultStep : Step
 defaultStep =
-    Step 0 0 0 0 "" "" Pending "" 0 0 0 0 "" "" "" "" False
+    Step 0 0 0 0 "" "" Pending "" 0 0 0 0 "" "" "" ""
 
 
 decodeStep : Decoder Step
@@ -1216,8 +1215,6 @@ decodeStep =
         |> optional "runtime" string ""
         |> optional "distribution" string ""
         |> optional "image" string ""
-        -- "viewing"
-        |> hardcoded False
 
 
 decodeSteps : Decoder (List Step)

@@ -200,11 +200,17 @@ update shared route msg model =
                     route.hash |> Focus.fromStringNoGroup
             in
             ( { model
-                | focus =
-                    focus
+                | focus = focus
               }
             , if Focus.canTarget focus then
-                FocusOn { target = Focus.toDomTarget focus }
+                FocusOn
+                    { target =
+                        Focus.toDomTarget
+                            { group = focus.group
+                            , a = Focus.lineNumberChanged (Just model.focus) focus
+                            , b = Nothing
+                            }
+                    }
                     |> Effect.sendMsg
 
               else
@@ -535,14 +541,14 @@ viewLine shared lineNumber line focus =
                 div
                     [ class "wrapper"
                     , Util.testAttribute <| String.join "-" [ "config", "line", String.fromInt lineNumber ]
-                    , class <| Focus.lineRangeStyles focus lineNumber
+                    , class <| Focus.lineRangeStyles Nothing lineNumber focus
                     ]
                     [ td []
                         [ button
                             [ Util.onClickPreventDefault <|
                                 PushUrlHash
                                     { hash =
-                                        Focus.toString <| Focus.updateLineRange shared focus lineNumber
+                                        Focus.toString <| Focus.updateLineRange shared Nothing lineNumber focus
                                     }
                             , Util.testAttribute <| String.join "-" [ "config", "line", "num", String.fromInt lineNumber ]
                             , Focus.toAttr

@@ -6,6 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 module Pages.Org_.Repo_.Build_.Services exposing (..)
 
 import Auth
+import Browser.Dom exposing (focus)
 import Components.Logs
 import Components.Svgs
 import Debug exposing (log)
@@ -13,7 +14,7 @@ import Dict exposing (Dict)
 import Effect exposing (Effect)
 import FeatherIcons
 import Html exposing (Html, button, code, details, div, small, summary, text)
-import Html.Attributes exposing (attribute, class, classList, id)
+import Html.Attributes exposing (attribute, class, classList)
 import Html.Events exposing (onClick)
 import Http
 import Http.Detailed
@@ -24,9 +25,11 @@ import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Route.Path
 import Shared
+import Time
 import Utils.Errors
 import Utils.Focus as Focus
 import Utils.Helpers as Util
+import Utils.Interval as Interval exposing (Interval)
 import Vela
 import View exposing (View)
 
@@ -72,6 +75,7 @@ toLayout user route model =
 type alias Model =
     { services : WebData (List Vela.Service)
     , logs : Dict Int (WebData Vela.Log)
+    , viewing : List Int
     , focus : Focus.Focus
     , logFollow : Int
     }
@@ -81,6 +85,7 @@ init : Shared.Model -> Route { org : String, repo : String, buildNumber : String
 init shared route () =
     ( { services = RemoteData.Loading
       , logs = Dict.empty
+      , viewing = []
       , focus = Focus.fromString route.hash
       , logFollow = 0
       }
@@ -89,7 +94,7 @@ init shared route () =
         , session = shared.session
         , onResponse = GetBuildServicesResponse
         , pageNumber = Nothing
-        , perPage = Nothing
+        , perPage = Just 100
         , org = route.params.org
         , repo = route.params.repo
         , buildNumber = route.params.buildNumber
@@ -102,48 +107,55 @@ init shared route () =
 
 
 type Msg
-    = -- BROWSER
+    = NoOp
+    | -- BROWSER
       OnHashChanged { from : Maybe String, to : Maybe String }
     | PushUrlHash { hash : String }
     | FocusOn { target : String }
       -- SERVICES
     | GetBuildServicesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Service ))
-    | GetBuildServiceLogResponse Vela.Service (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Log ))
-    | ExpandService { service : Vela.Service, updateUrlHash : Bool }
-    | CollapseService { service : Vela.Service, updateUrlHash : Bool }
+    | GetBuildServicesRefreshResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Service ))
+    | GetBuildServiceLogResponse { service : Vela.Service, applyDomFocus : Bool, previousFocus : Maybe Focus.Focus } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Log ))
+    | GetBuildServiceLogRefreshResponse { service : Vela.Service } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Log ))
+    | ClickService { service : Vela.Service }
+    | ExpandService { service : Vela.Service, applyDomFocus : Bool, previousFocus : Maybe Focus.Focus }
+    | CollapseService { service : Vela.Service }
     | ExpandAll
     | CollapseAll
       -- LOGS
     | DownloadLog { filename : String, content : String, map : String -> String }
     | FollowLog { number : Int }
+      -- REFRESH
+    | Tick { time : Time.Posix, interval : Interval }
 
 
 update : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
+        NoOp ->
+            ( model, Effect.none )
+
         -- BROWSER
-        OnHashChanged _ ->
+        OnHashChanged options ->
             let
                 focus =
-                    Focus.fromString route.hash
+                    Focus.fromString options.to
             in
-            ( { model | focus = focus }
-            , model.services
-                |> RemoteData.unwrap Effect.none
-                    (\services ->
-                        services
-                            |> List.Extra.find (\s -> s.number == Maybe.withDefault -1 focus.group)
-                            |> Maybe.map (\s -> ExpandService { service = s, updateUrlHash = False })
-                            |> Maybe.map Effect.sendMsg
-                            |> Maybe.withDefault Effect.none
-                    )
+            ( { model
+                | focus = focus
+              }
+            , RemoteData.withDefault [] model.services
+                |> List.filter (\s -> Maybe.withDefault -1 focus.group == s.number)
+                |> List.map (\s -> ExpandService { service = s, applyDomFocus = True, previousFocus = Just model.focus })
+                |> List.map Effect.sendMsg
+                |> Effect.batch
             )
 
         PushUrlHash options ->
             ( model
             , Effect.pushRoute
                 { path =
-                    Route.Path.Org_Repo_Build_Services
+                    Route.Path.Org_Repo_Build_
                         { org = route.params.org
                         , repo = route.params.repo
                         , buildNumber = route.params.buildNumber
@@ -160,34 +172,20 @@ update shared route msg model =
         GetBuildServicesResponse response ->
             case response of
                 Ok ( _, services ) ->
-                    let
-                        ( services_, sideEffects ) =
-                            services
-                                |> List.map
-                                    (\service ->
-                                        case model.focus.group of
-                                            Just resourceNumber ->
-                                                if service.number == resourceNumber then
-                                                    ( { service | viewing = True }
-                                                    , ExpandService { service = service, updateUrlHash = False }
-                                                        |> Effect.sendMsg
-                                                    )
-
-                                                else
-                                                    ( { service | viewing = False }, Effect.none )
-
-                                            _ ->
-                                                ( { service | viewing = False }, Effect.none )
-                                    )
-                                |> List.unzip
-                                |> Tuple.mapFirst RemoteData.succeed
-                                |> Tuple.mapSecond Effect.batch
-                    in
-                    ( { model
-                        | services =
-                            services_
-                      }
-                    , sideEffects
+                    ( { model | services = RemoteData.succeed services }
+                    , services
+                        |> List.Extra.find (\service -> Maybe.withDefault -1 model.focus.group == service.number)
+                        |> Maybe.map (\service -> service)
+                        |> Maybe.map
+                            (\service ->
+                                ExpandService
+                                    { service = service
+                                    , applyDomFocus = True
+                                    , previousFocus = Nothing
+                                    }
+                                    |> Effect.sendMsg
+                            )
+                        |> Maybe.withDefault Effect.none
                     )
 
                 Err error ->
@@ -195,18 +193,67 @@ update shared route msg model =
                     , Effect.handleHttpError { httpError = error }
                     )
 
-        GetBuildServiceLogResponse service response ->
+        GetBuildServicesRefreshResponse response ->
+            case response of
+                Ok ( _, services ) ->
+                    ( { model | services = RemoteData.succeed services }
+                    , services
+                        |> List.filter (\service -> List.member service.number model.viewing)
+                        |> List.map
+                            (\service ->
+                                Effect.getBuildServiceLog
+                                    { baseUrl = shared.velaAPI
+                                    , session = shared.session
+                                    , onResponse = GetBuildServiceLogRefreshResponse { service = service }
+                                    , org = route.params.org
+                                    , repo = route.params.repo
+                                    , buildNumber = route.params.buildNumber
+                                    , serviceNumber = String.fromInt service.number
+                                    }
+                            )
+                        |> Effect.batch
+                    )
+
+                Err error ->
+                    ( { model | services = Utils.Errors.toFailure error }
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
+        GetBuildServiceLogResponse options response ->
             case response of
                 Ok ( _, log ) ->
                     ( { model
                         | logs =
-                            Dict.update service.id
+                            Dict.update options.service.id
                                 (Components.Logs.safeDecodeLogData shared.velaLogBytesLimit log)
                                 model.logs
                       }
-                    , if Focus.canTarget model.focus then
-                        FocusOn { target = Focus.toDomTarget model.focus }
-                            |> Effect.sendMsg
+                    , if options.applyDomFocus then
+                        case ( model.focus.group, model.focus.a, model.focus.b ) of
+                            ( Just g, Just _, Just _ ) ->
+                                FocusOn
+                                    { target =
+                                        Focus.toDomTarget
+                                            { group = Just g
+                                            , a = Focus.lineNumberChanged options.previousFocus model.focus
+                                            , b = Nothing
+                                            }
+                                    }
+                                    |> Effect.sendMsg
+
+                            ( Just g, Just a, _ ) ->
+                                FocusOn
+                                    { target =
+                                        Focus.toDomTarget
+                                            { group = Just g
+                                            , a = Just a
+                                            , b = Nothing
+                                            }
+                                    }
+                                    |> Effect.sendMsg
+
+                            _ ->
+                                Effect.none
 
                       else
                         Effect.none
@@ -217,47 +264,79 @@ update shared route msg model =
                     , Effect.handleHttpError { httpError = error }
                     )
 
+        GetBuildServiceLogRefreshResponse options response ->
+            case response of
+                Ok ( _, log ) ->
+                    ( { model
+                        | logs =
+                            Dict.update options.service.id
+                                (Components.Logs.safeDecodeLogData shared.velaLogBytesLimit log)
+                                model.logs
+                      }
+                    , Effect.none
+                    )
+
+                Err error ->
+                    ( { model | services = Utils.Errors.toFailure error }
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
+        ClickService options ->
+            ( model
+            , if List.member options.service.number model.viewing then
+                CollapseService { service = options.service }
+                    |> Effect.sendMsg
+
+              else
+                Effect.batch
+                    [ ExpandService { service = options.service, applyDomFocus = False, previousFocus = Nothing }
+                        |> Effect.sendMsg
+                    , { hash =
+                            Focus.toString
+                                { group = Just options.service.number
+                                , a = Nothing
+                                , b = Nothing
+                                }
+                      }
+                        |> PushUrlHash
+                        |> Effect.sendMsg
+                    ]
+            )
+
         ExpandService options ->
             ( { model
-                | services =
-                    case model.services of
-                        RemoteData.Success services ->
-                            List.Extra.updateIf
-                                (\s -> s.id == options.service.id)
-                                (\s -> { s | viewing = True })
-                                services
-                                |> RemoteData.succeed
-
-                        _ ->
-                            model.services
+                | viewing = List.Extra.unique <| options.service.number :: model.viewing
               }
             , Effect.batch
                 [ Effect.getBuildServiceLog
                     { baseUrl = shared.velaAPI
                     , session = shared.session
-                    , onResponse = GetBuildServiceLogResponse options.service
+                    , onResponse =
+                        GetBuildServiceLogResponse
+                            { service = options.service
+                            , applyDomFocus = options.applyDomFocus
+                            , previousFocus = options.previousFocus
+                            }
                     , org = route.params.org
                     , repo = route.params.repo
                     , buildNumber = route.params.buildNumber
                     , serviceNumber = String.fromInt options.service.number
                     }
-                , if options.updateUrlHash then
-                    Effect.pushRoute
-                        { path =
-                            Route.Path.Org_Repo_Build_Services
-                                { org = route.params.org
-                                , repo = route.params.repo
-                                , buildNumber = route.params.buildNumber
+                , if options.applyDomFocus then
+                    case ( model.focus.group, model.focus.a, model.focus.b ) of
+                        ( Just g, Nothing, Nothing ) ->
+                            FocusOn
+                                { target =
+                                    Focus.toDomTarget
+                                        { group = Just g
+                                        , a = Nothing
+                                        , b = Nothing
+                                        }
                                 }
-                        , query = route.query
-                        , hash =
-                            Just <|
-                                Focus.toString
-                                    { group = Just options.service.number
-                                    , a = Nothing
-                                    , b = Nothing
-                                    }
-                        }
+                                |> Effect.sendMsg
+
+                        _ ->
+                            Effect.none
 
                   else
                     Effect.none
@@ -266,17 +345,7 @@ update shared route msg model =
 
         CollapseService options ->
             ( { model
-                | services =
-                    case model.services of
-                        RemoteData.Success services ->
-                            List.Extra.updateIf
-                                (\s -> s.id == options.service.id)
-                                (\s -> { s | viewing = False })
-                                services
-                                |> RemoteData.succeed
-
-                        _ ->
-                            model.services
+                | viewing = List.Extra.remove options.service.number model.viewing
               }
             , Effect.none
             )
@@ -285,7 +354,14 @@ update shared route msg model =
             ( model
             , model.services
                 |> RemoteData.withDefault []
-                |> List.map (\service -> ExpandService { service = service, updateUrlHash = False })
+                |> List.map
+                    (\service ->
+                        ExpandService
+                            { service = service
+                            , applyDomFocus = False
+                            , previousFocus = Nothing
+                            }
+                    )
                 |> List.map Effect.sendMsg
                 |> Effect.batch
             )
@@ -294,7 +370,7 @@ update shared route msg model =
             ( model
             , model.services
                 |> RemoteData.withDefault []
-                |> List.map (\service -> CollapseService { service = service, updateUrlHash = False })
+                |> List.map (\service -> CollapseService { service = service })
                 |> List.map Effect.sendMsg
                 |> Effect.batch
             )
@@ -310,6 +386,21 @@ update shared route msg model =
             , Effect.none
             )
 
+        -- REFRESH
+        Tick options ->
+            ( model
+            , Effect.getBuildServices
+                { baseUrl = shared.velaAPI
+                , session = shared.session
+                , onResponse = GetBuildServicesRefreshResponse
+                , pageNumber = Nothing
+                , perPage = Just 100
+                , org = route.params.org
+                , repo = route.params.repo
+                , buildNumber = route.params.buildNumber
+                }
+            )
+
 
 
 -- SUBSCRIPTIONS
@@ -317,7 +408,7 @@ update shared route msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Interval.tickEveryFiveSeconds Tick
 
 
 
@@ -326,7 +417,7 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> Model -> View Msg
 view shared route model =
-    { title = "Services"
+    { title = ""
     , body =
         [ case model.services of
             RemoteData.Success services ->
@@ -372,18 +463,13 @@ view shared route model =
 
 viewService : Shared.Model -> Model -> Route { org : String, repo : String, buildNumber : String } -> Vela.Service -> Html Msg
 viewService shared model route service =
-    let
-        serviceNumber =
-            String.fromInt service.number
-
-        clickService =
-            if service.viewing then
-                CollapseService
-
-            else
-                ExpandService
-    in
-    div [ classList [ ( "service", True ), ( "flowline-left", True ) ], Util.testAttribute "service" ]
+    div
+        [ classList
+            [ ( "service", True )
+            , ( "flowline-left", True )
+            ]
+        , Util.testAttribute "service"
+        ]
         [ div [ class "-status" ]
             [ div [ class "-icon-container" ] [ Components.Svgs.statusToIcon service.status ] ]
         , details
@@ -392,13 +478,17 @@ viewService shared model route service =
                 , ( "-with-border", True )
                 , ( "-running", service.status == Vela.Running )
                 ]
-                :: Util.open service.viewing
+                :: Util.open (List.member service.number model.viewing)
             )
             [ summary
                 [ class "summary"
-                , Util.testAttribute <| "service-header-" ++ serviceNumber
-                , onClick <| clickService { service = service, updateUrlHash = True }
-                , Focus.toAttr { group = Just service.number, a = Nothing, b = Nothing }
+                , Util.testAttribute <| "service-header-" ++ String.fromInt service.number
+                , onClick <| ClickService { service = service }
+                , Focus.toAttr
+                    { group = Just service.number
+                    , a = Nothing
+                    , b = Nothing
+                    }
                 ]
                 [ div
                     [ class "-info" ]
