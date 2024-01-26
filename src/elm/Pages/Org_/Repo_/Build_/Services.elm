@@ -436,7 +436,7 @@ update shared route msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Interval.tickEveryOneSecond Tick
+    Interval.tickEveryFiveSeconds Tick
 
 
 

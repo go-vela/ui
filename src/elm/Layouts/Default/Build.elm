@@ -18,7 +18,9 @@ import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Route.Path
 import Shared
+import Time
 import Utils.Errors
+import Utils.Interval as Interval
 import Vela
 import View exposing (View)
 
@@ -99,6 +101,7 @@ init props shared _ =
 type Msg
     = OnUrlChanged { from : Route (), to : Route () }
     | GetBuildResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
+    | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
 update : Props contentMsg -> Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
@@ -139,10 +142,31 @@ update props shared msg model =
                     , Effect.handleHttpError { httpError = error }
                     )
 
+        Tick options ->
+            ( model
+            , Effect.batch
+                [ Effect.getRepoBuildsShared
+                    { pageNumber = Nothing
+                    , perPage = Nothing
+                    , maybeEvent = Nothing
+                    , org = props.org
+                    , repo = props.repo
+                    }
+                , Effect.getBuild
+                    { baseUrl = shared.velaAPI
+                    , session = shared.session
+                    , onResponse = GetBuildResponse
+                    , org = props.org
+                    , repo = props.repo
+                    , buildNumber = props.buildNumber
+                    }
+                ]
+            )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Interval.tickEveryFiveSeconds Tick
 
 
 

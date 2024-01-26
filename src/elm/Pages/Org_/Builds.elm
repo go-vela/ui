@@ -22,8 +22,10 @@ import Page exposing (Page)
 import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
+import Time
 import Utils.Errors
 import Utils.Helpers as Util
+import Utils.Interval as Interval
 import Vela
 import View exposing (View)
 
@@ -98,6 +100,7 @@ type Msg
     | OnEventQueryParameterChanged { from : Maybe String, to : Maybe String }
     | FilterByEvent (Maybe String)
     | ShowHideFullTimestamps
+    | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
 update : Shared.Model -> Route { org : String } -> Msg -> Model -> ( Model, Effect Msg )
@@ -218,6 +221,19 @@ update shared route msg model =
         ShowHideFullTimestamps ->
             ( { model | showFullTimestamps = not model.showFullTimestamps }, Effect.none )
 
+        Tick options ->
+            ( model
+            , Effect.getOrgBuilds
+                { baseUrl = shared.velaAPI
+                , session = shared.session
+                , onResponse = GetOrgBuildsResponse
+                , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
+                , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+                , maybeEvent = Dict.get "event" route.query
+                , org = route.params.org
+                }
+            )
+
 
 
 -- SUBSCRIPTIONS
@@ -225,7 +241,10 @@ update shared route msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Util.onMouseDownSubscription "build-actions" (List.length model.showActionsMenus > 0) (ShowHideActionsMenus Nothing)
+    Sub.batch
+        [ Util.onMouseDownSubscription "build-actions" (List.length model.showActionsMenus > 0) (ShowHideActionsMenus Nothing)
+        , Interval.tickEveryFiveSeconds Tick
+        ]
 
 
 

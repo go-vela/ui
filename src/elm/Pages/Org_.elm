@@ -17,8 +17,10 @@ import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Route.Path
 import Shared
+import Time
 import Utils.Errors
 import Utils.Helpers as Util
+import Utils.Interval as Interval
 import Vela
 import View exposing (View)
 
@@ -27,7 +29,7 @@ page : Auth.User -> Shared.Model -> Route { org : String } -> Page Model Msg
 page user shared route =
     Page.new
         { init = init shared route
-        , update = update
+        , update = update shared route
         , subscriptions = subscriptions
         , view = view shared route
         }
@@ -75,10 +77,11 @@ init shared route () =
 
 type Msg
     = GetOrgReposResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Repository ))
+    | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
-update : Msg -> Model -> ( Model, Effect Msg )
-update msg model =
+update : Shared.Model -> Route { org : String } -> Msg -> Model -> ( Model, Effect Msg )
+update shared route msg model =
     case msg of
         GetOrgReposResponse response ->
             case response of
@@ -92,6 +95,16 @@ update msg model =
                     , Effect.handleHttpError { httpError = error }
                     )
 
+        Tick options ->
+            ( model
+            , Effect.getOrgRepos
+                { baseUrl = shared.velaAPI
+                , session = shared.session
+                , onResponse = GetOrgReposResponse
+                , org = route.params.org
+                }
+            )
+
 
 
 -- SUBSCRIPTIONS
@@ -99,7 +112,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Interval.tickEveryFiveSeconds Tick
 
 
 
