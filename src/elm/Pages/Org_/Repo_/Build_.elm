@@ -346,6 +346,10 @@ update shared route msg model =
         CollapseStep options ->
             ( { model
                 | viewing = List.Extra.remove options.step.number model.viewing
+                , logs =
+                    Dict.update options.step.id
+                        (\_ -> Nothing)
+                        model.logs
               }
             , Effect.none
             )

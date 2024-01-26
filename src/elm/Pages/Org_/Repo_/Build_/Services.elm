@@ -346,6 +346,10 @@ update shared route msg model =
         CollapseService options ->
             ( { model
                 | viewing = List.Extra.remove options.service.number model.viewing
+                , logs =
+                    Dict.update options.service.id
+                        (\_ -> Nothing)
+                        model.logs
               }
             , Effect.none
             )
