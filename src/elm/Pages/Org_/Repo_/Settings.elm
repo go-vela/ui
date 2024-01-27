@@ -728,7 +728,9 @@ viewBadge shared repo velaURL copyMsg =
                 ]
             , small []
                 [ text "To customize branch, "
-                , a [ href "https://go-vela.github.io/docs/usage/badge/" ] [ text "see our Badges documentation" ]
+                , a [ href <| shared.velaDocsURL ++ "/usage/badge/" ]
+                    [ text "see our Badges documentation"
+                    ]
                 , text "."
                 ]
             ]

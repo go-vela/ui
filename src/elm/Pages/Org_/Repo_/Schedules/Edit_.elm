@@ -245,7 +245,7 @@ view shared route model =
                         , msg = BranchOnInput
                         , disabled_ = not <| RemoteData.isSuccess model.schedule
                         }
-                    , Components.ScheduleForm.viewHelp
+                    , Components.ScheduleForm.viewHelp shared.velaDocsURL
                     , Components.ScheduleForm.viewSubmitButton
                         { msg = SubmitForm
                         , disabled_ = not <| RemoteData.isSuccess model.schedule

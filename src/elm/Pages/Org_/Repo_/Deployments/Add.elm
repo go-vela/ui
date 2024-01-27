@@ -338,7 +338,7 @@ view shared route model =
                     , div [ class "help" ]
                         [ text "Need help? Visit our "
                         , Html.a
-                            [ Html.Attributes.href "https://go-vela.github.io/docs/usage/deployments/"
+                            [ Html.Attributes.href <| shared.velaDocsURL ++ "/usage/deployments/"
                             , Html.Attributes.target "_blank"
                             ]
                             [ text "docs" ]

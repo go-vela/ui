@@ -89,9 +89,9 @@ view shared props =
                                 , code [] [ text ".vela.yml" ]
                                 , text " file that describes your build pipeline in the root of your repository."
                                 , br [] []
-                                , a [ href "https://go-vela.github.io/docs/usage/" ] [ text "Review the documentation" ]
+                                , a [ href <| shared.velaDocsURL ++ "/usage/" ] [ text "Review the documentation" ]
                                 , text " for help or "
-                                , a [ href "https://go-vela.github.io/docs/usage/examples/" ] [ text "check some of the pipeline examples" ]
+                                , a [ href <| shared.velaDocsURL ++ "/usage/examples/" ] [ text "check some of the pipeline examples" ]
                                 , text "."
                                 ]
                             , li []

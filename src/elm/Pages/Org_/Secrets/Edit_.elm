@@ -292,7 +292,7 @@ view shared route model =
                         , value = model.allowCommands
                         , disabled_ = not <| RemoteData.isSuccess model.secret
                         }
-                    , Components.SecretForm.viewHelp
+                    , Components.SecretForm.viewHelp shared.velaDocsURL
                     , Components.SecretForm.viewSubmitButton
                         { msg = SubmitForm
                         , disabled_ = not <| RemoteData.isSuccess model.secret

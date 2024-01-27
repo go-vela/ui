@@ -252,12 +252,12 @@ viewAllowCommandsInput { msg, value, disabled_ } =
         ]
 
 
-viewHelp : Html msg
-viewHelp =
+viewHelp : String -> Html msg
+viewHelp docsUrl =
     div [ class "help" ]
         [ text "Need help? Visit our "
         , a
-            [ href "https://go-vela.github.io/docs/tour/secrets/"
+            [ href <| docsUrl ++ "/usage/secrets/"
             , target "_blank"
             ]
             [ text "docs" ]

@@ -217,7 +217,7 @@ view shared route model =
                         , msg = BranchOnInput
                         , disabled_ = False
                         }
-                    , Components.ScheduleForm.viewHelp
+                    , Components.ScheduleForm.viewHelp shared.velaDocsURL
                     , Components.ScheduleForm.viewSubmitButton
                         { msg = SubmitForm
                         , disabled_ = False

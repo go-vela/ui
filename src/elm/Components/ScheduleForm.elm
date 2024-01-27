@@ -88,12 +88,12 @@ viewEnabledInput { msg, value, disabled_ } =
         ]
 
 
-viewHelp : Html msg
-viewHelp =
+viewHelp : String -> Html msg
+viewHelp docsUrl =
     div [ class "help" ]
         [ text "Need help? Visit our "
         , a
-            [ href "https://go-vela.github.io/docs/tour/schedules/"
+            [ href "/usage/schedule_build/"
             , target "_blank"
             ]
             [ text "docs" ]
