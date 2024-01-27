@@ -99,6 +99,7 @@ init shared () =
 
 type Msg
     = NoOp
+      -- FAVORITES
     | ToggleFavorite Vela.Org (Maybe Vela.Repo)
     | SearchFavorites String
 
@@ -111,14 +112,15 @@ update msg model =
             , Effect.none
             )
 
-        SearchFavorites searchBy ->
-            ( { model | favoritesFilter = searchBy }
-            , Effect.none
-            )
-
+        -- FAVORITES
         ToggleFavorite org maybeRepo ->
             ( model
             , Effect.updateFavorites { org = org, maybeRepo = maybeRepo, updateType = Favorites.Toggle }
+            )
+
+        SearchFavorites searchBy ->
+            ( { model | favoritesFilter = searchBy }
+            , Effect.none
             )
 
 

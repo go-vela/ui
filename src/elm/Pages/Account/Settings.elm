@@ -88,6 +88,7 @@ init () =
 
 type Msg
     = NoOp
+      -- ALERTS
     | AddAlertCopiedToClipboard String
 
 
@@ -99,6 +100,7 @@ update msg model =
             , Effect.none
             )
 
+        -- ALERTS
         AddAlertCopiedToClipboard contentCopied ->
             ( model
             , Effect.addAlertSuccess { content = contentCopied, addToastIfUnique = False }

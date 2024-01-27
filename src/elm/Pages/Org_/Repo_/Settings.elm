@@ -83,7 +83,8 @@ init shared route () =
 
 
 type Msg
-    = GetRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
+    = --REPO
+      GetRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
     | AllowEventsUpdate String Bool
     | AccessUpdate String
     | ForkPolicyUpdate String
@@ -98,12 +99,14 @@ type Msg
     | Chown
     | Repair
     | PipelineTypeUpdate String
+      -- ALERTS
     | AddAlertCopiedToClipboard String
 
 
 update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
+        -- REPO
         GetRepoResponse response ->
             case response of
                 Ok ( _, repo ) ->
@@ -204,6 +207,7 @@ update shared route msg model =
             , Effect.none
             )
 
+        -- ALERTS
         AddAlertCopiedToClipboard contentCopied ->
             ( model
             , Effect.addAlertSuccess { content = contentCopied, addToastIfUnique = False }

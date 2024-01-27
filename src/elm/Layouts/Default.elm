@@ -78,9 +78,12 @@ init shared _ =
 
 type Msg
     = NoOp
+      -- HEADER
     | ShowHideIdentity (Maybe Bool)
     | ShowHideHelp (Maybe Bool)
+      -- THEME
     | SetTheme Theme.Theme
+      -- ALERTS
     | AlertsUpdate (Alerting.Msg Alert)
     | CopyAlert String
 
@@ -93,6 +96,7 @@ update msg model =
             , Effect.none
             )
 
+        -- HEADER
         ShowHideIdentity show ->
             ( { model
                 | showIdentity =
@@ -119,9 +123,11 @@ update msg model =
             , Effect.none
             )
 
+        -- THEME
         SetTheme theme ->
             ( model, Effect.setTheme { theme = theme } )
 
+        -- ALERTS
         AlertsUpdate alert ->
             ( model
             , Effect.alertsUpdate { alert = alert }

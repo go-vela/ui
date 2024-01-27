@@ -86,7 +86,10 @@ init shared route () =
 
 
 type Msg
-    = GetRepoBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))
+    = --BROWSER
+      OnEventQueryParameterChanged { from : Maybe String, to : Maybe String }
+      -- BUILDS
+    | GetRepoBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))
     | GotoPage Int
     | ApproveBuild Vela.Org Vela.Repo Vela.BuildNumber
     | RestartBuild Vela.Org Vela.Repo Vela.BuildNumber
@@ -99,6 +102,22 @@ type Msg
 update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
+        -- BROWSER
+        OnEventQueryParameterChanged options ->
+            ( model
+            , Effect.getRepoBuilds
+                { baseUrl = shared.velaAPI
+                , session = shared.session
+                , onResponse = GetRepoBuildsResponse
+                , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
+                , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+                , maybeEvent = options.to
+                , org = route.params.org
+                , repo = route.params.repo
+                }
+            )
+
+        -- BUILDS
         GetRepoBuildsResponse response ->
             Tuple.mapSecond (\_ -> Effect.sendSharedRepoBuildsResponse { response = response }) <|
                 case response of

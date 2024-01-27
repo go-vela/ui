@@ -108,7 +108,11 @@ init shared route () =
 
 
 type Msg
-    = GetRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
+    = --BROWSER
+      OnQueryParamChanged { from : Maybe String, to : Maybe String }
+      -- REPO
+    | GetRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
+      -- DEPLOYMENTS
     | AddDeploymentResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Deployment ))
     | TargetOnInput String
     | RefOnInput String
@@ -119,16 +123,16 @@ type Msg
     | AddParameter
     | RemoveParameter Vela.KeyValuePair
     | SubmitForm
-    | AddAlertCopiedToClipboard String
-    | OnQueryParamChanged { from : Maybe String, to : Maybe String }
 
 
 update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
+        -- BROWSER
         OnQueryParamChanged _ ->
             ( model, Effect.none )
 
+        -- REPO
         GetRepoResponse response ->
             case response of
                 Ok ( _, repo ) ->
@@ -141,6 +145,7 @@ update shared route msg model =
                     , Effect.handleHttpError { httpError = error }
                     )
 
+        -- DEPLOYMENTS
         AddDeploymentResponse response ->
             case response of
                 Ok ( _, deployment ) ->
@@ -240,11 +245,6 @@ update shared route msg model =
                 , repo = route.params.repo
                 , body = body
                 }
-            )
-
-        AddAlertCopiedToClipboard contentCopied ->
-            ( model
-            , Effect.addAlertSuccess { content = contentCopied, addToastIfUnique = False }
             )
 
 

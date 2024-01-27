@@ -76,13 +76,16 @@ init shared route () =
 
 
 type Msg
-    = GetOrgReposResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Repository ))
+    = -- REPOS
+      GetOrgReposResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Repository ))
+      -- REFRESH
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
 update : Shared.Model -> Route { org : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
+        -- REPOS
         GetOrgReposResponse response ->
             case response of
                 Ok ( _, repos ) ->
@@ -95,6 +98,7 @@ update shared route msg model =
                     , Effect.handleHttpError { httpError = error }
                     )
 
+        -- REFRESH
         Tick options ->
             ( model
             , Effect.getOrgRepos

@@ -98,7 +98,6 @@ type Msg
     | RemoveImage String
     | AllowCommandsOnClick String
     | SubmitForm
-    | AddAlertCopiedToClipboard String
 
 
 update : Shared.Model -> Route { org : String, name : String } -> Msg -> Model -> ( Model, Effect Msg )
@@ -221,11 +220,6 @@ update shared route msg model =
                 , name = route.params.name
                 , body = body
                 }
-            )
-
-        AddAlertCopiedToClipboard contentCopied ->
-            ( model
-            , Effect.addAlertSuccess { content = contentCopied, addToastIfUnique = False }
             )
 
 

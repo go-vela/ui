@@ -99,14 +99,18 @@ init props shared _ =
 
 
 type Msg
-    = OnUrlChanged { from : Route (), to : Route () }
+    = --BROWSER
+      OnUrlChanged { from : Route (), to : Route () }
+      -- BUILD
     | GetBuildResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
+      -- REFRESH
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
 update : Props contentMsg -> Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
 update props shared msg model =
     case msg of
+        -- BROWSER
         OnUrlChanged _ ->
             ( model
             , Effect.batch
@@ -128,6 +132,7 @@ update props shared msg model =
                 ]
             )
 
+        -- BUILD
         GetBuildResponse response ->
             case response of
                 Ok ( _, build ) ->
@@ -142,6 +147,7 @@ update props shared msg model =
                     , Effect.handleHttpError { httpError = error }
                     )
 
+        -- REFRESH
         Tick options ->
             ( model
             , Effect.batch

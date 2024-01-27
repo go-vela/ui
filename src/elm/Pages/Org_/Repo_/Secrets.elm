@@ -87,14 +87,17 @@ init shared route () =
 
 
 type Msg
-    = GetRepoSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Secret ))
+    = -- SECRETS
+      GetRepoSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Secret ))
     | GotoPage Int
+      -- ALERTS
     | AddAlertCopiedToClipboard String
 
 
 update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
+        -- SECRETS
         GetRepoSecretsResponse response ->
             case response of
                 Ok ( meta, secrets ) ->
@@ -131,6 +134,7 @@ update shared route msg model =
                 ]
             )
 
+        -- ALERTS
         AddAlertCopiedToClipboard contentCopied ->
             ( model
             , Effect.addAlertSuccess { content = contentCopied, addToastIfUnique = False }

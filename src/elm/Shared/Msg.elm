@@ -21,11 +21,16 @@ import Vela
 
 type Msg
     = NoOp
+      -- BROWSER
+    | FocusOn { target : String }
+    | FocusResult (Result Browser.Dom.Error ())
+    | DownloadFile { filename : String, content : String, map : String -> String }
+    | OnKeyDown { key : String }
+    | OnKeyUp { key : String }
+    | VisibilityChanged { visibility : Browser.Events.Visibility }
       -- TIME
     | AdjustTimeZone { zone : Time.Zone }
     | AdjustTime { time : Time.Posix }
-      --REFRESH
-    | Tick { interval : Interval.Interval, time : Time.Posix }
       -- AUTH
     | FinishAuthentication { code : Maybe String, state : Maybe String }
     | TokenResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Auth.Jwt.JwtAccessToken ))
@@ -54,11 +59,5 @@ type Msg
     | AlertsUpdate (Alerting.Msg Alert)
       -- ERRORS
     | HandleHttpError (Http.Detailed.Error String)
-      -- DOM
-    | FocusOn { target : String }
-    | FocusResult (Result Browser.Dom.Error ())
-      -- BROWSER
-    | DownloadFile { filename : String, content : String, map : String -> String }
-    | OnKeyDown { key : String }
-    | OnKeyUp { key : String }
-    | VisibilityChanged { visibility : Browser.Events.Visibility }
+      --REFRESH
+    | Tick { interval : Interval.Interval, time : Time.Posix }

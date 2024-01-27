@@ -90,6 +90,7 @@ init shared route () =
 
 type Msg
     = NoOp
+      -- SECRETS
     | GetSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
     | UpdateSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
     | ValueOnInput String
@@ -99,7 +100,6 @@ type Msg
     | RemoveImage String
     | AllowCommandsOnClick String
     | SubmitForm
-    | AddAlertCopiedToClipboard String
 
 
 update : Shared.Model -> Route { org : String, repo : String, name : String } -> Msg -> Model -> ( Model, Effect Msg )
@@ -108,6 +108,7 @@ update shared route msg model =
         NoOp ->
             ( model, Effect.none )
 
+        -- SECRETS
         GetSecretResponse response ->
             case response of
                 Ok ( _, secret ) ->
@@ -221,11 +222,6 @@ update shared route msg model =
                 , name = route.params.name
                 , body = body
                 }
-            )
-
-        AddAlertCopiedToClipboard contentCopied ->
-            ( model
-            , Effect.addAlertSuccess { content = contentCopied, addToastIfUnique = False }
             )
 
 

@@ -75,7 +75,8 @@ init shared () =
 
 
 type Msg
-    = AddRepoScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Schedule ))
+    = -- SCHEDULES
+      AddRepoScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Schedule ))
     | NameOnInput String
     | EntryOnInput String
     | BranchOnInput String
@@ -86,6 +87,7 @@ type Msg
 update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
+        -- SCHEDULES
         AddRepoScheduleResponse response ->
             case response of
                 Ok ( _, schedule ) ->

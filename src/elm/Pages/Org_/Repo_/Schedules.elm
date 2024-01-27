@@ -88,13 +88,15 @@ init shared route () =
 
 
 type Msg
-    = GetRepoSchedulesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Schedule ))
+    = -- SCHEDULES
+      GetRepoSchedulesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Schedule ))
     | GotoPage Int
 
 
 update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
+        -- SCHEDULES
         GetRepoSchedulesResponse response ->
             case response of
                 Ok ( meta, schedules ) ->

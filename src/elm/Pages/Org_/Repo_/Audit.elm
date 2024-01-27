@@ -104,7 +104,8 @@ init shared route () =
 
 
 type Msg
-    = GetRepoHooksResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Hook ))
+    = -- HOOKS
+      GetRepoHooksResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Hook ))
     | RedeliverRepoHook { hook : Vela.Hook }
     | RedeliverRepoHookResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | GotoPage Int
@@ -113,6 +114,7 @@ type Msg
 update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
+        -- HOOKS
         GetRepoHooksResponse response ->
             Tuple.mapSecond (\_ -> Effect.sendSharedRepoHooksResponse { response = response }) <|
                 case response of

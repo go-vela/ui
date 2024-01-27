@@ -124,13 +124,15 @@ init () =
 
 type Msg
     = NoOp
+      -- SOURCE REPOS
     | GetUserSourceRepos Bool
     | GetUserSourceReposResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.SourceRepositories ))
-    | ToggleFavorite Vela.Org (Maybe String)
     | EnableRepos (List Vela.Repository)
     | EnableRepo Vela.Repository
     | EnableRepoResponse Vela.Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
     | UpdateSearchFilter Vela.Org String
+      -- FAVORITES
+    | ToggleFavorite Vela.Org (Maybe String)
 
 
 update : Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
@@ -141,6 +143,7 @@ update shared msg model =
             , Effect.none
             )
 
+        -- SOURCE REPOS
         GetUserSourceRepos isReload ->
             ( { model
                 | sourceRepos =
@@ -171,11 +174,6 @@ update shared msg model =
                       }
                     , Effect.handleHttpError { httpError = error }
                     )
-
-        ToggleFavorite org maybeRepo ->
-            ( model
-            , Effect.updateFavorites { org = org, maybeRepo = maybeRepo, updateType = Favorites.Toggle }
-            )
 
         EnableRepos repos ->
             ( model
@@ -238,6 +236,12 @@ update shared msg model =
                     Dict.update org (\_ -> Just searchBy) model.searchFilters
               }
             , Effect.none
+            )
+
+        -- FAVORITES
+        ToggleFavorite org maybeRepo ->
+            ( model
+            , Effect.updateFavorites { org = org, maybeRepo = maybeRepo, updateType = Favorites.Toggle }
             )
 
 

@@ -111,6 +111,8 @@ init shared route () =
 
 type Msg
     = NoOp
+      -- BROWSER
+    | VisibilityChanged { visibility : Browser.Events.Visibility }
       -- GRAPH
     | RenderBuildGraph { freshDraw : Bool }
     | GetBuildGraphResponse { freshDraw : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.BuildGraph ))
@@ -122,8 +124,6 @@ type Msg
     | OnBuildGraphInteraction Vela.BuildGraphInteraction
       -- REFRESH
     | Tick { interval : Interval.Interval, time : Time.Posix }
-      -- BROWSER
-    | VisibilityChanged { visibility : Browser.Events.Visibility }
 
 
 update : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> Msg -> Model -> ( Model, Effect Msg )
@@ -132,6 +132,16 @@ update shared route msg model =
         NoOp ->
             ( model
             , Effect.none
+            )
+
+        -- BROWSER
+        VisibilityChanged options ->
+            ( model
+            , if options.visibility == Browser.Events.Visible then
+                Effect.sendMsg <| RenderBuildGraph { freshDraw = False }
+
+              else
+                Effect.none
             )
 
         -- GRAPH
@@ -259,16 +269,6 @@ update shared route msg model =
         Tick options ->
             ( model
             , Effect.sendMsg <| Refresh { freshDraw = False, setToLoading = False, clear = False }
-            )
-
-        -- BROWSER
-        VisibilityChanged options ->
-            ( model
-            , if options.visibility == Browser.Events.Visible then
-                Effect.sendMsg <| RenderBuildGraph { freshDraw = False }
-
-              else
-                Effect.none
             )
 
 

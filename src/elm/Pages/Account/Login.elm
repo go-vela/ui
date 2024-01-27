@@ -76,6 +76,7 @@ init () =
 
 type Msg
     = NoOp
+      -- AUTH
     | SignInRequested
 
 
@@ -87,6 +88,7 @@ update shared msg model =
             , Effect.none
             )
 
+        -- AUTH
         SignInRequested ->
             ( model
             , (Browser.Navigation.load <| Api.Endpoint.toUrl shared.velaAPI Api.Endpoint.Login) |> Effect.sendCmd

@@ -85,6 +85,7 @@ init shared route () =
 
 type Msg
     = NoOp
+      -- SCHEDULES
     | GetRepoScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Schedule ))
     | UpdateRepoScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Schedule ))
     | EntryOnInput String
@@ -101,6 +102,7 @@ update shared route msg model =
             , Effect.none
             )
 
+        -- SCHEDULES
         GetRepoScheduleResponse response ->
             case response of
                 Ok ( _, schedule ) ->

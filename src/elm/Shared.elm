@@ -189,6 +189,54 @@ update route msg model =
             , Effect.none
             )
 
+        -- BROWSER
+        Shared.Msg.FocusOn options ->
+            ( model
+            , Browser.Dom.focus options.target |> Task.attempt Shared.Msg.FocusResult |> Effect.sendCmd
+            )
+
+        Shared.Msg.FocusResult result ->
+            case result of
+                Err (Browser.Dom.NotFound _) ->
+                    ( model, Effect.none )
+
+                Ok _ ->
+                    ( model, Effect.none )
+
+        Shared.Msg.DownloadFile options ->
+            ( model
+            , File.Download.string
+                options.filename
+                "text"
+                (options.map options.content)
+                |> Effect.sendCmd
+            )
+
+        Shared.Msg.OnKeyDown options ->
+            ( case options.key of
+                "Shift" ->
+                    { model | shift = True }
+
+                _ ->
+                    model
+            , Effect.none
+            )
+
+        Shared.Msg.OnKeyUp options ->
+            ( case options.key of
+                "Shift" ->
+                    { model | shift = False }
+
+                _ ->
+                    model
+            , Effect.none
+            )
+
+        Shared.Msg.VisibilityChanged options ->
+            ( { model | visibility = options.visibility, shift = False }
+            , Effect.none
+            )
+
         -- TIME
         Shared.Msg.AdjustTimeZone options ->
             ( { model | zone = options.zone }
@@ -199,15 +247,6 @@ update route msg model =
             ( { model | time = options.time }
             , Effect.none
             )
-
-        -- REFRESH
-        Shared.Msg.Tick options ->
-            case options.interval of
-                Interval.OneSecond ->
-                    ( { model | time = options.time }, Effect.none )
-
-                Interval.FiveSeconds ->
-                    ( model, Effect.none )
 
         -- AUTH
         Shared.Msg.FinishAuthentication options ->
@@ -553,53 +592,14 @@ update route msg model =
                 ]
             )
 
-        -- DOM
-        Shared.Msg.FocusOn options ->
-            ( model
-            , Browser.Dom.focus options.target |> Task.attempt Shared.Msg.FocusResult |> Effect.sendCmd
-            )
+        -- REFRESH
+        Shared.Msg.Tick options ->
+            case options.interval of
+                Interval.OneSecond ->
+                    ( { model | time = options.time }, Effect.none )
 
-        Shared.Msg.FocusResult result ->
-            case result of
-                Err (Browser.Dom.NotFound _) ->
+                Interval.FiveSeconds ->
                     ( model, Effect.none )
-
-                Ok _ ->
-                    ( model, Effect.none )
-
-        Shared.Msg.DownloadFile options ->
-            ( model
-            , File.Download.string
-                options.filename
-                "text"
-                (options.map options.content)
-                |> Effect.sendCmd
-            )
-
-        Shared.Msg.OnKeyDown options ->
-            ( case options.key of
-                "Shift" ->
-                    { model | shift = True }
-
-                _ ->
-                    model
-            , Effect.none
-            )
-
-        Shared.Msg.OnKeyUp options ->
-            ( case options.key of
-                "Shift" ->
-                    { model | shift = False }
-
-                _ ->
-                    model
-            , Effect.none
-            )
-
-        Shared.Msg.VisibilityChanged options ->
-            ( { model | visibility = options.visibility, shift = False }
-            , Effect.none
-            )
 
 
 subscriptions : Route () -> Model -> Sub Msg

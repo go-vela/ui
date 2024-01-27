@@ -91,21 +91,39 @@ init shared route () =
 
 
 type Msg
-    = GetOrgBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))
+    = --BROWSER
+      OnEventQueryParameterChanged { from : Maybe String, to : Maybe String }
+      -- BUILDS
+    | GetOrgBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))
     | GotoPage Int
     | ApproveBuild Vela.Org Vela.Repo Vela.BuildNumber
     | RestartBuild Vela.Org Vela.Repo Vela.BuildNumber
     | CancelBuild Vela.Org Vela.Repo Vela.BuildNumber
     | ShowHideActionsMenus (Maybe Int) (Maybe Bool)
-    | OnEventQueryParameterChanged { from : Maybe String, to : Maybe String }
     | FilterByEvent (Maybe String)
     | ShowHideFullTimestamps
+      -- REFRESH
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
 update : Shared.Model -> Route { org : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
+        -- BROWSER
+        OnEventQueryParameterChanged options ->
+            ( model
+            , Effect.getOrgBuilds
+                { baseUrl = shared.velaAPI
+                , session = shared.session
+                , onResponse = GetOrgBuildsResponse
+                , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
+                , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+                , maybeEvent = options.to
+                , org = route.params.org
+                }
+            )
+
+        -- BUILDS
         GetOrgBuildsResponse response ->
             case response of
                 Ok ( meta, builds ) ->
@@ -181,19 +199,6 @@ update shared route msg model =
             , Effect.none
             )
 
-        OnEventQueryParameterChanged options ->
-            ( model
-            , Effect.getOrgBuilds
-                { baseUrl = shared.velaAPI
-                , session = shared.session
-                , onResponse = GetOrgBuildsResponse
-                , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
-                , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
-                , maybeEvent = options.to
-                , org = route.params.org
-                }
-            )
-
         FilterByEvent maybeEvent ->
             ( { model
                 | builds = RemoteData.Loading
@@ -221,6 +226,7 @@ update shared route msg model =
         ShowHideFullTimestamps ->
             ( { model | showFullTimestamps = not model.showFullTimestamps }, Effect.none )
 
+        -- REFRESH
         Tick options ->
             ( model
             , Effect.getOrgBuilds

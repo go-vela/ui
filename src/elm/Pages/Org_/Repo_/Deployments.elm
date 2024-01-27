@@ -107,13 +107,15 @@ init shared route () =
 
 
 type Msg
-    = GetRepoDeploymentsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Deployment ))
+    = -- DEPLOYMENTS
+      GetRepoDeploymentsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Deployment ))
     | GotoPage Int
 
 
 update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
+        -- DEPLOYMENTS
         GetRepoDeploymentsResponse response ->
             case response of
                 Ok ( meta, deployments ) ->
