@@ -1,3 +1,8 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module Components.Build exposing (..)
 
 import Components.Svgs

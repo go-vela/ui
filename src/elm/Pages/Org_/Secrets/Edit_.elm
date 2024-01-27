@@ -251,47 +251,51 @@ view shared route model =
                 [ h2 [] [ text <| String.Extra.toTitleCase <| "edit " ++ Vela.secretTypeToString Vela.RepoSecret ++ " secret" ]
                 , div [ class "secret-form" ]
                     [ Components.Form.viewInput
-                        { label_ = Just "Name"
+                        { title = Just "Name"
+                        , subtitle = Nothing
                         , id_ = "name"
                         , val = RemoteData.unwrap "" .name model.secret
                         , placeholder_ = "loading..."
                         , classList_ = [ ( "secret-name", True ) ]
-                        , disabled_ = True
                         , rows_ = Nothing
                         , wrap_ = Nothing
                         , msg = NameOnInput
+                        , disabled_ = True
                         }
                     , Components.Form.viewTextarea
-                        { label_ = Just "Value"
+                        { title = Just "Value"
+                        , subtitle = Nothing
                         , id_ = "value"
                         , val = model.value
                         , placeholder_ = RemoteData.unwrap "loading..." (\_ -> "<leave blank to make no change to the value>") model.secret
                         , classList_ = [ ( "secret-value", True ) ]
-                        , disabled_ = not <| RemoteData.isSuccess model.secret
                         , rows_ = Just 2
                         , wrap_ = Just "soft"
                         , msg = ValueOnInput
+                        , disabled_ = not <| RemoteData.isSuccess model.secret
                         }
                     , Components.SecretForm.viewEventsSelect shared
-                        { disabled_ = not <| RemoteData.isSuccess model.secret
-                        , msg = EventOnCheck
+                        { msg = EventOnCheck
                         , events = model.events
+                        , disabled_ = not <| RemoteData.isSuccess model.secret
                         }
                     , Components.SecretForm.viewImagesInput
-                        { disabled_ = not <| RemoteData.isSuccess model.secret
-                        , onInput_ = ImageOnInput
+                        { onInput_ = ImageOnInput
                         , addImage = AddImage
                         , removeImage = RemoveImage
                         , images = model.images
                         , imageValue = model.image
+                        , disabled_ = not <| RemoteData.isSuccess model.secret
                         }
                     , Components.SecretForm.viewAllowCommandsInput
                         { msg = AllowCommandsOnClick
                         , value = model.allowCommands
+                        , disabled_ = not <| RemoteData.isSuccess model.secret
                         }
                     , Components.SecretForm.viewHelp
                     , Components.SecretForm.viewSubmitButton
                         { msg = SubmitForm
+                        , disabled_ = not <| RemoteData.isSuccess model.secret
                         }
                     ]
                 ]

@@ -223,47 +223,51 @@ view shared route model =
                 [ h2 [] [ text <| String.Extra.toTitleCase <| "add " ++ Vela.secretTypeToString Vela.RepoSecret ++ " secret" ]
                 , div [ class "secret-form" ]
                     [ Components.Form.viewInput
-                        { label_ = Just "Name"
+                        { title = Just "Name"
+                        , subtitle = Nothing
                         , id_ = "name"
                         , val = model.name
                         , placeholder_ = "Secret Name"
                         , classList_ = [ ( "secret-name", True ) ]
-                        , disabled_ = False
                         , rows_ = Nothing
                         , wrap_ = Nothing
                         , msg = NameOnInput
+                        , disabled_ = False
                         }
                     , Components.Form.viewTextarea
-                        { label_ = Just "Value"
+                        { title = Just "Value"
+                        , subtitle = Nothing
                         , id_ = "value"
                         , val = model.value
                         , placeholder_ = "secret-value"
                         , classList_ = [ ( "secret-value", True ) ]
-                        , disabled_ = False
                         , rows_ = Just 2
                         , wrap_ = Just "soft"
                         , msg = ValueOnInput
+                        , disabled_ = False
                         }
                     , Components.SecretForm.viewEventsSelect shared
-                        { disabled_ = False
-                        , msg = EventOnCheck
+                        { msg = EventOnCheck
                         , events = model.events
+                        , disabled_ = False
                         }
                     , Components.SecretForm.viewImagesInput
-                        { disabled_ = False
-                        , onInput_ = ImageOnInput
+                        { onInput_ = ImageOnInput
                         , addImage = AddImage
                         , removeImage = RemoveImage
                         , images = model.images
                         , imageValue = model.image
+                        , disabled_ = False
                         }
                     , Components.SecretForm.viewAllowCommandsInput
                         { msg = AllowCommandsOnClick
                         , value = model.allowCommands
+                        , disabled_ = False
                         }
                     , Components.SecretForm.viewHelp
                     , Components.SecretForm.viewSubmitButton
                         { msg = SubmitForm
+                        , disabled_ = False
                         }
                     ]
                 ]

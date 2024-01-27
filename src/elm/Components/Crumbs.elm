@@ -100,232 +100,6 @@ toCrumbs path =
                 Route.Path.AccountSourceRepos ->
                     [ overviewCrumbLink, accountCrumbStatic, sourceRepositoriesCrumbLink ]
 
-                -- Pages.OrgRepositories org _ _ ->
-                --     let
-                --         orgCrumbStatic =
-                --             ( org, Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgCrumbStatic ]
-                -- Pages.Hooks org repo _ _ ->
-                --     let
-                --         orgReposCrumbLink =
-                --             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-                --         repoCrumbStatic =
-                --             ( repo, Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgReposCrumbLink, repoCrumbStatic ]
-                -- Pages.RepoSettings org repo ->
-                --     let
-                --         orgReposCrumbLink =
-                --             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-                --         repoCrumbStatic =
-                --             ( repo, Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgReposCrumbLink, repoCrumbStatic ]
-                -- Pages.OrgSecrets _ org _ _ ->
-                --     let
-                --         orgCrumbStatic =
-                --             ( org, Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgCrumbStatic ]
-                -- Pages.RepoSecrets _ org repo _ _ ->
-                --     let
-                --         orgReposCrumbLink =
-                --             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-                --         repoCrumbStatic =
-                --             ( repo, Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgReposCrumbLink, repoCrumbStatic ]
-                -- Pages.SharedSecrets _ org team maybePage _ ->
-                --     let
-                --         orgReposCrumbLink =
-                --             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-                --         teamCrumbStatic =
-                --             ( team, Nothing )
-                --         sharedSecretsCrumbStatic =
-                --             ( "Shared Secrets" ++ pageToString maybePage, Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgReposCrumbLink, teamCrumbStatic, sharedSecretsCrumbStatic ]
-                -- Pages.AddOrgSecret engine org ->
-                --     let
-                --         orgReposCrumbLink =
-                --             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-                --         orgSecretsCrumbLink =
-                --             ( "Org Secrets", Just <| Pages.OrgSecrets engine org Nothing Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgReposCrumbLink, orgSecretsCrumbLink, addCrumbStatic ]
-                -- Pages.AddRepoSecret engine org repo ->
-                --     let
-                --         orgReposCrumbLink =
-                --             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-                --         repoBuildsCrumbLink =
-                --             ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
-                --         repoSecretsCrumbLink =
-                --             ( "Repo Secrets", Just <| Pages.RepoSecrets engine org repo Nothing Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgReposCrumbLink, repoBuildsCrumbLink, repoSecretsCrumbLink, addCrumbStatic ]
-                -- Pages.AddDeployment org repo ->
-                --     let
-                --         orgReposCrumbLink =
-                --             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-                --         repoBuildsCrumbLink =
-                --             ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
-                --         deploymentsCrumbLink =
-                --             ( "Deployments", Just <| Pages.RepositoryDeployments org repo Nothing Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgReposCrumbLink, repoBuildsCrumbLink, deploymentsCrumbLink, addCrumbStatic ]
-                -- Pages.PromoteDeployment org repo _ ->
-                --     let
-                --         orgReposCrumbLink =
-                --             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-                --         repoBuildsCrumbLink =
-                --             ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
-                --         deploymentsCrumbLink =
-                --             ( "Deployments", Just <| Pages.RepositoryDeployments org repo Nothing Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgReposCrumbLink, repoBuildsCrumbLink, deploymentsCrumbLink, addCrumbStatic ]
-                -- Pages.AddSharedSecret engine org team ->
-                --     let
-                --         orgReposCrumbLink =
-                --             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-                --         teamCrumbStatic =
-                --             ( team, Nothing )
-                --         sharedSecretsCrumbLink =
-                --             ( "Shared Secrets", Just <| Pages.SharedSecrets engine org team Nothing Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgReposCrumbLink, teamCrumbStatic, sharedSecretsCrumbLink, addCrumbStatic ]
-                -- Pages.OrgSecret engine org name ->
-                --     let
-                --         orgReposCrumbLink =
-                --             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-                --         orgSecretsCrumbLink =
-                --             ( "Org Secrets", Just <| Pages.OrgSecrets engine org Nothing Nothing )
-                --         nameCrumbStatic =
-                --             ( name, Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgReposCrumbLink, orgSecretsCrumbLink, nameCrumbStatic ]
-                -- Pages.RepoSecret engine org repo name ->
-                --     let
-                --         orgReposCrumbLink =
-                --             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-                --         repoBuildsCrumbLink =
-                --             ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
-                --         repoSecretsCrumbLink =
-                --             ( "Repo Secrets", Just <| Pages.RepoSecrets engine org repo Nothing Nothing )
-                --         nameCrumbStatic =
-                --             ( name, Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgReposCrumbLink, repoBuildsCrumbLink, repoSecretsCrumbLink, nameCrumbStatic ]
-                -- Pages.SharedSecret engine org team name ->
-                --     let
-                --         orgReposCrumbLink =
-                --             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-                --         teamCrumbStatic =
-                --             ( team, Nothing )
-                --         sharedSecretsCrumbLink =
-                --             ( "Shared Secrets", Just <| Pages.SharedSecrets engine org team Nothing Nothing )
-                --         nameCrumbStatic =
-                --             ( name, Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgReposCrumbLink, teamCrumbStatic, sharedSecretsCrumbLink, nameCrumbStatic ]
-                -- Pages.OrgBuilds org _ _ _ ->
-                --     let
-                --         organizationPage =
-                --             ( org, Nothing )
-                --     in
-                --     [ overviewCrumbLink, organizationPage ]
-                -- Pages.RepositoryBuilds org repo _ _ _ ->
-                --     let
-                --         orgReposCrumbLink =
-                --             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-                --         repoCrumbStatic =
-                --             ( repo, Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgReposCrumbLink, repoCrumbStatic ]
-                -- Pages.RepositoryBuildsPulls org repo _ _ ->
-                --     let
-                --         orgReposCrumbLink =
-                --             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-                --         repoCrumbStatic =
-                --             ( repo, Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgReposCrumbLink, repoCrumbStatic ]
-                -- Pages.RepositoryBuildsTags org repo _ _ ->
-                --     let
-                --         orgReposCrumbLink =
-                --             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-                --         repoCrumbStatic =
-                --             ( repo, Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgReposCrumbLink, repoCrumbStatic ]
-                -- Pages.RepositoryDeployments org repo _ _ ->
-                --     let
-                --         orgReposCrumbLink =
-                --             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-                --         repoCrumbStatic =
-                --             ( repo, Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgReposCrumbLink, repoCrumbStatic ]
-                -- Pages.Build org repo buildNumber _ ->
-                --     let
-                --         orgReposCrumbLink =
-                --             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-                --         repoBuildsCrumbLink =
-                --             ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
-                --         buildNumberCrumbStatic =
-                --             ( "#" ++ buildNumber, Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgReposCrumbLink, repoBuildsCrumbLink, buildNumberCrumbStatic ]
-                -- Pages.BuildPipeline org repo buildNumber _ _ ->
-                --     let
-                --         orgReposCrumbLink =
-                --             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-                --         repoBuildsCrumbLink =
-                --             ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
-                --         buildNumberCrumbStatic =
-                --             ( "#" ++ buildNumber, Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgReposCrumbLink, repoBuildsCrumbLink, buildNumberCrumbStatic ]
-                -- Pages.Schedule org repo name ->
-                --     let
-                --         orgReposCrumbLink =
-                --             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-                --         repoBuildsCrumbLink =
-                --             ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
-                --         schedulesCrumbLink =
-                --             ( "Schedules", Just <| Pages.Schedules org repo Nothing Nothing )
-                --         nameCrumbStatic =
-                --             ( name, Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgReposCrumbLink, repoBuildsCrumbLink, schedulesCrumbLink, nameCrumbStatic ]
-                -- Pages.Schedules org repo _ _ ->
-                --     let
-                --         orgReposCrumbLink =
-                --             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-                --         repoCrumbStatic =
-                --             ( repo, Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgReposCrumbLink, repoCrumbStatic ]
-                -- Pages.AddSchedule org repo ->
-                --     let
-                --         orgReposCrumbLink =
-                --             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-                --         repoBuildsCrumbLink =
-                --             ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
-                --         schedulesCrumbLink =
-                --             ( "Schedules", Just <| Pages.Schedules org repo Nothing Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgReposCrumbLink, repoBuildsCrumbLink, schedulesCrumbLink, addCrumbStatic ]
-                -- Pages.BuildGraph org repo buildNumber ->
-                --     let
-                --         orgReposCrumbLink =
-                --             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-                --         repoBuildsCrumbLink =
-                --             ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
-                --         buildNumberCrumbStatic =
-                --             ( "#" ++ buildNumber, Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgReposCrumbLink, repoBuildsCrumbLink, buildNumberCrumbStatic ]
                 Route.Path.AccountLogin ->
                     let
                         loginCrumbStatic =
@@ -440,6 +214,35 @@ toCrumbs path =
                             ( params.repo, Nothing )
                     in
                     [ overviewCrumbLink, orgReposCrumbLink, repoCrumbStatic ]
+
+                Route.Path.Org_Repo_SchedulesAdd params ->
+                    let
+                        orgReposCrumbLink =
+                            ( params.org, Just <| Route.Path.Org_ { org = params.org } )
+
+                        repoCrumbLink =
+                            ( params.repo, Just <| Route.Path.Org_Repo_ { org = params.org, repo = params.repo } )
+
+                        repoSchedulesLink =
+                            ( "Schedules", Just <| Route.Path.Org_Repo_Schedules { org = params.org, repo = params.repo } )
+                    in
+                    [ overviewCrumbLink, orgReposCrumbLink, repoCrumbLink, repoSchedulesLink, addCrumbStatic ]
+
+                Route.Path.Org_Repo_SchedulesEdit_ params ->
+                    let
+                        orgReposCrumbLink =
+                            ( params.org, Just <| Route.Path.Org_ { org = params.org } )
+
+                        repoCrumbLink =
+                            ( params.repo, Just <| Route.Path.Org_Repo_ { org = params.org, repo = params.repo } )
+
+                        repoSchedulesLink =
+                            ( "Schedules", Just <| Route.Path.Org_Repo_Schedules { org = params.org, repo = params.repo } )
+
+                        nameCrumbStatic =
+                            ( params.name, Nothing )
+                    in
+                    [ overviewCrumbLink, orgReposCrumbLink, repoCrumbLink, repoSchedulesLink, editCrumbStatic, nameCrumbStatic ]
 
                 Route.Path.Org_Repo_Audit params ->
                     let

@@ -181,4 +181,4 @@ url api segments params =
             UB.crossOrigin api segments params
 
         _ ->
-            UB.crossOrigin api (apiBase :: segments) params
+            UB.crossOrigin api (apiBase :: List.filter (\s -> not <| String.isEmpty s) segments) params

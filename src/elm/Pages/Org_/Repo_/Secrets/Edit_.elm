@@ -89,9 +89,9 @@ init shared route () =
 
 
 type Msg
-    = GetSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
+    = NoOp
+    | GetSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
     | UpdateSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
-    | NameOnInput String
     | ValueOnInput String
     | ImageOnInput String
     | EventOnCheck String Bool
@@ -105,6 +105,9 @@ type Msg
 update : Shared.Model -> Route { org : String, repo : String, name : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
+        NoOp ->
+            ( model, Effect.none )
+
         GetSecretResponse response ->
             case response of
                 Ok ( _, secret ) ->
@@ -137,11 +140,6 @@ update shared route msg model =
                     ( model
                     , Effect.handleHttpError { httpError = error }
                     )
-
-        NameOnInput val ->
-            ( { model | name = val }
-            , Effect.none
-            )
 
         ValueOnInput val ->
             ( { model | value = val }
@@ -253,47 +251,51 @@ view shared route model =
                 [ h2 [] [ text <| String.Extra.toTitleCase <| "edit " ++ Vela.secretTypeToString Vela.RepoSecret ++ " secret" ]
                 , div [ class "secret-form" ]
                     [ Components.Form.viewInput
-                        { label_ = Just "Name"
+                        { title = Just "Name"
+                        , subtitle = Nothing
                         , id_ = "name"
                         , val = RemoteData.unwrap "" .name model.secret
                         , placeholder_ = "loading..."
                         , classList_ = [ ( "secret-name", True ) ]
-                        , disabled_ = True
                         , rows_ = Nothing
                         , wrap_ = Nothing
-                        , msg = NameOnInput
+                        , msg = \_ -> NoOp
+                        , disabled_ = True
                         }
                     , Components.Form.viewTextarea
-                        { label_ = Just "Value"
+                        { title = Just "Value"
+                        , subtitle = Nothing
                         , id_ = "value"
                         , val = model.value
                         , placeholder_ = RemoteData.unwrap "loading..." (\_ -> "<leave blank to make no change to the value>") model.secret
                         , classList_ = [ ( "secret-value", True ) ]
-                        , disabled_ = not <| RemoteData.isSuccess model.secret
                         , rows_ = Just 2
                         , wrap_ = Just "soft"
                         , msg = ValueOnInput
+                        , disabled_ = not <| RemoteData.isSuccess model.secret
                         }
                     , Components.SecretForm.viewEventsSelect shared
-                        { disabled_ = not <| RemoteData.isSuccess model.secret
-                        , msg = EventOnCheck
+                        { msg = EventOnCheck
                         , events = model.events
+                        , disabled_ = not <| RemoteData.isSuccess model.secret
                         }
                     , Components.SecretForm.viewImagesInput
-                        { disabled_ = not <| RemoteData.isSuccess model.secret
-                        , onInput_ = ImageOnInput
+                        { onInput_ = ImageOnInput
                         , addImage = AddImage
                         , removeImage = RemoveImage
                         , images = model.images
                         , imageValue = model.image
+                        , disabled_ = not <| RemoteData.isSuccess model.secret
                         }
                     , Components.SecretForm.viewAllowCommandsInput
                         { msg = AllowCommandsOnClick
                         , value = model.allowCommands
+                        , disabled_ = not <| RemoteData.isSuccess model.secret
                         }
                     , Components.SecretForm.viewHelp
                     , Components.SecretForm.viewSubmitButton
                         { msg = SubmitForm
+                        , disabled_ = not <| RemoteData.isSuccess model.secret
                         }
                     ]
                 ]

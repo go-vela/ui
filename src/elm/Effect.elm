@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, addDeployment, addOrgSecret, addRepoSecret, alertsUpdate, clearRedirect, downloadFile, enableRepo, expandPipelineConfig, finishAuthentication, focusOn, getBuild, getBuildGraph, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoBuildsShared, getRepoDeployments, getRepoHooks, getRepoHooksShared, getRepoSchedules, getRepoSecret, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, redeliverHook, sendSharedRepoBuildsResponse, sendSharedRepoHooksResponse, setRedirect, setTheme, updateFavorites, updateOrgSecret, updateRepoSecret
+    , addAlertError, addAlertSuccess, addDeployment, addOrgSecret, addRepoSchedule, addRepoSecret, alertsUpdate, clearRedirect, downloadFile, enableRepo, expandPipelineConfig, finishAuthentication, focusOn, getBuild, getBuildGraph, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoBuildsShared, getRepoDeployments, getRepoHooks, getRepoHooksShared, getRepoSchedule, getRepoSchedules, getRepoSecret, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, redeliverHook, sendSharedRepoBuildsResponse, sendSharedRepoHooksResponse, setRedirect, setTheme, updateFavorites, updateOrgSecret, updateRepoSchedule, updateRepoSecret
     )
 
 {-|
@@ -640,6 +640,68 @@ getRepoSchedules options =
     Api.try
         options.onResponse
         (Api.Operations.getRepoSchedules
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+getRepoSchedule :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Schedule ) -> msg
+    , org : String
+    , repo : String
+    , name : String
+    }
+    -> Effect msg
+getRepoSchedule options =
+    Api.try
+        options.onResponse
+        (Api.Operations.getRepoSchedule
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+addRepoSchedule :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Schedule ) -> msg
+    , org : String
+    , repo : String
+    , name : String
+    , body : Http.Body
+    }
+    -> Effect msg
+addRepoSchedule options =
+    Api.try
+        options.onResponse
+        (Api.Operations.addRepoSchedule
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+updateRepoSchedule :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Schedule ) -> msg
+    , org : String
+    , repo : String
+    , name : String
+    , body : Http.Body
+    }
+    -> Effect msg
+updateRepoSchedule options =
+    Api.try
+        options.onResponse
+        (Api.Operations.updateRepoSchedule
             options.baseUrl
             options.session
             options

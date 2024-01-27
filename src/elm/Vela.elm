@@ -49,12 +49,12 @@ module Vela exposing
     , UpdateUserPayload
     , buildDeploymentPayload
     , buildEnableRepositoryPayload
+    , buildSchedulePayload
     , buildSecretPayload
     , buildUpdateFavoritesPayload
     , buildUpdateRepoBoolPayload
     , buildUpdateRepoIntPayload
     , buildUpdateRepoStringPayload
-    , buildUpdateSchedulePayload
     , decodeBuild
     , decodeBuildGraph
     , decodeBuilds
@@ -87,9 +87,9 @@ module Vela exposing
     , encodeBuildGraphRenderData
     , encodeDeploymentPayload
     , encodeEnableRepository
+    , encodeSchedulePayload
     , encodeSecretPayload
     , encodeUpdateRepository
-    , encodeUpdateSchedule
     , encodeUpdateUser
     , isComplete
     , newStepLog
@@ -1401,15 +1401,16 @@ type alias UpdateSchedulePayload =
     }
 
 
-buildUpdateSchedulePayload :
-    Maybe Org
-    -> Maybe Repo
-    -> Maybe Name
-    -> Maybe String
-    -> Maybe Bool
-    -> Maybe String
+buildSchedulePayload :
+    { org : Maybe String
+    , repo : Maybe String
+    , name : Maybe String
+    , entry : Maybe String
+    , enabled : Maybe Bool
+    , branch : Maybe String
+    }
     -> UpdateSchedulePayload
-buildUpdateSchedulePayload org repo name entry enabled branch =
+buildSchedulePayload { org, repo, name, entry, enabled, branch } =
     UpdateSchedulePayload org repo name entry enabled branch
 
 
@@ -1435,8 +1436,8 @@ decodeSchedules =
     Json.Decode.list decodeSchedule
 
 
-encodeUpdateSchedule : UpdateSchedulePayload -> Json.Encode.Value
-encodeUpdateSchedule schedule =
+encodeSchedulePayload : UpdateSchedulePayload -> Json.Encode.Value
+encodeSchedulePayload schedule =
     Json.Encode.object
         [ ( "name", encodeOptional Json.Encode.string schedule.name )
         , ( "entry", encodeOptional Json.Encode.string schedule.entry )

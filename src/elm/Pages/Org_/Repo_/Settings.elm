@@ -263,14 +263,16 @@ viewEvents repo =
                 , h3 [ class "settings-subtitle" ] [ text "Push" ]
                 , div [ class "form-controls", class "-two-col" ]
                     [ Components.Form.viewCheckbox
-                        { name = "Push"
+                        { title = "Push"
+                        , subtitle = Nothing
                         , field = "allow_push_branch"
                         , state = allowEvents.push.branch
                         , msg = AllowEventsUpdate "allow_push_branch"
                         , disabled_ = False
                         }
                     , Components.Form.viewCheckbox
-                        { name = "Tag"
+                        { title = "Tag"
+                        , subtitle = Nothing
                         , field = "allow_push_tag"
                         , state = allowEvents.push.tag
                         , msg = AllowEventsUpdate "allow_push_tag"
@@ -280,28 +282,32 @@ viewEvents repo =
                 , h3 [ class "settings-subtitle" ] [ text "Pull Request" ]
                 , div [ class "form-controls", class "-two-col" ]
                     [ Components.Form.viewCheckbox
-                        { name = "Opened"
+                        { title = "Opened"
+                        , subtitle = Nothing
                         , field = "allow_pull_opened"
                         , state = allowEvents.pull.opened
                         , msg = AllowEventsUpdate "allow_pull_opened"
                         , disabled_ = False
                         }
                     , Components.Form.viewCheckbox
-                        { name = "Synchronize"
+                        { title = "Synchronize"
+                        , subtitle = Nothing
                         , field = "allow_pull_synchronize"
                         , state = allowEvents.pull.synchronize
                         , msg = AllowEventsUpdate "allow_pull_synchronize"
                         , disabled_ = False
                         }
                     , Components.Form.viewCheckbox
-                        { name = "Edited"
+                        { title = "Edited"
+                        , subtitle = Nothing
                         , field = "allow_pull_edited"
                         , state = allowEvents.pull.edited
                         , msg = AllowEventsUpdate "allow_pull_edited"
                         , disabled_ = False
                         }
                     , Components.Form.viewCheckbox
-                        { name = "Reopened"
+                        { title = "Reopened"
+                        , subtitle = Nothing
                         , field = "allow_pull_reopened"
                         , state = allowEvents.pull.reopened
                         , msg = AllowEventsUpdate "allow_pull_reopened"
@@ -311,7 +317,8 @@ viewEvents repo =
                 , h3 [ class "settings-subtitle" ] [ text "Deployments" ]
                 , div [ class "form-controls", class "-two-col" ]
                     [ Components.Form.viewCheckbox
-                        { name = "Created"
+                        { title = "Created"
+                        , subtitle = Nothing
                         , field = "allow_deploy_created"
                         , state = allowEvents.deploy.created
                         , msg = AllowEventsUpdate "allow_deploy_created"
@@ -321,14 +328,16 @@ viewEvents repo =
                 , h3 [ class "settings-subtitle" ] [ text "Comment" ]
                 , div [ class "form-controls", class "-two-col" ]
                     [ Components.Form.viewCheckbox
-                        { name = "Created"
+                        { title = "Created"
+                        , subtitle = Nothing
                         , field = "allow_comment_created"
                         , state = allowEvents.comment.created
                         , msg = AllowEventsUpdate "allow_comment_created"
                         , disabled_ = False
                         }
                     , Components.Form.viewCheckbox
-                        { name = "Edited"
+                        { title = "Edited"
+                        , subtitle = Nothing
                         , field = "allow_comment_edited"
                         , state = allowEvents.comment.edited
                         , msg = AllowEventsUpdate "allow_comment_edited"
@@ -350,18 +359,18 @@ viewAccess repo msg =
         , p [ class "settings-description" ] [ text "Change who can access build information." ]
         , div [ class "form-controls", class "-stack" ]
             [ Components.Form.viewRadio
-                { value = repo.visibility
+                { title = "Private"
+                , subtitle = Just (text "(anyone with access to this Vela instance)")
+                , value = repo.visibility
                 , field = "private"
-                , title = "Private"
-                , subtitle = "(anyone with access to this Vela instance)"
                 , msg = msg "private"
                 , disabled_ = False
                 }
             , Components.Form.viewRadio
-                { value = repo.visibility
+                { title = "Any"
+                , subtitle = Just (text "(anyone with access to this Vela instance)")
+                , value = repo.visibility
                 , field = "public"
-                , title = "Any"
-                , subtitle = "(anyone with access to this Vela instance)"
                 , msg = msg "public"
                 , disabled_ = False
                 }
@@ -378,26 +387,26 @@ viewForkPolicy repo msg =
         , p [ class "settings-description" ] [ text "Change which pull request builds from forks need approval to run a build." ]
         , div [ class "form-controls", class "-stack" ]
             [ Components.Form.viewRadio
-                { value = repo.approve_build
+                { title = "Always Require Admin Approval"
+                , subtitle = Just (text "(repository admin must approve all builds from outside contributors)")
+                , value = repo.approve_build
                 , field = "fork-always"
-                , title = "Always Require Admin Approval"
-                , subtitle = "(repository admin must approve all builds from outside contributors)"
                 , msg = msg "fork-always"
                 , disabled_ = False
                 }
             , Components.Form.viewRadio
-                { value = repo.approve_build
+                { title = "Require Admin Approval When Contributor Is Read Only"
+                , subtitle = Just (text "(repository admin must approve all builds from outside contributors with read-only access to the repo)")
+                , value = repo.approve_build
                 , field = "fork-no-write"
-                , title = "Require Admin Approval When Contributor Is Read Only"
-                , subtitle = "(repository admin must approve all builds from outside contributors with read-only access to the repo)"
                 , msg = msg "fork-no-write"
                 , disabled_ = False
                 }
             , Components.Form.viewRadio
-                { value = repo.approve_build
+                { title = "Never Require Admin Approval"
+                , subtitle = Just (text "(any outside contributor can run a PR build)")
+                , value = repo.approve_build
                 , field = "never"
-                , title = "Never Require Admin Approval"
-                , subtitle = "(any outside contributor can run a PR build)"
                 , msg = msg "never"
                 , disabled_ = False
                 }
@@ -891,7 +900,7 @@ viewPipelineType repo msg =
                 { value = repo.pipeline_type
                 , field = "yaml"
                 , title = "YAML"
-                , subtitle = ""
+                , subtitle = Nothing
                 , msg = msg "yaml"
                 , disabled_ = False
                 }
@@ -899,7 +908,7 @@ viewPipelineType repo msg =
                 { value = repo.pipeline_type
                 , field = "go"
                 , title = "Go"
-                , subtitle = ""
+                , subtitle = Nothing
                 , msg = msg "go"
                 , disabled_ = False
                 }
@@ -907,7 +916,7 @@ viewPipelineType repo msg =
                 { value = repo.pipeline_type
                 , field = "starlark"
                 , title = "Starlark"
-                , subtitle = ""
+                , subtitle = Nothing
                 , msg = msg "starlark"
                 , disabled_ = False
                 }

@@ -6,6 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 module Api.Operations exposing
     ( addDeployment
     , addOrgSecret
+    , addRepoSchedule
     , addRepoSecret
     , addSharedSecret
     , enableRepo
@@ -28,6 +29,7 @@ module Api.Operations exposing
     , getRepoBuilds
     , getRepoDeployments
     , getRepoHooks
+    , getRepoSchedule
     , getRepoSchedules
     , getRepoSecret
     , getRepoSecrets
@@ -38,6 +40,7 @@ module Api.Operations exposing
     , redeliverHook
     , updateCurrentUser
     , updateOrgSecret
+    , updateRepoSchedule
     , updateRepoSecret
     )
 
@@ -477,6 +480,79 @@ getRepoSchedules baseUrl session options =
             options.repo
         )
         Vela.decodeSchedules
+        |> withAuth session
+
+
+{-| getRepoSchedule : retrieves a schedule for a repo
+-}
+getRepoSchedule :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , name : String
+        }
+    -> Request Vela.Schedule
+getRepoSchedule baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.Schedule
+            options.org
+            options.repo
+            options.name
+        )
+        Vela.decodeSchedule
+        |> withAuth session
+
+
+{-| addRepoSchedule : adds a repo schedule
+-}
+addRepoSchedule :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , name : String
+            , body : Http.Body
+        }
+    -> Request Vela.Schedule
+addRepoSchedule baseUrl session options =
+    post baseUrl
+        (Api.Endpoint.Schedule
+            options.org
+            options.repo
+            ""
+        )
+        options.body
+        Vela.decodeSchedule
+        |> withAuth session
+
+
+{-| updateRepoSchedule : updates a repo schedule
+-}
+updateRepoSchedule :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , name : String
+            , body : Http.Body
+        }
+    -> Request Vela.Schedule
+updateRepoSchedule baseUrl session options =
+    put baseUrl
+        (Api.Endpoint.Schedule
+            options.org
+            options.repo
+            options.name
+        )
+        options.body
+        Vela.decodeSchedule
         |> withAuth session
 
 

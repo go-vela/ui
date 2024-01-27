@@ -284,7 +284,8 @@ view shared route model =
                         _ ->
                             text ""
                     , Components.Form.viewTextarea
-                        { label_ = Just "Target"
+                        { title = Just "Target"
+                        , subtitle = Nothing
                         , id_ = "target"
                         , val = model.target
                         , placeholder_ = "provide the name for the target deployment environment (default: \"production\")"
@@ -295,7 +296,8 @@ view shared route model =
                         , msg = TargetOnInput
                         }
                     , Components.Form.viewTextarea
-                        { label_ = Just "Ref"
+                        { title = Just "Ref"
+                        , subtitle = Nothing
                         , id_ = "ref"
                         , val = model.ref
                         , placeholder_ =
@@ -309,7 +311,8 @@ view shared route model =
                         , msg = RefOnInput
                         }
                     , Components.Form.viewTextarea
-                        { label_ = Just "Description"
+                        { title = Just "Description"
+                        , subtitle = Nothing
                         , id_ = "description"
                         , val = model.description
                         , placeholder_ = "provide the description for the deployment (default: \"Deployment request from Vela\")"
@@ -320,7 +323,8 @@ view shared route model =
                         , msg = DescriptionOnInput
                         }
                     , Components.Form.viewTextarea
-                        { label_ = Just "Task"
+                        { title = Just "Task"
+                        , subtitle = Nothing
                         , id_ = "task"
                         , val = model.task
                         , placeholder_ = "Provide the task for the deployment (default: \"deploy:vela\")"
@@ -378,7 +382,8 @@ viewParametersInput model =
                 ]
             , div [ class "parameters-inputs" ]
                 [ Components.Form.viewInput
-                    { label_ = Nothing
+                    { title = Nothing
+                    , subtitle = Nothing
                     , id_ = "parameter-key"
                     , val = model.parameterKey
                     , placeholder_ = "key"
@@ -389,7 +394,8 @@ viewParametersInput model =
                     , msg = ParameterKeyOnInput
                     }
                 , Components.Form.viewInput
-                    { label_ = Nothing
+                    { title = Nothing
+                    , subtitle = Nothing
                     , id_ = "parameter-value"
                     , val = model.parameterValue
                     , placeholder_ = "value"

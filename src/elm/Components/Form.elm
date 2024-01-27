@@ -1,6 +1,11 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module Components.Form exposing (..)
 
-import Html exposing (Html, div, input, label, section, strong, text, textarea)
+import Html exposing (Html, div, input, label, section, span, strong, text, textarea)
 import Html.Attributes exposing (checked, class, classList, disabled, for, id, placeholder, rows, type_, value, wrap)
 import Html.Events exposing (onCheck, onClick, onInput)
 import Maybe.Extra
@@ -12,18 +17,19 @@ import Utils.Helpers as Util
 
 
 viewInput :
-    { label_ : Maybe String
+    { title : Maybe String
+    , subtitle : Maybe (Html msg)
     , id_ : String
     , val : String
     , placeholder_ : String
     , classList_ : List ( String, Bool )
-    , disabled_ : Bool
     , rows_ : Maybe Int
     , wrap_ : Maybe String
     , msg : String -> msg
+    , disabled_ : Bool
     }
     -> Html msg
-viewInput { label_, id_, val, placeholder_, classList_, disabled_, rows_, wrap_, msg } =
+viewInput { title, subtitle, id_, val, placeholder_, classList_, rows_, wrap_, msg, disabled_ } =
     section
         [ class "form-control"
         , class "-stack"
@@ -31,36 +37,37 @@ viewInput { label_, id_, val, placeholder_, classList_, disabled_, rows_, wrap_,
         [ Maybe.Extra.unwrap (text "")
             (\l ->
                 label [ class "form-label", for <| id_ ]
-                    [ strong [] [ text l ] ]
+                    [ strong [] [ text l ], viewSubtitle subtitle ]
             )
-            label_
+            title
         , input
             [ id id_
             , value val
             , placeholder placeholder_
             , classList classList_
-            , disabled disabled_
             , Maybe.Extra.unwrap Util.attrNone rows rows_
             , Maybe.Extra.unwrap Util.attrNone wrap wrap_
             , onInput msg
+            , disabled disabled_
             ]
             []
         ]
 
 
 viewTextarea :
-    { label_ : Maybe String
+    { title : Maybe String
+    , subtitle : Maybe (Html msg)
     , id_ : String
     , val : String
     , placeholder_ : String
     , classList_ : List ( String, Bool )
-    , disabled_ : Bool
     , rows_ : Maybe Int
     , wrap_ : Maybe String
     , msg : String -> msg
+    , disabled_ : Bool
     }
     -> Html msg
-viewTextarea { label_, id_, val, placeholder_, classList_, disabled_, rows_, wrap_, msg } =
+viewTextarea { title, subtitle, id_, val, placeholder_, classList_, rows_, wrap_, msg, disabled_ } =
     section
         [ class "form-control"
         , class "-stack"
@@ -68,25 +75,33 @@ viewTextarea { label_, id_, val, placeholder_, classList_, disabled_, rows_, wra
         [ Maybe.Extra.unwrap (text "")
             (\l ->
                 label [ class "form-label", for <| id_ ]
-                    [ strong [] [ text l ] ]
+                    [ strong [] [ text l ], viewSubtitle subtitle ]
             )
-            label_
+            title
         , textarea
             [ id id_
             , value val
             , placeholder placeholder_
             , classList classList_
-            , disabled disabled_
             , Maybe.Extra.unwrap Util.attrNone rows rows_
             , Maybe.Extra.unwrap Util.attrNone wrap wrap_
             , onInput msg
+            , disabled disabled_
             ]
             []
         ]
 
 
-viewCheckbox : { name : String, field : String, state : Bool, disabled_ : Bool, msg : Bool -> msg } -> Html msg
-viewCheckbox { name, field, state, disabled_, msg } =
+viewCheckbox :
+    { title : String
+    , subtitle : Maybe (Html msg)
+    , field : String
+    , state : Bool
+    , msg : Bool -> msg
+    , disabled_ : Bool
+    }
+    -> Html msg
+viewCheckbox { title, subtitle, field, state, msg, disabled_ } =
     div
         [ class "form-control"
         , Util.testAttribute <| "checkbox-" ++ field
@@ -95,26 +110,39 @@ viewCheckbox { name, field, state, disabled_, msg } =
             [ type_ "checkbox"
             , id <| "checkbox-" ++ field
             , checked state
-            , disabled disabled_
             , onCheck msg
+            , disabled disabled_
             ]
             []
         , label [ class "form-label", for <| "checkbox-" ++ field ]
-            [ text name ]
+            [ text title, viewSubtitle subtitle ]
         ]
 
 
-viewRadio : { value : String, field : String, title : String, subtitle : String, disabled_ : Bool, msg : msg } -> Html msg
-viewRadio { value, field, title, subtitle, disabled_, msg } =
+viewRadio :
+    { title : String
+    , subtitle : Maybe (Html msg)
+    , value : String
+    , field : String
+    , msg : msg
+    , disabled_ : Bool
+    }
+    -> Html msg
+viewRadio { title, subtitle, value, field, msg, disabled_ } =
     div [ class "form-control", Util.testAttribute <| "radio-" ++ field ]
         [ input
             [ type_ "radio"
             , id <| "radio-" ++ field
             , checked (value == field)
-            , disabled disabled_
             , onClick msg
+            , disabled disabled_
             ]
             []
         , label [ class "form-label", for <| "radio-" ++ field ]
-            [ strong [] [ text title ], text <| " " ++ subtitle ]
+            [ strong [] [ text title ], viewSubtitle subtitle ]
         ]
+
+
+viewSubtitle : Maybe (Html msg) -> Html msg
+viewSubtitle subtitle =
+    Maybe.Extra.unwrap (text "") (\s -> span [] [ text <| " ", s ]) subtitle

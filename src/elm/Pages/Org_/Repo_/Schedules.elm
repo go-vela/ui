@@ -21,6 +21,7 @@ import LinkHeader exposing (WebLink)
 import Page exposing (Page)
 import RemoteData exposing (WebData)
 import Route exposing (Route)
+import Route.Path
 import Shared
 import Svg.Attributes
 import Time
@@ -171,9 +172,11 @@ viewRepoSchedules shared model org repo =
                             , class "button-with-icon"
                             , class "-outline"
                             , Util.testAttribute "add-repo-schedule"
-
-                            -- , Routes.href <|
-                            --     Routes.AddSchedule org repo
+                            , Route.Path.href <|
+                                Route.Path.Org_Repo_SchedulesAdd
+                                    { org = org
+                                    , repo = repo
+                                    }
                             ]
                             [ text <| "Add Schedule"
                             , FeatherIcons.plus
@@ -264,7 +267,16 @@ renderSchedule zone org repo schedule =
             , class "name"
             , Util.testAttribute <| "schedules-row-name"
             ]
-            [ a [ updateScheduleHref org repo schedule ] [ text schedule.name ] ]
+            [ a
+                [ Route.Path.href <|
+                    Route.Path.Org_Repo_SchedulesEdit_
+                        { org = org
+                        , repo = repo
+                        , name = schedule.name
+                        }
+                ]
+                [ text schedule.name ]
+            ]
         , td
             [ attribute "data-label" "cron expression"
             , scope "row"
@@ -303,18 +315,6 @@ renderSchedule zone org repo schedule =
             ]
             [ text <| Util.humanReadableDateTimeWithDefault zone schedule.updated_at ]
         ]
-
-
-{-| updateScheduleHref : takes schedule and returns href link for routing to view/edit schedule page
--}
-updateScheduleHref : String -> String -> Vela.Schedule -> Html.Attribute msg
-updateScheduleHref org repo s =
-    Html.Attributes.style "" ""
-
-
-
--- Routes.href <|
---     Routes.Vela.Schedule org repo s.name
 
 
 {-| addKey : helper to create Vela.Schedule key

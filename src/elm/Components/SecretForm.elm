@@ -1,3 +1,8 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module Components.SecretForm exposing (..)
 
 import Components.Form
@@ -40,12 +45,12 @@ import Utils.Helpers as Util
 viewEventsSelect :
     Shared.Model
     ->
-        { disabled_ : Bool
-        , msg : String -> Bool -> msg
+        { msg : String -> Bool -> msg
         , events : List String
+        , disabled_ : Bool
         }
     -> Html msg
-viewEventsSelect shared { disabled_, msg, events } =
+viewEventsSelect shared { msg, events, disabled_ } =
     let
         schedulesAllowed =
             Util.checkScheduleAllowlist "org" "repo" shared.velaScheduleAllowlist
@@ -65,35 +70,40 @@ viewEventsSelect shared { disabled_, msg, events } =
             , class "-stack"
             ]
             [ Components.Form.viewCheckbox
-                { name = "Push"
+                { title = "Push"
+                , subtitle = Nothing
                 , field = "push"
                 , state = List.member "push" events
                 , msg = msg "push"
                 , disabled_ = disabled_
                 }
             , Components.Form.viewCheckbox
-                { name = "Pull Request"
+                { title = "Pull Request"
+                , subtitle = Nothing
                 , field = "pull_request"
                 , state = List.member "pull_request" events
                 , msg = msg "pull_request"
                 , disabled_ = disabled_
                 }
             , Components.Form.viewCheckbox
-                { name = "Tag"
+                { title = "Tag"
+                , subtitle = Nothing
                 , field = "tag"
                 , state = List.member "tag" events
                 , msg = msg "tag"
                 , disabled_ = disabled_
                 }
             , Components.Form.viewCheckbox
-                { name = "Comment"
+                { title = "Comment"
+                , subtitle = Nothing
                 , field = "comment"
                 , state = List.member "comment" events
                 , msg = msg "comment"
                 , disabled_ = disabled_
                 }
             , Components.Form.viewCheckbox
-                { name = "Deployment"
+                { title = "Deployment"
+                , subtitle = Nothing
                 , field = "deployment"
                 , state = List.member "deployment" events
                 , msg = msg "deployment"
@@ -101,7 +111,8 @@ viewEventsSelect shared { disabled_, msg, events } =
                 }
             , if schedulesAllowed then
                 Components.Form.viewCheckbox
-                    { name = "Schedule"
+                    { title = "Schedule"
+                    , subtitle = Nothing
                     , field = "schedule"
                     , state = List.member "schedule" events
                     , msg = msg "schedule"
@@ -124,15 +135,15 @@ viewPullRequestWarning =
 
 
 viewImagesInput :
-    { disabled_ : Bool
-    , onInput_ : String -> msg
+    { onInput_ : String -> msg
     , addImage : String -> msg
     , removeImage : String -> msg
     , images : List String
     , imageValue : String
+    , disabled_ : Bool
     }
     -> Html msg
-viewImagesInput { disabled_, onInput_, addImage, removeImage, images, imageValue } =
+viewImagesInput { onInput_, addImage, removeImage, images, imageValue, disabled_ } =
     section []
         [ div
             [ id "image-select"
@@ -152,15 +163,16 @@ viewImagesInput { disabled_, onInput_, addImage, removeImage, images, imageValue
                 ]
             , div [ class "parameters-inputs" ]
                 [ Components.Form.viewInput
-                    { label_ = Nothing
+                    { title = Nothing
+                    , subtitle = Nothing
                     , id_ = "image-name"
                     , val = imageValue
                     , placeholder_ = "Image Name"
                     , classList_ = [ ( "image-input", True ) ]
-                    , disabled_ = disabled_
                     , rows_ = Just 2
                     , wrap_ = Just "soft"
                     , msg = onInput_
+                    , disabled_ = disabled_
                     }
                 , button
                     [ class "button"
@@ -204,8 +216,8 @@ viewImage { msg, image } =
         ]
 
 
-viewAllowCommandsInput : { msg : String -> msg, value : Bool } -> Html msg
-viewAllowCommandsInput { msg, value } =
+viewAllowCommandsInput : { msg : String -> msg, value : Bool, disabled_ : Bool } -> Html msg
+viewAllowCommandsInput { msg, value, disabled_ } =
     section [ Util.testAttribute "allow-commands" ]
         [ div [ class "form-control" ]
             [ strong []
@@ -224,17 +236,17 @@ viewAllowCommandsInput { msg, value } =
                 { value = Util.boolToYesNo value
                 , field = "yes"
                 , title = "Yes"
-                , subtitle = ""
+                , subtitle = Nothing
                 , msg = msg "yes"
-                , disabled_ = False
+                , disabled_ = disabled_
                 }
             , Components.Form.viewRadio
                 { value = Util.boolToYesNo value
                 , field = "no"
                 , title = "No"
-                , subtitle = ""
+                , subtitle = Nothing
                 , msg = msg "no"
-                , disabled_ = False
+                , disabled_ = disabled_
                 }
             ]
         ]
@@ -253,13 +265,14 @@ viewHelp =
         ]
 
 
-viewSubmitButton : { msg : msg } -> Html msg
-viewSubmitButton { msg } =
+viewSubmitButton : { msg : msg, disabled_ : Bool } -> Html msg
+viewSubmitButton { msg, disabled_ } =
     div [ class "form-action" ]
         [ button
             [ class "button"
             , class "-outline"
             , onClick msg
+            , disabled disabled_
             ]
             [ text "Submit" ]
         ]
