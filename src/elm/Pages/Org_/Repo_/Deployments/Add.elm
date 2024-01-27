@@ -306,7 +306,7 @@ view shared route model =
                                 ++ ")"
                         , classList_ = [ ( "secret-value", True ) ]
                         , disabled_ = False
-                        , rows_ = Just 2
+                        , rows_ = Just 3
                         , wrap_ = Just "soft"
                         , msg = RefOnInput
                         }
