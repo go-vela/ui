@@ -12,6 +12,7 @@ import Components.Builds
 import Components.Pager
 import Dict
 import Effect exposing (Effect)
+import Html exposing (text)
 import Http
 import Http.Detailed
 import Layouts
@@ -174,7 +175,6 @@ update shared route msg model =
                 buildsOpen =
                     model.showActionsMenus
 
-                replaceList : Int -> List Int -> List Int
                 replaceList id buildList =
                     if List.member id buildList then
                         []
@@ -182,7 +182,6 @@ update shared route msg model =
                     else
                         [ id ]
 
-                updatedOpen : List Int
                 updatedOpen =
                     Maybe.Extra.unwrap []
                         (\b ->
@@ -208,14 +207,16 @@ update shared route msg model =
                 [ Effect.pushRoute
                     { path = route.path
                     , query =
-                        Dict.update "event" (\_ -> maybeEvent) route.query
+                        route.query
+                            |> Dict.update "page" (\_ -> Nothing)
+                            |> Dict.update "event" (\_ -> maybeEvent)
                     , hash = route.hash
                     }
                 , Effect.getOrgBuilds
                     { baseUrl = shared.velaAPI
                     , session = shared.session
                     , onResponse = GetOrgBuildsResponse
-                    , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
+                    , pageNumber = Nothing
                     , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
                     , maybeEvent = maybeEvent
                     , org = route.params.org
@@ -275,7 +276,7 @@ view shared route model =
             , filterByEvent = FilterByEvent
             , showHideFullTimestamps = ShowHideFullTimestamps
             }
-        , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
+        , Components.Pager.viewIfNeeded model.pager Components.Pager.defaultLabels GotoPage model.builds
         , Components.Builds.view shared
             { msgs = msgs
             , builds = model.builds
@@ -292,6 +293,6 @@ view shared route model =
                             , showActionsMenus = model.showActionsMenus
                             }
             }
-        , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
+        , Components.Pager.viewIfNeeded model.pager Components.Pager.defaultLabels GotoPage model.builds
         ]
     }

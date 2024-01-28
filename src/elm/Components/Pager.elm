@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.Pager exposing (defaultLabels, prevNextLabels, view)
+module Components.Pager exposing (defaultLabels, prevNextLabels, view, viewIfNeeded)
 
 import Api.Pagination as Pagination
 import FeatherIcons
@@ -11,6 +11,7 @@ import Html exposing (Html, button, div, text)
 import Html.Attributes exposing (attribute, class, disabled)
 import Html.Events exposing (onClick)
 import LinkHeader exposing (WebLink)
+import RemoteData exposing (WebData)
 import Utils.Helpers as Util
 
 
@@ -103,36 +104,44 @@ view links labels toMsg =
                 _ ->
                     1
     in
-    -- only render if we have pagination
-    if List.length links > 0 then
-        div [ class "pager-actions" ]
-            [ button
-                [ disabled isFirst
-                , Util.testAttribute "pager-previous"
-                , class "button"
-                , class "-outline"
-                , class "pager-icon-prev"
-                , onClick (toMsg prevPage)
-                ]
-                [ FeatherIcons.chevronLeft
-                    |> FeatherIcons.withSize 18
-                    |> FeatherIcons.toHtml [ attribute "aria-hidden" "true" ]
-                , text labels.previousLabel
-                ]
-            , button
-                [ disabled isLast
-                , Util.testAttribute "pager-next"
-                , class "button"
-                , class "-outline"
-                , class "pager-icon-next"
-                , onClick (toMsg nextPage)
-                ]
-                [ text labels.nextLabel
-                , FeatherIcons.chevronRight
-                    |> FeatherIcons.withSize 18
-                    |> FeatherIcons.toHtml [ attribute "aria-hidden" "true" ]
-                ]
+    div [ class "pager-actions" ]
+        [ button
+            [ disabled <| isFirst || (List.length links == 0)
+            , Util.testAttribute "pager-previous"
+            , class "button"
+            , class "-outline"
+            , class "pager-icon-prev"
+            , onClick (toMsg prevPage)
             ]
+            [ FeatherIcons.chevronLeft
+                |> FeatherIcons.withSize 18
+                |> FeatherIcons.toHtml [ attribute "aria-hidden" "true" ]
+            , text labels.previousLabel
+            ]
+        , button
+            [ disabled <| isLast || (List.length links == 0)
+            , Util.testAttribute "pager-next"
+            , class "button"
+            , class "-outline"
+            , class "pager-icon-next"
+            , onClick (toMsg nextPage)
+            ]
+            [ text labels.nextLabel
+            , FeatherIcons.chevronRight
+                |> FeatherIcons.withSize 18
+                |> FeatherIcons.toHtml [ attribute "aria-hidden" "true" ]
+            ]
+        ]
 
-    else
-        text ""
+
+viewIfNeeded : List WebLink -> Labels -> (Pagination.Page -> msg) -> WebData (List a) -> Html msg
+viewIfNeeded links labels gotoPageMsg resources =
+    RemoteData.unwrap (text "")
+        (\builds ->
+            if List.length builds > 0 then
+                view links labels gotoPageMsg
+
+            else
+                text ""
+        )
+        resources

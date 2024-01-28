@@ -81,13 +81,15 @@ toLayout user route model =
 
 
 type alias Model =
-    { pager : List WebLink
+    { hooks : WebData (List Vela.Hook)
+    , pager : List WebLink
     }
 
 
 init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
 init shared route () =
-    ( { pager = []
+    ( { hooks = RemoteData.Loading
+      , pager = []
       }
     , Effect.getRepoHooks
         { baseUrl = shared.velaAPI
@@ -120,19 +122,19 @@ update shared route msg model =
     case msg of
         -- HOOKS
         GetRepoHooksResponse response ->
-            Tuple.mapSecond (\_ -> Effect.sendSharedRepoHooksResponse { response = response }) <|
-                case response of
-                    Ok ( meta, _ ) ->
-                        ( { model
-                            | pager = Api.Pagination.get meta.headers
-                          }
-                        , Effect.none
-                        )
+            case response of
+                Ok ( meta, hooks ) ->
+                    ( { model
+                        | hooks = RemoteData.succeed hooks
+                        , pager = Api.Pagination.get meta.headers
+                      }
+                    , Effect.none
+                    )
 
-                    Err error ->
-                        ( model
-                        , Effect.none
-                        )
+                Err error ->
+                    ( model
+                    , Effect.none
+                    )
 
         RedeliverRepoHook options ->
             ( model
@@ -211,7 +213,7 @@ view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Ms
 view shared route model =
     { title = "Audit"
     , body =
-        [ viewHooks shared route.params.org route.params.repo shared.hooks
+        [ viewHooks shared route.params.org route.params.repo model.hooks
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
         ]
     }

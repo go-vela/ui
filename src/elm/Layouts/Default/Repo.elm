@@ -13,7 +13,9 @@ import Layout exposing (Layout)
 import Layouts.Default
 import Route exposing (Route)
 import Shared
+import Time
 import Utils.Favorites as Favorites
+import Utils.Interval as Interval
 import Vela
 import View exposing (View)
 
@@ -39,7 +41,7 @@ layout : Props contentMsg -> Shared.Model -> Route () -> Layout (Layouts.Default
 layout props shared route =
     Layout.new
         { init = init props shared
-        , update = update
+        , update = update props
         , view = view props shared route
         , subscriptions = subscriptions
         }
@@ -93,21 +95,37 @@ init props shared _ =
 
 
 type Msg
-    = NoOp
+    = Tick { time : Time.Posix, interval : Interval.Interval }
 
 
-update : Msg -> Model -> ( Model, Effect Msg )
-update msg model =
+update : Props contentMsg -> Msg -> Model -> ( Model, Effect Msg )
+update props msg model =
     case msg of
-        NoOp ->
+        Tick options ->
             ( model
-            , Effect.none
+            , Effect.batch
+                [ Effect.getCurrentUser {}
+                , Effect.getRepoBuildsShared
+                    { pageNumber = Nothing
+                    , perPage = Nothing
+                    , maybeEvent = Nothing
+                    , org = props.org
+                    , repo = props.repo
+                    }
+                , Effect.getRepoHooksShared
+                    { pageNumber = Nothing
+                    , perPage = Nothing
+                    , maybeEvent = Nothing
+                    , org = props.org
+                    , repo = props.repo
+                    }
+                ]
             )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Interval.tickEveryFiveSeconds Tick
 
 
 

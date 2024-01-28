@@ -172,8 +172,7 @@ view : Shared.Model -> Route { org : String } -> Model -> View Msg
 view shared route model =
     { title = "Secrets"
     , body =
-        [ Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
-        , Components.Secrets.viewOrgSecrets shared
+        [ Components.Secrets.viewOrgSecrets shared
             { msgs =
                 { showCopyAlert = AddAlertCopiedToClipboard
                 }
@@ -193,6 +192,7 @@ view shared route model =
                             |> FeatherIcons.withSize 18
                             |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
                         ]
+                    , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
                     ]
             }
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage

@@ -189,7 +189,7 @@ view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Ms
 view shared route model =
     { title = "Deployments"
     , body =
-        [ viewDeployments route.params.org route.params.repo model.deployments
+        [ viewDeployments model route.params.org route.params.repo model.deployments
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
         ]
     }
@@ -197,28 +197,26 @@ view shared route model =
 
 {-| viewDeployments : renders a list of deployments
 -}
-viewDeployments : String -> String -> WebData (List Vela.Deployment) -> Html Msg
-viewDeployments org repo deployments =
+viewDeployments : Model -> String -> String -> WebData (List Vela.Deployment) -> Html Msg
+viewDeployments model org repo deployments =
     let
-        addButton =
-            a
-                [ class "button"
-                , class "-outline"
-                , class "button-with-icon"
-                , Util.testAttribute "add-deployment"
-                , Route.Path.href <|
-                    Route.Path.Org_Repo_DeploymentsAdd { org = org, repo = repo }
-                ]
-                [ text "Add Deployment"
-                , FeatherIcons.plus
-                    |> FeatherIcons.withSize 18
-                    |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
-                ]
-
         actions =
             Just <|
                 div [ class "buttons" ]
-                    [ addButton
+                    [ a
+                        [ class "button"
+                        , class "-outline"
+                        , class "button-with-icon"
+                        , Util.testAttribute "add-deployment"
+                        , Route.Path.href <|
+                            Route.Path.Org_Repo_DeploymentsAdd { org = org, repo = repo }
+                        ]
+                        [ text "Add Deployment"
+                        , FeatherIcons.plus
+                            |> FeatherIcons.withSize 18
+                            |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
+                        ]
+                    , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
                     ]
 
         ( noRowsView, rows ) =

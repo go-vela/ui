@@ -216,7 +216,7 @@ view shared route model =
     , body =
         [ div [ class "manage-secret", Util.testAttribute "manage-secret" ]
             [ div []
-                [ h2 [] [ text <| String.Extra.toTitleCase <| "add " ++ Vela.secretTypeToString Vela.RepoSecret ++ " secret" ]
+                [ h2 [] [ text <| String.Extra.toTitleCase <| "add " ++ Vela.secretTypeToString Vela.OrgSecret ++ " secret" ]
                 , div [ class "secret-form" ]
                     [ Components.Form.viewInput
                         { title = Just "Name"

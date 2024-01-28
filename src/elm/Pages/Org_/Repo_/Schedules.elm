@@ -177,7 +177,7 @@ view shared route model =
 
 {-| viewRepoSchedules : takes schedules model and renders table for viewing repo schedules
 -}
-viewRepoSchedules : Shared.Model -> Model -> String -> String -> Html msg
+viewRepoSchedules : Shared.Model -> Model -> String -> String -> Html Msg
 viewRepoSchedules shared model org repo =
     let
         schedulesAllowed =
@@ -203,6 +203,7 @@ viewRepoSchedules shared model org repo =
                                 |> FeatherIcons.withSize 18
                                 |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
                             ]
+                        , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
                         ]
 
             else

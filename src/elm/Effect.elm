@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, addDeployment, addOrgSecret, addRepoSchedule, addRepoSecret, alertsUpdate, clearRedirect, deleteOrgSecret, deleteRepoSchedule, deleteRepoSecret, downloadFile, enableRepo, expandPipelineConfig, finishAuthentication, focusOn, getBuild, getBuildGraph, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoBuildsShared, getRepoDeployments, getRepoHooks, getRepoHooksShared, getRepoSchedule, getRepoSchedules, getRepoSecret, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, redeliverHook, sendSharedRepoBuildsResponse, sendSharedRepoHooksResponse, setRedirect, setTheme, updateFavorites, updateOrgSecret, updateRepoSchedule, updateRepoSecret
+    , addAlertError, addAlertSuccess, addDeployment, addOrgSecret, addRepoSchedule, addRepoSecret, alertsUpdate, clearRedirect, deleteOrgSecret, deleteRepoSchedule, deleteRepoSecret, downloadFile, enableRepo, expandPipelineConfig, finishAuthentication, focusOn, getBuild, getBuildGraph, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoBuildsShared, getRepoDeployments, getRepoHooks, getRepoHooksShared, getRepoSchedule, getRepoSchedules, getRepoSecret, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, redeliverHook, setRedirect, setTheme, updateFavorites, updateOrgSecret, updateRepoSchedule, updateRepoSecret
     )
 
 {-|
@@ -534,14 +534,6 @@ getRepoBuildsShared options =
     SendSharedMsg <| Shared.Msg.GetRepoBuilds options
 
 
-sendSharedRepoBuildsResponse :
-    { response : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build )
-    }
-    -> Effect msg
-sendSharedRepoBuildsResponse options =
-    SendSharedMsg <| Shared.Msg.GetRepoBuildsResponse options.response
-
-
 getSharedSecrets :
     { baseUrl : String
     , session : Auth.Session.Session
@@ -635,14 +627,6 @@ getRepoHooksShared :
     -> Effect msg
 getRepoHooksShared options =
     SendSharedMsg <| Shared.Msg.GetRepoHooks options
-
-
-sendSharedRepoHooksResponse :
-    { response : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Hook )
-    }
-    -> Effect msg
-sendSharedRepoHooksResponse options =
-    SendSharedMsg <| Shared.Msg.GetRepoHooksResponse options.response
 
 
 redeliverHook :

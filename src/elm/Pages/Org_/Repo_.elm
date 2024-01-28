@@ -19,9 +19,11 @@ import LinkHeader exposing (WebLink)
 import List
 import Maybe.Extra
 import Page exposing (Page)
+import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
 import Time
+import Utils.Errors
 import Utils.Favorites as Favorites exposing (UpdateType(..))
 import Utils.Helpers as Util
 import Utils.Interval as Interval
@@ -59,7 +61,8 @@ toLayout user route model =
 
 
 type alias Model =
-    { pager : List WebLink
+    { builds : WebData (List Vela.Build)
+    , pager : List WebLink
     , showFullTimestamps : Bool
     , showActionsMenus : List Int
     }
@@ -67,7 +70,8 @@ type alias Model =
 
 init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
 init shared route () =
-    ( { pager = []
+    ( { builds = RemoteData.Loading
+      , pager = []
       , showFullTimestamps = False
       , showActionsMenus = []
       }
@@ -124,19 +128,19 @@ update shared route msg model =
 
         -- BUILDS
         GetRepoBuildsResponse response ->
-            Tuple.mapSecond (\_ -> Effect.sendSharedRepoBuildsResponse { response = response }) <|
-                case response of
-                    Ok ( meta, _ ) ->
-                        ( { model
-                            | pager = Api.Pagination.get meta.headers
-                          }
-                        , Effect.none
-                        )
+            case response of
+                Ok ( meta, builds ) ->
+                    ( { model
+                        | builds = RemoteData.succeed builds
+                        , pager = Api.Pagination.get meta.headers
+                      }
+                    , Effect.none
+                    )
 
-                    Err error ->
-                        ( model
-                        , Effect.none
-                        )
+                Err error ->
+                    ( { model | builds = Utils.Errors.toFailure error }
+                    , Effect.handleHttpError { httpError = error }
+                    )
 
         GotoPage pageNumber ->
             ( model
@@ -194,7 +198,6 @@ update shared route msg model =
                 buildsOpen =
                     model.showActionsMenus
 
-                replaceList : Int -> List Int -> List Int
                 replaceList id buildList =
                     if List.member id buildList then
                         []
@@ -202,7 +205,6 @@ update shared route msg model =
                     else
                         [ id ]
 
-                updatedOpen : List Int
                 updatedOpen =
                     Maybe.Extra.unwrap []
                         (\b ->
@@ -221,20 +223,23 @@ update shared route msg model =
 
         FilterByEvent maybeEvent ->
             ( { model
-                | pager = []
+                | builds = RemoteData.Loading
+                , pager = []
               }
             , Effect.batch
                 [ Effect.pushRoute
                     { path = route.path
                     , query =
-                        Dict.update "event" (\_ -> maybeEvent) route.query
+                        route.query
+                            |> Dict.update "page" (\_ -> Nothing)
+                            |> Dict.update "event" (\_ -> maybeEvent)
                     , hash = route.hash
                     }
                 , Effect.getRepoBuilds
                     { baseUrl = shared.velaAPI
                     , session = shared.session
                     , onResponse = GetRepoBuildsResponse
-                    , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
+                    , pageNumber = Nothing
                     , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
                     , maybeEvent = maybeEvent
                     , org = route.params.org
@@ -296,10 +301,10 @@ view shared route model =
             , filterByEvent = FilterByEvent
             , showHideFullTimestamps = ShowHideFullTimestamps
             }
-        , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
+        , Components.Pager.viewIfNeeded model.pager Components.Pager.defaultLabels GotoPage model.builds
         , Components.Builds.view shared
             { msgs = msgs
-            , builds = shared.builds
+            , builds = model.builds
             , maybeEvent = Dict.get "event" route.query
             , showFullTimestamps = model.showFullTimestamps
             , viewActionsMenu =
@@ -313,6 +318,6 @@ view shared route model =
                             , showActionsMenus = model.showActionsMenus
                             }
             }
-        , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
+        , Components.Pager.viewIfNeeded model.pager Components.Pager.defaultLabels GotoPage model.builds
         ]
     }
