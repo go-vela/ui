@@ -14,7 +14,6 @@ import Html
         , code
         , div
         , em
-        , input
         , label
         , p
         , section
@@ -29,11 +28,10 @@ import Html.Attributes
         , for
         , href
         , id
-        , placeholder
         , target
         , value
         )
-import Html.Events exposing (onClick, onInput)
+import Html.Events exposing (onClick)
 import Shared
 import Utils.Helpers as Util
 

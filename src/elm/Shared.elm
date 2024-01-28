@@ -12,7 +12,6 @@ import Auth.Session
 import Browser.Dom
 import Browser.Events exposing (Visibility(..))
 import Components.Alerts as Alerts
-import Components.Favorites as Favorites
 import Dict
 import Effect exposing (Effect)
 import File.Download
@@ -33,6 +32,7 @@ import Time
 import Toasty as Alerting
 import Utils.Errors
 import Utils.Favicons as Favicons
+import Utils.Favorites as Favorites
 import Utils.Helpers as Util
 import Utils.Interval as Interval
 import Utils.Theme as Theme
@@ -409,7 +409,7 @@ update route msg model =
 
         -- USER
         Shared.Msg.GetCurrentUser ->
-            ( { model | user = RemoteData.Loading }
+            ( model
             , Api.try
                 Shared.Msg.CurrentUserResponse
                 (Api.Operations.getCurrentUser model.velaAPI model.session)

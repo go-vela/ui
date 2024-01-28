@@ -15,14 +15,12 @@ import Utils.HelpCommands
         ( Command
         , Model
         , cliDocsUrl
-        , commands
         , issuesBaseUrl
         , resourceLoaded
         , resourceLoading
         , usageDocsUrl
         )
 import Utils.Helpers as Util
-import Vela
 
 
 {-| help : takes help args and renders nav button for viewing contextual help for each page

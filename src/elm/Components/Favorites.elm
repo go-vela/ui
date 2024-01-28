@@ -3,52 +3,41 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.Favorites exposing (UpdateFavorites, UpdateType(..), addFavorite, isFavorited, starToggle, toFavorite, toggleFavorite)
+module Components.Favorites exposing (starToggleAriaLabel, viewStarToggle)
 
 import Components.Svgs exposing (star)
-import Html exposing (Html, button)
+import Html exposing (Html, button, text)
 import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (onClick)
-import List.Extra
 import RemoteData exposing (WebData)
+import Utils.Favorites as Favorites
 import Utils.Helpers as Util
 import Vela
 
 
-
--- TYPES
-
-
-type alias UpdateFavorites msg =
-    Vela.Org -> Maybe Vela.Repo -> msg
-
-
-type UpdateType
-    = Add
-    | Toggle
-
-
-
--- VIEW
-
-
-starToggle : Vela.Org -> Vela.Repo -> UpdateFavorites msg -> Bool -> Html msg
-starToggle org repo updateFn favorited =
+viewStarToggle :
+    { msg : Vela.Org -> Maybe Vela.Repo -> msg
+    , user : WebData Vela.CurrentUser
+    , org : Vela.Org
+    , repo : Vela.Repo
+    }
+    -> Html msg
+viewStarToggle { msg, user, org, repo } =
     button
         [ Util.testAttribute <| "star-toggle-" ++ org ++ "-" ++ repo
-        , onClick <| updateFn org <| Just repo
-        , starToggleAriaLabel org repo favorited
+        , onClick <| msg org (Just repo)
+        , starToggleAriaLabel org repo <| Favorites.isFavorited org repo user
         , class "button"
         , class "-icon"
         ]
-        [ star favorited ]
+        [ star <| Favorites.isFavorited org repo user ]
 
 
 starToggleAriaLabel : Vela.Org -> Vela.Repo -> Bool -> Html.Attribute msg
 starToggleAriaLabel org repo favorited =
     let
         favorite =
-            toFavorite org <| Just repo
+            Favorites.toFavorite org <| Just repo
     in
     attribute "aria-label" <|
         if favorited then
@@ -56,65 +45,3 @@ starToggleAriaLabel org repo favorited =
 
         else
             "add " ++ favorite ++ " to user favorites"
-
-
-
--- HELPERS
-
-
-{-| isFavorited : takes current user and favorite key and returns if the repo is favorited by that user
--}
-isFavorited : WebData Vela.CurrentUser -> String -> Bool
-isFavorited user favorite =
-    case user of
-        RemoteData.Success u ->
-            List.member favorite u.favorites
-
-        _ ->
-            False
-
-
-{-| toggleFavorite : takes current user and favorite key and updates/returns that user's list of favorites
--}
-toggleFavorite : WebData Vela.CurrentUser -> String -> ( List String, Bool )
-toggleFavorite user favorite =
-    case user of
-        RemoteData.Success u ->
-            let
-                favorited =
-                    List.member favorite u.favorites
-
-                favorites =
-                    if favorited then
-                        List.Extra.remove favorite u.favorites
-
-                    else
-                        List.Extra.unique <| favorite :: u.favorites
-            in
-            ( favorites, not favorited )
-
-        _ ->
-            ( [], False )
-
-
-{-| addFavorite : takes current user and favorite key and adds favorite to list of favorites
--}
-addFavorite : WebData Vela.CurrentUser -> String -> ( List String, Bool )
-addFavorite user favorite =
-    case user of
-        RemoteData.Success u ->
-            let
-                favorites =
-                    List.Extra.unique <| favorite :: u.favorites
-            in
-            ( favorites, True )
-
-        _ ->
-            ( [], False )
-
-
-{-| toFavorite : takes org and maybe repo and builds the appropriate favorites key
--}
-toFavorite : Vela.Org -> Maybe Vela.Repo -> String
-toFavorite org repo =
-    org ++ "/" ++ Maybe.withDefault "*" repo

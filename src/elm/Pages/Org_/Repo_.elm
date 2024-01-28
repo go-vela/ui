@@ -21,7 +21,10 @@ import Maybe.Extra
 import Page exposing (Page)
 import Route exposing (Route)
 import Shared
+import Time
+import Utils.Favorites as Favorites exposing (UpdateType(..))
 import Utils.Helpers as Util
+import Utils.Interval as Interval
 import Vela
 import View exposing (View)
 
@@ -44,10 +47,10 @@ page user shared route =
 toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Repo
-        { org = route.params.org
-        , repo = route.params.repo
-        , navButtons = []
+        { navButtons = []
         , utilButtons = []
+        , org = route.params.org
+        , repo = route.params.repo
         }
 
 
@@ -97,6 +100,8 @@ type Msg
     | ShowHideActionsMenus (Maybe Int) (Maybe Bool)
     | FilterByEvent (Maybe String)
     | ShowHideFullTimestamps
+      -- REFRESH
+    | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
 update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
@@ -241,6 +246,21 @@ update shared route msg model =
         ShowHideFullTimestamps ->
             ( { model | showFullTimestamps = not model.showFullTimestamps }, Effect.none )
 
+        -- REFRESH
+        Tick options ->
+            ( model
+            , Effect.getRepoBuilds
+                { baseUrl = shared.velaAPI
+                , session = shared.session
+                , onResponse = GetRepoBuildsResponse
+                , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
+                , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+                , maybeEvent = Dict.get "event" route.query
+                , org = route.params.org
+                , repo = route.params.repo
+                }
+            )
+
 
 
 -- SUBSCRIPTIONS
@@ -248,7 +268,10 @@ update shared route msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Util.onMouseDownSubscription "build-actions" (List.length model.showActionsMenus > 0) (ShowHideActionsMenus Nothing)
+    Sub.batch
+        [ Util.onMouseDownSubscription "build-actions" (List.length model.showActionsMenus > 0) (ShowHideActionsMenus Nothing)
+        , Interval.tickEveryFiveSeconds Tick
+        ]
 
 
 

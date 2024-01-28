@@ -9,11 +9,11 @@ import Auth.Jwt
 import Browser.Dom
 import Browser.Events
 import Components.Alerts exposing (Alert)
-import Components.Favorites as Favorites
 import Http
 import Http.Detailed
 import Time
 import Toasty as Alerting
+import Utils.Favorites as Favorites
 import Utils.Interval as Interval
 import Utils.Theme as Theme
 import Vela

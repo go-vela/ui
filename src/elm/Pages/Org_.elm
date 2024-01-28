@@ -6,6 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 module Pages.Org_ exposing (Model, Msg, page, view)
 
 import Auth
+import Components.Repo
 import Effect exposing (Effect)
 import Html exposing (Html, a, div, h1, p, text)
 import Html.Attributes exposing (class)
@@ -19,6 +20,7 @@ import Route.Path
 import Shared
 import Time
 import Utils.Errors
+import Utils.Favorites as Favorites
 import Utils.Helpers as Util
 import Utils.Interval as Interval
 import Vela
@@ -43,9 +45,9 @@ page user shared route =
 toLayout : Auth.User -> Route { org : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Org
-        { org = route.params.org
-        , navButtons = []
+        { navButtons = []
         , utilButtons = []
+        , org = route.params.org
         }
 
 
@@ -78,6 +80,8 @@ init shared route () =
 type Msg
     = -- REPOS
       GetOrgReposResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Repository ))
+      -- FAVORITES
+    | ToggleFavorite Vela.Org (Maybe Vela.Repo)
       -- REFRESH
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
@@ -97,6 +101,12 @@ update shared route msg model =
                     ( { model | repos = Utils.Errors.toFailure error }
                     , Effect.handleHttpError { httpError = error }
                     )
+
+        -- FAVORITES
+        ToggleFavorite org maybeRepo ->
+            ( model
+            , Effect.updateFavorites { org = org, maybeRepo = maybeRepo, updateType = Favorites.Toggle }
+            )
 
         -- REFRESH
         Tick options ->
@@ -143,7 +153,7 @@ view shared route model =
                         ]
 
                 else
-                    div [] (List.map viewRepo repos)
+                    div [] (List.map (\repository -> viewRepo shared (RemoteData.unwrap [] .favorites shared.user) False repository.org repository.name) repos)
 
             RemoteData.Loading ->
                 Util.largeLoader
@@ -163,37 +173,13 @@ view shared route model =
 
 {-| viewRepo : renders row of repos with action buttons
 -}
-viewRepo : Vela.Repository -> Html Msg
-viewRepo repo =
-    div [ class "item", Util.testAttribute "repo-item" ]
-        [ div [] [ text repo.name ]
-        , div [ class "buttons" ]
-            [ a
-                [ class "button"
-                , class "-outline"
-                , Util.testAttribute "repo-settings"
-                , Route.Path.href <| Route.Path.Org_Repo_Settings { org = repo.org, repo = repo.name }
-                ]
-                [ text "Settings" ]
-            , a
-                [ class "button"
-                , class "-outline"
-                , Util.testAttribute "repo-audit"
-                , Route.Path.href <| Route.Path.Org_Repo_Audit { org = repo.org, repo = repo.name }
-                ]
-                [ text "Audit" ]
-            , a
-                [ class "button"
-                , class "-outline"
-                , Util.testAttribute "repo-secrets"
-                , Route.Path.href <| Route.Path.Org_Repo_Secrets { org = repo.org, repo = repo.name }
-                ]
-                [ text "Secrets" ]
-            , a
-                [ class "button"
-                , Util.testAttribute "repo-view"
-                , Route.Path.href <| Route.Path.Org_Repo_ { org = repo.org, repo = repo.name }
-                ]
-                [ text "View" ]
-            ]
-        ]
+viewRepo : Shared.Model -> List String -> Bool -> String -> String -> Html Msg
+viewRepo shared favorites filtered org repo =
+    Components.Repo.view
+        shared
+        { toggleFavoriteMsg = ToggleFavorite
+        , org = org
+        , repo = repo
+        , favorites = favorites
+        , filtered = False
+        }

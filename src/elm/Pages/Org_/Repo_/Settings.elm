@@ -9,7 +9,7 @@ import Auth
 import Components.Form
 import Effect exposing (Effect)
 import FeatherIcons
-import Html exposing (Html, a, br, button, div, em, h2, h3, img, input, label, p, section, small, span, strong, text, textarea)
+import Html exposing (Html, a, br, button, div, em, h2, h3, img, input, label, p, section, small, span, text, textarea)
 import Html.Attributes exposing (alt, attribute, class, classList, disabled, for, href, id, readonly, rows, src, type_, value, wrap)
 import Html.Events exposing (onClick, onInput)
 import Http
@@ -19,6 +19,7 @@ import Page exposing (Page)
 import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
+import Utils.Favorites as Favorites
 import Utils.Helpers as Util
 import Vela
 import View exposing (View)
@@ -42,8 +43,8 @@ page user shared route =
 toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Repo
-        { utilButtons = []
-        , navButtons = []
+        { navButtons = []
+        , utilButtons = []
         , org = route.params.org
         , repo = route.params.repo
         }

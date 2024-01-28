@@ -5,7 +5,10 @@ SPDX-License-Identifier: Apache-2.0
 
 module Layouts.Default exposing (Model, Msg, Props, layout, map)
 
+import Api.Endpoint exposing (Endpoint(..))
+import Auth.Session exposing (Session(..))
 import Components.Alerts exposing (Alert)
+import Components.Favorites
 import Components.Footer
 import Components.Header
 import Components.Nav
@@ -16,10 +19,12 @@ import Html.Attributes exposing (class)
 import Interop
 import Json.Decode
 import Layout exposing (Layout)
+import Maybe.Extra
 import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
 import Toasty as Alerting
+import Utils.Favorites as Favorites
 import Utils.HelpCommands
 import Utils.Helpers as Util
 import Utils.Theme as Theme
@@ -29,6 +34,7 @@ import View exposing (View)
 type alias Props contentMsg =
     { navButtons : List (Html contentMsg)
     , utilButtons : List (Html contentMsg)
+    , repo : Maybe ( String, String )
     }
 
 
@@ -40,6 +46,7 @@ map fn props =
     , utilButtons =
         props.utilButtons
             |> List.map (Html.map fn)
+    , repo = props.repo
     }
 
 
@@ -81,6 +88,8 @@ type Msg
       -- HEADER
     | ShowHideIdentity (Maybe Bool)
     | ShowHideHelp (Maybe Bool)
+      -- FAVORITES
+    | ToggleFavorite String (Maybe String)
       -- THEME
     | SetTheme Theme.Theme
       -- ALERTS
@@ -94,6 +103,15 @@ update msg model =
         NoOp ->
             ( model
             , Effect.none
+            )
+
+        ToggleFavorite org maybeRepo ->
+            ( model
+            , Effect.updateFavorites
+                { org = org
+                , maybeRepo = maybeRepo
+                , updateType = Favorites.Toggle
+                }
             )
 
         -- HEADER
@@ -180,12 +198,29 @@ view props shared route { toContentMsg, model, content } =
             , docsLink = shared.velaDocsURL
             , theme = shared.theme
             , setTheme = SetTheme
+
+            -- todo: use props for this
             , help = helpArgs shared model
             , showId = model.showIdentity
             , showHideIdentity = ShowHideIdentity
             }
             |> Html.map toContentMsg
-        , Components.Nav.view shared route props.navButtons
+        , Components.Nav.view shared
+            route
+            (props.navButtons
+                ++ [ Maybe.Extra.unwrap (text "")
+                        (\( org, repo ) ->
+                            Html.map toContentMsg <|
+                                Components.Favorites.viewStarToggle
+                                    { msg = ToggleFavorite
+                                    , org = org
+                                    , repo = repo
+                                    , user = shared.user
+                                    }
+                        )
+                        props.repo
+                   ]
+            )
         , main_ [ class "content-wrap" ]
             (Components.Util.view shared route props.utilButtons
                 :: content.body

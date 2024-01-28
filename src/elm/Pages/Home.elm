@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 module Pages.Home exposing (Model, Msg, page, view)
 
 import Auth
-import Components.Favorites as Favorites
+import Components.Repo
 import Components.Search
     exposing
         ( homeSearchBar
@@ -40,7 +40,10 @@ import RemoteData
 import Route exposing (Route)
 import Route.Path
 import Shared
+import Time
+import Utils.Favorites as Favorites
 import Utils.Helpers as Util
+import Utils.Interval as Interval
 import Vela
 import View exposing (View)
 
@@ -73,6 +76,7 @@ toLayout user model =
                 [ text "Source Repositories" ]
             ]
         , utilButtons = []
+        , repo = Nothing
         }
 
 
@@ -89,7 +93,7 @@ init : Shared.Model -> () -> ( Model, Effect Msg )
 init shared () =
     ( { favoritesFilter = ""
       }
-    , Effect.getCurrentUser {}
+    , Effect.none
     )
 
 
@@ -102,6 +106,8 @@ type Msg
       -- FAVORITES
     | ToggleFavorite Vela.Org (Maybe Vela.Repo)
     | SearchFavorites String
+      -- REFRESH
+    | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
@@ -123,6 +129,12 @@ update msg model =
             , Effect.none
             )
 
+        -- REFRESH
+        Tick options ->
+            ( model
+            , Effect.getCurrentUser {}
+            )
+
 
 
 -- SUBSCRIPTIONS
@@ -130,7 +142,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Interval.tickEveryFiveSeconds Tick
 
 
 
@@ -146,7 +158,7 @@ view shared model =
                 RemoteData.Success u ->
                     if List.length u.favorites > 0 then
                         [ homeSearchBar model.favoritesFilter SearchFavorites
-                        , viewFavorites u.favorites model.favoritesFilter
+                        , viewFavorites shared u.favorites model.favoritesFilter
                         ]
 
                     else
@@ -164,7 +176,7 @@ view shared model =
 
                 _ ->
                     [ homeSearchBar model.favoritesFilter SearchFavorites
-                    , viewFavorites [] model.favoritesFilter
+                    , viewFavorites shared [] model.favoritesFilter
                     ]
         ]
     }
@@ -172,21 +184,21 @@ view shared model =
 
 {-| viewFavorites : takes favorites, user search input and favorite action and renders favorites
 -}
-viewFavorites : List String -> String -> Html Msg
-viewFavorites favorites filter =
+viewFavorites : Shared.Model -> List String -> String -> Html Msg
+viewFavorites shared favorites filter =
     if String.isEmpty filter then
         favorites
             |> toOrgFavorites
-            |> viewFavoritesByOrg
+            |> viewFavoritesByOrg shared
 
     else
-        viewFilteredFavorites favorites filter
+        viewFilteredFavorites shared favorites filter
 
 
 {-| viewFilteredFavorites : takes favorites, user search input and favorite action and renders favorites
 -}
-viewFilteredFavorites : List String -> String -> Html Msg
-viewFilteredFavorites favorites filter =
+viewFilteredFavorites : Shared.Model -> List String -> String -> Html Msg
+viewFilteredFavorites shared favorites filter =
     let
         filteredRepos =
             favorites
@@ -194,8 +206,7 @@ viewFilteredFavorites favorites filter =
     in
     div [ class "filtered-repos" ] <|
         if not <| List.isEmpty filteredRepos then
-            filteredRepos
-                |> List.map (viewFavorite favorites True)
+            List.map (viewFavorite shared favorites True) filteredRepos
 
         else
             [ div [ class "no-results" ] [ text "No results" ] ]
@@ -203,12 +214,12 @@ viewFilteredFavorites favorites filter =
 
 {-| viewFavoritesByOrg : takes favorites dictionary and favorite action and renders favorites by org
 -}
-viewFavoritesByOrg : Dict String (List String) -> Html Msg
-viewFavoritesByOrg orgFavorites =
+viewFavoritesByOrg : Shared.Model -> Dict String (List String) -> Html Msg
+viewFavoritesByOrg shared orgFavorites =
     orgFavorites
         |> Dict.toList
         |> Util.filterEmptyLists
-        |> List.map (\( org, favs ) -> viewOrg org favs)
+        |> List.map (\( org, favs ) -> viewOrg shared org favs)
         |> div [ class "repo-list" ]
 
 
@@ -233,63 +244,26 @@ toOrgFavorites favorites =
 
 {-| viewOrg : takes org, favorites and favorite action and renders favorites by org
 -}
-viewOrg : String -> List String -> Html Msg
-viewOrg org favorites =
+viewOrg : Shared.Model -> String -> List String -> Html Msg
+viewOrg shared org favorites =
     details [ class "details", class "-with-border", attribute "open" "open", Util.testAttribute "repo-org" ]
         (summary [ class "summary" ]
             [ a [ Route.Path.href <| Route.Path.Org_ { org = org } ] [ text org ]
             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
             ]
-            :: List.map (viewFavorite favorites False) favorites
+            :: List.map (viewFavorite shared favorites False) favorites
         )
 
 
-{-| viewFavorite : takes favorites and favorite action and renders single favorite
+{-| viewFavorite : takes favorite in the form of a repo full name and renders the repo component
 -}
-viewFavorite : List String -> Bool -> String -> Html Msg
-viewFavorite favorites filtered favorite =
-    let
-        ( org, repo ) =
-            ( Maybe.withDefault "" <| List.Extra.getAt 0 <| String.split "/" favorite
-            , Maybe.withDefault "" <| List.Extra.getAt 1 <| String.split "/" favorite
-            )
-
-        name =
-            if filtered then
-                favorite
-
-            else
-                repo
-    in
-    div [ class "item", Util.testAttribute "repo-item" ]
-        [ div [] [ text name ]
-        , div [ class "buttons" ]
-            [ Favorites.starToggle org repo ToggleFavorite <| List.member favorite favorites
-            , a
-                [ class "button"
-                , class "-outline"
-                , Route.Path.href <| Route.Path.Org_Repo_Settings { org = org, repo = repo }
-                ]
-                [ text "Settings" ]
-            , a
-                [ class "button"
-                , class "-outline"
-                , Util.testAttribute "repo-hooks"
-                , Route.Path.href <| Route.Path.Org_Repo_Audit { org = org, repo = repo }
-                ]
-                [ text "Audit" ]
-            , a
-                [ class "button"
-                , class "-outline"
-                , Util.testAttribute "repo-secrets"
-                , Route.Path.href <| Route.Path.Org_Repo_Secrets { org = org, repo = repo }
-                ]
-                [ text "Secrets" ]
-            , a
-                [ class "button"
-                , Util.testAttribute "repo-view"
-                , Route.Path.href <| Route.Path.Org_Repo_ { org = org, repo = repo }
-                ]
-                [ text "View" ]
-            ]
-        ]
+viewFavorite : Shared.Model -> List String -> Bool -> String -> Html Msg
+viewFavorite shared favorites filtered repoFullName =
+    Components.Repo.view
+        shared
+        { toggleFavoriteMsg = ToggleFavorite
+        , org = Maybe.withDefault "" <| List.Extra.getAt 0 <| String.split "/" repoFullName
+        , repo = Maybe.withDefault "" <| List.Extra.getAt 1 <| String.split "/" repoFullName
+        , favorites = favorites
+        , filtered = filtered
+        }

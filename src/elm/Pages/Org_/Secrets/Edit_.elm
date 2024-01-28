@@ -45,6 +45,7 @@ toLayout user route model =
     Layouts.Default
         { utilButtons = []
         , navButtons = []
+        , repo = Nothing
         }
 
 
@@ -88,7 +89,8 @@ init shared route () =
 
 
 type Msg
-    = GetSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
+    = -- SECRETS
+      GetSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
     | UpdateSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
     | NameOnInput String
     | ValueOnInput String

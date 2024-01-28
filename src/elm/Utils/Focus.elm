@@ -20,7 +20,6 @@ module Utils.Focus exposing
 import Html
 import Html.Attributes
 import Maybe.Extra
-import Shared
 
 
 type alias Focus =

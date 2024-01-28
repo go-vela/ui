@@ -3,10 +3,9 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.Nav exposing (Msgs, view)
+module Components.Nav exposing (view)
 
 import Components.Crumbs
-import Components.Favorites
 import Html
     exposing
         ( Html
@@ -26,18 +25,6 @@ import Route exposing (Route)
 import Shared
 import Utils.Helpers as Util
 import Vela
-
-
-type alias Msgs msg =
-    { fetchSourceRepos : msg
-    , toggleFavorite : Components.Favorites.UpdateFavorites msg
-    , refreshSettings : Vela.Org -> Vela.Repo -> msg
-    , refreshHooks : Vela.Org -> Vela.Repo -> msg
-    , refreshSecrets : Vela.Engine -> Vela.SecretType -> Vela.Org -> Vela.Repo -> msg
-    , approveBuild : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> msg
-    , restartBuild : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> msg
-    , cancelBuild : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> msg
-    }
 
 
 view : Shared.Model -> Route () -> List (Html msg) -> Html msg

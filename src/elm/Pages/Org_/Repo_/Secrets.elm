@@ -24,8 +24,11 @@ import Route exposing (Route)
 import Route.Path
 import Shared
 import Svg.Attributes
+import Time
 import Utils.Errors
+import Utils.Favorites as Favorites
 import Utils.Helpers as Util
+import Utils.Interval as Interval
 import Vela
 import View exposing (View)
 
@@ -48,10 +51,10 @@ page user shared route =
 toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Repo
-        { org = route.params.org
-        , repo = route.params.repo
-        , navButtons = []
+        { navButtons = []
         , utilButtons = []
+        , org = route.params.org
+        , repo = route.params.repo
         }
 
 
@@ -92,6 +95,8 @@ type Msg
     | GotoPage Int
       -- ALERTS
     | AddAlertCopiedToClipboard String
+      -- REFRESH
+    | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
 update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
@@ -140,6 +145,20 @@ update shared route msg model =
             , Effect.addAlertSuccess { content = contentCopied, addToastIfUnique = False }
             )
 
+        -- REFRESH
+        Tick options ->
+            ( model
+            , Effect.getRepoSecrets
+                { baseUrl = shared.velaAPI
+                , session = shared.session
+                , onResponse = GetRepoSecretsResponse
+                , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
+                , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+                , org = route.params.org
+                , repo = route.params.repo
+                }
+            )
+
 
 
 -- SUBSCRIPTIONS
@@ -147,7 +166,7 @@ update shared route msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Interval.tickEveryFiveSeconds Tick
 
 
 

@@ -30,7 +30,7 @@ import Time
 import Utils.Errors
 import Utils.Focus as Focus
 import Utils.Helpers as Util
-import Utils.Interval as Interval exposing (Interval)
+import Utils.Interval as Interval
 import Utils.Logs as Logs
 import Vela
 import View exposing (View)
@@ -55,7 +55,9 @@ page user shared route =
 toLayout : Auth.User -> Route { org : String, repo : String, buildNumber : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Build
-        { org = route.params.org
+        { navButtons = []
+        , utilButtons = []
+        , org = route.params.org
         , repo = route.params.repo
         , buildNumber = route.params.buildNumber
         , toBuildPath =
@@ -65,8 +67,6 @@ toLayout user route model =
                     , repo = route.params.repo
                     , buildNumber = buildNumber
                     }
-        , navButtons = []
-        , utilButtons = []
         }
 
 
@@ -128,7 +128,7 @@ type Msg
     | DownloadLog { filename : String, content : String, map : String -> String }
     | FollowLog { number : Int }
       -- REFRESH
-    | Tick { time : Time.Posix, interval : Interval }
+    | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
 update : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> Msg -> Model -> ( Model, Effect Msg )

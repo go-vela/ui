@@ -5,6 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 module Layouts.Default.Repo exposing (Model, Msg, Props, layout, map)
 
+import Components.Favorites
 import Components.Tabs
 import Effect exposing (Effect)
 import Html exposing (..)
@@ -12,23 +13,25 @@ import Layout exposing (Layout)
 import Layouts.Default
 import Route exposing (Route)
 import Shared
+import Utils.Favorites as Favorites
+import Vela
 import View exposing (View)
 
 
 type alias Props contentMsg =
-    { org : String
-    , repo : String
-    , navButtons : List (Html contentMsg)
+    { navButtons : List (Html contentMsg)
     , utilButtons : List (Html contentMsg)
+    , org : String
+    , repo : String
     }
 
 
 map : (msg1 -> msg2) -> Props msg1 -> Props msg2
 map fn props =
-    { org = props.org
-    , repo = props.repo
-    , navButtons = List.map (Html.map fn) props.navButtons
+    { navButtons = List.map (Html.map fn) props.navButtons
     , utilButtons = List.map (Html.map fn) props.utilButtons
+    , org = props.org
+    , repo = props.repo
     }
 
 
@@ -41,15 +44,16 @@ layout props shared route =
         , subscriptions = subscriptions
         }
         |> Layout.withParentProps
-            { navButtons = []
+            { navButtons = props.navButtons
             , utilButtons =
-                [ Components.Tabs.viewRepoTabs
+                Components.Tabs.viewRepoTabs
                     shared
                     { org = props.org
                     , repo = props.repo
                     , currentPath = route.path
                     }
-                ]
+                    :: props.utilButtons
+            , repo = Just ( props.org, props.repo )
             }
 
 
@@ -65,7 +69,8 @@ init : Props contentMsg -> Shared.Model -> () -> ( Model, Effect Msg )
 init props shared _ =
     ( {}
     , Effect.batch
-        [ Effect.getRepoBuildsShared
+        [ Effect.getCurrentUser {}
+        , Effect.getRepoBuildsShared
             { pageNumber = Nothing
             , perPage = Nothing
             , maybeEvent = Nothing

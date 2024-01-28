@@ -6,6 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 module Layouts.Default.Build exposing (Model, Msg, Props, layout, map)
 
 import Components.Build
+import Components.Favorites
 import Components.RecentBuilds
 import Components.Tabs
 import Effect exposing (Effect)
@@ -20,29 +21,30 @@ import Route.Path
 import Shared
 import Time
 import Utils.Errors
+import Utils.Favorites as Favorites
 import Utils.Interval as Interval
 import Vela
 import View exposing (View)
 
 
 type alias Props contentMsg =
-    { org : String
+    { navButtons : List (Html contentMsg)
+    , utilButtons : List (Html contentMsg)
+    , org : String
     , repo : String
     , buildNumber : String
     , toBuildPath : String -> Route.Path.Path
-    , navButtons : List (Html contentMsg)
-    , utilButtons : List (Html contentMsg)
     }
 
 
 map : (msg1 -> msg2) -> Props msg1 -> Props msg2
 map fn props =
-    { org = props.org
+    { navButtons = List.map (Html.map fn) props.navButtons
+    , utilButtons = List.map (Html.map fn) props.utilButtons
+    , org = props.org
     , repo = props.repo
     , buildNumber = props.buildNumber
     , toBuildPath = props.toBuildPath
-    , navButtons = List.map (Html.map fn) props.navButtons
-    , utilButtons = List.map (Html.map fn) props.utilButtons
     }
 
 
@@ -56,8 +58,9 @@ layout props shared route =
         }
         |> Layout.withOnUrlChanged OnUrlChanged
         |> Layout.withParentProps
-            { navButtons = []
+            { navButtons = props.navButtons
             , utilButtons = []
+            , repo = Just ( props.org, props.repo )
             }
 
 
@@ -75,7 +78,8 @@ init props shared _ =
     ( { build = RemoteData.Loading
       }
     , Effect.batch
-        [ Effect.getRepoBuildsShared
+        [ Effect.getCurrentUser {}
+        , Effect.getRepoBuildsShared
             { pageNumber = Nothing
             , perPage = Nothing
             , maybeEvent = Nothing

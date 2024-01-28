@@ -14,7 +14,6 @@ import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
 import Layouts
-import List.Extra
 import Page exposing (Page)
 import Route exposing (Route)
 import Shared
@@ -42,8 +41,9 @@ page user shared route =
 toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
-        { utilButtons = []
-        , navButtons = []
+        { navButtons = []
+        , utilButtons = []
+        , repo = Nothing
         }
 
 

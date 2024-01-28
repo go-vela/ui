@@ -43,8 +43,9 @@ page user shared route =
 toLayout : Auth.User -> Route { org : String, repo : String, name : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
-        { utilButtons = []
-        , navButtons = []
+        { navButtons = []
+        , utilButtons = []
+        , repo = Nothing
         }
 
 

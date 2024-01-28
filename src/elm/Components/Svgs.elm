@@ -26,7 +26,6 @@ import Svg.Attributes
         , cx
         , cy
         , d
-        , fill
         , height
         , r
         , strokeLinecap
@@ -40,7 +39,7 @@ import Svg.Attributes
         , y1
         , y2
         )
-import Utils.Helpers as Util exposing (ariaHidden)
+import Utils.Helpers as Util
 import Vela
 
 
@@ -69,7 +68,7 @@ buildPending =
         , viewBox "0 0 408 408"
         , width "44"
         , height "44"
-        , ariaHidden
+        , Util.ariaHidden
         ]
         [ Svg.path [ class "bg-fill", d "M51 153c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm306 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm-153 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51z" ]
             []
@@ -86,7 +85,7 @@ buildRunning =
         , viewBox "0 0 44 44"
         , width "44"
         , height "44"
-        , ariaHidden
+        , Util.ariaHidden
         ]
         [ Svg.path [ d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
         , Svg.path [ d "M22 10v12.75L30 27" ] []
@@ -103,7 +102,7 @@ buildSuccess =
         , viewBox "0 0 44 44"
         , width "44"
         , height "44"
-        , ariaHidden
+        , Util.ariaHidden
         ]
         [ Svg.path [ d "M15 20.1l6.923 6.9L42 5" ] []
         , Svg.path [ d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
@@ -120,7 +119,7 @@ buildFailure =
         , viewBox "0 0 44 44"
         , width "44"
         , height "44"
-        , ariaHidden
+        , Util.ariaHidden
         ]
         [ Svg.path [ d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
         , Svg.path [ d "M15 15l14 14M29 15L15 29" ] []
@@ -137,7 +136,7 @@ buildCanceled =
         , viewBox "0 0 44 44"
         , width "44"
         , height "44"
-        , ariaHidden
+        , Util.ariaHidden
         ]
         [ Svg.path [ d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
         , Svg.path [ d "M15 15L29 29" ] []
@@ -154,7 +153,7 @@ buildError =
         , viewBox "0 0 44 44"
         , width "44"
         , height "44"
-        , ariaHidden
+        , Util.ariaHidden
         ]
         [ Svg.path [ d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
         , Svg.path [ d "M22 14V25" ] []
@@ -182,7 +181,7 @@ buildStatusAnimation dashes y classNames =
                 [ class "build-animation"
                 , strokeWidth "4"
                 , height "4"
-                , ariaHidden
+                , Util.ariaHidden
                 ]
     in
     svg
@@ -200,7 +199,7 @@ stepPending =
         , viewBox "0 0 408 408"
         , width "32"
         , height "32"
-        , ariaHidden
+        , Util.ariaHidden
         ]
         [ Svg.path
             [ attribute "vector-effect" "non-scaling-stroke"
@@ -220,7 +219,7 @@ stepRunning =
         , viewBox "0 0 44 44"
         , width "32"
         , height "32"
-        , ariaHidden
+        , Util.ariaHidden
         ]
         [ Svg.path
             [ attribute "vector-effect" "non-scaling-stroke"
@@ -245,7 +244,7 @@ stepSuccess =
         , viewBox "0 0 44 44"
         , width "32"
         , height "32"
-        , ariaHidden
+        , Util.ariaHidden
         ]
         [ Svg.path
             [ attribute "vector-effect" "non-scaling-stroke"
@@ -270,7 +269,7 @@ stepFailure =
         , viewBox "0 0 44 44"
         , width "32"
         , height "32"
-        , ariaHidden
+        , Util.ariaHidden
         ]
         [ Svg.path
             [ attribute "vector-effect" "non-scaling-stroke"
@@ -295,7 +294,7 @@ stepError =
         , viewBox "0 0 44 44"
         , width "32"
         , height "32"
-        , ariaHidden
+        , Util.ariaHidden
         ]
         [ Svg.path
             [ attribute "vector-effect" "non-scaling-stroke"
@@ -325,7 +324,7 @@ stepCanceled =
         , viewBox "0 0 44 44"
         , width "32"
         , height "32"
-        , ariaHidden
+        , Util.ariaHidden
         ]
         [ Svg.path
             [ attribute "vector-effect" "non-scaling-stroke"
@@ -351,7 +350,7 @@ stepSkipped =
         , viewBox "0 0 44 44"
         , width "32"
         , height "32"
-        , ariaHidden
+        , Util.ariaHidden
         ]
         [ Svg.path
             [ attribute "vector-effect" "non-scaling-stroke"
@@ -411,7 +410,7 @@ hookSuccess =
         , viewBox "0 0 44 44"
         , width "20"
         , height "20"
-        , ariaHidden
+        , Util.ariaHidden
         ]
         [ Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M15 20.1l6.923 6.9L42 5" ] []
         , Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
@@ -429,7 +428,7 @@ hookSkipped =
         , viewBox "0 0 44 44"
         , width "20"
         , height "20"
-        , ariaHidden
+        , Util.ariaHidden
         ]
         [ Svg.path
             [ attribute "vector-effect" "non-scaling-stroke"

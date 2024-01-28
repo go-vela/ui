@@ -16,17 +16,17 @@ import View exposing (View)
 
 
 type alias Props contentMsg =
-    { org : String
-    , navButtons : List (Html contentMsg)
+    { navButtons : List (Html contentMsg)
     , utilButtons : List (Html contentMsg)
+    , org : String
     }
 
 
 map : (msg1 -> msg2) -> Props msg1 -> Props msg2
 map fn props =
-    { org = props.org
-    , navButtons = List.map (Html.map fn) props.navButtons
+    { navButtons = List.map (Html.map fn) props.navButtons
     , utilButtons = List.map (Html.map fn) props.navButtons
+    , org = props.org
     }
 
 
@@ -49,6 +49,7 @@ layout props shared route =
                     , maybeEvent = Nothing
                     }
                 ]
+            , repo = Nothing
             }
 
 
@@ -63,7 +64,7 @@ type alias Model =
 init : Shared.Model -> () -> ( Model, Effect Msg )
 init shared _ =
     ( {}
-    , Effect.none
+    , Effect.getCurrentUser {}
     )
 
 

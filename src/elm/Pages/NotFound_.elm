@@ -34,6 +34,7 @@ toLayout model =
     Layouts.Default
         { navButtons = []
         , utilButtons = []
+        , repo = Nothing
         }
 
 

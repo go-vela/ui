@@ -20,11 +20,8 @@ module Auth.Action exposing
 
 -}
 
-import Browser.Navigation
 import Dict exposing (Dict)
 import Route.Path
-import Shared
-import Url exposing (Url)
 import View exposing (View)
 
 

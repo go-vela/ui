@@ -26,7 +26,9 @@ import Shared
 import Svg.Attributes
 import Time
 import Utils.Errors
+import Utils.Favorites as Favorites
 import Utils.Helpers as Util
+import Utils.Interval as Interval
 import Vela
 import View exposing (View)
 
@@ -91,6 +93,8 @@ type Msg
     = -- SCHEDULES
       GetRepoSchedulesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Schedule ))
     | GotoPage Int
+      -- REFRESH
+    | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
 update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
@@ -133,6 +137,20 @@ update shared route msg model =
                 ]
             )
 
+        -- REFRESH
+        Tick options ->
+            ( model
+            , Effect.getRepoSchedules
+                { baseUrl = shared.velaAPI
+                , session = shared.session
+                , onResponse = GetRepoSchedulesResponse
+                , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
+                , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+                , org = route.params.org
+                , repo = route.params.repo
+                }
+            )
+
 
 
 -- SUBSCRIPTIONS
@@ -140,7 +158,7 @@ update shared route msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Interval.tickEveryFiveSeconds Tick
 
 
 

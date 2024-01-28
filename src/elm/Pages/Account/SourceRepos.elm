@@ -8,7 +8,7 @@ module Pages.Account.SourceRepos exposing (..)
 import Api.Api as Api
 import Api.Operations
 import Auth
-import Components.Favorites as Favorites
+import Components.Favorites
 import Components.Search
     exposing
         ( Search
@@ -51,6 +51,7 @@ import Route exposing (Route)
 import Route.Path
 import Shared
 import Utils.Errors
+import Utils.Favorites as Favorites
 import Utils.Helpers as Util
 import Vela
 import View exposing (View)
@@ -93,6 +94,7 @@ toLayout user shared model =
                 ]
             ]
         , utilButtons = []
+        , repo = Nothing
         }
 
 
@@ -429,24 +431,20 @@ viewSourceRepo :
     -> Vela.Repository
     -> Html msg
 viewSourceRepo user enableRepo toggleFavorite repo =
-    let
-        favorited =
-            Favorites.isFavorited user <| repo.org ++ "/" ++ repo.name
-    in
     div [ class "item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div [] [ text repo.name ]
-        , enableRepoButton repo enableRepo toggleFavorite favorited
+        , enableRepoButton repo enableRepo toggleFavorite user
         ]
 
 
 {-| viewSearchedSourceRepo : renders single repo when searching across all repos
 -}
-viewSearchedSourceRepo : (Vela.Repository -> msg) -> Favorites.UpdateFavorites msg -> Vela.Repository -> Bool -> Html msg
-viewSearchedSourceRepo enableRepo toggleFavorite repo favorited =
+viewSearchedSourceRepo : (Vela.Repository -> msg) -> Favorites.UpdateFavorites msg -> Vela.Repository -> WebData Vela.CurrentUser -> Html msg
+viewSearchedSourceRepo enableRepo toggleFavorite repo user =
     div [ class "item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div []
             [ text <| repo.org ++ "/" ++ repo.name ]
-        , enableRepoButton repo enableRepo toggleFavorite favorited
+        , enableRepoButton repo enableRepo toggleFavorite user
         ]
 
 
@@ -473,8 +471,8 @@ enableReposButton org repos filtered enableRepos =
 
 {-| enableRepoButton : builds action button for enabling single repos
 -}
-enableRepoButton : Vela.Repository -> (Vela.Repository -> msg) -> Favorites.UpdateFavorites msg -> Bool -> Html msg
-enableRepoButton repo enableRepo toggleFavorite favorited =
+enableRepoButton : Vela.Repository -> (Vela.Repository -> msg) -> Favorites.UpdateFavorites msg -> WebData Vela.CurrentUser -> Html msg
+enableRepoButton repo enableRepo toggleFavorite user =
     case repo.enabled of
         RemoteData.NotAsked ->
             button
@@ -507,7 +505,12 @@ enableRepoButton repo enableRepo toggleFavorite favorited =
         RemoteData.Success enabledStatus ->
             if enabledStatus then
                 div [ class "buttons" ]
-                    [ Favorites.starToggle repo.org repo.name toggleFavorite <| favorited
+                    [ Components.Favorites.viewStarToggle
+                        { msg = toggleFavorite
+                        , user = user
+                        , org = repo.org
+                        , repo = repo.name
+                        }
                     , button
                         [ class "button"
                         , class "-outline"
@@ -553,7 +556,7 @@ searchReposGlobal shared model repos enableRepo toggleFavorite =
     div [ class "filtered-repos" ] <|
         -- Render the found repositories
         if not <| List.isEmpty filteredRepos then
-            filteredRepos |> List.map (\repo -> viewSearchedSourceRepo enableRepo toggleFavorite repo <| Favorites.isFavorited user <| repo.org ++ "/" ++ repo.name)
+            filteredRepos |> List.map (\repo -> viewSearchedSourceRepo enableRepo toggleFavorite repo user)
 
         else
             -- No repos matched the search

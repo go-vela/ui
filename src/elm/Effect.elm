@@ -28,7 +28,6 @@ import Api.Operations
 import Auth.Session
 import Browser.Navigation
 import Components.Alerts exposing (Alert)
-import Components.Favorites as Favorites
 import Dict exposing (Dict)
 import Http
 import Http.Detailed
@@ -41,6 +40,7 @@ import Shared.Msg
 import Task
 import Toasty as Alerting
 import Url exposing (Url)
+import Utils.Favorites as Favorites
 import Utils.Theme as Theme
 import Vela
 
