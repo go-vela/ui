@@ -9,6 +9,9 @@ module Api.Operations exposing
     , addRepoSchedule
     , addRepoSecret
     , addSharedSecret
+    , deleteOrgSecret
+    , deleteRepoSchedule
+    , deleteRepoSecret
     , enableRepo
     , expandPipelineConfig
     , finishAuthentication
@@ -251,6 +254,30 @@ updateOrgSecret baseUrl session options =
         |> withAuth session
 
 
+{-| deleteOrgSecret : deletes a secret for an org
+-}
+deleteOrgSecret :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , name : String
+        }
+    -> Request String
+deleteOrgSecret baseUrl session options =
+    delete baseUrl
+        (Api.Endpoint.Secret
+            "native"
+            "org"
+            options.org
+            "*"
+            options.name
+        )
+        Json.Decode.string
+        |> withAuth session
+
+
 {-| getRepoSecrets : retrieves secrets for a repo
 -}
 getRepoSecrets :
@@ -327,6 +354,31 @@ updateRepoSecret baseUrl session options =
         )
         options.body
         Vela.decodeSecret
+        |> withAuth session
+
+
+{-| deleteRepoSecret : deletes a secret for an repo
+-}
+deleteRepoSecret :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , name : String
+        }
+    -> Request String
+deleteRepoSecret baseUrl session options =
+    delete baseUrl
+        (Api.Endpoint.Secret
+            "native"
+            "repo"
+            options.org
+            options.repo
+            options.name
+        )
+        Json.Decode.string
         |> withAuth session
 
 
@@ -553,6 +605,29 @@ updateRepoSchedule baseUrl session options =
         )
         options.body
         Vela.decodeSchedule
+        |> withAuth session
+
+
+{-| deleteRepoSchedule : deletes a repo schedule
+-}
+deleteRepoSchedule :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , name : String
+        }
+    -> Request String
+deleteRepoSchedule baseUrl session options =
+    delete baseUrl
+        (Api.Endpoint.Schedule
+            options.org
+            options.repo
+            options.name
+        )
+        Json.Decode.string
         |> withAuth session
 
 

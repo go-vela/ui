@@ -18,6 +18,7 @@ import List.Extra
 import Page exposing (Page)
 import RemoteData exposing (WebData)
 import Route exposing (Route)
+import Route.Path
 import Shared
 import String.Extra
 import Utils.Helpers as Util
@@ -61,6 +62,7 @@ type alias Model =
     , images : List String
     , image : String
     , allowCommands : Bool
+    , confirmingDelete : Bool
     }
 
 
@@ -73,6 +75,7 @@ init shared route () =
       , images = []
       , image = ""
       , allowCommands = True
+      , confirmingDelete = False
       }
     , Effect.getRepoSecret
         { baseUrl = shared.velaAPI
@@ -94,6 +97,7 @@ type Msg
       -- SECRETS
     | GetSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
     | UpdateSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
+    | DeleteSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | ValueOnInput String
     | ImageOnInput String
     | EventOnCheck String Bool
@@ -101,6 +105,9 @@ type Msg
     | RemoveImage String
     | AllowCommandsOnClick String
     | SubmitForm
+    | ClickDelete
+    | CancelDelete
+    | ConfirmDelete
 
 
 update : Shared.Model -> Route { org : String, repo : String, name : String } -> Msg -> Model -> ( Model, Effect Msg )
@@ -136,6 +143,28 @@ update shared route msg model =
                         { content = "Repo secret " ++ secret.name ++ " updated."
                         , addToastIfUnique = True
                         }
+                    )
+
+                Err error ->
+                    ( model
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
+        DeleteSecretResponse response ->
+            case response of
+                Ok ( _, result ) ->
+                    ( model
+                    , Effect.batch
+                        [ Effect.addAlertSuccess
+                            { content = result
+                            , addToastIfUnique = True
+                            }
+                        , Effect.pushPath <|
+                            Route.Path.Org_Repo_Secrets
+                                { org = route.params.org
+                                , repo = route.params.repo
+                                }
+                        ]
                     )
 
                 Err error ->
@@ -225,6 +254,28 @@ update shared route msg model =
                 }
             )
 
+        ClickDelete ->
+            ( { model | confirmingDelete = True }
+            , Effect.none
+            )
+
+        CancelDelete ->
+            ( { model | confirmingDelete = False }
+            , Effect.none
+            )
+
+        ConfirmDelete ->
+            ( { model | confirmingDelete = False }
+            , Effect.deleteRepoSecret
+                { baseUrl = shared.velaAPI
+                , session = shared.session
+                , onResponse = DeleteSecretResponse
+                , org = route.params.org
+                , repo = route.params.repo
+                , name = route.params.name
+                }
+            )
+
 
 
 -- SUBSCRIPTIONS
@@ -290,10 +341,39 @@ view shared route model =
                         , disabled_ = not <| RemoteData.isSuccess model.secret
                         }
                     , Components.SecretForm.viewHelp shared.velaDocsURL
-                    , Components.SecretForm.viewSubmitButton
-                        { msg = SubmitForm
-                        , disabled_ = not <| RemoteData.isSuccess model.secret
-                        }
+                    , div [ class "buttons" ]
+                        [ Components.Form.viewButton
+                            { msg = SubmitForm
+                            , text_ = "Submit"
+                            , classList_ = []
+                            , disabled_ = not <| RemoteData.isSuccess model.secret
+                            }
+                        , if not model.confirmingDelete then
+                            Components.Form.viewButton
+                                { msg = ClickDelete
+                                , text_ = "Delete"
+                                , classList_ = []
+                                , disabled_ = not <| RemoteData.isSuccess model.secret
+                                }
+
+                          else
+                            Components.Form.viewButton
+                                { msg = CancelDelete
+                                , text_ = "Cancel"
+                                , classList_ = []
+                                , disabled_ = not <| RemoteData.isSuccess model.secret
+                                }
+                        , if model.confirmingDelete then
+                            Components.Form.viewButton
+                                { msg = ConfirmDelete
+                                , text_ = "Confirm"
+                                , classList_ = [ ( "-secret-delete-confirm", True ) ]
+                                , disabled_ = not <| RemoteData.isSuccess model.secret
+                                }
+
+                          else
+                            text ""
+                        ]
                     ]
                 ]
             ]

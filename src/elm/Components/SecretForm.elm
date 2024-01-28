@@ -261,16 +261,3 @@ viewHelp docsUrl =
             [ text "docs" ]
         , text "!"
         ]
-
-
-viewSubmitButton : { msg : msg, disabled_ : Bool } -> Html msg
-viewSubmitButton { msg, disabled_ } =
-    div [ class "form-action" ]
-        [ button
-            [ class "button"
-            , class "-outline"
-            , onClick msg
-            , disabled disabled_
-            ]
-            [ text "Submit" ]
-        ]

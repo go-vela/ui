@@ -17,6 +17,7 @@ import Layouts
 import Page exposing (Page)
 import RemoteData exposing (WebData)
 import Route exposing (Route)
+import Route.Path
 import Shared
 import String.Extra
 import Utils.Helpers as Util
@@ -58,6 +59,7 @@ type alias Model =
     , entry : String
     , enabled : Bool
     , branch : String
+    , confirmingDelete : Bool
     }
 
 
@@ -68,6 +70,7 @@ init shared route () =
       , entry = ""
       , enabled = True
       , branch = ""
+      , confirmingDelete = False
       }
     , Effect.getRepoSchedule
         { baseUrl = shared.velaAPI
@@ -89,10 +92,14 @@ type Msg
       -- SCHEDULES
     | GetRepoScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Schedule ))
     | UpdateRepoScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Schedule ))
+    | DeleteScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | EntryOnInput String
     | BranchOnInput String
     | EnabledOnClick String
     | SubmitForm
+    | ClickDelete
+    | CancelDelete
+    | ConfirmDelete
 
 
 update : Shared.Model -> Route { org : String, repo : String, name : String } -> Msg -> Model -> ( Model, Effect Msg )
@@ -130,6 +137,28 @@ update shared route msg model =
                         { content = schedule.name ++ " updated in repo schedules."
                         , addToastIfUnique = True
                         }
+                    )
+
+                Err error ->
+                    ( model
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
+        DeleteScheduleResponse response ->
+            case response of
+                Ok ( _, result ) ->
+                    ( model
+                    , Effect.batch
+                        [ Effect.addAlertSuccess
+                            { content = result
+                            , addToastIfUnique = True
+                            }
+                        , Effect.pushPath <|
+                            Route.Path.Org_Repo_Schedules
+                                { org = route.params.org
+                                , repo = route.params.repo
+                                }
+                        ]
                     )
 
                 Err error ->
@@ -177,6 +206,28 @@ update shared route msg model =
                 , repo = route.params.repo
                 , name = model.name
                 , body = body
+                }
+            )
+
+        ClickDelete ->
+            ( { model | confirmingDelete = True }
+            , Effect.none
+            )
+
+        CancelDelete ->
+            ( { model | confirmingDelete = False }
+            , Effect.none
+            )
+
+        ConfirmDelete ->
+            ( { model | confirmingDelete = False }
+            , Effect.deleteRepoSchedule
+                { baseUrl = shared.velaAPI
+                , session = shared.session
+                , onResponse = DeleteScheduleResponse
+                , org = route.params.org
+                , repo = route.params.repo
+                , name = route.params.name
                 }
             )
 
@@ -249,10 +300,39 @@ view shared route model =
                         , disabled_ = not <| RemoteData.isSuccess model.schedule
                         }
                     , Components.ScheduleForm.viewHelp shared.velaDocsURL
-                    , Components.ScheduleForm.viewSubmitButton
-                        { msg = SubmitForm
-                        , disabled_ = not <| RemoteData.isSuccess model.schedule
-                        }
+                    , div [ class "buttons" ]
+                        [ Components.Form.viewButton
+                            { msg = SubmitForm
+                            , text_ = "Submit"
+                            , classList_ = []
+                            , disabled_ = not <| RemoteData.isSuccess model.schedule
+                            }
+                        , if not model.confirmingDelete then
+                            Components.Form.viewButton
+                                { msg = ClickDelete
+                                , text_ = "Delete"
+                                , classList_ = []
+                                , disabled_ = not <| RemoteData.isSuccess model.schedule
+                                }
+
+                          else
+                            Components.Form.viewButton
+                                { msg = CancelDelete
+                                , text_ = "Cancel"
+                                , classList_ = []
+                                , disabled_ = not <| RemoteData.isSuccess model.schedule
+                                }
+                        , if model.confirmingDelete then
+                            Components.Form.viewButton
+                                { msg = ConfirmDelete
+                                , text_ = "Confirm"
+                                , classList_ = [ ( "-secret-delete-confirm", True ) ]
+                                , disabled_ = not <| RemoteData.isSuccess model.schedule
+                                }
+
+                          else
+                            text ""
+                        ]
                     ]
                 ]
             ]

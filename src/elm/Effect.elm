@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, addDeployment, addOrgSecret, addRepoSchedule, addRepoSecret, alertsUpdate, clearRedirect, downloadFile, enableRepo, expandPipelineConfig, finishAuthentication, focusOn, getBuild, getBuildGraph, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoBuildsShared, getRepoDeployments, getRepoHooks, getRepoHooksShared, getRepoSchedule, getRepoSchedules, getRepoSecret, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, redeliverHook, sendSharedRepoBuildsResponse, sendSharedRepoHooksResponse, setRedirect, setTheme, updateFavorites, updateOrgSecret, updateRepoSchedule, updateRepoSecret
+    , addAlertError, addAlertSuccess, addDeployment, addOrgSecret, addRepoSchedule, addRepoSecret, alertsUpdate, clearRedirect, deleteOrgSecret, deleteRepoSchedule, deleteRepoSecret, downloadFile, enableRepo, expandPipelineConfig, finishAuthentication, focusOn, getBuild, getBuildGraph, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoBuildsShared, getRepoDeployments, getRepoHooks, getRepoHooksShared, getRepoSchedule, getRepoSchedules, getRepoSecret, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, redeliverHook, sendSharedRepoBuildsResponse, sendSharedRepoHooksResponse, setRedirect, setTheme, updateFavorites, updateOrgSecret, updateRepoSchedule, updateRepoSecret
     )
 
 {-|
@@ -399,6 +399,25 @@ updateOrgSecret options =
         |> sendCmd
 
 
+deleteOrgSecret :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> msg
+    , org : String
+    , name : String
+    }
+    -> Effect msg
+deleteOrgSecret options =
+    Api.tryString
+        options.onResponse
+        (Api.Operations.deleteOrgSecret
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
 getRepoSecrets :
     { baseUrl : String
     , session : Auth.Session.Session
@@ -454,6 +473,26 @@ updateRepoSecret options =
     Api.try
         options.onResponse
         (Api.Operations.updateRepoSecret
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+deleteRepoSecret :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> msg
+    , org : String
+    , repo : String
+    , name : String
+    }
+    -> Effect msg
+deleteRepoSecret options =
+    Api.tryString
+        options.onResponse
+        (Api.Operations.deleteRepoSecret
             options.baseUrl
             options.session
             options
@@ -702,6 +741,26 @@ updateRepoSchedule options =
     Api.try
         options.onResponse
         (Api.Operations.updateRepoSchedule
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+deleteRepoSchedule :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> msg
+    , org : String
+    , repo : String
+    , name : String
+    }
+    -> Effect msg
+deleteRepoSchedule options =
+    Api.tryString
+        options.onResponse
+        (Api.Operations.deleteRepoSchedule
             options.baseUrl
             options.session
             options

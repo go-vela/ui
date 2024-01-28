@@ -93,7 +93,7 @@ init : Shared.Model -> () -> ( Model, Effect Msg )
 init shared () =
     ( { favoritesFilter = ""
       }
-    , Effect.none
+    , Effect.getCurrentUser {}
     )
 
 

@@ -262,8 +262,10 @@ view shared route model =
                         , disabled_ = False
                         }
                     , Components.SecretForm.viewHelp shared.velaDocsURL
-                    , Components.SecretForm.viewSubmitButton
+                    , Components.Form.viewButton
                         { msg = SubmitForm
+                        , text_ = "Submit"
+                        , classList_ = []
                         , disabled_ = False
                         }
                     ]

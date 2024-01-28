@@ -5,7 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 module Components.Form exposing (..)
 
-import Html exposing (Html, div, input, label, section, span, strong, text, textarea)
+import Html exposing (Html, button, div, input, label, section, span, strong, text, textarea)
 import Html.Attributes exposing (checked, class, classList, disabled, for, id, placeholder, rows, type_, value, wrap)
 import Html.Events exposing (onCheck, onClick, onInput)
 import Maybe.Extra
@@ -146,3 +146,15 @@ viewRadio { title, subtitle, value, field, msg, disabled_ } =
 viewSubtitle : Maybe (Html msg) -> Html msg
 viewSubtitle subtitle =
     Maybe.Extra.unwrap (text "") (\s -> span [] [ text <| " ", s ]) subtitle
+
+
+viewButton : { msg : msg, text_ : String, classList_ : List ( String, Bool ), disabled_ : Bool } -> Html msg
+viewButton { msg, text_, classList_, disabled_ } =
+    button
+        [ class "button"
+        , class "-outline"
+        , onClick msg
+        , disabled disabled_
+        , classList classList_
+        ]
+        [ text text_ ]
