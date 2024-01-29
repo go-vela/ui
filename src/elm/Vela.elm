@@ -6,6 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 module Vela exposing
     ( AddSchedulePayload
     , AllowEvents
+    , AllowEventsPayload
     , AuthParams
     , Build
     , BuildGraph
@@ -121,6 +122,8 @@ module Vela exposing
     , defaultPipeline
     , defaultPipelineTemplates
     , defaultRepoModel
+    , defaultSecretAllowEvents
+    , defaultSecretAllowEventsPayload
     , defaultStep
     , encodeBuildGraphRenderData
     , encodeDeploymentPayload
@@ -949,11 +952,17 @@ type alias CommentActions =
     }
 
 
+type alias ScheduleActions =
+    { run : Bool
+    }
+
+
 type alias AllowEvents =
     { push : PushActions
     , pull : PullActions
     , deploy : DeployActions
     , comment : CommentActions
+    , schedule : ScheduleActions
     }
 
 
@@ -1033,6 +1042,12 @@ decodeCommentActions =
         |> required "edited" bool
 
 
+decodeScheduleActions : Decoder ScheduleActions
+decodeScheduleActions =
+    Decode.succeed ScheduleActions
+        |> required "run" bool
+
+
 decodeAllowEvents : Decoder AllowEvents
 decodeAllowEvents =
     Decode.succeed AllowEvents
@@ -1040,6 +1055,7 @@ decodeAllowEvents =
         |> required "pull_request" decodePullActions
         |> required "deployment" decodeDeployActions
         |> required "comment" decodeCommentActions
+        |> required "schedule" decodeScheduleActions
 
 
 decodeRepositories : Decoder (List Repository)
@@ -1165,6 +1181,7 @@ encodeAllowEvents events =
         , ( "pull_request", encodePullActions events.pull )
         , ( "deployment", encodeDeployActions events.deploy )
         , ( "comment", encodeCommentActions events.comment )
+        , ( "schedule", encodeScheduleActions events.schedule )
         ]
 
 
@@ -1203,6 +1220,13 @@ encodeCommentActions comment =
         ]
 
 
+encodeScheduleActions : ScheduleActionsPayload -> Encode.Value
+encodeScheduleActions schedule =
+    Encode.object
+        [ ( "run", Encode.bool <| schedule.run )
+        ]
+
+
 type alias EnableRepositoryPayload =
     { org : String
     , name : String
@@ -1226,6 +1250,7 @@ type alias AllowEventsPayload =
     , pull : PullActionsPayload
     , deploy : DeployActionsPayload
     , comment : CommentActionsPayload
+    , schedule : ScheduleActionsPayload
     }
 
 
@@ -1253,6 +1278,11 @@ type alias DeployActionsPayload =
 type alias CommentActionsPayload =
     { created : Bool
     , edited : Bool
+    }
+
+
+type alias ScheduleActionsPayload =
+    { run : Bool
     }
 
 
@@ -1289,14 +1319,19 @@ defaultUpdateRepositoryPayload =
     UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 
-defaultAllowEventsPayload : Repository -> AllowEventsPayload
-defaultAllowEventsPayload repository =
+defaultRepoAllowEventsPayload : Repository -> AllowEventsPayload
+defaultRepoAllowEventsPayload repository =
     case repository.allow_events of
         Nothing ->
-            AllowEventsPayload (defaultPushActionsPayload Nothing) (defaultPullActionsPayload Nothing) (defaultDeployActionsPayload Nothing) (defaultCommentActionsPayload Nothing)
+            AllowEventsPayload (defaultPushActionsPayload Nothing) (defaultPullActionsPayload Nothing) (defaultDeployActionsPayload Nothing) (defaultCommentActionsPayload Nothing) (defaultScheduleActionsPayload Nothing)
 
         Just events ->
-            AllowEventsPayload (defaultPushActionsPayload (Just events.push)) (defaultPullActionsPayload (Just events.pull)) (defaultDeployActionsPayload (Just events.deploy)) (defaultCommentActionsPayload (Just events.comment))
+            AllowEventsPayload (defaultPushActionsPayload (Just events.push)) (defaultPullActionsPayload (Just events.pull)) (defaultDeployActionsPayload (Just events.deploy)) (defaultCommentActionsPayload (Just events.comment)) (defaultScheduleActionsPayload (Just events.schedule))
+
+
+defaultSecretAllowEventsPayload : Secret -> AllowEventsPayload
+defaultSecretAllowEventsPayload secret =
+    AllowEventsPayload (defaultPushActionsPayload (Just secret.allowEvents.push)) (defaultPullActionsPayload (Just secret.allowEvents.pull)) (defaultDeployActionsPayload (Just secret.allowEvents.deploy)) (defaultCommentActionsPayload (Just secret.allowEvents.comment)) (defaultScheduleActionsPayload (Just secret.allowEvents.schedule))
 
 
 defaultPushActionsPayload : Maybe PushActions -> PushActionsPayload
@@ -1337,6 +1372,16 @@ defaultCommentActionsPayload commentActions =
 
         Just comment ->
             CommentActionsPayload comment.created comment.edited
+
+
+defaultScheduleActionsPayload : Maybe ScheduleActions -> ScheduleActionsPayload
+defaultScheduleActionsPayload scheduleActions =
+    case scheduleActions of
+        Nothing ->
+            ScheduleActionsPayload False
+
+        Just schedule ->
+            ScheduleActionsPayload schedule.run
 
 
 encodeUpdateRepository : UpdateRepositoryPayload -> Encode.Value
@@ -1384,7 +1429,7 @@ buildUpdateRepoEventsPayload : Repository -> Field -> Bool -> UpdateRepositoryPa
 buildUpdateRepoEventsPayload repository field value =
     let
         events =
-            defaultAllowEventsPayload repository
+            defaultRepoAllowEventsPayload repository
 
         pushActions =
             events.push
@@ -2371,6 +2416,7 @@ type alias Secret =
     , type_ : SecretType
     , images : List String
     , events : List String
+    , allowEvents : AllowEvents
     , allowCommand : Bool
     }
 
@@ -2469,6 +2515,11 @@ secretToKey secret =
             secret.org ++ "/" ++ secret.repo ++ "/" ++ secret.name
 
 
+defaultSecretAllowEvents : AllowEvents
+defaultSecretAllowEvents =
+    { push = { branch = True, tag = True }, pull = defaultPullActionsPayload Nothing, deploy = { created = True }, comment = defaultCommentActionsPayload Nothing, schedule = defaultScheduleActionsPayload Nothing }
+
+
 decodeSecret : Decoder Secret
 decodeSecret =
     Decode.succeed Secret
@@ -2481,6 +2532,7 @@ decodeSecret =
         |> optional "type" secretTypeDecoder RepoSecret
         |> optional "images" (Decode.list string) []
         |> optional "events" (Decode.list string) []
+        |> optional "allow_events" decodeAllowEvents defaultSecretAllowEvents
         |> optional "allow_command" bool False
 
 
@@ -2504,6 +2556,7 @@ type alias UpdateSecretPayload =
     , value : Maybe String
     , events : Maybe (List String)
     , images : Maybe (List String)
+    , allowEvents : Maybe AllowEventsPayload
     , allowCommand : Maybe Bool
     }
 
@@ -2519,6 +2572,7 @@ encodeUpdateSecret secret =
         , ( "value", encodeOptional Encode.string secret.value )
         , ( "events", encodeOptionalList Encode.string secret.events )
         , ( "images", encodeOptionalList Encode.string secret.images )
+        , ( "allow_events", encodeOptional encodeAllowEvents secret.allowEvents )
         , ( "allow_command", encodeOptional Encode.bool secret.allowCommand )
         ]
 
@@ -2532,10 +2586,11 @@ buildUpdateSecretPayload :
     -> Maybe String
     -> Maybe (List String)
     -> Maybe (List String)
+    -> Maybe AllowEvents
     -> Maybe Bool
     -> UpdateSecretPayload
-buildUpdateSecretPayload type_ org repo team name value events images allowCommand =
-    UpdateSecretPayload type_ org repo team name value events images allowCommand
+buildUpdateSecretPayload type_ org repo team name value events images allowEvents allowCommand =
+    UpdateSecretPayload type_ org repo team name value events images allowEvents allowCommand
 
 
 
