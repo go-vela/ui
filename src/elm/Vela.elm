@@ -14,8 +14,7 @@ module Vela exposing
     , Deployment
     , DeploymentPayload
     , EnableRepoPayload
-    , Enabled
-    , Enabling(..)
+    , Enabled(..)
     , Engine
     , Event
     , Hook
@@ -252,10 +251,22 @@ enableRepoDict repo status repos orgRepos =
 
 enableRepoList : Repository -> Enabled -> List Repository -> List Repository
 enableRepoList repo status orgRepos =
+    let
+        active =
+            case status of
+                Enabled ->
+                    True
+
+                Disabled ->
+                    False
+
+                _ ->
+                    repo.active
+    in
     List.map
         (\sourceRepo ->
             if sourceRepo.name == repo.name then
-                { sourceRepo | enabled = status }
+                { sourceRepo | active = active, enabled = status }
 
             else
                 sourceRepo
@@ -281,17 +292,13 @@ type alias EnableRepoPayload =
     }
 
 
-type Enabling
+type Enabled
     = ConfirmDisable
     | Disabling
     | Disabled
     | Enabling
     | Enabled
-    | NotAsked_
-
-
-type alias Enabled =
-    WebData Bool
+    | Failed
 
 
 enabledDecoder : Decoder Enabled
@@ -301,20 +308,6 @@ enabledDecoder =
 
 toEnabled : Bool -> Decoder Enabled
 toEnabled active =
-    if active then
-        succeed <| RemoteData.succeed True
-
-    else
-        succeed RemoteData.NotAsked
-
-
-enablingDecoder : Decoder Enabling
-enablingDecoder =
-    bool |> andThen toEnabling
-
-
-toEnabling : Bool -> Decoder Enabling
-toEnabling active =
     if active then
         succeed Enabled
 
@@ -350,7 +343,6 @@ type alias Repository =
     , allow_comment : Bool
     , allow_events : Maybe AllowEvents
     , enabled : Enabled
-    , enabling : Enabling
     , pipeline_type : String
     }
 
@@ -381,9 +373,7 @@ decodeRepository =
         |> optional "allow_comment" bool False
         |> optional "allow_events" (Json.Decode.maybe decodeAllowEvents) Nothing
         -- "enabled"
-        |> optional "active" enabledDecoder RemoteData.NotAsked
-        -- "enabling"
-        |> optional "active" enablingDecoder NotAsked_
+        |> optional "active" enabledDecoder Disabled
         |> optional "pipeline_type" string ""
 
 

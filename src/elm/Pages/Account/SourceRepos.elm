@@ -131,7 +131,7 @@ type Msg
     | GetUserSourceReposResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.SourceRepositories ))
     | EnableRepos (List Vela.Repository)
     | EnableRepo Vela.Repository
-    | EnableRepoResponse Vela.Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
+    | EnableRepoResponse { repo : Vela.Repository } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
     | UpdateSearchFilter Vela.Org String
       -- FAVORITES
     | ToggleFavorite Vela.Org (Maybe String)
@@ -194,26 +194,26 @@ update shared msg model =
                     Http.jsonBody <| Vela.encodeEnableRepository payload
             in
             ( { model
-                | sourceRepos = Vela.enableUpdate repo RemoteData.Loading model.sourceRepos
+                | sourceRepos = Vela.enableUpdate repo Vela.Enabling model.sourceRepos
               }
             , Effect.enableRepo
                 { baseUrl = shared.velaAPI
                 , session = shared.session
-                , onResponse = EnableRepoResponse repo
+                , onResponse = EnableRepoResponse { repo = repo }
                 , body = body
                 }
             )
 
-        EnableRepoResponse repo response ->
+        EnableRepoResponse options response ->
             case response of
-                Ok ( _, enabledRepo ) ->
+                Ok ( _, repo ) ->
                     ( { model
-                        | sourceRepos = Vela.enableUpdate enabledRepo (RemoteData.succeed True) model.sourceRepos
+                        | sourceRepos = Vela.enableUpdate repo Vela.Enabled model.sourceRepos
                       }
                     , Effect.batch
                         [ Effect.addAlertSuccess
-                            { content = enabledRepo.full_name ++ " enabled.", addToastIfUnique = True }
-                        , Effect.updateFavorites { org = enabledRepo.org, maybeRepo = Just enabledRepo.name, updateType = Favorites.Add }
+                            { content = "Repo " ++ repo.full_name ++ " enabled.", addToastIfUnique = True }
+                        , Effect.updateFavorites { org = repo.org, maybeRepo = Just repo.name, updateType = Favorites.Add }
                         ]
                     )
 
@@ -222,16 +222,21 @@ update shared msg model =
                         Http.Detailed.BadStatus metadata _ ->
                             case metadata.statusCode of
                                 409 ->
-                                    ( RemoteData.succeed True, Effect.none )
+                                    ( Vela.Enabled
+                                    , Effect.addAlertSuccess
+                                        { content = "Repo " ++ options.repo.full_name ++ " enabled."
+                                        , addToastIfUnique = False
+                                        }
+                                    )
 
                                 _ ->
-                                    ( Utils.Errors.toFailure error, Effect.handleHttpError { httpError = error } )
+                                    ( Vela.Failed, Effect.handleHttpError { httpError = error } )
 
                         _ ->
-                            ( Utils.Errors.toFailure error, Effect.handleHttpError { httpError = error } )
+                            ( Vela.Failed, Effect.handleHttpError { httpError = error } )
                     )
-                        |> Tuple.mapFirst (\m -> Vela.enableUpdate repo m model.sourceRepos)
-                        |> Tuple.mapFirst (\m -> { model | sourceRepos = m })
+                        |> Tuple.mapFirst (\enabled -> Vela.enableUpdate options.repo enabled model.sourceRepos)
+                        |> Tuple.mapFirst (\_ -> { model | sourceRepos = Utils.Errors.toFailure error })
 
         UpdateSearchFilter org searchBy ->
             ( { model
@@ -475,7 +480,7 @@ enableReposButton org repos filtered enableRepos =
 enableRepoButton : Vela.Repository -> (Vela.Repository -> msg) -> Favorites.UpdateFavorites msg -> WebData Vela.CurrentUser -> Html msg
 enableRepoButton repo enableRepo toggleFavorite user =
     case repo.enabled of
-        RemoteData.NotAsked ->
+        Vela.Disabled ->
             button
                 [ class "button"
                 , Util.testAttribute <| String.join "-" [ "enable", repo.org, repo.name ]
@@ -483,7 +488,7 @@ enableRepoButton repo enableRepo toggleFavorite user =
                 ]
                 [ text "Enable" ]
 
-        RemoteData.Loading ->
+        Vela.Enabling ->
             button
                 [ class "button"
                 , class "-outline"
@@ -492,7 +497,64 @@ enableRepoButton repo enableRepo toggleFavorite user =
                 ]
                 [ text "Enabling", span [ class "loading-ellipsis" ] [] ]
 
-        RemoteData.Failure _ ->
+        Vela.Enabled ->
+            div [ class "buttons" ]
+                [ Components.Favorites.viewStarToggle
+                    { msg = toggleFavorite
+                    , user = user
+                    , org = repo.org
+                    , repo = repo.name
+                    }
+                , button
+                    [ class "button"
+                    , class "-outline"
+                    , class "-success"
+                    , attribute "tabindex" "-1" -- in this scenario we are merely showing state, this is not interactive
+                    , Util.testAttribute <| String.join "-" [ "enabled", repo.org, repo.name ]
+                    ]
+                    [ FeatherIcons.check |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Enabled" ]
+                , a
+                    [ class "button"
+                    , Util.testAttribute <| String.join "-" [ "view", repo.org, repo.name ]
+                    , Route.Path.href <| Route.Path.Org_Repo_ { org = repo.org, repo = repo.name }
+                    ]
+                    [ text "View" ]
+                ]
+
+        Vela.ConfirmDisable ->
+            div [ class "buttons" ]
+                [ Components.Favorites.viewStarToggle
+                    { msg = toggleFavorite
+                    , user = user
+                    , org = repo.org
+                    , repo = repo.name
+                    }
+                , button
+                    [ class "button"
+                    , class "-outline"
+                    , class "-success"
+                    , attribute "tabindex" "-1" -- in this scenario we are merely showing state, this is not interactive
+                    , Util.testAttribute <| String.join "-" [ "enabled", repo.org, repo.name ]
+                    ]
+                    [ FeatherIcons.check |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Really Disable?" ]
+                , a
+                    [ class "button"
+                    , Util.testAttribute <| String.join "-" [ "view", repo.org, repo.name ]
+                    , Route.Path.href <| Route.Path.Org_Repo_ { org = repo.org, repo = repo.name }
+                    ]
+                    [ text "View" ]
+                ]
+
+        Vela.Disabling ->
+            button
+                [ class "button"
+                , class "-outline"
+                , class "-loading"
+                , Util.testAttribute <| String.join "-" [ "loading", repo.org, repo.name ]
+                ]
+                [ text "Disabling", span [ class "loading-ellipsis" ] [] ]
+
+        Vela.Failed ->
             button
                 [ class "button"
                 , class "-outline"
@@ -502,41 +564,6 @@ enableRepoButton repo enableRepo toggleFavorite user =
                 , onClick (enableRepo repo)
                 ]
                 [ FeatherIcons.refreshCw |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
-
-        RemoteData.Success enabledStatus ->
-            if enabledStatus then
-                div [ class "buttons" ]
-                    [ Components.Favorites.viewStarToggle
-                        { msg = toggleFavorite
-                        , user = user
-                        , org = repo.org
-                        , repo = repo.name
-                        }
-                    , button
-                        [ class "button"
-                        , class "-outline"
-                        , class "-success"
-                        , attribute "tabindex" "-1" -- in this scenario we are merely showing state, this is not interactive
-                        , Util.testAttribute <| String.join "-" [ "enabled", repo.org, repo.name ]
-                        ]
-                        [ FeatherIcons.check |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Enabled" ]
-                    , a
-                        [ class "button"
-                        , Util.testAttribute <| String.join "-" [ "view", repo.org, repo.name ]
-                        , Route.Path.href <| Route.Path.Org_Repo_ { org = repo.org, repo = repo.name }
-                        ]
-                        [ text "View" ]
-                    ]
-
-            else
-                button
-                    [ class "button"
-                    , class "-outline"
-                    , class "-failure"
-                    , Util.testAttribute <| String.join "-" [ "failed", repo.org, repo.name ]
-                    , onClick (enableRepo repo)
-                    ]
-                    [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
 
 
 {-| searchReposGlobal : takes source repositories and search filters and renders filtered repos

@@ -1693,7 +1693,8 @@ details.build-toggle {
   justify-content: flex-end;
 }
 
-.button.-secret-delete-confirm {
+.button.-secret-delete-confirm
+,.button .-repo-disable-confirm {
   color: var(--color-red);
 
   background-color: var(--color-bg);

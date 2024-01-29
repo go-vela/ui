@@ -16,10 +16,13 @@ import Http
 import Http.Detailed
 import Layouts
 import Page exposing (Page)
+import Pages.Account.SourceRepos exposing (Msg(..))
 import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
+import Time
 import Utils.Helpers as Util
+import Utils.Interval as Interval
 import Vela exposing (defaultRepoPayload)
 import View exposing (View)
 
@@ -85,7 +88,16 @@ init shared route () =
 type Msg
     = --REPO
       GetRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
+    | GetRepoRefreshResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
     | UpdateRepoResponse { alertLabel : String } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
+    | EnableRepo { repo : Vela.Repository }
+    | EnableRepoResponse { repo : Vela.Repository } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
+    | DisableRepo { repo : Vela.Repository }
+    | DisableRepoResponse { repo : Vela.Repository } (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | RepairRepo { repo : Vela.Repository }
+    | RepairRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | ChownRepo { repo : Vela.Repository }
+    | ChownRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | AllowEventsUpdate Vela.Repository String Bool
     | AccessUpdate String
     | ForkPolicyUpdate String
@@ -95,13 +107,11 @@ type Msg
     | BuildTimeoutUpdate Int
     | BuildCounterOnInput String
     | BuildCounterUpdate Int
-    | Disable
-    | Enable
-    | Chown
-    | Repair
     | PipelineTypeUpdate String
       -- ALERTS
     | AddAlertCopiedToClipboard String
+      -- REFRESH
+    | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
 update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
@@ -120,6 +130,25 @@ update shared route msg model =
                     , Effect.handleHttpError { httpError = error }
                     )
 
+        GetRepoRefreshResponse response ->
+            case response of
+                Ok ( _, repo ) ->
+                    ( { model
+                        | repo =
+                            RemoteData.succeed
+                                { repo
+                                    | enabled =
+                                        RemoteData.unwrap repo.enabled (\repo_ -> repo_.enabled) model.repo
+                                }
+                      }
+                    , Effect.none
+                    )
+
+                Err error ->
+                    ( model
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
         UpdateRepoResponse options response ->
             case response of
                 Ok ( _, repo ) ->
@@ -128,6 +157,221 @@ update shared route msg model =
                         { content = "Repo " ++ options.alertLabel ++ " updated."
                         , addToastIfUnique = False
                         }
+                    )
+
+                Err error ->
+                    ( model
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
+        EnableRepo options ->
+            let
+                payload =
+                    Vela.buildEnableRepoPayload options.repo
+
+                body =
+                    Http.jsonBody <| Vela.encodeEnableRepository payload
+            in
+            options.repo
+                |> (\repo ->
+                        ( { model
+                            | repo =
+                                RemoteData.succeed
+                                    { repo
+                                        | enabled = Vela.Enabling
+                                    }
+                          }
+                        , Effect.enableRepo
+                            { baseUrl = shared.velaAPI
+                            , session = shared.session
+                            , onResponse = EnableRepoResponse { repo = repo }
+                            , body = body
+                            }
+                        )
+                   )
+
+        EnableRepoResponse options response ->
+            case response of
+                Ok ( _, repo ) ->
+                    ( { model
+                        | repo =
+                            RemoteData.succeed
+                                { repo
+                                    | active = True
+                                    , enabled = Vela.Enabled
+                                }
+                      }
+                    , Effect.addAlertSuccess
+                        { content = "Repo " ++ repo.full_name ++ " enabled."
+                        , addToastIfUnique = False
+                        }
+                    )
+
+                Err error ->
+                    let
+                        repo =
+                            options.repo
+                    in
+                    case error of
+                        Http.Detailed.BadStatus metadata _ ->
+                            case metadata.statusCode of
+                                409 ->
+                                    ( { model
+                                        | repo =
+                                            RemoteData.succeed
+                                                { repo
+                                                    | active = True
+                                                    , enabled = Vela.Enabled
+                                                }
+                                      }
+                                    , Effect.addAlertSuccess
+                                        { content = "Repo " ++ repo.full_name ++ " enabled."
+                                        , addToastIfUnique = False
+                                        }
+                                    )
+
+                                _ ->
+                                    ( { model
+                                        | repo = RemoteData.succeed { repo | enabled = Vela.Failed }
+                                      }
+                                    , Effect.handleHttpError { httpError = error }
+                                    )
+
+                        _ ->
+                            ( { model
+                                | repo = RemoteData.succeed { repo | enabled = Vela.Failed }
+                              }
+                            , Effect.handleHttpError { httpError = error }
+                            )
+
+        DisableRepo options ->
+            let
+                repo =
+                    options.repo
+            in
+            case options.repo.enabled of
+                Vela.Enabled ->
+                    ( { model
+                        | repo =
+                            RemoteData.succeed
+                                { repo
+                                    | enabled = Vela.ConfirmDisable
+                                }
+                      }
+                    , Effect.none
+                    )
+
+                Vela.ConfirmDisable ->
+                    ( { model
+                        | repo =
+                            RemoteData.succeed
+                                { repo
+                                    | enabled = Vela.Disabling
+                                }
+                      }
+                    , Effect.disableRepo
+                        { baseUrl = shared.velaAPI
+                        , session = shared.session
+                        , onResponse = DisableRepoResponse { repo = repo }
+                        , org = route.params.org
+                        , repo = route.params.repo
+                        }
+                    )
+
+                _ ->
+                    ( model
+                    , Effect.none
+                    )
+
+        DisableRepoResponse options response ->
+            let
+                repo =
+                    options.repo
+            in
+            case response of
+                Ok ( _, result ) ->
+                    ( { model
+                        | repo =
+                            RemoteData.succeed
+                                { repo
+                                    | active = False
+                                    , enabled = Vela.Disabled
+                                }
+                      }
+                    , Effect.addAlertSuccess
+                        { content = result
+                        , addToastIfUnique = False
+                        }
+                    )
+
+                Err error ->
+                    ( model
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
+        ChownRepo options ->
+            ( model
+            , Effect.chownRepo
+                { baseUrl = shared.velaAPI
+                , session = shared.session
+                , onResponse = ChownRepoResponse
+                , org = route.params.org
+                , repo = route.params.repo
+                }
+            )
+
+        ChownRepoResponse response ->
+            case response of
+                Ok ( _, result ) ->
+                    ( model
+                    , Effect.batch
+                        [ Effect.getRepo
+                            { baseUrl = shared.velaAPI
+                            , session = shared.session
+                            , onResponse = GetRepoResponse
+                            , org = route.params.org
+                            , repo = route.params.repo
+                            }
+                        , Effect.addAlertSuccess
+                            { content = result
+                            , addToastIfUnique = False
+                            }
+                        ]
+                    )
+
+                Err error ->
+                    ( model
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
+        RepairRepo options ->
+            ( model
+            , Effect.repairRepo
+                { baseUrl = shared.velaAPI
+                , session = shared.session
+                , onResponse = RepairRepoResponse
+                , org = route.params.org
+                , repo = route.params.repo
+                }
+            )
+
+        RepairRepoResponse response ->
+            case response of
+                Ok ( _, result ) ->
+                    ( model
+                    , Effect.batch
+                        [ Effect.getRepo
+                            { baseUrl = shared.velaAPI
+                            , session = shared.session
+                            , onResponse = GetRepoResponse
+                            , org = route.params.org
+                            , repo = route.params.repo
+                            }
+                        , Effect.addAlertSuccess
+                            { content = result
+                            , addToastIfUnique = False
+                            }
+                        ]
                     )
 
                 Err error ->
@@ -172,7 +416,10 @@ update shared route msg model =
             , Effect.updateRepo
                 { baseUrl = shared.velaAPI
                 , session = shared.session
-                , onResponse = UpdateRepoResponse { alertLabel = "'visibility'" }
+                , onResponse =
+                    UpdateRepoResponse
+                        { alertLabel = "'visibility'"
+                        }
                 , org = route.params.org
                 , repo = route.params.repo
                 , body = body
@@ -193,7 +440,10 @@ update shared route msg model =
             , Effect.updateRepo
                 { baseUrl = shared.velaAPI
                 , session = shared.session
-                , onResponse = UpdateRepoResponse { alertLabel = "'build approval policy'" }
+                , onResponse =
+                    UpdateRepoResponse
+                        { alertLabel = "'build approval policy'"
+                        }
                 , org = route.params.org
                 , repo = route.params.repo
                 , body = body
@@ -221,7 +471,10 @@ update shared route msg model =
             , Effect.updateRepo
                 { baseUrl = shared.velaAPI
                 , session = shared.session
-                , onResponse = UpdateRepoResponse { alertLabel = "'max build limit'" }
+                , onResponse =
+                    UpdateRepoResponse
+                        { alertLabel = "'max build limit'"
+                        }
                 , org = route.params.org
                 , repo = route.params.repo
                 , body = body
@@ -298,26 +551,6 @@ update shared route msg model =
                 }
             )
 
-        Disable ->
-            ( model
-            , Effect.none
-            )
-
-        Enable ->
-            ( model
-            , Effect.none
-            )
-
-        Chown ->
-            ( model
-            , Effect.none
-            )
-
-        Repair ->
-            ( model
-            , Effect.none
-            )
-
         PipelineTypeUpdate val ->
             let
                 payload =
@@ -345,6 +578,18 @@ update shared route msg model =
             , Effect.addAlertSuccess { content = contentCopied, addToastIfUnique = False }
             )
 
+        -- REFRESH
+        Tick options ->
+            ( model
+            , Effect.getRepo
+                { baseUrl = shared.velaAPI
+                , session = shared.session
+                , onResponse = GetRepoRefreshResponse
+                , org = route.params.org
+                , repo = route.params.repo
+                }
+            )
+
 
 
 -- SUBSCRIPTIONS
@@ -352,7 +597,7 @@ update shared route msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Interval.tickEveryFiveSeconds Tick
 
 
 
@@ -373,7 +618,7 @@ view shared route model =
                     , viewTimeout repo model.inTimeout BuildTimeoutUpdate BuildTimeoutOnInput
                     , viewBuildCounter repo model.inCounter BuildCounterUpdate BuildCounterOnInput
                     , viewBadge shared repo "shared.velaURL" AddAlertCopiedToClipboard
-                    , viewAdminActions repo Disable Enable Chown Repair
+                    , viewAdminActions repo DisableRepo EnableRepo ChownRepo RepairRepo
                     , viewPipelineType repo PipelineTypeUpdate
                     ]
 
@@ -855,11 +1100,11 @@ viewBadge shared repo velaURL copyMsg =
 
 {-| viewAdminActions : takes admin actions and repo and returns view of the repo admin actions.
 -}
-viewAdminActions : Vela.Repository -> msg -> msg -> msg -> msg -> Html msg
+viewAdminActions : Vela.Repository -> ({ repo : Vela.Repository } -> msg) -> ({ repo : Vela.Repository } -> msg) -> ({ repo : Vela.Repository } -> msg) -> ({ repo : Vela.Repository } -> msg) -> Html msg
 viewAdminActions repo disableRepoMsg enableRepoMsg chownRepoMsg repairRepoMsg =
     let
         enabledDetails =
-            if disableable repo.enabling then
+            if disableable repo.enabled then
                 ( "Disable Repository", "This will delete the Vela webhook from this repository." )
 
             else
@@ -879,7 +1124,7 @@ viewAdminActions repo disableRepoMsg enableRepoMsg chownRepoMsg repairRepoMsg =
                 , class "-outline"
                 , attribute "aria-label" <| "become owner of the webhook for " ++ repo.full_name
                 , Util.testAttribute "repo-chown"
-                , onClick chownRepoMsg
+                , onClick (chownRepoMsg { repo = repo })
                 ]
                 [ text "Chown" ]
             ]
@@ -894,7 +1139,7 @@ viewAdminActions repo disableRepoMsg enableRepoMsg chownRepoMsg repairRepoMsg =
                 , class "-outline"
                 , attribute "aria-label" <| "repair the webhook for " ++ repo.full_name
                 , Util.testAttribute "repo-repair"
-                , onClick repairRepoMsg
+                , onClick (repairRepoMsg { repo = repo })
                 ]
                 [ text "Repair" ]
             ]
@@ -903,7 +1148,7 @@ viewAdminActions repo disableRepoMsg enableRepoMsg chownRepoMsg repairRepoMsg =
                 [ text <| Tuple.first enabledDetails
                 , small [] [ em [] [ text <| Tuple.second enabledDetails ] ]
                 ]
-            , viewEnableButton disableRepoMsg enableRepoMsg repo
+            , viewEnableButton (disableRepoMsg { repo = repo }) (enableRepoMsg { repo = repo }) repo
             ]
         ]
 
@@ -922,16 +1167,7 @@ viewEnableButton disableRepoMsg enableRepoMsg repo =
         baseTestAttribute =
             Util.testAttribute "repo-disable"
     in
-    case repo.enabling of
-        Vela.NotAsked_ ->
-            button
-                [ baseClasses
-                , baseTestAttribute
-                , disabled True
-                , onClick disableRepoMsg
-                ]
-                [ text "Error" ]
-
+    case repo.enabled of
         Vela.Enabled ->
             button
                 [ baseClasses
@@ -954,6 +1190,7 @@ viewEnableButton disableRepoMsg enableRepoMsg repo =
                 , baseTestAttribute
                 , class "repo-disable-confirm"
                 , onClick disableRepoMsg
+                , class "-secret-delete-confirm"
                 ]
                 [ text "Really Disable?" ]
 
@@ -981,10 +1218,19 @@ viewEnableButton disableRepoMsg enableRepoMsg repo =
                 , span [ class "loading-ellipsis" ] []
                 ]
 
+        Vela.Failed ->
+            button
+                [ baseClasses
+                , baseTestAttribute
+                , disabled True
+                , onClick disableRepoMsg
+                ]
+                [ text "Error" ]
+
 
 {-| disableable : takes enabling status and returns if the repo is disableable.
 -}
-disableable : Vela.Enabling -> Bool
+disableable : Vela.Enabled -> Bool
 disableable status =
     case status of
         Vela.Enabled ->
@@ -1002,7 +1248,7 @@ disableable status =
         Vela.Disabled ->
             False
 
-        Vela.NotAsked_ ->
+        Vela.Failed ->
             False
 
 
