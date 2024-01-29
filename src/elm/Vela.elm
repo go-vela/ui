@@ -2517,7 +2517,7 @@ secretToKey secret =
 
 defaultSecretAllowEvents : AllowEvents
 defaultSecretAllowEvents =
-    { push = { branch = True, tag = True }, pull = defaultPullActionsPayload Nothing, deploy = { created = True }, comment = defaultCommentActionsPayload Nothing, schedule = defaultScheduleActionsPayload Nothing }
+    { push = { branch = True, tag = True, delete_branch = True, delete_tag = True }, pull = defaultPullActionsPayload Nothing, deploy = { created = True }, comment = defaultCommentActionsPayload Nothing, schedule = defaultScheduleActionsPayload Nothing }
 
 
 decodeSecret : Decoder Secret

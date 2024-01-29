@@ -372,12 +372,12 @@ events repo msg =
                 , div [ class "form-controls", class "-two-col" ]
                     [ checkbox "Branch"
                         "allow_push_delete_branch"
-                        allowEvents.push.branch
+                        allowEvents.push.delete_branch
                       <|
                         msg repo.org repo.name repo "allow_push_delete_branch"
                     , checkbox "Tag"
                         "allow_push_delete_tag"
-                        allowEvents.push.tag
+                        allowEvents.push.delete_tag
                       <|
                         msg repo.org repo.name repo "allow_push_delete_tag"
                     ]
