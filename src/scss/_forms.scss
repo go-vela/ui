@@ -261,6 +261,16 @@
     }
   }
 
+  &.-two-col-secrets {
+    flex-flow: row wrap;
+    gap: 0.5rem;
+    max-width: 30%;
+
+    .form-control {
+      flex: 0 0 40%;
+    }
+  }
+
   .form-control {
     margin-right: 0.5rem;
   }

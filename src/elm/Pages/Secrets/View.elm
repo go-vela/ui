@@ -25,7 +25,8 @@ import Url exposing (percentEncode)
 import Util exposing (largeLoader)
 import Vela
     exposing
-        ( Secret
+        ( AllowEvents
+        , Secret
         , SecretType(..)
         , Secrets
         , secretTypeToString
@@ -360,7 +361,7 @@ renderSecret type_ secret =
             , scope "row"
             , class "break-word"
             ]
-            [ renderListCell secret.events "no events" "secret-event" ]
+            [ renderListCell (allowEventsToList secret.allowEvents) "no events" "secret-event" ]
         , td
             [ attribute "data-label" "images"
             , scope "row"
@@ -421,7 +422,7 @@ renderSharedSecret type_ secret =
             , scope "row"
             , class "break-word"
             ]
-            [ renderListCell secret.events "no events" "secret-event" ]
+            [ renderListCell (allowEventsToList secret.allowEvents) "no events" "secret-event" ]
         , td
             [ attribute "data-label" "images"
             , scope "row"
@@ -452,6 +453,32 @@ renderListCell items none itemClassName =
                     (\item ->
                         listItemView itemClassName item
                     )
+
+
+appendLabel : Bool -> String -> List String -> List String
+appendLabel enabled label inList =
+    inList
+        ++ (if enabled then
+                [ label ]
+
+            else
+                []
+           )
+
+
+allowEventsToList : AllowEvents -> List String
+allowEventsToList events =
+    []
+        |> appendLabel events.push.branch "push"
+        |> appendLabel events.push.tag "tag"
+        |> appendLabel events.pull.opened "pull_request:opened"
+        |> appendLabel events.pull.synchronize "pull_request:synchronize"
+        |> appendLabel events.pull.edited "pull_request:edited"
+        |> appendLabel events.pull.reopened "pull_request:reopened"
+        |> appendLabel events.deploy.created "deployment"
+        |> appendLabel events.comment.created "comment:created"
+        |> appendLabel events.comment.edited "comment:edited"
+        |> appendLabel events.schedule.run "schedule"
 
 
 {-| listItemView : takes classname, text and size constraints and renders a list element
