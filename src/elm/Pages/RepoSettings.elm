@@ -368,7 +368,7 @@ events repo msg =
                       <|
                         msg repo.org repo.name repo "allow_comment_edited"
                     ]
-                    , h3 [ class "settings-subtitle" ] [ text "Delete" ]
+                , h3 [ class "settings-subtitle" ] [ text "Delete" ]
                 , div [ class "form-controls", class "-two-col" ]
                     [ checkbox "Branch"
                         "allow_push_delete_branch"
