@@ -19,7 +19,7 @@ import Route exposing (Route)
 import Shared
 import String.Extra
 import Utils.Helpers as Util
-import Vela
+import Vela exposing (defaultSchedulePayload)
 import View exposing (View)
 
 
@@ -127,14 +127,14 @@ update shared route msg model =
         SubmitForm ->
             let
                 payload =
-                    Vela.buildSchedulePayload
-                        { org = Just route.params.org
+                    { defaultSchedulePayload
+                        | org = Just route.params.org
                         , repo = Just route.params.repo
                         , name = Util.stringToMaybe model.name
                         , entry = Util.stringToMaybe model.entry
                         , enabled = Just model.enabled
                         , branch = Just model.branch
-                        }
+                    }
 
                 body =
                     Http.jsonBody <| Vela.encodeSchedulePayload payload

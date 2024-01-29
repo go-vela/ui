@@ -9,9 +9,11 @@ module Api.Operations exposing
     , addRepoSchedule
     , addRepoSecret
     , addSharedSecret
+    , chownRepo
     , deleteOrgSecret
     , deleteRepoSchedule
     , deleteRepoSecret
+    , disableRepo
     , enableRepo
     , expandPipelineConfig
     , finishAuthentication
@@ -41,8 +43,10 @@ module Api.Operations exposing
     , getUserSourceRepos
     , logout
     , redeliverHook
+    , repairRepo
     , updateCurrentUser
     , updateOrgSecret
+    , updateRepo
     , updateRepoSchedule
     , updateRepoSecret
     )
@@ -140,6 +144,47 @@ enableRepo baseUrl session body =
         (Api.Endpoint.Repositories Nothing Nothing)
         body
         Vela.decodeRepository
+        |> withAuth session
+
+
+{-| updateRepo : updates a repo
+-}
+updateRepo : String -> Session -> { a | org : String, repo : String, body : Http.Body } -> Request Vela.Repository
+updateRepo baseUrl session options =
+    put baseUrl
+        (Api.Endpoint.Repository options.org options.repo)
+        options.body
+        Vela.decodeRepository
+        |> withAuth session
+
+
+{-| repairRepo : repairs a repo
+-}
+repairRepo : String -> Session -> { a | org : String, repo : String } -> Request String
+repairRepo baseUrl session options =
+    patch baseUrl
+        (Api.Endpoint.RepositoryRepair options.org options.repo)
+        Json.Decode.string
+        |> withAuth session
+
+
+{-| chownRepo : chowns a repo
+-}
+chownRepo : String -> Session -> { a | org : String, repo : String } -> Request String
+chownRepo baseUrl session options =
+    patch baseUrl
+        (Api.Endpoint.RepositoryChown options.org options.repo)
+        Json.Decode.string
+        |> withAuth session
+
+
+{-| disableRepo : disables a repo
+-}
+disableRepo : String -> Session -> { a | org : String, repo : String } -> Request String
+disableRepo baseUrl session options =
+    delete baseUrl
+        (Api.Endpoint.Repository options.org options.repo)
+        Json.Decode.string
         |> withAuth session
 
 

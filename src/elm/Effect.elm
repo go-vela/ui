@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, addDeployment, addOrgSecret, addRepoSchedule, addRepoSecret, alertsUpdate, clearRedirect, deleteOrgSecret, deleteRepoSchedule, deleteRepoSecret, downloadFile, enableRepo, expandPipelineConfig, finishAuthentication, focusOn, getBuild, getBuildGraph, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoBuildsShared, getRepoDeployments, getRepoHooks, getRepoHooksShared, getRepoSchedule, getRepoSchedules, getRepoSecret, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, redeliverHook, setRedirect, setTheme, updateFavorites, updateOrgSecret, updateRepoSchedule, updateRepoSecret
+    , addAlertError, addAlertSuccess, addDeployment, addOrgSecret, addRepoSchedule, addRepoSecret, alertsUpdate, chownRepo, clearRedirect, deleteOrgSecret, deleteRepoSchedule, deleteRepoSecret, disableRepo, downloadFile, enableRepo, expandPipelineConfig, finishAuthentication, focusOn, getBuild, getBuildGraph, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoBuildsShared, getRepoDeployments, getRepoHooks, getRepoHooksShared, getRepoSchedule, getRepoSchedules, getRepoSecret, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, redeliverHook, repairRepo, setRedirect, setTheme, updateFavorites, updateOrgSecret, updateRepo, updateRepoSchedule, updateRepoSecret
     )
 
 {-|
@@ -278,25 +278,93 @@ enableRepo :
     { baseUrl : String
     , session : Auth.Session.Session
     , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ) -> msg
-    , repo : Vela.Repository
+    , body : Http.Body
     }
     -> Effect msg
 enableRepo options =
-    let
-        payload : Vela.EnableRepositoryPayload
-        payload =
-            Vela.buildEnableRepositoryPayload options.repo
-
-        body : Http.Body
-        body =
-            Http.jsonBody <| Vela.encodeEnableRepository payload
-    in
     Api.try
         options.onResponse
         (Api.Operations.enableRepo
             options.baseUrl
             options.session
-            body
+            options.body
+        )
+        |> sendCmd
+
+
+updateRepo :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ) -> msg
+    , org : String
+    , repo : String
+    , body : Http.Body
+    }
+    -> Effect msg
+updateRepo options =
+    Api.try
+        options.onResponse
+        (Api.Operations.updateRepo
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+disableRepo :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> msg
+    , org : String
+    , repo : String
+    }
+    -> Effect msg
+disableRepo options =
+    Api.tryString
+        options.onResponse
+        (Api.Operations.disableRepo
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+repairRepo :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> msg
+    , org : String
+    , repo : String
+    }
+    -> Effect msg
+repairRepo options =
+    Api.tryString
+        options.onResponse
+        (Api.Operations.repairRepo
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+chownRepo :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> msg
+    , org : String
+    , repo : String
+    }
+    -> Effect msg
+chownRepo options =
+    Api.tryString
+        options.onResponse
+        (Api.Operations.chownRepo
+            options.baseUrl
+            options.session
+            options
         )
         |> sendCmd
 

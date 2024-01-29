@@ -23,7 +23,7 @@ import Shared
 import String.Extra
 import Url
 import Utils.Helpers as Util
-import Vela
+import Vela exposing (defaultDeploymentPayload)
 import View exposing (View)
 
 
@@ -211,8 +211,8 @@ update shared route msg model =
         SubmitForm ->
             let
                 payload =
-                    Vela.buildDeploymentPayload
-                        { org = Just route.params.org
+                    { defaultDeploymentPayload
+                        | org = Just route.params.org
                         , repo = Just route.params.repo
                         , commit = Nothing
                         , description = Just model.description
@@ -232,7 +232,7 @@ update shared route msg model =
                                     model.target
                         , task = Just model.task
                         , payload = Just model.parameters
-                        }
+                    }
 
                 body =
                     Http.jsonBody <| Vela.encodeDeploymentPayload payload

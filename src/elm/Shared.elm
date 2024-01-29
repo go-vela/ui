@@ -36,7 +36,7 @@ import Utils.Favorites as Favorites
 import Utils.Helpers as Util
 import Utils.Interval as Interval
 import Utils.Theme as Theme
-import Vela
+import Vela exposing (defaultUpdateUserPayload)
 
 
 
@@ -446,7 +446,7 @@ update route msg model =
                     favoriteUpdateFn model.user favorite
 
                 payload =
-                    Vela.buildUpdateFavoritesPayload favorites
+                    { defaultUpdateUserPayload | favorites = Just favorites }
 
                 body =
                     Http.jsonBody <| Vela.encodeUpdateUser payload

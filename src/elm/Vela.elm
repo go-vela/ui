@@ -4,8 +4,7 @@ SPDX-License-Identifier: Apache-2.0
 
 
 module Vela exposing
-    ( AddSchedulePayload
-    , Build
+    ( Build
     , BuildGraph
     , BuildGraphEdge
     , BuildGraphInteraction
@@ -14,7 +13,7 @@ module Vela exposing
     , CurrentUser
     , Deployment
     , DeploymentPayload
-    , EnableRepositoryPayload
+    , EnableRepoPayload
     , Enabled
     , Enabling(..)
     , Engine
@@ -29,8 +28,10 @@ module Vela exposing
     , PipelineConfig
     , Ref
     , Repo
+    , RepoPayload
     , Repository
     , Schedule
+    , SchedulePayload
     , Secret
     , SecretPayload
     , SecretType(..)
@@ -40,21 +41,10 @@ module Vela exposing
     , Status(..)
     , Step
     , StepNumber
-    , Team
     , Template
     , Templates
     , Type
-    , UpdateRepositoryPayload
-    , UpdateSchedulePayload
-    , UpdateUserPayload
-    , buildDeploymentPayload
-    , buildEnableRepositoryPayload
-    , buildSchedulePayload
-    , buildSecretPayload
-    , buildUpdateFavoritesPayload
-    , buildUpdateRepoBoolPayload
-    , buildUpdateRepoIntPayload
-    , buildUpdateRepoStringPayload
+    , buildEnableRepoPayload
     , decodeBuild
     , decodeBuildGraph
     , decodeBuilds
@@ -74,30 +64,26 @@ module Vela exposing
     , decodeSchedules
     , decodeSecret
     , decodeSecrets
-    , decodeService
     , decodeServices
     , decodeSourceRepositories
-    , decodeStep
     , decodeSteps
-    , defaultEnableRepositoryPayload
-    , defaultSecret
-    , defaultStep
-    , enableRepoList
+    , defaultDeploymentPayload
+    , defaultRepoPayload
+    , defaultSchedulePayload
+    , defaultSecretPayload
+    , defaultUpdateUserPayload
     , enableUpdate
     , encodeBuildGraphRenderData
     , encodeDeploymentPayload
     , encodeEnableRepository
+    , encodeRepoPayload
     , encodeSchedulePayload
     , encodeSecretPayload
-    , encodeUpdateRepository
     , encodeUpdateUser
-    , isComplete
-    , newStepLog
     , secretToKey
     , secretTypeToString
-    , secretsErrorLabel
+    , setAllowEvents
     , statusToString
-    , stringToStatus
     )
 
 import Bytes.Encode
@@ -206,9 +192,134 @@ encodeUpdateUser user =
         ]
 
 
-buildUpdateFavoritesPayload : List String -> UpdateUserPayload
-buildUpdateFavoritesPayload value =
-    { defaultUpdateUserPayload | favorites = Just value }
+
+-- SOURCE REPOS
+
+
+type alias SourceRepositories =
+    Dict String (List Repository)
+
+
+buildEnableRepoPayload : Repository -> EnableRepoPayload
+buildEnableRepoPayload repo =
+    EnableRepoPayload repo.org repo.name repo.full_name repo.link repo.clone repo.private repo.trusted repo.active repo.allow_pull repo.allow_push repo.allow_deploy repo.allow_tag repo.allow_comment repo.allow_events
+
+
+encodeEnableRepository : EnableRepoPayload -> Json.Encode.Value
+encodeEnableRepository repo =
+    Json.Encode.object
+        [ ( "org", Json.Encode.string <| repo.org )
+        , ( "name", Json.Encode.string <| repo.name )
+        , ( "full_name", Json.Encode.string <| repo.full_name )
+        , ( "link", Json.Encode.string <| repo.link )
+        , ( "clone", Json.Encode.string <| repo.clone )
+        , ( "private", Json.Encode.bool <| repo.private )
+        , ( "trusted", Json.Encode.bool <| repo.trusted )
+        , ( "active", Json.Encode.bool <| repo.active )
+        , ( "allow_pull", Json.Encode.bool <| repo.allow_pull )
+        , ( "allow_push", Json.Encode.bool <| repo.allow_push )
+        , ( "allow_deploy", Json.Encode.bool <| repo.allow_deploy )
+        , ( "allow_tag", Json.Encode.bool <| repo.allow_tag )
+        , ( "allow_comment", Json.Encode.bool <| repo.allow_comment )
+        , ( "allow_events", encodeOptional encodeAllowEvents repo.allow_events )
+        ]
+
+
+decodeSourceRepositories : Decoder SourceRepositories
+decodeSourceRepositories =
+    Json.Decode.dict (Json.Decode.list decodeRepository)
+
+
+enableUpdate : Repository -> Enabled -> WebData SourceRepositories -> WebData SourceRepositories
+enableUpdate repo status sourceRepos =
+    case sourceRepos of
+        RemoteData.Success repos ->
+            case Dict.get repo.org repos of
+                Just orgRepos ->
+                    RemoteData.succeed <| enableRepoDict repo status repos orgRepos
+
+                _ ->
+                    sourceRepos
+
+        _ ->
+            sourceRepos
+
+
+enableRepoDict : Repository -> Enabled -> Dict String (List Repository) -> List Repository -> Dict String (List Repository)
+enableRepoDict repo status repos orgRepos =
+    Dict.update repo.org (\_ -> Just <| enableRepoList repo status orgRepos) repos
+
+
+enableRepoList : Repository -> Enabled -> List Repository -> List Repository
+enableRepoList repo status orgRepos =
+    List.map
+        (\sourceRepo ->
+            if sourceRepo.name == repo.name then
+                { sourceRepo | enabled = status }
+
+            else
+                sourceRepo
+        )
+        orgRepos
+
+
+type alias EnableRepoPayload =
+    { org : String
+    , name : String
+    , full_name : String
+    , link : String
+    , clone : String
+    , private : Bool
+    , trusted : Bool
+    , active : Bool
+    , allow_pull : Bool
+    , allow_push : Bool
+    , allow_deploy : Bool
+    , allow_tag : Bool
+    , allow_comment : Bool
+    , allow_events : Maybe AllowEventsPayload
+    }
+
+
+type Enabling
+    = ConfirmDisable
+    | Disabling
+    | Disabled
+    | Enabling
+    | Enabled
+    | NotAsked_
+
+
+type alias Enabled =
+    WebData Bool
+
+
+enabledDecoder : Decoder Enabled
+enabledDecoder =
+    bool |> andThen toEnabled
+
+
+toEnabled : Bool -> Decoder Enabled
+toEnabled active =
+    if active then
+        succeed <| RemoteData.succeed True
+
+    else
+        succeed RemoteData.NotAsked
+
+
+enablingDecoder : Decoder Enabling
+enablingDecoder =
+    bool |> andThen toEnabling
+
+
+toEnabling : Bool -> Decoder Enabling
+toEnabling active =
+    if active then
+        succeed Enabled
+
+    else
+        succeed Disabled
 
 
 
@@ -281,45 +392,131 @@ decodeRepositories =
     Json.Decode.list decodeRepository
 
 
-type Enabling
-    = ConfirmDisable
-    | Disabling
-    | Disabled
-    | Enabling
-    | Enabled
-    | NotAsked_
+type alias RepoPayload =
+    { private : Maybe Bool
+    , trusted : Maybe Bool
+    , active : Maybe Bool
+    , allow_pull : Maybe Bool
+    , allow_push : Maybe Bool
+    , allow_deploy : Maybe Bool
+    , allow_tag : Maybe Bool
+    , allow_comment : Maybe Bool
+    , allow_events : Maybe AllowEventsPayload
+    , visibility : Maybe String
+    , approve_build : Maybe String
+    , limit : Maybe Int
+    , timeout : Maybe Int
+    , counter : Maybe Int
+    , pipeline_type : Maybe String
+    }
 
 
-type alias Enabled =
-    WebData Bool
+encodeRepoPayload : RepoPayload -> Json.Encode.Value
+encodeRepoPayload repo =
+    Json.Encode.object
+        [ ( "active", encodeOptional Json.Encode.bool repo.active )
+        , ( "private", encodeOptional Json.Encode.bool repo.private )
+        , ( "trusted", encodeOptional Json.Encode.bool repo.trusted )
+        , ( "allow_pull", encodeOptional Json.Encode.bool repo.allow_pull )
+        , ( "allow_push", encodeOptional Json.Encode.bool repo.allow_push )
+        , ( "allow_deploy", encodeOptional Json.Encode.bool repo.allow_deploy )
+        , ( "allow_tag", encodeOptional Json.Encode.bool repo.allow_tag )
+        , ( "allow_comment", encodeOptional Json.Encode.bool repo.allow_comment )
+        , ( "allow_events", encodeOptional encodeAllowEvents repo.allow_events )
+        , ( "visibility", encodeOptional Json.Encode.string repo.visibility )
+        , ( "approve_build", encodeOptional Json.Encode.string repo.approve_build )
+        , ( "build_limit", encodeOptional Json.Encode.int repo.limit )
+        , ( "timeout", encodeOptional Json.Encode.int repo.timeout )
+        , ( "counter", encodeOptional Json.Encode.int repo.counter )
+        , ( "pipeline_type", encodeOptional Json.Encode.string repo.pipeline_type )
+        ]
 
 
-enabledDecoder : Decoder Enabled
-enabledDecoder =
-    bool |> andThen toEnabled
+defaultRepoPayload : RepoPayload
+defaultRepoPayload =
+    { private = Nothing
+    , trusted = Nothing
+    , active = Nothing
+    , allow_pull = Nothing
+    , allow_push = Nothing
+    , allow_deploy = Nothing
+    , allow_tag = Nothing
+    , allow_comment = Nothing
+    , allow_events = Nothing
+    , visibility = Nothing
+    , approve_build = Nothing
+    , limit = Nothing
+    , timeout = Nothing
+    , counter = Nothing
+    , pipeline_type = Nothing
+    }
 
 
-toEnabled : Bool -> Decoder Enabled
-toEnabled active =
-    if active then
-        succeed <| RemoteData.succeed True
+setAllowEvents : Repository -> String -> Bool -> RepoPayload -> RepoPayload
+setAllowEvents repo field val payload =
+    let
+        events =
+            defaultAllowEventsPayload repo
 
-    else
-        succeed RemoteData.NotAsked
+        { push, pull, deploy, comment } =
+            events
+    in
+    case field of
+        "allow_push_branch" ->
+            { payload
+                | allow_events = Just { events | push = { push | branch = val } }
+            }
+
+        "allow_push_tag" ->
+            { payload
+                | allow_events = Just { events | push = { push | tag = val } }
+            }
+
+        "allow_pull_opened" ->
+            { payload
+                | allow_events = Just { events | pull = { pull | opened = val } }
+            }
+
+        "allow_pull_synchronize" ->
+            { payload
+                | allow_events = Just { events | pull = { pull | synchronize = val } }
+            }
+
+        "allow_pull_edited" ->
+            { payload
+                | allow_events = Just { events | pull = { pull | edited = val } }
+            }
+
+        "allow_pull_reopened" ->
+            { payload
+                | allow_events = Just { events | pull = { pull | reopened = val } }
+            }
+
+        "allow_deploy_created" ->
+            { payload
+                | allow_events = Just { events | deploy = { deploy | created = val } }
+            }
+
+        "allow_comment_created" ->
+            { payload
+                | allow_events = Just { events | comment = { comment | created = val } }
+            }
+
+        "allow_comment_edited" ->
+            { payload
+                | allow_events = Just { events | comment = { comment | edited = val } }
+            }
+
+        _ ->
+            payload
 
 
-enablingDecoder : Decoder Enabling
-enablingDecoder =
-    bool |> andThen toEnabling
-
-
-toEnabling : Bool -> Decoder Enabling
-toEnabling active =
-    if active then
-        succeed Enabled
-
-    else
-        succeed Disabled
+type alias AllowEventsPayload =
+    { push : PushActions
+    , pull : PullActions
+    , deploy : DeployActions
+    , comment : CommentActions
+    }
 
 
 type alias PushActions =
@@ -355,37 +552,62 @@ type alias AllowEvents =
     }
 
 
-type alias AllowEventsPayload =
-    { push : PushActionsPayload
-    , pull : PullActionsPayload
-    , deploy : DeployActionsPayload
-    , comment : CommentActionsPayload
-    }
+defaultAllowEventsPayload : Repository -> AllowEventsPayload
+defaultAllowEventsPayload repository =
+    case repository.allow_events of
+        Nothing ->
+            AllowEventsPayload
+                (defaultPushActions Nothing)
+                (defaultPullActions Nothing)
+                (defaultDeployActions Nothing)
+                (defaultCommentActions Nothing)
+
+        Just events ->
+            AllowEventsPayload
+                (defaultPushActions (Just events.push))
+                (defaultPullActions (Just events.pull))
+                (defaultDeployActions (Just events.deploy))
+                (defaultCommentActions (Just events.comment))
 
 
-type alias PushActionsPayload =
-    { branch : Bool
-    , tag : Bool
-    }
+defaultPushActions : Maybe PushActions -> PushActions
+defaultPushActions pushActions =
+    case pushActions of
+        Nothing ->
+            PushActions False False
+
+        Just push ->
+            PushActions push.branch push.tag
 
 
-type alias PullActionsPayload =
-    { opened : Bool
-    , synchronize : Bool
-    , edited : Bool
-    , reopened : Bool
-    }
+defaultPullActions : Maybe PullActions -> PullActions
+defaultPullActions pullActions =
+    case pullActions of
+        Nothing ->
+            PullActions False False False False
+
+        Just pull ->
+            PullActions pull.opened pull.synchronize pull.edited pull.reopened
 
 
-type alias DeployActionsPayload =
-    { created : Bool
-    }
+defaultDeployActions : Maybe DeployActions -> DeployActions
+defaultDeployActions deployActions =
+    case deployActions of
+        Nothing ->
+            DeployActions False
+
+        Just deploy ->
+            DeployActions deploy.created
 
 
-type alias CommentActionsPayload =
-    { created : Bool
-    , edited : Bool
-    }
+defaultCommentActions : Maybe CommentActions -> CommentActions
+defaultCommentActions commentActions =
+    case commentActions of
+        Nothing ->
+            CommentActions False False
+
+        Just comment ->
+            CommentActions comment.created comment.edited
 
 
 decodePushActions : Decoder PushActions
@@ -436,7 +658,7 @@ encodeAllowEvents events =
         ]
 
 
-encodePushActions : PushActionsPayload -> Json.Encode.Value
+encodePushActions : PushActions -> Json.Encode.Value
 encodePushActions push =
     Json.Encode.object
         [ ( "branch", Json.Encode.bool <| push.branch )
@@ -444,7 +666,7 @@ encodePushActions push =
         ]
 
 
-encodePullActions : PullActionsPayload -> Json.Encode.Value
+encodePullActions : PullActions -> Json.Encode.Value
 encodePullActions pull =
     Json.Encode.object
         [ ( "opened", Json.Encode.bool <| pull.opened )
@@ -454,337 +676,19 @@ encodePullActions pull =
         ]
 
 
-encodeDeployActions : DeployActionsPayload -> Json.Encode.Value
+encodeDeployActions : DeployActions -> Json.Encode.Value
 encodeDeployActions deploy =
     Json.Encode.object
         [ ( "created", Json.Encode.bool <| deploy.created )
         ]
 
 
-encodeCommentActions : CommentActionsPayload -> Json.Encode.Value
+encodeCommentActions : CommentActions -> Json.Encode.Value
 encodeCommentActions comment =
     Json.Encode.object
         [ ( "created", Json.Encode.bool <| comment.created )
         , ( "edited", Json.Encode.bool <| comment.edited )
         ]
-
-
-type alias SourceRepositories =
-    Dict String (List Repository)
-
-
-buildEnableRepositoryPayload : Repository -> EnableRepositoryPayload
-buildEnableRepositoryPayload repo =
-    EnableRepositoryPayload repo.org repo.name repo.full_name repo.link repo.clone repo.private repo.trusted repo.active repo.allow_pull repo.allow_push repo.allow_deploy repo.allow_tag repo.allow_comment repo.allow_events
-
-
-encodeEnableRepository : EnableRepositoryPayload -> Json.Encode.Value
-encodeEnableRepository repo =
-    Json.Encode.object
-        [ ( "org", Json.Encode.string <| repo.org )
-        , ( "name", Json.Encode.string <| repo.name )
-        , ( "full_name", Json.Encode.string <| repo.full_name )
-        , ( "link", Json.Encode.string <| repo.link )
-        , ( "clone", Json.Encode.string <| repo.clone )
-        , ( "private", Json.Encode.bool <| repo.private )
-        , ( "trusted", Json.Encode.bool <| repo.trusted )
-        , ( "active", Json.Encode.bool <| repo.active )
-        , ( "allow_pull", Json.Encode.bool <| repo.allow_pull )
-        , ( "allow_push", Json.Encode.bool <| repo.allow_push )
-        , ( "allow_deploy", Json.Encode.bool <| repo.allow_deploy )
-        , ( "allow_tag", Json.Encode.bool <| repo.allow_tag )
-        , ( "allow_comment", Json.Encode.bool <| repo.allow_comment )
-        , ( "allow_events", encodeOptional encodeAllowEvents repo.allow_events )
-        ]
-
-
-decodeSourceRepositories : Decoder SourceRepositories
-decodeSourceRepositories =
-    Json.Decode.dict (Json.Decode.list decodeRepository)
-
-
-enableUpdate : Repository -> Enabled -> WebData SourceRepositories -> WebData SourceRepositories
-enableUpdate repo status sourceRepos =
-    case sourceRepos of
-        RemoteData.Success repos ->
-            case Dict.get repo.org repos of
-                Just orgRepos ->
-                    RemoteData.succeed <| enableRepoDict repo status repos orgRepos
-
-                _ ->
-                    sourceRepos
-
-        _ ->
-            sourceRepos
-
-
-enableRepoDict : Repository -> Enabled -> Dict String (List Repository) -> List Repository -> Dict String (List Repository)
-enableRepoDict repo status repos orgRepos =
-    Dict.update repo.org (\_ -> Just <| enableRepoList repo status orgRepos) repos
-
-
-enableRepoList : Repository -> Enabled -> List Repository -> List Repository
-enableRepoList repo status orgRepos =
-    List.map
-        (\sourceRepo ->
-            if sourceRepo.name == repo.name then
-                { sourceRepo | enabled = status }
-
-            else
-                sourceRepo
-        )
-        orgRepos
-
-
-type alias EnableRepositoryPayload =
-    { org : String
-    , name : String
-    , full_name : String
-    , link : String
-    , clone : String
-    , private : Bool
-    , trusted : Bool
-    , active : Bool
-    , allow_pull : Bool
-    , allow_push : Bool
-    , allow_deploy : Bool
-    , allow_tag : Bool
-    , allow_comment : Bool
-    , allow_events : Maybe AllowEventsPayload
-    }
-
-
-defaultEnableRepositoryPayload : EnableRepositoryPayload
-defaultEnableRepositoryPayload =
-    EnableRepositoryPayload "" "" "" "" "" False False True False False False False False Nothing
-
-
-type alias UpdateRepositoryPayload =
-    { private : Maybe Bool
-    , trusted : Maybe Bool
-    , active : Maybe Bool
-    , allow_pull : Maybe Bool
-    , allow_push : Maybe Bool
-    , allow_deploy : Maybe Bool
-    , allow_tag : Maybe Bool
-    , allow_comment : Maybe Bool
-    , allow_events : Maybe AllowEventsPayload
-    , visibility : Maybe String
-    , approve_build : Maybe String
-    , limit : Maybe Int
-    , timeout : Maybe Int
-    , counter : Maybe Int
-    , pipeline_type : Maybe String
-    }
-
-
-defaultUpdateRepositoryPayload : UpdateRepositoryPayload
-defaultUpdateRepositoryPayload =
-    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
-
-
-defaultAllowEventsPayload : Repository -> AllowEventsPayload
-defaultAllowEventsPayload repository =
-    case repository.allow_events of
-        Nothing ->
-            AllowEventsPayload (defaultPushActionsPayload Nothing) (defaultPullActionsPayload Nothing) (defaultDeployActionsPayload Nothing) (defaultCommentActionsPayload Nothing)
-
-        Just events ->
-            AllowEventsPayload (defaultPushActionsPayload (Just events.push)) (defaultPullActionsPayload (Just events.pull)) (defaultDeployActionsPayload (Just events.deploy)) (defaultCommentActionsPayload (Just events.comment))
-
-
-defaultPushActionsPayload : Maybe PushActions -> PushActionsPayload
-defaultPushActionsPayload pushActions =
-    case pushActions of
-        Nothing ->
-            PushActionsPayload False False
-
-        Just push ->
-            PushActionsPayload push.branch push.tag
-
-
-defaultPullActionsPayload : Maybe PullActions -> PullActionsPayload
-defaultPullActionsPayload pullActions =
-    case pullActions of
-        Nothing ->
-            PullActionsPayload False False False False
-
-        Just pull ->
-            PullActionsPayload pull.opened pull.synchronize pull.edited pull.reopened
-
-
-defaultDeployActionsPayload : Maybe DeployActions -> DeployActionsPayload
-defaultDeployActionsPayload deployActions =
-    case deployActions of
-        Nothing ->
-            DeployActionsPayload False
-
-        Just deploy ->
-            DeployActionsPayload deploy.created
-
-
-defaultCommentActionsPayload : Maybe CommentActions -> CommentActionsPayload
-defaultCommentActionsPayload commentActions =
-    case commentActions of
-        Nothing ->
-            CommentActionsPayload False False
-
-        Just comment ->
-            CommentActionsPayload comment.created comment.edited
-
-
-encodeUpdateRepository : UpdateRepositoryPayload -> Json.Encode.Value
-encodeUpdateRepository repo =
-    Json.Encode.object
-        [ ( "active", encodeOptional Json.Encode.bool repo.active )
-        , ( "private", encodeOptional Json.Encode.bool repo.private )
-        , ( "trusted", encodeOptional Json.Encode.bool repo.trusted )
-        , ( "allow_pull", encodeOptional Json.Encode.bool repo.allow_pull )
-        , ( "allow_push", encodeOptional Json.Encode.bool repo.allow_push )
-        , ( "allow_deploy", encodeOptional Json.Encode.bool repo.allow_deploy )
-        , ( "allow_tag", encodeOptional Json.Encode.bool repo.allow_tag )
-        , ( "allow_comment", encodeOptional Json.Encode.bool repo.allow_comment )
-        , ( "allow_events", encodeOptional encodeAllowEvents repo.allow_events )
-        , ( "visibility", encodeOptional Json.Encode.string repo.visibility )
-        , ( "approve_build", encodeOptional Json.Encode.string repo.approve_build )
-        , ( "build_limit", encodeOptional Json.Encode.int repo.limit )
-        , ( "timeout", encodeOptional Json.Encode.int repo.timeout )
-        , ( "counter", encodeOptional Json.Encode.int repo.counter )
-        , ( "pipeline_type", encodeOptional Json.Encode.string repo.pipeline_type )
-        ]
-
-
-encodeOptional : (a -> Json.Encode.Value) -> Maybe a -> Json.Encode.Value
-encodeOptional encoder value =
-    case value of
-        Just value_ ->
-            encoder value_
-
-        Nothing ->
-            Json.Encode.null
-
-
-encodeOptionalList : (a -> Json.Encode.Value) -> Maybe (List a) -> Json.Encode.Value
-encodeOptionalList encoder value =
-    case value of
-        Just value_ ->
-            Json.Encode.list encoder value_
-
-        Nothing ->
-            Json.Encode.null
-
-
-buildUpdateRepoEventsPayload : Repository -> String -> Bool -> UpdateRepositoryPayload
-buildUpdateRepoEventsPayload repository field value =
-    let
-        events =
-            defaultAllowEventsPayload repository
-
-        pushActions =
-            events.push
-
-        pullActions =
-            events.pull
-
-        deployActions =
-            events.deploy
-
-        commentActions =
-            events.comment
-    in
-    case field of
-        "allow_push_branch" ->
-            { defaultUpdateRepositoryPayload | allow_events = Just { events | push = { pushActions | branch = value } } }
-
-        "allow_push_tag" ->
-            { defaultUpdateRepositoryPayload | allow_events = Just { events | push = { pushActions | tag = value } } }
-
-        "allow_pull_opened" ->
-            { defaultUpdateRepositoryPayload | allow_events = Just { events | pull = { pullActions | opened = value } } }
-
-        "allow_pull_synchronize" ->
-            { defaultUpdateRepositoryPayload | allow_events = Just { events | pull = { pullActions | synchronize = value } } }
-
-        "allow_pull_edited" ->
-            { defaultUpdateRepositoryPayload | allow_events = Just { events | pull = { pullActions | edited = value } } }
-
-        "allow_pull_reopened" ->
-            { defaultUpdateRepositoryPayload | allow_events = Just { events | pull = { pullActions | reopened = value } } }
-
-        "allow_deploy_created" ->
-            { defaultUpdateRepositoryPayload | allow_events = Just { events | deploy = { deployActions | created = value } } }
-
-        "allow_comment_created" ->
-            { defaultUpdateRepositoryPayload | allow_events = Just { events | comment = { commentActions | created = value } } }
-
-        "allow_comment_edited" ->
-            { defaultUpdateRepositoryPayload | allow_events = Just { events | comment = { commentActions | edited = value } } }
-
-        _ ->
-            defaultUpdateRepositoryPayload
-
-
-buildUpdateRepoBoolPayload : String -> Bool -> UpdateRepositoryPayload
-buildUpdateRepoBoolPayload field value =
-    case field of
-        "private" ->
-            { defaultUpdateRepositoryPayload | private = Just value }
-
-        "trusted" ->
-            { defaultUpdateRepositoryPayload | trusted = Just value }
-
-        "active" ->
-            { defaultUpdateRepositoryPayload | active = Just value }
-
-        "allow_pull" ->
-            { defaultUpdateRepositoryPayload | allow_pull = Just value }
-
-        "allow_push" ->
-            { defaultUpdateRepositoryPayload | allow_push = Just value }
-
-        "allow_deploy" ->
-            { defaultUpdateRepositoryPayload | allow_deploy = Just value }
-
-        "allow_tag" ->
-            { defaultUpdateRepositoryPayload | allow_tag = Just value }
-
-        "allow_comment" ->
-            { defaultUpdateRepositoryPayload | allow_comment = Just value }
-
-        _ ->
-            defaultUpdateRepositoryPayload
-
-
-buildUpdateRepoStringPayload : String -> String -> UpdateRepositoryPayload
-buildUpdateRepoStringPayload field value =
-    case field of
-        "visibility" ->
-            { defaultUpdateRepositoryPayload | visibility = Just value }
-
-        "pipeline_type" ->
-            { defaultUpdateRepositoryPayload | pipeline_type = Just value }
-
-        "approve_build" ->
-            { defaultUpdateRepositoryPayload | approve_build = Just value }
-
-        _ ->
-            defaultUpdateRepositoryPayload
-
-
-buildUpdateRepoIntPayload : String -> Int -> UpdateRepositoryPayload
-buildUpdateRepoIntPayload field value =
-    case field of
-        "build_limit" ->
-            { defaultUpdateRepositoryPayload | limit = Just value }
-
-        "timeout" ->
-            { defaultUpdateRepositoryPayload | timeout = Just value }
-
-        "counter" ->
-            { defaultUpdateRepositoryPayload | counter = Just value }
-
-        _ ->
-            defaultUpdateRepositoryPayload
 
 
 
@@ -1139,34 +1043,6 @@ statusToString status =
             "error"
 
 
-isComplete : Status -> Bool
-isComplete status =
-    case status of
-        Pending ->
-            False
-
-        PendingApproval ->
-            False
-
-        Running ->
-            False
-
-        Success ->
-            True
-
-        Failure ->
-            True
-
-        Error ->
-            True
-
-        Canceled ->
-            True
-
-        Killed ->
-            True
-
-
 
 -- STEP
 
@@ -1189,11 +1065,6 @@ type alias Step =
     , distribution : String
     , image : String
     }
-
-
-defaultStep : Step
-defaultStep =
-    Step 0 0 0 0 "" "" Pending "" 0 0 0 0 "" "" "" ""
 
 
 decodeStep : Decoder Step
@@ -1289,11 +1160,6 @@ type alias Log =
     }
 
 
-newStepLog : Int -> Log
-newStepLog id =
-    Log id -1 -1 -1 -1 "" "" -1
-
-
 decodeLog : Decoder Log
 decodeLog =
     Json.Decode.succeed
@@ -1380,18 +1246,7 @@ type alias Schedule =
     }
 
 
-type alias AddSchedulePayload =
-    { id : Int
-    , org : String
-    , repo : String
-    , name : String
-    , entry : String
-    , enabled : Bool
-    , branch : String
-    }
-
-
-type alias UpdateSchedulePayload =
+type alias SchedulePayload =
     { org : Maybe Org
     , repo : Maybe Repo
     , name : Maybe Name
@@ -1401,17 +1256,15 @@ type alias UpdateSchedulePayload =
     }
 
 
-buildSchedulePayload :
-    { org : Maybe String
-    , repo : Maybe String
-    , name : Maybe String
-    , entry : Maybe String
-    , enabled : Maybe Bool
-    , branch : Maybe String
+defaultSchedulePayload : SchedulePayload
+defaultSchedulePayload =
+    { org = Nothing
+    , repo = Nothing
+    , name = Nothing
+    , entry = Nothing
+    , enabled = Nothing
+    , branch = Nothing
     }
-    -> UpdateSchedulePayload
-buildSchedulePayload { org, repo, name, entry, enabled, branch } =
-    UpdateSchedulePayload org repo name entry enabled branch
 
 
 decodeSchedule : Decoder Schedule
@@ -1436,7 +1289,7 @@ decodeSchedules =
     Json.Decode.list decodeSchedule
 
 
-encodeSchedulePayload : UpdateSchedulePayload -> Json.Encode.Value
+encodeSchedulePayload : SchedulePayload -> Json.Encode.Value
 encodeSchedulePayload schedule =
     Json.Encode.object
         [ ( "name", encodeOptional Json.Encode.string schedule.name )
@@ -1468,11 +1321,6 @@ type SecretType
     = SharedSecret
     | OrgSecret
     | RepoSecret
-
-
-defaultSecret : SecretType -> Secret
-defaultSecret secretType =
-    Secret -1 "" "" "" "" "" secretType [] [ "push" ] True
 
 
 secretTypeDecoder : Decoder SecretType
@@ -1507,19 +1355,6 @@ secretTypeToString type_ =
 
         RepoSecret ->
             "repo"
-
-
-secretsErrorLabel : SecretType -> Org -> Maybe Key -> String
-secretsErrorLabel type_ org key =
-    case type_ of
-        OrgSecret ->
-            "org secrets for " ++ org
-
-        RepoSecret ->
-            "repo secrets for " ++ org ++ "/" ++ Maybe.withDefault "" key
-
-        SharedSecret ->
-            "shared secrets for " ++ org ++ "/" ++ Maybe.withDefault "" key
 
 
 maybeSecretTypeToMaybeString : Maybe SecretType -> Maybe String
@@ -1584,6 +1419,20 @@ type alias SecretPayload =
     }
 
 
+defaultSecretPayload : SecretPayload
+defaultSecretPayload =
+    { type_ = Nothing
+    , org = Nothing
+    , repo = Nothing
+    , team = Nothing
+    , name = Nothing
+    , value = Nothing
+    , events = Nothing
+    , images = Nothing
+    , allowCommand = Nothing
+    }
+
+
 encodeSecretPayload : SecretPayload -> Json.Encode.Value
 encodeSecretPayload secret =
     Json.Encode.object
@@ -1597,22 +1446,6 @@ encodeSecretPayload secret =
         , ( "images", encodeOptionalList Json.Encode.string secret.images )
         , ( "allow_command", encodeOptional Json.Encode.bool secret.allowCommand )
         ]
-
-
-buildSecretPayload :
-    { type_ : Maybe SecretType
-    , org : Maybe String
-    , repo : Maybe String
-    , team : Maybe String
-    , name : Maybe String
-    , value : Maybe String
-    , events : Maybe (List String)
-    , images : Maybe (List String)
-    , allowCommands : Maybe Bool
-    }
-    -> SecretPayload
-buildSecretPayload { type_, org, repo, team, name, value, events, images, allowCommands } =
-    SecretPayload type_ org repo team name value events images allowCommands
 
 
 
@@ -1665,19 +1498,17 @@ type alias DeploymentPayload =
     }
 
 
-buildDeploymentPayload :
-    { org : Maybe String
-    , repo : Maybe String
-    , commit : Maybe String
-    , description : Maybe String
-    , ref : Maybe String
-    , target : Maybe String
-    , task : Maybe String
-    , payload : Maybe (List KeyValuePair)
+defaultDeploymentPayload : DeploymentPayload
+defaultDeploymentPayload =
+    { org = Nothing
+    , repo = Nothing
+    , commit = Nothing
+    , description = Nothing
+    , ref = Nothing
+    , target = Nothing
+    , task = Nothing
+    , payload = Nothing
     }
-    -> DeploymentPayload
-buildDeploymentPayload { org, repo, commit, description, ref, target, task, payload } =
-    DeploymentPayload org repo commit description ref target task payload
 
 
 encodeDeploymentPayload : DeploymentPayload -> Json.Encode.Value
@@ -1692,6 +1523,11 @@ encodeDeploymentPayload deployment =
         , ( "task", encodeOptional Json.Encode.string deployment.task )
         , ( "payload", encodeOptionalKeyValuePairList deployment.payload )
         ]
+
+
+decodeDeploymentParameters : Decoder (Maybe (List KeyValuePair))
+decodeDeploymentParameters =
+    Json.Decode.map decodeKeyValuePairs <| Json.Decode.keyValuePairs Json.Decode.string
 
 
 type alias KeyValuePair =
@@ -1729,6 +1565,21 @@ decodeKeyValuePairs o =
         Just <| List.map decodeKeyValuePair <| o
 
 
-decodeDeploymentParameters : Decoder (Maybe (List KeyValuePair))
-decodeDeploymentParameters =
-    Json.Decode.map decodeKeyValuePairs <| Json.Decode.keyValuePairs Json.Decode.string
+encodeOptional : (a -> Json.Encode.Value) -> Maybe a -> Json.Encode.Value
+encodeOptional encoder value =
+    case value of
+        Just value_ ->
+            encoder value_
+
+        Nothing ->
+            Json.Encode.null
+
+
+encodeOptionalList : (a -> Json.Encode.Value) -> Maybe (List a) -> Json.Encode.Value
+encodeOptionalList encoder value =
+    case value of
+        Just value_ ->
+            Json.Encode.list encoder value_
+
+        Nothing ->
+            Json.Encode.null

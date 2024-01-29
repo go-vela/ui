@@ -263,14 +263,14 @@ delete api endpoint decoder =
 
 {-| patch : creates a PATCH request configuration
 -}
-patch : String -> Endpoint -> Request String
-patch api endpoint =
+patch : String -> Endpoint -> Decoder b -> Request b
+patch api endpoint decoder =
     request
         { method = "PATCH"
         , headers = []
         , url = Endpoint.toUrl api endpoint
         , body = Http.emptyBody
-        , decoder = Json.Decode.string
+        , decoder = decoder
         }
 
 

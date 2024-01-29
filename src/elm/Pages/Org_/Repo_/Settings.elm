@@ -19,9 +19,8 @@ import Page exposing (Page)
 import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
-import Utils.Favorites as Favorites
 import Utils.Helpers as Util
-import Vela
+import Vela exposing (defaultRepoPayload)
 import View exposing (View)
 
 
@@ -86,7 +85,8 @@ init shared route () =
 type Msg
     = --REPO
       GetRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
-    | AllowEventsUpdate String Bool
+    | UpdateRepoResponse { alertLabel : String } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
+    | AllowEventsUpdate Vela.Repository String Bool
     | AccessUpdate String
     | ForkPolicyUpdate String
     | BuildLimitOnInput String
@@ -120,29 +120,112 @@ update shared route msg model =
                     , Effect.handleHttpError { httpError = error }
                     )
 
-        AllowEventsUpdate event val ->
+        UpdateRepoResponse options response ->
+            case response of
+                Ok ( _, repo ) ->
+                    ( { model | repo = RemoteData.succeed repo }
+                    , Effect.addAlertSuccess
+                        { content = "Repo " ++ options.alertLabel ++ " updated."
+                        , addToastIfUnique = False
+                        }
+                    )
+
+                Err error ->
+                    ( model
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
+        AllowEventsUpdate repo event val ->
+            let
+                payload =
+                    defaultRepoPayload
+                        |> Vela.setAllowEvents repo event val
+
+                body =
+                    Http.jsonBody <| Vela.encodeRepoPayload payload
+            in
             ( model
-            , Effect.none
+            , Effect.updateRepo
+                { baseUrl = shared.velaAPI
+                , session = shared.session
+                , onResponse =
+                    UpdateRepoResponse
+                        { alertLabel = "'allowed events'"
+                        }
+                , org = route.params.org
+                , repo = route.params.repo
+                , body = body
+                }
             )
 
         AccessUpdate val ->
+            let
+                payload =
+                    { defaultRepoPayload
+                        | visibility = Just val
+                    }
+
+                body =
+                    Http.jsonBody <| Vela.encodeRepoPayload payload
+            in
             ( model
-            , Effect.none
+            , Effect.updateRepo
+                { baseUrl = shared.velaAPI
+                , session = shared.session
+                , onResponse = UpdateRepoResponse { alertLabel = "'visibility'" }
+                , org = route.params.org
+                , repo = route.params.repo
+                , body = body
+                }
             )
 
         ForkPolicyUpdate val ->
+            let
+                payload =
+                    { defaultRepoPayload
+                        | approve_build = Just val
+                    }
+
+                body =
+                    Http.jsonBody <| Vela.encodeRepoPayload payload
+            in
             ( model
-            , Effect.none
+            , Effect.updateRepo
+                { baseUrl = shared.velaAPI
+                , session = shared.session
+                , onResponse = UpdateRepoResponse { alertLabel = "'build approval policy'" }
+                , org = route.params.org
+                , repo = route.params.repo
+                , body = body
+                }
             )
 
         BuildLimitOnInput val ->
-            ( { model | inLimit = Just <| Maybe.withDefault 0 <| String.toInt val }
+            ( { model
+                | inLimit = Just <| Maybe.withDefault 0 <| String.toInt val
+              }
             , Effect.none
             )
 
         BuildLimitUpdate val ->
+            let
+                payload =
+                    { defaultRepoPayload
+                        | limit = Just val
+                    }
+
+                body =
+                    Http.jsonBody <| Vela.encodeRepoPayload payload
+            in
             ( model
-            , Effect.none
+            , Effect.updateRepo
+                { baseUrl = shared.velaAPI
+                , session = shared.session
+                , onResponse = UpdateRepoResponse { alertLabel = "'max build limit'" }
+                , org = route.params.org
+                , repo = route.params.repo
+                , body = body
+                }
             )
 
         BuildTimeoutOnInput val ->
@@ -160,8 +243,24 @@ update shared route msg model =
             )
 
         BuildTimeoutUpdate val ->
+            let
+                payload =
+                    { defaultRepoPayload
+                        | timeout = Just val
+                    }
+
+                body =
+                    Http.jsonBody <| Vela.encodeRepoPayload payload
+            in
             ( model
-            , Effect.none
+            , Effect.updateRepo
+                { baseUrl = shared.velaAPI
+                , session = shared.session
+                , onResponse = UpdateRepoResponse { alertLabel = "'build timeout'" }
+                , org = route.params.org
+                , repo = route.params.repo
+                , body = body
+                }
             )
 
         BuildCounterOnInput val ->
@@ -179,8 +278,24 @@ update shared route msg model =
             )
 
         BuildCounterUpdate val ->
+            let
+                payload =
+                    { defaultRepoPayload
+                        | counter = Just val
+                    }
+
+                body =
+                    Http.jsonBody <| Vela.encodeRepoPayload payload
+            in
             ( model
-            , Effect.none
+            , Effect.updateRepo
+                { baseUrl = shared.velaAPI
+                , session = shared.session
+                , onResponse = UpdateRepoResponse { alertLabel = "'build counter'" }
+                , org = route.params.org
+                , repo = route.params.repo
+                , body = body
+                }
             )
 
         Disable ->
@@ -204,8 +319,24 @@ update shared route msg model =
             )
 
         PipelineTypeUpdate val ->
+            let
+                payload =
+                    { defaultRepoPayload
+                        | pipeline_type = Just val
+                    }
+
+                body =
+                    Http.jsonBody <| Vela.encodeRepoPayload payload
+            in
             ( model
-            , Effect.none
+            , Effect.updateRepo
+                { baseUrl = shared.velaAPI
+                , session = shared.session
+                , onResponse = UpdateRepoResponse { alertLabel = "'pipeline type'" }
+                , org = route.params.org
+                , repo = route.params.repo
+                , body = body
+                }
             )
 
         -- ALERTS
@@ -237,7 +368,7 @@ view shared route model =
                 div [ class "repo-settings", Util.testAttribute "repo-settings" ]
                     [ viewEvents repo
                     , viewAccess repo AccessUpdate
-                    , viewForkPolicy repo AccessUpdate
+                    , viewForkPolicy repo ForkPolicyUpdate
                     , viewLimit shared repo model.inLimit BuildLimitUpdate BuildLimitOnInput
                     , viewTimeout repo model.inTimeout BuildTimeoutUpdate BuildTimeoutOnInput
                     , viewBuildCounter repo model.inCounter BuildCounterUpdate BuildCounterOnInput
@@ -272,7 +403,7 @@ viewEvents repo =
                         , subtitle = Nothing
                         , field = "allow_push_branch"
                         , state = allowEvents.push.branch
-                        , msg = AllowEventsUpdate "allow_push_branch"
+                        , msg = AllowEventsUpdate repo "allow_push_branch"
                         , disabled_ = False
                         }
                     , Components.Form.viewCheckbox
@@ -280,7 +411,7 @@ viewEvents repo =
                         , subtitle = Nothing
                         , field = "allow_push_tag"
                         , state = allowEvents.push.tag
-                        , msg = AllowEventsUpdate "allow_push_tag"
+                        , msg = AllowEventsUpdate repo "allow_push_tag"
                         , disabled_ = False
                         }
                     ]
@@ -291,7 +422,7 @@ viewEvents repo =
                         , subtitle = Nothing
                         , field = "allow_pull_opened"
                         , state = allowEvents.pull.opened
-                        , msg = AllowEventsUpdate "allow_pull_opened"
+                        , msg = AllowEventsUpdate repo "allow_pull_opened"
                         , disabled_ = False
                         }
                     , Components.Form.viewCheckbox
@@ -299,7 +430,7 @@ viewEvents repo =
                         , subtitle = Nothing
                         , field = "allow_pull_synchronize"
                         , state = allowEvents.pull.synchronize
-                        , msg = AllowEventsUpdate "allow_pull_synchronize"
+                        , msg = AllowEventsUpdate repo "allow_pull_synchronize"
                         , disabled_ = False
                         }
                     , Components.Form.viewCheckbox
@@ -307,7 +438,7 @@ viewEvents repo =
                         , subtitle = Nothing
                         , field = "allow_pull_edited"
                         , state = allowEvents.pull.edited
-                        , msg = AllowEventsUpdate "allow_pull_edited"
+                        , msg = AllowEventsUpdate repo "allow_pull_edited"
                         , disabled_ = False
                         }
                     , Components.Form.viewCheckbox
@@ -315,7 +446,7 @@ viewEvents repo =
                         , subtitle = Nothing
                         , field = "allow_pull_reopened"
                         , state = allowEvents.pull.reopened
-                        , msg = AllowEventsUpdate "allow_pull_reopened"
+                        , msg = AllowEventsUpdate repo "allow_pull_reopened"
                         , disabled_ = False
                         }
                     ]
@@ -326,7 +457,7 @@ viewEvents repo =
                         , subtitle = Nothing
                         , field = "allow_deploy_created"
                         , state = allowEvents.deploy.created
-                        , msg = AllowEventsUpdate "allow_deploy_created"
+                        , msg = AllowEventsUpdate repo "allow_deploy_created"
                         , disabled_ = False
                         }
                     ]
@@ -337,7 +468,7 @@ viewEvents repo =
                         , subtitle = Nothing
                         , field = "allow_comment_created"
                         , state = allowEvents.comment.created
-                        , msg = AllowEventsUpdate "allow_comment_created"
+                        , msg = AllowEventsUpdate repo "allow_comment_created"
                         , disabled_ = False
                         }
                     , Components.Form.viewCheckbox
@@ -345,7 +476,7 @@ viewEvents repo =
                         , subtitle = Nothing
                         , field = "allow_comment_edited"
                         , state = allowEvents.comment.edited
-                        , msg = AllowEventsUpdate "allow_comment_edited"
+                        , msg = AllowEventsUpdate repo "allow_comment_edited"
                         , disabled_ = False
                         }
                     ]
@@ -456,36 +587,26 @@ viewLimitInput shared repo inLimit inputMsg =
 -}
 viewUpdateLimit : Shared.Model -> Vela.Repository -> Maybe Int -> msg -> Html msg
 viewUpdateLimit shared repo inLimit msg =
-    case inLimit of
-        Just _ ->
-            button
-                [ classList
-                    [ ( "button", True )
-                    , ( "-outline", True )
-                    ]
-                , onClick msg
-                , disabled <| not <| validLimit shared.velaMaxBuildLimit inLimit repo <| Just repo.limit
-                ]
-                [ text "update" ]
-
-        Nothing ->
-            text ""
+    button
+        [ classList
+            [ ( "button", True )
+            , ( "-outline", True )
+            ]
+        , onClick msg
+        , disabled <| not <| validLimit shared.velaMaxBuildLimit inLimit repo <| Just repo.limit
+        ]
+        [ text "update" ]
 
 
 {-| viewLimitWarning : takes maybe string of user entered limit and renders a disclaimer on updating the build limit.
 -}
 viewLimitWarning : Int -> Maybe Int -> Html msg
 viewLimitWarning maxLimit inLimit =
-    case inLimit of
-        Just _ ->
-            p [ class "notice" ]
-                [ text "Disclaimer: it is highly recommended to optimize your pipeline before increasing this value. Limits must also lie between 1 and "
-                , text <| String.fromInt maxLimit
-                , text "."
-                ]
-
-        Nothing ->
-            text ""
+    p [ class "notice" ]
+        [ text "Disclaimer: it is highly recommended to optimize your pipeline before increasing this value. Limits must also lie between 1 and "
+        , text <| String.fromInt maxLimit
+        , text "."
+        ]
 
 
 {-| validLimit : takes maybe string of user entered limit and returns whether or not it is a valid update.
@@ -506,7 +627,7 @@ validLimit maxLimit inLimit _ repoLimit =
                 False
 
         Nothing ->
-            True
+            False
 
 
 {-| viewTimeout : takes model and repo and renders the settings category for updating repo build timeout
@@ -518,20 +639,15 @@ viewTimeout repo inTimeout clickMsg inputMsg =
         , p [ class "settings-description" ] [ text "Builds that reach this timeout setting will be stopped." ]
         , div [ class "form-controls" ]
             [ viewTimeoutInput repo inTimeout inputMsg
-            , case inTimeout of
-                Just _ ->
-                    button
-                        [ classList
-                            [ ( "button", True )
-                            , ( "-outline", True )
-                            ]
-                        , onClick <| clickMsg <| Maybe.withDefault 0 inTimeout
-                        , disabled <| not <| validTimeout inTimeout <| Just repo.timeout
-                        ]
-                        [ text "update" ]
-
-                Nothing ->
-                    text ""
+            , button
+                [ classList
+                    [ ( "button", True )
+                    , ( "-outline", True )
+                    ]
+                , onClick <| clickMsg <| Maybe.withDefault 0 inTimeout
+                , disabled <| not <| validTimeout inTimeout <| Just repo.timeout
+                ]
+                [ text "update" ]
             ]
         , case inTimeout of
             Just _ ->
@@ -580,7 +696,7 @@ validTimeout inTimeout repoTimeout =
                 False
 
         Nothing ->
-            True
+            False
 
 
 {-| viewBuildCounter : takes model and repo and renders the settings category for updating repo build counter
@@ -619,20 +735,15 @@ viewCounterInput repo inCounter inputMsg =
 -}
 viewUpdateCounter : Maybe Int -> Vela.Repository -> Int -> msg -> Html msg
 viewUpdateCounter inCounter repo repoCounter msg =
-    case inCounter of
-        Just _ ->
-            button
-                [ classList
-                    [ ( "button", True )
-                    , ( "-outline", True )
-                    ]
-                , onClick msg
-                , disabled <| not <| validCounter inCounter repo <| Just repoCounter
-                ]
-                [ text "update" ]
-
-        Nothing ->
-            text ""
+    button
+        [ classList
+            [ ( "button", True )
+            , ( "-outline", True )
+            ]
+        , onClick msg
+        , disabled <| not <| validCounter inCounter repo <| Just repoCounter
+        ]
+        [ text "update" ]
 
 
 {-| validCounter : takes maybe string of user entered counter and returns whether or not it is a valid update.
@@ -653,7 +764,7 @@ validCounter inCounter repo repoCounter =
                 False
 
         Nothing ->
-            True
+            False
 
 
 {-| viewCounterWarning : takes maybe string of user entered counter and renders a disclaimer on updating the build counter.

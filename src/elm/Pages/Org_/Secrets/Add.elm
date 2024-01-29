@@ -20,7 +20,7 @@ import Route exposing (Route)
 import Shared
 import String.Extra
 import Utils.Helpers as Util
-import Vela
+import Vela exposing (defaultSecretPayload)
 import View exposing (View)
 
 
@@ -58,7 +58,7 @@ type alias Model =
     , events : List String
     , images : List String
     , image : String
-    , allowCommands : Bool
+    , allowCommand : Bool
     }
 
 
@@ -69,7 +69,7 @@ init shared () =
       , events = [ "push" ]
       , images = []
       , image = ""
-      , allowCommands = True
+      , allowCommand = True
       }
     , Effect.none
     )
@@ -164,15 +164,15 @@ update shared route msg model =
 
         AllowCommandsOnClick val ->
             ( model
-                |> (\m -> { m | allowCommands = Util.yesNoToBool val })
+                |> (\m -> { m | allowCommand = Util.yesNoToBool val })
             , Effect.none
             )
 
         SubmitForm ->
             let
                 payload =
-                    Vela.buildSecretPayload
-                        { type_ = Just Vela.OrgSecret
+                    { defaultSecretPayload
+                        | type_ = Just Vela.OrgSecret
                         , org = Just route.params.org
                         , repo = Just "*"
                         , team = Nothing
@@ -180,8 +180,8 @@ update shared route msg model =
                         , value = Util.stringToMaybe model.value
                         , events = Just model.events
                         , images = Just model.images
-                        , allowCommands = Just model.allowCommands
-                        }
+                        , allowCommand = Just model.allowCommand
+                    }
 
                 body =
                     Http.jsonBody <| Vela.encodeSecretPayload payload
@@ -257,7 +257,7 @@ view shared route model =
                         }
                     , Components.SecretForm.viewAllowCommandsInput
                         { msg = AllowCommandsOnClick
-                        , value = model.allowCommands
+                        , value = model.allowCommand
                         , disabled_ = False
                         }
                     , Components.SecretForm.viewHelp shared.velaDocsURL

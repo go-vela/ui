@@ -186,17 +186,21 @@ update shared msg model =
             )
 
         EnableRepo repo ->
+            let
+                payload =
+                    Vela.buildEnableRepoPayload repo
+
+                body =
+                    Http.jsonBody <| Vela.encodeEnableRepository payload
+            in
             ( { model
                 | sourceRepos = Vela.enableUpdate repo RemoteData.Loading model.sourceRepos
-
-                -- todo: need this moved to the repo settings page
-                -- , repo = updateRepoEnabling Vela.Enabling rm
               }
             , Effect.enableRepo
                 { baseUrl = shared.velaAPI
                 , session = shared.session
-                , repo = repo
                 , onResponse = EnableRepoResponse repo
+                , body = body
                 }
             )
 
@@ -205,9 +209,6 @@ update shared msg model =
                 Ok ( _, enabledRepo ) ->
                     ( { model
                         | sourceRepos = Vela.enableUpdate enabledRepo (RemoteData.succeed True) model.sourceRepos
-
-                        -- todo: need this moved to the repo settings page
-                        -- , repo = updateRepoEnabling Vela.Enabled rm
                       }
                     , Effect.batch
                         [ Effect.addAlertSuccess
