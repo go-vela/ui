@@ -281,60 +281,68 @@ tableHeaders =
 renderSchedule : Time.Zone -> String -> String -> Vela.Schedule -> Html msg
 renderSchedule zone org repo schedule =
     tr [ Util.testAttribute <| "schedules-row" ]
-        [ td
-            [ attribute "data-label" "name"
-            , scope "row"
-            , class "break-word"
-            , class "name"
-            , Util.testAttribute <| "schedules-row-name"
-            ]
-            [ a
-                [ Route.Path.href <|
-                    Route.Path.Org_Repo_SchedulesEdit_
-                        { org = org
-                        , repo = repo
-                        , name = schedule.name
-                        }
+        [ Components.Table.viewItemCell
+            { dataLabel = "name"
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ a
+                    [ Route.Path.href <|
+                        Route.Path.Org_Repo_SchedulesEdit_
+                            { org = org
+                            , repo = repo
+                            , name = schedule.name
+                            }
+                    ]
+                    [ text schedule.name ]
                 ]
-                [ text schedule.name ]
-            ]
-        , td
-            [ attribute "data-label" "cron expression"
-            , scope "row"
-            , class "break-word"
-            , Util.testAttribute <| "schedules-row-key"
-            ]
-            [ text <| schedule.entry ]
-        , td
-            [ attribute "data-label" "enabled"
-            , scope "row"
-            , class "break-word"
-            ]
-            [ text <| Util.boolToYesNo schedule.enabled ]
-        , td
-            [ attribute "data-label" "branch"
-            , scope "row"
-            , class "break-word"
-            ]
-            [ text schedule.branch ]
-        , td
-            [ attribute "data-label" "scheduled at"
-            , scope "row"
-            , class "break-word"
-            ]
-            [ text <| Util.humanReadableDateTimeWithDefault zone schedule.scheduled_at ]
-        , td
-            [ attribute "data-label" "updated by"
-            , scope "row"
-            , class "break-word"
-            ]
-            [ text <| schedule.updated_by ]
-        , td
-            [ attribute "data-label" "updated at"
-            , scope "row"
-            , class "break-word"
-            ]
-            [ text <| Util.humanReadableDateTimeWithDefault zone schedule.updated_at ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = "cron expression"
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ text schedule.entry
+                ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = "enabled"
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ text <| Util.boolToYesNo schedule.enabled
+                ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = "branch"
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ text schedule.branch
+                ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = "scheduled at"
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ text <| Util.humanReadableDateTimeWithDefault zone schedule.scheduled_at
+                ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = "updated by"
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ text schedule.updated_by ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = "updated at"
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ text <| Util.humanReadableDateTimeWithDefault zone schedule.updated_at ]
+            }
         ]
 
 

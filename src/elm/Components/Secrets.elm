@@ -134,7 +134,7 @@ viewRepoSecrets shared props =
 -}
 tableHeaders : Components.Table.Columns
 tableHeaders =
-    [ ( Just "-icon", "" )
+    [ ( Just "table-icon", "" )
     , ( Nothing, "name" )
     , ( Nothing, "key" )
     , ( Nothing, "type" )
@@ -171,82 +171,51 @@ addKey secret =
 viewSecret : Vela.SecretType -> (String -> msg) -> Vela.Secret -> Html msg
 viewSecret type_ copyMsg secret =
     tr [ Util.testAttribute <| "secrets-row" ]
-        [ td
-            [ attribute "data-label" "copy yaml"
-            , scope "row"
-            , class "break-word"
-            , Util.testAttribute <| "secrets-row-copy"
-            ]
-            [ copyButton (copySecret secret) copyMsg ]
-        , td
-            [ attribute "data-label" "name"
-            , scope "row"
-            , class "break-word"
-            , class "name"
-            , Util.testAttribute <| "secrets-row-name"
-            ]
-            [ a [ editSecretHref type_ secret ] [ text secret.name ] ]
-        , td
-            [ attribute "data-label" "key"
-            , scope "row"
-            , class "break-word"
-            , Util.testAttribute <| "secrets-row-key"
-            ]
-            [ listItemView "key" secret.key
-            ]
-        , td
-            [ attribute "data-label" "type"
-            , scope "row"
-            , class "break-word"
-            ]
-            [ text <| Vela.secretTypeToString secret.type_ ]
+        [ Components.Table.viewIconCell
+            { dataLabel = "copy yaml"
+            , parentClassList = []
+            , itemWrapperClassList = []
+            , itemClassList = []
+            , children =
+                [ copyButton (copySecret secret) copyMsg ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = "name"
+            , parentClassList = []
+            , itemClassList = []
+            , children = [ a [ editSecretHref type_ secret ] [ text secret.name ] ]
+            }
+        , Components.Table.viewListItemCell
+            { dataLabel = "key"
+            , parentClassList = []
+            , itemWrapperClassList = [ ( "key", True ) ]
+            , itemClassList = []
+            , children = [ text secret.key ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = "type"
+            , parentClassList = []
+            , itemClassList = []
+            , children = [ text <| Vela.secretTypeToString secret.type_ ]
+            }
         , td
             [ attribute "data-label" "events"
             , scope "row"
             , class "break-word"
             ]
-            [ viewListCell secret.events "no events" "secret-event" ]
+            [ Components.Table.viewListCell secret.events "no events" [ ( "secret-event", True ) ] ]
         , td
             [ attribute "data-label" "images"
             , scope "row"
             , class "break-word"
             ]
-            [ viewListCell secret.images "all images" "secret-image" ]
-        , td
-            [ attribute "data-label" "allow command"
-            , scope "row"
-            , class "break-word"
-            ]
-            [ text <| Util.boolToYesNo secret.allowCommand ]
-        ]
-
-
-{-| viewListCell : takes list of items, text for none and className and renders a table cell
--}
-viewListCell : List String -> String -> String -> Html msg
-viewListCell items none itemClassName =
-    div [] <|
-        if List.length items == 0 then
-            [ text none ]
-
-        else
-            items
-                |> List.sort
-                |> List.map
-                    (\item ->
-                        listItemView itemClassName item
-                    )
-
-
-{-| listItemView : takes classname, text and size constraints and renders a list element
--}
-listItemView : String -> String -> Html msg
-listItemView className text_ =
-    div [ class className ]
-        [ span
-            [ class "list-item"
-            ]
-            [ text text_ ]
+            [ Components.Table.viewListCell secret.images "all images" [ ( "secret-image", True ) ] ]
+        , Components.Table.viewItemCell
+            { dataLabel = "allow command"
+            , parentClassList = []
+            , itemClassList = []
+            , children = [ text <| Util.boolToYesNo secret.allowCommand ]
+            }
         ]
 
 
@@ -273,18 +242,20 @@ copySecret secret =
 -}
 copyButton : String -> (String -> msg) -> Html msg
 copyButton copyYaml copyMsg =
-    button
-        [ class "copy-button"
-        , attribute "aria-label" <| "copy secret yaml to clipboard "
-        , class "button"
-        , class "-icon"
-        , onClick <| copyMsg copyYaml
-        , attribute "data-clipboard-text" copyYaml
-        , Util.testAttribute "copy-secret"
-        ]
-        [ FeatherIcons.copy
-            |> FeatherIcons.withSize 18
-            |> FeatherIcons.toHtml []
+    div []
+        [ button
+            [ class "copy-button"
+            , attribute "aria-label" <| "copy secret yaml to clipboard "
+            , class "button"
+            , class "-icon"
+            , onClick <| copyMsg copyYaml
+            , attribute "data-clipboard-text" copyYaml
+            , Util.testAttribute "copy-secret"
+            ]
+            [ FeatherIcons.copy
+                |> FeatherIcons.withSize 18
+                |> FeatherIcons.toHtml []
+            ]
         ]
 
 

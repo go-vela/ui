@@ -8,7 +8,7 @@ module Pages.Org_.Repo_.Deployments exposing (..)
 import Api.Pagination
 import Auth
 import Components.Pager
-import Components.Svgs as SvgBuilder
+import Components.Svgs
 import Components.Table
 import Dict
 import Effect exposing (Effect)
@@ -276,13 +276,12 @@ deploymentsToRows org repo deployments =
 -}
 tableHeaders : Components.Table.Columns
 tableHeaders =
-    [ ( Just "-icon", "" )
+    [ ( Just "table-icon", "" )
     , ( Nothing, "number" )
     , ( Nothing, "target" )
     , ( Nothing, "commit" )
     , ( Nothing, "ref" )
     , ( Nothing, "description" )
-    , ( Nothing, "user" )
     , ( Nothing, "" )
     ]
 
@@ -297,101 +296,96 @@ renderDeployment org repo deployment =
         repoCloneLink =
             ""
     in
-    tr [ Util.testAttribute <| "deployments-row" ]
-        [ td
-            [ attribute "data-label" ""
-            , scope "row"
-            , class "break-word"
-            , class "-icon"
-            ]
-            [ SvgBuilder.hookSuccess ]
-        , td
-            [ attribute "data-label" "id"
-            , scope "row"
-            , class "break-word"
-            , Util.testAttribute <| "deployments-row-id"
-            ]
-            [ text <| String.fromInt deployment.id ]
-        , td
-            [ attribute "data-label" "target"
-            , scope "row"
-            , class "break-word"
-            , Util.testAttribute <| "deployments-row-target"
-            ]
-            [ text deployment.target ]
-        , td
-            [ attribute "data-label" "commit"
-            , scope "row"
-            , class "break-word"
-            , Util.testAttribute <| "deployments-row-commit"
-            ]
-            [ a [ href <| Util.buildRefURL repoCloneLink deployment.commit ]
-                [ text <| Util.trimCommitHash deployment.commit ]
-            ]
-        , td
-            [ attribute "data-label" "ref"
-            , scope "row"
-            , class "break-word"
-            , class "ref"
-            , Util.testAttribute <| "deployments-row-ref"
-            ]
-            [ span [ class "list-item" ] [ text <| deployment.ref ] ]
-        , td
-            [ attribute "data-label" "description"
-            , scope "row"
-            , class "break-word"
-            , class "description"
-            ]
-            [ text deployment.description ]
-        , td
-            [ attribute "data-label" "user"
-            , scope "row"
-            , class "break-word"
-            ]
-            [ text deployment.user ]
-        , td
-            [ attribute "data-label" ""
-            , scope "row"
-            , class "break-word"
-            ]
-            [ redeployLink org repo deployment ]
-        ]
-
-
-{-| redeployLink : takes org, repo and deployment and renders a link to redirect to the promote deployment page
--}
-redeployLink : String -> String -> Vela.Deployment -> Html Msg
-redeployLink org repo deployment =
-    a
-        [ class "redeploy-link"
-        , attribute "aria-label" <| "redeploy deployment " ++ String.fromInt deployment.id
-        , Route.href <|
-            { path = Route.Path.Org_Repo_DeploymentsAdd { org = org, repo = repo }
-            , query =
-                Dict.fromList <|
-                    [ ( "target", deployment.target )
-                    , ( "ref", deployment.ref )
-                    , ( "description", deployment.description )
-                    , ( "task", deployment.task )
-                    ]
-                        ++ Maybe.Extra.unwrap
-                            []
-                            (\parameters ->
-                                [ ( "parameters"
-                                  , String.join ","
-                                        (List.map
-                                            (\parameter ->
-                                                Url.percentEncode <| parameter.key ++ "=" ++ parameter.value
-                                            )
-                                            parameters
-                                        )
-                                  )
-                                ]
-                            )
-                            deployment.payload
-            , hash = Nothing
+    tr [ Util.testAttribute <| "deployments-row", class "-success" ]
+        [ Components.Table.viewIconCell
+            { dataLabel = "status"
+            , parentClassList = []
+            , itemWrapperClassList = []
+            , itemClassList = []
+            , children =
+                [ Components.Svgs.hookSuccess
+                ]
             }
-        , Util.testAttribute "redeploy-deployment"
-        ]
-        [ text "Redeploy"
+        , Components.Table.viewItemCell
+            { dataLabel = "id"
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ text <| String.fromInt deployment.id
+                ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = "target"
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ text deployment.target
+                ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = "commit"
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ a [ href <| Util.buildRefURL repoCloneLink deployment.commit ]
+                    [ text <| Util.trimCommitHash deployment.commit ]
+                ]
+            }
+        , Components.Table.viewListItemCell
+            { dataLabel = "ref"
+            , parentClassList = [ ( "ref", True ) ]
+            , itemWrapperClassList = []
+            , itemClassList = []
+            , children =
+                [ text deployment.ref
+                ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = "description"
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ text deployment.description
+                ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = ""
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ a
+                    [ class "redeploy-link"
+                    , attribute "aria-label" <| "redeploy deployment " ++ String.fromInt deployment.id
+                    , Route.href <|
+                        { path = Route.Path.Org_Repo_DeploymentsAdd { org = org, repo = repo }
+                        , query =
+                            Dict.fromList <|
+                                [ ( "target", deployment.target )
+                                , ( "ref", deployment.ref )
+                                , ( "description", deployment.description )
+                                , ( "task", deployment.task )
+                                ]
+                                    ++ Maybe.Extra.unwrap
+                                        []
+                                        (\parameters ->
+                                            [ ( "parameters"
+                                              , String.join ","
+                                                    (List.map
+                                                        (\parameter ->
+                                                            Url.percentEncode <| parameter.key ++ "=" ++ parameter.value
+                                                        )
+                                                        parameters
+                                                    )
+                                              )
+                                            ]
+                                        )
+                                        deployment.payload
+                        , hash = Nothing
+                        }
+                    , Util.testAttribute "redeploy-deployment"
+                    ]
+                    [ text "Redeploy"
+                    ]
+                ]
+            }
         ]

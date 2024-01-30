@@ -32,6 +32,7 @@ import Html.Attributes
         , class
         , href
         , rows
+        , scope
         )
 import Http
 import Http.Detailed
@@ -213,7 +214,7 @@ view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Ms
 view shared route model =
     { title = "Audit"
     , body =
-        [ viewHooks shared route.params.org route.params.repo model.hooks
+        [ viewHooks shared model model.hooks
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
         ]
     }
@@ -221,14 +222,20 @@ view shared route model =
 
 {-| viewHooks : renders a list of hooks
 -}
-viewHooks : Shared.Model -> String -> String -> WebData (List Vela.Hook) -> Html Msg
-viewHooks shared org repo hooks =
+viewHooks : Shared.Model -> Model -> WebData (List Vela.Hook) -> Html Msg
+viewHooks shared model hooks =
     let
+        actions =
+            Just <|
+                div [ class "buttons" ]
+                    [ Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
+                    ]
+
         ( noRowsView, rows ) =
             case hooks of
                 RemoteData.Success hooks_ ->
                     ( text "No hooks found for this repo"
-                    , hooksToRows shared.time hooks_ org repo RedeliverRepoHook
+                    , hooksToRows shared.time hooks_ RedeliverRepoHook
                     )
 
                 RemoteData.Failure error ->
@@ -259,17 +266,17 @@ viewHooks shared org repo hooks =
                 noRowsView
                 tableHeaders
                 rows
-                Nothing
+                actions
     in
     div [] [ Components.Table.view cfg ]
 
 
 {-| hooksToRows : takes list of hooks and produces list of Table rows
 -}
-hooksToRows : Time.Posix -> List Vela.Hook -> String -> String -> ({ hook : Vela.Hook } -> Msg) -> Components.Table.Rows Vela.Hook Msg
-hooksToRows now hooks org repo redeliverHook =
+hooksToRows : Time.Posix -> List Vela.Hook -> ({ hook : Vela.Hook } -> Msg) -> Components.Table.Rows Vela.Hook Msg
+hooksToRows now hooks redeliverHook =
     hooks
-        |> List.concatMap (\hook -> [ Just <| Components.Table.Row hook (renderHook now org repo redeliverHook), hookErrorRow hook ])
+        |> List.concatMap (\hook -> [ Just <| Components.Table.Row hook (renderHook now redeliverHook), hookErrorRow hook ])
         |> List.filterMap identity
 
 
@@ -277,7 +284,7 @@ hooksToRows now hooks org repo redeliverHook =
 -}
 tableHeaders : Components.Table.Columns
 tableHeaders =
-    [ ( Just "-icon", "Status" )
+    [ ( Just "table-icon", "" )
     , ( Nothing, "source" )
     , ( Nothing, "created" )
     , ( Nothing, "host" )
@@ -288,53 +295,74 @@ tableHeaders =
 
 {-| renderHook : takes hook and renders a table row
 -}
-renderHook : Time.Posix -> String -> String -> ({ hook : Vela.Hook } -> msg) -> Vela.Hook -> Html msg
-renderHook now org repo redeliverHook hook =
+renderHook : Time.Posix -> ({ hook : Vela.Hook } -> msg) -> Vela.Hook -> Html msg
+renderHook now redeliverHook hook =
     tr [ Util.testAttribute <| "hooks-row", hookStatusToRowClass hook.status ]
-        [ td
-            [ attribute "data-label" "status"
-            , class "break-word"
-            , class "-icon"
-            ]
-            [ Components.Svgs.hookStatusToIcon hook.status ]
-        , td
-            [ attribute "data-label" "source-id"
-            , class "no-wrap"
-            ]
-            [ small [] [ code [ class "source-id", class "break-word" ] [ text hook.source_id ] ] ]
-        , td
-            [ attribute "data-label" "created"
-            , class "break-word"
-            ]
-            [ text <| (Util.relativeTimeNoSeconds now <| Time.millisToPosix <| Util.secondsToMillis hook.created) ]
-        , td
-            [ attribute "data-label" "host"
-            , class "break-word"
-            ]
-            [ text hook.host ]
-        , td
-            [ attribute "data-label" "event"
-            , class "break-word"
-            ]
-            [ text hook.event ]
-        , td
-            [ attribute "data-label" "branch"
-            , class "break-word"
-            ]
-            [ text hook.branch ]
-        , td
-            [ attribute "data-label" ""
-            , class "break-word"
-            ]
-            [ a
-                [ href "#"
-                , class "break-word"
-                , Util.onClickPreventDefault <| redeliverHook { hook = hook }
-                , Util.testAttribute <| "redeliver-hook-" ++ String.fromInt hook.number
+        [ Components.Table.viewIconCell
+            { dataLabel = "status"
+            , parentClassList = []
+            , itemWrapperClassList = []
+            , itemClassList = []
+            , children =
+                [ Components.Svgs.hookStatusToIcon hook.status
                 ]
-                [ text "Redeliver Hook"
+            }
+        , Components.Table.viewListItemCell
+            { dataLabel = "source-id"
+            , parentClassList = []
+            , itemWrapperClassList = [ ( "source-id", True ) ]
+            , itemClassList = []
+            , children =
+                [ text hook.source_id
                 ]
-            ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = "created"
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ text <| (Util.relativeTimeNoSeconds now <| Time.millisToPosix <| Util.secondsToMillis hook.created)
+                ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = "host"
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ text <| hook.host
+                ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = "event"
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ text <| hook.event
+                ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = "branch"
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ text <| hook.branch
+                ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = ""
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ a
+                    [ href "#"
+                    , class "break-word"
+                    , Util.onClickPreventDefault <| redeliverHook { hook = hook }
+                    , Util.testAttribute <| "redeliver-hook-" ++ String.fromInt hook.number
+                    ]
+                    [ text "Redeliver Hook"
+                    ]
+                ]
+            }
         ]
 
 
@@ -381,8 +409,6 @@ renderHookError hook =
     msgRow
 
 
-{-| hookStatusToRowClass : takes hook status string and returns style class
--}
 hookStatusToRowClass : String -> Html.Attribute msg
 hookStatusToRowClass status =
     case status of

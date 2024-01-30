@@ -10,12 +10,17 @@ module Components.Table exposing
     , Row
     , Rows
     , view
+    , viewIconCell
+    , viewItemCell
+    , viewListCell
+    , viewListItemCell
     )
 
 import Html
     exposing
         ( Html
         , div
+        , span
         , tbody
         , td
         , text
@@ -27,6 +32,7 @@ import Html.Attributes
     exposing
         ( attribute
         , class
+        , classList
         , scope
         )
 import String.Extra
@@ -104,3 +110,82 @@ footer noRows numRows numColumns =
 
     else
         text ""
+
+
+{-| viewListCell : takes list of items, text for none and className and renders a table cell
+-}
+viewListCell : List String -> String -> List ( String, Bool ) -> Html msg
+viewListCell items none itemWrapperClassList =
+    if List.length items == 0 then
+        span
+            [ class "-empty-list-vert-pad"
+            ]
+            [ text none ]
+
+    else
+        items
+            |> List.sort
+            |> List.map
+                (\item ->
+                    div [ classList itemWrapperClassList ]
+                        [ span
+                            [ class "list-item" ]
+                            [ text item ]
+                        ]
+                )
+            |> div []
+
+
+{-| viewListItemCell : takes classlist and children elements and renders a list item cell element
+-}
+viewListItemCell : { dataLabel : String, parentClassList : List ( String, Bool ), itemWrapperClassList : List ( String, Bool ), itemClassList : List ( String, Bool ), children : List (Html msg) } -> Html msg
+viewListItemCell { dataLabel, parentClassList, itemWrapperClassList, itemClassList, children } =
+    td
+        [ attribute "data-label" dataLabel
+        , class "break-word"
+        , classList parentClassList
+        , scope "row"
+        ]
+        [ div [ classList itemWrapperClassList ]
+            [ span
+                [ class "list-item"
+                , classList itemClassList
+                ]
+                children
+            ]
+        ]
+
+
+{-| viewItemCell : takes classlist and children elements and renders a cell element
+-}
+viewItemCell : { dataLabel : String, parentClassList : List ( String, Bool ), itemClassList : List ( String, Bool ), children : List (Html msg) } -> Html msg
+viewItemCell { dataLabel, parentClassList, itemClassList, children } =
+    td
+        [ attribute "data-label" dataLabel
+        , class "break-word"
+        , classList parentClassList
+        , scope "row"
+        ]
+        [ span
+            [ class "single-item"
+            , classList itemClassList
+            ]
+            children
+        ]
+
+
+{-| viewIconCell : takes classlist and children elements and renders a cell icon element
+-}
+viewIconCell : { dataLabel : String, parentClassList : List ( String, Bool ), itemWrapperClassList : List ( String, Bool ), itemClassList : List ( String, Bool ), children : List (Html msg) } -> Html msg
+viewIconCell { dataLabel, parentClassList, itemWrapperClassList, itemClassList, children } =
+    td
+        [ attribute "data-label" dataLabel
+        , class "break-word"
+        , class "table-icon"
+        , classList parentClassList
+        ]
+        [ div
+            [ classList itemWrapperClassList
+            ]
+            [ div [ classList itemClassList ] children ]
+        ]
