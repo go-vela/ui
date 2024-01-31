@@ -47,6 +47,7 @@ toLayout user route model =
     Layouts.Default
         { navButtons = []
         , utilButtons = []
+        , helpCommands = []
         , repo = Nothing
         }
 

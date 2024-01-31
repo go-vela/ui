@@ -6,6 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 module Layouts.Default.Repo exposing (Model, Msg, Props, layout, map)
 
 import Components.Favorites
+import Components.Help
 import Components.Tabs
 import Effect exposing (Effect)
 import Html exposing (..)
@@ -14,7 +15,6 @@ import Layouts.Default
 import Route exposing (Route)
 import Shared
 import Time
-import Utils.Favorites as Favorites
 import Utils.Interval as Interval
 import Vela
 import View exposing (View)
@@ -23,6 +23,7 @@ import View exposing (View)
 type alias Props contentMsg =
     { navButtons : List (Html contentMsg)
     , utilButtons : List (Html contentMsg)
+    , helpCommands : List Components.Help.Command
     , org : String
     , repo : String
     }
@@ -32,6 +33,7 @@ map : (msg1 -> msg2) -> Props msg1 -> Props msg2
 map fn props =
     { navButtons = List.map (Html.map fn) props.navButtons
     , utilButtons = List.map (Html.map fn) props.utilButtons
+    , helpCommands = props.helpCommands
     , org = props.org
     , repo = props.repo
     }
@@ -55,6 +57,7 @@ layout props shared route =
                     , currentPath = route.path
                     }
                     :: props.utilButtons
+            , helpCommands = props.helpCommands
             , repo = Just ( props.org, props.repo )
             }
 

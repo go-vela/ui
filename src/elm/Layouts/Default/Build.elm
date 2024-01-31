@@ -7,6 +7,7 @@ module Layouts.Default.Build exposing (Model, Msg, Props, layout, map)
 
 import Components.Build
 import Components.Favorites
+import Components.Help
 import Components.RecentBuilds
 import Components.Tabs
 import Effect exposing (Effect)
@@ -30,6 +31,7 @@ import View exposing (View)
 type alias Props contentMsg =
     { navButtons : List (Html contentMsg)
     , utilButtons : List (Html contentMsg)
+    , helpCommands : List Components.Help.Command
     , org : String
     , repo : String
     , buildNumber : String
@@ -41,6 +43,7 @@ map : (msg1 -> msg2) -> Props msg1 -> Props msg2
 map fn props =
     { navButtons = List.map (Html.map fn) props.navButtons
     , utilButtons = List.map (Html.map fn) props.utilButtons
+    , helpCommands = props.helpCommands
     , org = props.org
     , repo = props.repo
     , buildNumber = props.buildNumber
@@ -60,6 +63,7 @@ layout props shared route =
         |> Layout.withParentProps
             { navButtons = props.navButtons
             , utilButtons = []
+            , helpCommands = props.helpCommands
             , repo = Just ( props.org, props.repo )
             }
 

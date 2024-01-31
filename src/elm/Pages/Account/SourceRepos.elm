@@ -94,6 +94,7 @@ toLayout user shared model =
                 ]
             ]
         , utilButtons = []
+        , helpCommands = []
         , repo = Nothing
         }
 

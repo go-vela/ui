@@ -76,6 +76,7 @@ toLayout user model =
                 [ text "Source Repositories" ]
             ]
         , utilButtons = []
+        , helpCommands = []
         , repo = Nothing
         }
 

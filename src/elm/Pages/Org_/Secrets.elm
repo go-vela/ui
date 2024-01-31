@@ -52,6 +52,7 @@ toLayout user route model =
     Layouts.Default_Org
         { navButtons = []
         , utilButtons = []
+        , helpCommands = []
         , org = route.params.org
         }
 

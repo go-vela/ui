@@ -56,6 +56,7 @@ toLayout user route model =
     Layouts.Default_Build
         { navButtons = []
         , utilButtons = []
+        , helpCommands = []
         , org = route.params.org
         , repo = route.params.repo
         , buildNumber = route.params.buildNumber

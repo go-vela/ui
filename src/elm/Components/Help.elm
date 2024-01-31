@@ -3,234 +3,110 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.Help exposing (help)
+module Components.Help exposing (Command, Props, view)
 
+import Components.Build exposing (Props)
 import Components.Svgs as SvgBuilder
 import FeatherIcons
-import Html exposing (Html, a, button, details, div, label, li, span, strong, summary, text)
+import Html exposing (Html, a, button, details, div, label, span, strong, summary, text)
 import Html.Attributes exposing (attribute, class, for, href, id, size, value)
 import Html.Events
-import Utils.HelpCommands
-    exposing
-        ( Command
-        , Model
-        , cliDocsUrl
-        , issuesBaseUrl
-        , resourceLoaded
-        , resourceLoading
-        , usageDocsUrl
-        )
+import Shared
 import Utils.Helpers as Util
 
 
-{-| help : takes help args and renders nav button for viewing contextual help for each page
--}
-help : Model msg -> Html msg
-help args =
-    li
-        [ id "contextual-help"
-        , attribute "aria-label" "toggle contextual help for this page"
+type alias Props msg =
+    { show : Bool
+    , showHide : Maybe Bool -> msg
+    , commands : List Command
+    , showCopyAlert : String -> msg
+    }
+
+
+type alias Command =
+    { name : String
+    , content : String
+    , docs : Maybe String
+    }
+
+
+view : Shared.Model -> Props msg -> Html msg
+view shared props =
+    details
+        (class "details"
+            :: class "help"
+            :: class "-no-pad"
+            :: Util.open props.show
+        )
+        [ summary
+            [ class "summary"
+            , class "-no-pad"
+            , Util.testAttribute "help-trigger"
+            , Html.Attributes.tabindex 0
+            , Util.onClickPreventDefault (props.showHide Nothing)
+            ]
+            [ SvgBuilder.terminal ]
+        , div [ class "tooltip", Util.testAttribute "help-tooltip" ] <|
+            strong [] [ text "Manage Vela resources using the CLI" ]
+                :: List.map (viewCommand shared props) props.commands
+                ++ [ div [ class "help-footer", Util.testAttribute "help-footer" ]
+                        [ a [ href <| shared.velaDocsURL ++ "/reference/cli/install" ] [ text "CLI Installation Docs" ]
+                        , a [ href <| shared.velaDocsURL ++ "/reference/cli/authentication" ] [ text "CLI Authentication Docs" ]
+                        ]
+                   ]
         ]
-        [ details
-            (class "details"
-                :: class "help"
-                :: class "-no-pad"
-                :: Util.open args.show
-            )
-            [ summary
-                [ class "summary"
-                , class "-no-pad"
-                , Util.testAttribute "help-trigger"
-                , Html.Attributes.tabindex 0
-                , Util.onClickPreventDefault (args.toggle Nothing)
+
+
+viewCommand : Shared.Model -> Props msg -> Command -> Html msg
+viewCommand shared props command =
+    div [ class "form-controls", class "-stack", Util.testAttribute "help-cmd-header" ]
+        [ span []
+            [ label [ class "form-label", for <| "" ] [ text <| command.name ++ " " ]
+            , case command.docs of
+                Just docs ->
+                    a
+                        [ class "cmd-link"
+                        , href <| shared.velaDocsURL ++ "/reference/cli/" ++ docs
+                        , attribute "aria-label" <| "go to cli docs page for " ++ docs
+                        ]
+                        [ text "(docs)"
+                        ]
+
+                Nothing ->
+                    text ""
+            ]
+        , div
+            [ class "cmd"
+            , Util.testAttribute "help-row"
+            ]
+            [ Html.input
+                [ class "cmd-text"
+                , Html.Attributes.type_ "text"
+                , Html.Attributes.readonly True
+                , id command.name
+                , size <| cmdSize command.content
+                , value command.content
                 ]
-                [ SvgBuilder.terminal ]
-            , tooltip args
-            ]
-        ]
-
-
-{-| tooltip : takes help args and renders contextual help dropdown if focused
--}
-tooltip : Model msg -> Html msg
-tooltip args =
-    div [ class "tooltip", Util.testAttribute "help-tooltip" ] <|
-        strong [] [ text "Manage Vela resources using the CLI" ]
-            :: body args
-            ++ [ footer args ]
-
-
-{-| body : takes args, (page, cli commands) and renders dropdown body
--}
-body : Model msg -> List (Html msg)
-body args =
-    let
-        ( copy, cmds ) =
-            ( args.copy
-            , []
-              -- , commands args.page
-            )
-    in
-    if resourceLoading args then
-        [ Util.largeLoader ]
-
-    else if not <| resourceLoaded args then
-        [ row "something went wrong!" "" Nothing ]
-
-    else if List.length cmds == 0 then
-        [ row "resources on this page not yet supported via the CLI" "" Nothing ]
-
-    else
-        List.map (contents args copy) cmds
-
-
-{-| footer : takes args, (page, cli commands) and renders dropdown footer
--}
-footer : Model msg -> Html msg
-footer args =
-    if resourceLoading args then
-        text ""
-
-    else if not <| resourceLoaded args then
-        div [ class "help-footer", Util.testAttribute "help-footer" ] <| notLoadedDocs args
-
-    else
-        div [ class "help-footer", Util.testAttribute "help-footer" ] <| cliDocs args
-
-
-{-| notLoadedDocs : takes args and renders docs for getting started when page resources are not loaded
--}
-notLoadedDocs : Model msg -> List (Html msg)
-notLoadedDocs args =
-    [ a [ href <| usageDocsUrl args.velaDocsURL "/start_build" ] [ text "Getting Started Docs" ]
-    ]
-
-
-{-| cliDocs : takes help args and renders footer docs links for commands
--}
-cliDocs : Model msg -> List (Html msg)
-cliDocs args =
-    [ a [ href <| cliDocsUrl args.velaDocsURL "/install" ] [ text "CLI Installation Docs" ]
-    , a [ href <| cliDocsUrl args.velaDocsURL "/authentication" ] [ text "CLI Authentication Docs" ]
-    ]
-
-
-{-| contents : takes help args and renders body content for command
--}
-contents : Model msg -> (String -> msg) -> Command -> Html msg
-contents args copyMsg command =
-    case ( command.content, command.issue ) of
-        ( Just content, _ ) ->
-            let
-                forName : String
-                forName =
-                    command.name |> String.toLower |> String.replace " " "-"
-            in
-            div [ class "form-controls", class "-stack", Util.testAttribute "help-cmd-header" ]
-                [ span [] [ label [ class "form-label", for forName ] [ text <| command.name ++ " " ], docsLink args command ], row content forName <| Just copyMsg ]
-
-        ( Nothing, Just issue ) ->
-            div [ class "form-controls", class "-stack", Util.testAttribute "help-cmd-header" ]
-                [ span [] [ text <| command.name ++ " ", upvoteFeatureLink issue ], notSupported ]
-
-        _ ->
-            text "no commands on this page"
-
-
-{-| row : takes cmd content and maybe (String -> msg) and renders cmd help row with code block and copy button
--}
-row : String -> String -> Maybe (String -> msg) -> Html msg
-row content forName copy =
-    div
-        [ class "cmd"
-        , Util.testAttribute "help-row"
-        ]
-        [ Html.input
-            [ class "cmd-text"
-            , Html.Attributes.type_ "text"
-            , Html.Attributes.readonly True
-            , id forName
-            , size <| cmdSize content
-            , value content
-            ]
-            []
-        , case copy of
-            Just copyMsg ->
-                copyButton
+                []
+            , if not <| String.isEmpty command.content then
+                button
                     [ Util.testAttribute "help-copy"
-                    , attribute "aria-label" <| "copy " ++ content ++ " to clipboard"
+                    , attribute "aria-label" <| "copy " ++ command.content ++ " to clipboard"
                     , class "button"
                     , class "-icon"
-                    , Html.Events.onClick <| copyMsg content
+                    , Html.Events.onClick <| props.showCopyAlert command.content
+                    , class "copy-button"
+                    , attribute "data-clipboard-text" command.content
                     ]
-                    content
+                    [ FeatherIcons.copy
+                        |> FeatherIcons.withSize 18
+                        |> FeatherIcons.toHtml []
+                    ]
 
-            Nothing ->
+              else
                 text ""
-        ]
-
-
-{-| notSupported : renders help row for commands not yet supported by the cli
--}
-notSupported : Html msg
-notSupported =
-    div [ class "cmd", Util.testAttribute "help-row" ]
-        [ Html.input
-            [ class "cmd-text"
-            , Html.Attributes.type_ "text"
-            , Html.Attributes.readonly True
-            , size <| cmdSize "not yet supported via the CLI"
-            , value "not yet supported via the CLI"
             ]
-            []
         ]
-
-
-{-| docsLink : takes command and returns docs link if appropriate
--}
-docsLink : Model msg -> Command -> Html msg
-docsLink args command =
-    case command.docs of
-        Just docs ->
-            a
-                [ class "cmd-link"
-                , href <| cliDocsUrl args.velaDocsURL docs
-                , attribute "aria-label" <| "go to cli docs page for " ++ docs
-                ]
-                [ text "(docs)"
-                ]
-
-        Nothing ->
-            text ""
-
-
-{-| upvoteFeatureLink : takes command and returns issue upvote link if appropriate
--}
-upvoteFeatureLink : String -> Html msg
-upvoteFeatureLink issue =
-    a [ class "cmd-link", href <| issuesBaseUrl ++ "/" ++ issue ]
-        [ text "(upvote feature)"
-        ]
-
-
-{-| copyButton : takes command content and returns copy pasteable button controlled by Clipboard.js
--}
-copyButton : List (Html.Attribute msg) -> String -> Html msg
-copyButton attributes copyText =
-    if not <| String.isEmpty copyText then
-        button
-            (attributes
-                ++ [ class "copy-button"
-                   , attribute "data-clipboard-text" copyText
-                   ]
-            )
-            [ FeatherIcons.copy
-                |> FeatherIcons.withSize 18
-                |> FeatherIcons.toHtml []
-            ]
-
-    else
-        text ""
 
 
 {-| cmdSize : takes command content and returns appropriate size for readonly input

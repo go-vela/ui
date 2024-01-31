@@ -70,6 +70,16 @@ toLayout user route model =
     Layouts.Default_Repo
         { navButtons = []
         , utilButtons = []
+        , helpCommands =
+            [ { name = "List Deployments"
+              , content = "vela view deployments --help"
+              , docs = Just "deployment/get"
+              }
+            , { name = "Add Deployment"
+              , content = "vela add deployment --help"
+              , docs = Just "deployment/add"
+              }
+            ]
         , org = route.params.org
         , repo = route.params.repo
         }
@@ -282,7 +292,7 @@ viewDeployments model route =
 -}
 deploymentsToRows : Vela.Repository -> List Vela.Deployment -> Components.Table.Rows Vela.Deployment Msg
 deploymentsToRows repo deployments =
-    List.map (\deployment -> Components.Table.Row deployment (renderDeployment repo)) deployments
+    List.map (\deployment -> Components.Table.Row deployment (viewDeployment repo)) deployments
 
 
 {-| tableHeaders : returns table headers for deployments table
@@ -299,10 +309,10 @@ tableHeaders =
     ]
 
 
-{-| renderDeployment : takes deployment and renders a table row
+{-| viewDeployment : takes deployment and renders a table row
 -}
-renderDeployment : Vela.Repository -> Vela.Deployment -> Html Msg
-renderDeployment repo deployment =
+viewDeployment : Vela.Repository -> Vela.Deployment -> Html Msg
+viewDeployment repo deployment =
     tr [ Util.testAttribute <| "deployments-row", class "-success" ]
         [ Components.Table.viewIconCell
             { dataLabel = "status"

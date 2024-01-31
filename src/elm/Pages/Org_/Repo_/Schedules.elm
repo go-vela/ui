@@ -53,6 +53,7 @@ toLayout user route model =
     Layouts.Default_Repo
         { navButtons = []
         , utilButtons = []
+        , helpCommands = []
         , org = route.params.org
         , repo = route.params.repo
         }
@@ -259,7 +260,7 @@ viewRepoSchedules shared model org repo =
 -}
 schedulesToRows : Time.Zone -> String -> String -> List Vela.Schedule -> Components.Table.Rows Vela.Schedule msg
 schedulesToRows zone org repo schedules =
-    List.map (\s -> Components.Table.Row (addKey s) (renderSchedule zone org repo)) schedules
+    List.map (\s -> Components.Table.Row (addKey s) (viewSchedule zone org repo)) schedules
 
 
 {-| tableHeaders : returns table headers for schedules table
@@ -276,10 +277,10 @@ tableHeaders =
     ]
 
 
-{-| renderSchedule : takes schedule and renders a table row
+{-| viewSchedule : takes schedule and renders a table row
 -}
-renderSchedule : Time.Zone -> String -> String -> Vela.Schedule -> Html msg
-renderSchedule zone org repo schedule =
+viewSchedule : Time.Zone -> String -> String -> Vela.Schedule -> Html msg
+viewSchedule zone org repo schedule =
     tr [ Util.testAttribute <| "schedules-row" ]
         [ Components.Table.viewItemCell
             { dataLabel = "name"

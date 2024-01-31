@@ -5,6 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 module Layouts.Default.Org exposing (Model, Msg, Props, layout, map)
 
+import Components.Help
 import Components.Tabs
 import Effect exposing (Effect)
 import Html exposing (..)
@@ -18,6 +19,7 @@ import View exposing (View)
 type alias Props contentMsg =
     { navButtons : List (Html contentMsg)
     , utilButtons : List (Html contentMsg)
+    , helpCommands : List Components.Help.Command
     , org : String
     }
 
@@ -26,6 +28,7 @@ map : (msg1 -> msg2) -> Props msg1 -> Props msg2
 map fn props =
     { navButtons = List.map (Html.map fn) props.navButtons
     , utilButtons = List.map (Html.map fn) props.navButtons
+    , helpCommands = props.helpCommands
     , org = props.org
     }
 
@@ -49,6 +52,7 @@ layout props shared route =
                     , maybeEvent = Nothing
                     }
                 ]
+            , helpCommands = props.helpCommands
             , repo = Nothing
             }
 

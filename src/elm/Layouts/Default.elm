@@ -11,6 +11,7 @@ import Components.Alerts exposing (Alert)
 import Components.Favorites
 import Components.Footer
 import Components.Header
+import Components.Help
 import Components.Nav
 import Components.Util
 import Effect exposing (Effect)
@@ -25,7 +26,6 @@ import Route exposing (Route)
 import Shared
 import Toasty as Alerting
 import Utils.Favorites as Favorites
-import Utils.HelpCommands
 import Utils.Helpers as Util
 import Utils.Theme as Theme
 import View exposing (View)
@@ -34,18 +34,16 @@ import View exposing (View)
 type alias Props contentMsg =
     { navButtons : List (Html contentMsg)
     , utilButtons : List (Html contentMsg)
+    , helpCommands : List Components.Help.Command
     , repo : Maybe ( String, String )
     }
 
 
 map : (msg1 -> msg2) -> Props msg1 -> Props msg2
 map fn props =
-    { navButtons =
-        props.navButtons
-            |> List.map (Html.map fn)
-    , utilButtons =
-        props.utilButtons
-            |> List.map (Html.map fn)
+    { navButtons = List.map (Html.map fn) props.navButtons
+    , utilButtons = List.map (Html.map fn) props.utilButtons
+    , helpCommands = props.helpCommands
     , repo = props.repo
     }
 
@@ -94,7 +92,7 @@ type Msg
     | SetTheme Theme.Theme
       -- ALERTS
     | AlertsUpdate (Alerting.Msg Alert)
-    | CopyAlert String
+    | AddAlertCopiedToClipboard String
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
@@ -151,9 +149,9 @@ update msg model =
             , Effect.alertsUpdate { alert = alert }
             )
 
-        CopyAlert contentCopied ->
+        AddAlertCopiedToClipboard contentCopied ->
             ( model
-            , Effect.addAlertSuccess { content = contentCopied, addToastIfUnique = False }
+            , Effect.addAlertSuccess { content = "'" ++ contentCopied ++ "' copied to clipboard.", addToastIfUnique = False }
             )
 
 
@@ -192,15 +190,18 @@ view props shared route { toContentMsg, model, content } =
             content.title ++ " | Vela"
     , body =
         [ Components.Header.view
-            { session = shared.session
-            , from = Route.toString route
-            , feedbackLink = shared.velaFeedbackURL
-            , docsLink = shared.velaDocsURL
+            shared
+            { from = Route.toString route
             , theme = shared.theme
             , setTheme = SetTheme
 
             -- todo: use props for this
-            , help = helpArgs shared model
+            , helpProps =
+                { show = model.showHelp
+                , showHide = ShowHideHelp
+                , commands = props.helpCommands
+                , showCopyAlert = AddAlertCopiedToClipboard
+                }
             , showId = model.showIdentity
             , showHideIdentity = ShowHideIdentity
             }
@@ -208,17 +209,17 @@ view props shared route { toContentMsg, model, content } =
         , Components.Nav.view shared
             route
             (props.navButtons
-                ++ [ Maybe.Extra.unwrap (text "")
-                        (\( org, repo ) ->
-                            Html.map toContentMsg <|
+                ++ [ props.repo
+                        |> Maybe.Extra.unwrap (text "")
+                            (\( org, repo ) ->
                                 Components.Favorites.viewStarToggle
                                     { msg = ToggleFavorite
                                     , org = org
                                     , repo = repo
                                     , user = shared.user
                                     }
-                        )
-                        props.repo
+                                    |> Html.map toContentMsg
+                            )
                    ]
             )
         , main_ [ class "content-wrap" ]
@@ -227,41 +228,9 @@ view props shared route { toContentMsg, model, content } =
             )
         , Components.Footer.view
             { toasties = shared.toasties
-            , copyAlertMsg = CopyAlert
+            , copyAlertMsg = AddAlertCopiedToClipboard
             , alertsUpdateMsg = AlertsUpdate
             }
             |> Html.map toContentMsg
         ]
-    }
-
-
-helpArg : WebData a -> Utils.HelpCommands.Arg
-helpArg arg =
-    { success = Util.isSuccess arg, loading = Util.isLoading arg }
-
-
-helpArgs : Shared.Model -> Model -> Utils.HelpCommands.Model Msg
-helpArgs shared model =
-    { user = helpArg shared.user
-
-    -- todo: this needs to also be a layout prop input
-    , sourceRepos = helpArg RemoteData.NotAsked
-    , orgRepos = helpArg RemoteData.NotAsked
-    , builds = helpArg RemoteData.NotAsked
-    , deployments = helpArg RemoteData.NotAsked
-    , build = helpArg RemoteData.NotAsked
-    , repo = helpArg RemoteData.NotAsked
-    , hooks = helpArg RemoteData.NotAsked
-
-    -- , secrets = helpArg secretsModel.repoSecrets
-    , secrets = helpArg RemoteData.NotAsked
-    , show = model.showHelp
-    , toggle = ShowHideHelp
-    , copy = CopyAlert
-    , noOp = NoOp
-
-    -- , page = Pages.NotFound
-    -- TODO: use env flag velaDocsURL
-    -- , velaDocsURL = model.velaDocsURL
-    , velaDocsURL = "https://go-vela.github.io/docs"
     }

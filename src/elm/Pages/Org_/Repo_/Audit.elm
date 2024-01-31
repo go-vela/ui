@@ -72,6 +72,7 @@ toLayout user route model =
     Layouts.Default_Repo
         { navButtons = []
         , utilButtons = []
+        , helpCommands = []
         , org = route.params.org
         , repo = route.params.repo
         }
@@ -369,14 +370,14 @@ renderHook now redeliverHook hook =
 hookErrorRow : Vela.Hook -> Maybe (Components.Table.Row Vela.Hook msg)
 hookErrorRow hook =
     if not <| String.isEmpty hook.error then
-        Just <| Components.Table.Row hook renderHookError
+        Just <| Components.Table.Row hook viewHookError
 
     else
         Nothing
 
 
-renderHookError : Vela.Hook -> Html msg
-renderHookError hook =
+viewHookError : Vela.Hook -> Html msg
+viewHookError hook =
     let
         lines =
             Utils.Ansi.decodeAnsi hook.error

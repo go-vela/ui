@@ -15,26 +15,23 @@ import Html.Attributes exposing (attribute, class, classList, href, id)
 import Html.Events exposing (onClick)
 import Route
 import Route.Path
-import Utils.HelpCommands
+import Shared
 import Utils.Helpers as Util
 import Utils.Theme as Theme
 
 
 type alias Props msg =
-    { session : Session
-    , from : String
-    , feedbackLink : String
-    , docsLink : String
+    { from : String
     , theme : Theme.Theme
     , setTheme : Theme.Theme -> msg
-    , help : Utils.HelpCommands.Model msg
+    , helpProps : Components.Help.Props msg
     , showId : Bool
     , showHideIdentity : Maybe Bool -> msg
     }
 
 
-view : Props msg -> Html msg
-view { session, from, feedbackLink, docsLink, theme, setTheme, help, showId, showHideIdentity } =
+view : Shared.Model -> Props msg -> Html msg
+view shared props =
     let
         identityBaseClassList =
             classList
@@ -45,7 +42,7 @@ view { session, from, feedbackLink, docsLink, theme, setTheme, help, showId, sho
                 ]
 
         identityAttributeList =
-            Util.open showId
+            Util.open props.showId
     in
     header []
         [ div [ class "identity", id "identity", Util.testAttribute "identity" ]
@@ -55,10 +52,10 @@ view { session, from, feedbackLink, docsLink, theme, setTheme, help, showId, sho
                 , attribute "aria-label" "Home"
                 ]
                 [ velaLogo 24 ]
-            , case session of
+            , case shared.session of
                 Authenticated auth ->
                     details (identityBaseClassList :: identityAttributeList)
-                        [ summary [ class "summary", Util.onClickPreventDefault (showHideIdentity Nothing), Util.testAttribute "identity-summary" ]
+                        [ summary [ class "summary", Util.onClickPreventDefault (props.showHideIdentity Nothing), Util.testAttribute "identity-summary" ]
                             [ text auth.userName
                             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                             ]
@@ -78,7 +75,7 @@ view { session, from, feedbackLink, docsLink, theme, setTheme, help, showId, sho
                                         { path = Route.Path.AccountLogout
                                         , query =
                                             Dict.fromList
-                                                [ ( "from", from ) ]
+                                                [ ( "from", props.from ) ]
                                         , hash = Nothing
                                         }
                                     , attribute "role" "menuitem"
@@ -90,14 +87,29 @@ view { session, from, feedbackLink, docsLink, theme, setTheme, help, showId, sho
 
                 Unauthenticated ->
                     details (identityBaseClassList :: identityAttributeList)
-                        [ summary [ class "summary", Util.onClickPreventDefault (showHideIdentity Nothing), Util.testAttribute "identity-summary" ] [ text "Vela" ] ]
+                        [ summary [ class "summary", Util.onClickPreventDefault (props.showHideIdentity Nothing), Util.testAttribute "identity-summary" ] [ text "Vela" ] ]
             ]
         , nav [ class "help-links" ]
             [ ul []
-                [ li [] [ viewThemeToggle theme setTheme ]
-                , li [] [ a [ href feedbackLink, attribute "aria-label" "go to feedback" ] [ text "feedback" ] ]
-                , li [] [ a [ href docsLink, attribute "aria-label" "go to docs" ] [ text "docs" ] ]
-                , Components.Help.help help
+                [ li []
+                    [ viewThemeToggle props.theme props.setTheme
+                    ]
+                , li []
+                    [ a
+                        [ href shared.velaFeedbackURL, attribute "aria-label" "go to feedback" ]
+                        [ text "feedback" ]
+                    ]
+                , li []
+                    [ a
+                        [ href shared.velaDocsURL, attribute "aria-label" "go to docs" ]
+                        [ text "docs" ]
+                    ]
+                , li
+                    [ id "contextual-help"
+                    , attribute "aria-label" "toggle contextual help for this page"
+                    ]
+                    [ Components.Help.view shared props.helpProps
+                    ]
                 ]
             ]
         ]
@@ -114,4 +126,10 @@ viewThemeToggle theme setTheme =
                 Theme.Light ->
                     ( Theme.Dark, "enable dark mode" )
     in
-    button [ class "button", class "-link", attribute "aria-label" themeAria, onClick (setTheme newTheme) ] [ text "switch theme" ]
+    button
+        [ class "button"
+        , class "-link"
+        , attribute "aria-label" themeAria
+        , onClick (setTheme newTheme)
+        ]
+        [ text "switch theme" ]
