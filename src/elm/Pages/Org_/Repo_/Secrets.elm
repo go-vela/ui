@@ -76,7 +76,7 @@ init shared route () =
       }
     , Effect.batch
         [ Effect.getOrgSecrets
-            { baseUrl = shared.velaAPI
+            { baseUrl = shared.velaAPIBaseURL
             , session = shared.session
             , onResponse = GetOrgSecretsResponse
             , pageNumber = Nothing
@@ -84,7 +84,7 @@ init shared route () =
             , org = route.params.org
             }
         , Effect.getRepoSecrets
-            { baseUrl = shared.velaAPI
+            { baseUrl = shared.velaAPIBaseURL
             , session = shared.session
             , onResponse = GetRepoSecretsResponse
             , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
@@ -154,7 +154,7 @@ update shared route msg model =
                     , hash = route.hash
                     }
                 , Effect.getRepoSecrets
-                    { baseUrl = shared.velaAPI
+                    { baseUrl = shared.velaAPIBaseURL
                     , session = shared.session
                     , onResponse = GetRepoSecretsResponse
                     , pageNumber = Just pageNumber
@@ -176,7 +176,7 @@ update shared route msg model =
             ( model
             , Effect.batch
                 [ Effect.getOrgSecrets
-                    { baseUrl = shared.velaAPI
+                    { baseUrl = shared.velaAPIBaseURL
                     , session = shared.session
                     , onResponse = GetOrgSecretsResponse
                     , pageNumber = Nothing
@@ -184,7 +184,7 @@ update shared route msg model =
                     , org = route.params.org
                     }
                 , Effect.getRepoSecrets
-                    { baseUrl = shared.velaAPI
+                    { baseUrl = shared.velaAPIBaseURL
                     , session = shared.session
                     , onResponse = GetRepoSecretsResponse
                     , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt

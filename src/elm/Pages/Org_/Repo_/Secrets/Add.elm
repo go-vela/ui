@@ -188,7 +188,7 @@ update shared route msg model =
             in
             ( model
             , Effect.addRepoSecret
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = AddSecretResponse
                 , org = route.params.org

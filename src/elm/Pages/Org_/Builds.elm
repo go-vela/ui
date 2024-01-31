@@ -76,7 +76,7 @@ init shared route () =
       , showActionsMenus = []
       }
     , Effect.getOrgBuilds
-        { baseUrl = shared.velaAPI
+        { baseUrl = shared.velaAPIBaseURL
         , session = shared.session
         , onResponse = GetOrgBuildsResponse
         , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
@@ -114,7 +114,7 @@ update shared route msg model =
         OnEventQueryParameterChanged options ->
             ( model
             , Effect.getOrgBuilds
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = GetOrgBuildsResponse
                 , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
@@ -150,7 +150,7 @@ update shared route msg model =
                     , hash = route.hash
                     }
                 , Effect.getOrgBuilds
-                    { baseUrl = shared.velaAPI
+                    { baseUrl = shared.velaAPIBaseURL
                     , session = shared.session
                     , onResponse = GetOrgBuildsResponse
                     , pageNumber = Just pageNumber
@@ -213,7 +213,7 @@ update shared route msg model =
                     , hash = route.hash
                     }
                 , Effect.getOrgBuilds
-                    { baseUrl = shared.velaAPI
+                    { baseUrl = shared.velaAPIBaseURL
                     , session = shared.session
                     , onResponse = GetOrgBuildsResponse
                     , pageNumber = Nothing
@@ -231,7 +231,7 @@ update shared route msg model =
         Tick options ->
             ( model
             , Effect.getOrgBuilds
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = GetOrgBuildsResponse
                 , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt

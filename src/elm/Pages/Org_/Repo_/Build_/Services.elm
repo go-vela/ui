@@ -92,7 +92,7 @@ init shared route () =
       , logFollow = 0
       }
     , Effect.getBuildServices
-        { baseUrl = shared.velaAPI
+        { baseUrl = shared.velaAPIBaseURL
         , session = shared.session
         , onResponse = GetBuildServicesResponse
         , pageNumber = Nothing
@@ -204,7 +204,7 @@ update shared route msg model =
                         |> List.map
                             (\service ->
                                 Effect.getBuildServiceLog
-                                    { baseUrl = shared.velaAPI
+                                    { baseUrl = shared.velaAPIBaseURL
                                     , session = shared.session
                                     , onResponse = GetBuildServiceLogRefreshResponse { service = service }
                                     , org = route.params.org
@@ -327,7 +327,7 @@ update shared route msg model =
               }
             , Effect.batch
                 [ Effect.getBuildServiceLog
-                    { baseUrl = shared.velaAPI
+                    { baseUrl = shared.velaAPIBaseURL
                     , session = shared.session
                     , onResponse =
                         GetBuildServiceLogResponse
@@ -418,7 +418,7 @@ update shared route msg model =
         Tick options ->
             ( model
             , Effect.getBuildServices
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = GetBuildServicesRefreshResponse
                 , pageNumber = Nothing

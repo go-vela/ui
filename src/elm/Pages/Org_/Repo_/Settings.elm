@@ -72,7 +72,7 @@ init shared route () =
       , inTimeout = Nothing
       }
     , Effect.getRepo
-        { baseUrl = shared.velaAPI
+        { baseUrl = shared.velaAPIBaseURL
         , session = shared.session
         , onResponse = GetRepoResponse
         , org = route.params.org
@@ -182,7 +182,7 @@ update shared route msg model =
                                     }
                           }
                         , Effect.enableRepo
-                            { baseUrl = shared.velaAPI
+                            { baseUrl = shared.velaAPIBaseURL
                             , session = shared.session
                             , onResponse = EnableRepoResponse { repo = repo }
                             , body = body
@@ -270,7 +270,7 @@ update shared route msg model =
                                 }
                       }
                     , Effect.disableRepo
-                        { baseUrl = shared.velaAPI
+                        { baseUrl = shared.velaAPIBaseURL
                         , session = shared.session
                         , onResponse = DisableRepoResponse { repo = repo }
                         , org = route.params.org
@@ -312,7 +312,7 @@ update shared route msg model =
         ChownRepo options ->
             ( model
             , Effect.chownRepo
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = ChownRepoResponse
                 , org = route.params.org
@@ -326,7 +326,7 @@ update shared route msg model =
                     ( model
                     , Effect.batch
                         [ Effect.getRepo
-                            { baseUrl = shared.velaAPI
+                            { baseUrl = shared.velaAPIBaseURL
                             , session = shared.session
                             , onResponse = GetRepoResponse
                             , org = route.params.org
@@ -347,7 +347,7 @@ update shared route msg model =
         RepairRepo options ->
             ( model
             , Effect.repairRepo
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = RepairRepoResponse
                 , org = route.params.org
@@ -361,7 +361,7 @@ update shared route msg model =
                     ( model
                     , Effect.batch
                         [ Effect.getRepo
-                            { baseUrl = shared.velaAPI
+                            { baseUrl = shared.velaAPIBaseURL
                             , session = shared.session
                             , onResponse = GetRepoResponse
                             , org = route.params.org
@@ -390,7 +390,7 @@ update shared route msg model =
             in
             ( model
             , Effect.updateRepo
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse =
                     UpdateRepoResponse
@@ -414,7 +414,7 @@ update shared route msg model =
             in
             ( model
             , Effect.updateRepo
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse =
                     UpdateRepoResponse
@@ -438,7 +438,7 @@ update shared route msg model =
             in
             ( model
             , Effect.updateRepo
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse =
                     UpdateRepoResponse
@@ -469,7 +469,7 @@ update shared route msg model =
             in
             ( model
             , Effect.updateRepo
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse =
                     UpdateRepoResponse
@@ -507,7 +507,7 @@ update shared route msg model =
             in
             ( model
             , Effect.updateRepo
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = UpdateRepoResponse { alertLabel = "'build timeout'" }
                 , org = route.params.org
@@ -542,7 +542,7 @@ update shared route msg model =
             in
             ( model
             , Effect.updateRepo
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = UpdateRepoResponse { alertLabel = "'build counter'" }
                 , org = route.params.org
@@ -563,7 +563,7 @@ update shared route msg model =
             in
             ( model
             , Effect.updateRepo
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = UpdateRepoResponse { alertLabel = "'pipeline type'" }
                 , org = route.params.org
@@ -582,7 +582,7 @@ update shared route msg model =
         Tick options ->
             ( model
             , Effect.getRepo
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = GetRepoRefreshResponse
                 , org = route.params.org
@@ -617,7 +617,7 @@ view shared route model =
                     , viewLimit shared repo model.inLimit BuildLimitUpdate BuildLimitOnInput
                     , viewTimeout repo model.inTimeout BuildTimeoutUpdate BuildTimeoutOnInput
                     , viewBuildCounter repo model.inCounter BuildCounterUpdate BuildCounterOnInput
-                    , viewBadge shared repo "shared.velaURL" AddAlertCopiedToClipboard
+                    , viewBadge shared repo AddAlertCopiedToClipboard
                     , viewAdminActions repo DisableRepo EnableRepo ChownRepo RepairRepo
                     , viewPipelineType repo PipelineTypeUpdate
                     ]
@@ -1028,25 +1028,15 @@ viewCounterWarning inCounter =
 
 {-| viewBadge : takes repo and renders a section for getting your build status badge
 -}
-viewBadge : Shared.Model -> Vela.Repository -> String -> (String -> msg) -> Html msg
-viewBadge shared repo velaURL copyMsg =
+viewBadge : Shared.Model -> Vela.Repository -> (String -> msg) -> Html msg
+viewBadge shared repo copyMsg =
     let
-        badgeURL : String
         badgeURL =
-            String.join "/" [ shared.velaAPI, "badge", repo.org, repo.name, "status.svg" ]
+            String.join "/" [ shared.velaAPIBaseURL, "badge", repo.org, repo.name, "status.svg" ]
 
-        baseURL : String
-        baseURL =
-            velaURL
-                |> String.split "/"
-                |> List.take 3
-                |> String.join "/"
-
-        buildURL : String
         buildURL =
-            String.join "/" [ baseURL, repo.org, repo.name ]
+            String.join "/" [ shared.velaUIBaseURL, repo.org, repo.name ]
 
-        mdCode : String
         mdCode =
             "[![Build Status](" ++ badgeURL ++ ")](" ++ buildURL ++ ")"
     in

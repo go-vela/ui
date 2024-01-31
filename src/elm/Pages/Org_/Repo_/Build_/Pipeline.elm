@@ -96,7 +96,7 @@ init shared route () =
       , expanding = False
       }
     , Effect.getBuild
-        { baseUrl = shared.velaAPI
+        { baseUrl = shared.velaAPIBaseURL
         , session = shared.session
         , onResponse = GetBuildResponse
         , org = route.params.org
@@ -148,7 +148,7 @@ update shared route msg model =
                         RemoteData.Success build ->
                             if expand then
                                 Effect.expandPipelineConfig
-                                    { baseUrl = shared.velaAPI
+                                    { baseUrl = shared.velaAPIBaseURL
                                     , session = shared.session
                                     , onResponse = GetExpandBuildPipelineConfigResponse
                                     , org = route.params.org
@@ -158,7 +158,7 @@ update shared route msg model =
 
                             else
                                 Effect.getPipelineConfig
-                                    { baseUrl = shared.velaAPI
+                                    { baseUrl = shared.velaAPIBaseURL
                                     , session = shared.session
                                     , onResponse = GetBuildPipelineConfigResponse
                                     , org = route.params.org
@@ -168,7 +168,7 @@ update shared route msg model =
 
                         _ ->
                             Effect.getBuild
-                                { baseUrl = shared.velaAPI
+                                { baseUrl = shared.velaAPIBaseURL
                                 , session = shared.session
                                 , onResponse = GetBuildResponse
                                 , org = route.params.org
@@ -242,7 +242,7 @@ update shared route msg model =
                         getPipelineConfigEffect =
                             if model.expand then
                                 Effect.expandPipelineConfig
-                                    { baseUrl = shared.velaAPI
+                                    { baseUrl = shared.velaAPIBaseURL
                                     , session = shared.session
                                     , onResponse = GetExpandBuildPipelineConfigResponse
                                     , org = route.params.org
@@ -252,7 +252,7 @@ update shared route msg model =
 
                             else
                                 Effect.getPipelineConfig
-                                    { baseUrl = shared.velaAPI
+                                    { baseUrl = shared.velaAPIBaseURL
                                     , session = shared.session
                                     , onResponse = GetBuildPipelineConfigResponse
                                     , org = route.params.org
@@ -264,7 +264,7 @@ update shared route msg model =
                     , Effect.batch
                         [ getPipelineConfigEffect
                         , Effect.getPipelineTemplates
-                            { baseUrl = shared.velaAPI
+                            { baseUrl = shared.velaAPIBaseURL
                             , session = shared.session
                             , onResponse = GetBuildPipelineTemplatesResponse
                             , org = route.params.org

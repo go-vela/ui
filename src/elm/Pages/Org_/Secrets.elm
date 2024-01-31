@@ -72,7 +72,7 @@ init shared route () =
       , pager = []
       }
     , Effect.getOrgSecrets
-        { baseUrl = shared.velaAPI
+        { baseUrl = shared.velaAPIBaseURL
         , session = shared.session
         , onResponse = GetOrgSecretsResponse
         , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
@@ -125,7 +125,7 @@ update shared route msg model =
                     , hash = route.hash
                     }
                 , Effect.getOrgSecrets
-                    { baseUrl = shared.velaAPI
+                    { baseUrl = shared.velaAPIBaseURL
                     , session = shared.session
                     , onResponse = GetOrgSecretsResponse
                     , pageNumber = Just pageNumber
@@ -145,7 +145,7 @@ update shared route msg model =
         Tick options ->
             ( model
             , Effect.getOrgSecrets
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = GetOrgSecretsResponse
                 , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt

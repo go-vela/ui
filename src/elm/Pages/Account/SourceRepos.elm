@@ -157,7 +157,7 @@ update shared msg model =
               }
             , Api.try
                 GetUserSourceReposResponse
-                (Api.Operations.getUserSourceRepos shared.velaAPI shared.session)
+                (Api.Operations.getUserSourceRepos shared.velaAPIBaseURL shared.session)
                 |> Effect.sendCmd
             )
 
@@ -197,7 +197,7 @@ update shared msg model =
                 | sourceRepos = Vela.enableUpdate repo Vela.Enabling model.sourceRepos
               }
             , Effect.enableRepo
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = EnableRepoResponse { repo = repo }
                 , body = body

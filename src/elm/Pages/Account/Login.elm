@@ -92,7 +92,7 @@ update shared msg model =
         -- AUTH
         SignInRequested ->
             ( model
-            , (Browser.Navigation.load <| Api.Endpoint.toUrl shared.velaAPI Api.Endpoint.Login) |> Effect.sendCmd
+            , (Browser.Navigation.load <| Api.Endpoint.toUrl shared.velaAPIBaseURL Api.Endpoint.Login) |> Effect.sendCmd
             )
 
 

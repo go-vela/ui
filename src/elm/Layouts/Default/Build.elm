@@ -87,7 +87,7 @@ init props shared _ =
             , repo = props.repo
             }
         , Effect.getBuild
-            { baseUrl = shared.velaAPI
+            { baseUrl = shared.velaAPIBaseURL
             , session = shared.session
             , onResponse = GetBuildResponse
             , org = props.org
@@ -126,7 +126,7 @@ update props shared msg model =
                     , repo = props.repo
                     }
                 , Effect.getBuild
-                    { baseUrl = shared.velaAPI
+                    { baseUrl = shared.velaAPIBaseURL
                     , session = shared.session
                     , onResponse = GetBuildResponse
                     , org = props.org
@@ -163,7 +163,7 @@ update props shared msg model =
                     , repo = props.repo
                     }
                 , Effect.getBuild
-                    { baseUrl = shared.velaAPI
+                    { baseUrl = shared.velaAPIBaseURL
                     , session = shared.session
                     , onResponse = GetBuildResponse
                     , org = props.org

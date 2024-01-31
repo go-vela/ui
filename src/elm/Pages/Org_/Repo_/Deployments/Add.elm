@@ -95,7 +95,7 @@ init shared route () =
                 |> List.filterMap identity
       }
     , Effect.getRepo
-        { baseUrl = shared.velaAPI
+        { baseUrl = shared.velaAPIBaseURL
         , session = shared.session
         , onResponse = GetRepoResponse
         , org = route.params.org
@@ -239,7 +239,7 @@ update shared route msg model =
             in
             ( model
             , Effect.addDeployment
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = AddDeploymentResponse
                 , org = route.params.org

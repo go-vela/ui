@@ -118,7 +118,7 @@ viewListCell : List String -> String -> List ( String, Bool ) -> Html msg
 viewListCell items none itemWrapperClassList =
     if List.length items == 0 then
         span
-            [ class "-empty-list-vert-pad"
+            [ class "single-item"
             ]
             [ text none ]
 

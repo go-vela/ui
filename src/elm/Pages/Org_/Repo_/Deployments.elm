@@ -19,7 +19,6 @@ import Html
         , a
         , div
         , span
-        , td
         , text
         , tr
         )
@@ -29,7 +28,6 @@ import Html.Attributes
         , class
         , href
         , rows
-        , scope
         )
 import Http
 import Http.Detailed
@@ -46,7 +44,6 @@ import Svg.Attributes
 import Time
 import Url
 import Utils.Errors
-import Utils.Favorites as Favorites
 import Utils.Helpers as Util
 import Utils.Interval as Interval
 import Vela
@@ -83,7 +80,8 @@ toLayout user route model =
 
 
 type alias Model =
-    { deployments : WebData (List Vela.Deployment)
+    { repo : WebData Vela.Repository
+    , deployments : WebData (List Vela.Deployment)
     , pager : List WebLink
     }
 
@@ -91,17 +89,27 @@ type alias Model =
 init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { deployments = RemoteData.Loading
+      , repo = RemoteData.Loading
       , pager = []
       }
-    , Effect.getRepoDeployments
-        { baseUrl = shared.velaAPI
-        , session = shared.session
-        , onResponse = GetRepoDeploymentsResponse
-        , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
-        , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
-        , org = route.params.org
-        , repo = route.params.repo
-        }
+    , Effect.batch
+        [ Effect.getRepo
+            { baseUrl = shared.velaAPIBaseURL
+            , session = shared.session
+            , onResponse = GetRepoResponse
+            , org = route.params.org
+            , repo = route.params.repo
+            }
+        , Effect.getRepoDeployments
+            { baseUrl = shared.velaAPIBaseURL
+            , session = shared.session
+            , onResponse = GetRepoDeploymentsResponse
+            , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
+            , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+            , org = route.params.org
+            , repo = route.params.repo
+            }
+        ]
     )
 
 
@@ -110,8 +118,10 @@ init shared route () =
 
 
 type Msg
-    = -- DEPLOYMENTS
-      GetRepoDeploymentsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Deployment ))
+    = -- REPO
+      GetRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
+      -- DEPLOYMENTS
+    | GetRepoDeploymentsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Deployment ))
     | GotoPage Int
       -- REFRESH
     | Tick { time : Time.Posix, interval : Interval.Interval }
@@ -146,7 +156,7 @@ update shared route msg model =
                     , hash = route.hash
                     }
                 , Effect.getRepoDeployments
-                    { baseUrl = shared.velaAPI
+                    { baseUrl = shared.velaAPIBaseURL
                     , session = shared.session
                     , onResponse = GetRepoDeploymentsResponse
                     , pageNumber = Just pageNumber
@@ -157,11 +167,26 @@ update shared route msg model =
                 ]
             )
 
+        -- REPO
+        GetRepoResponse response ->
+            case response of
+                Ok ( meta, repo ) ->
+                    ( { model
+                        | repo = RemoteData.Success repo
+                      }
+                    , Effect.none
+                    )
+
+                Err error ->
+                    ( { model | repo = Utils.Errors.toFailure error }
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
         -- REFRESH
         Tick options ->
             ( model
             , Effect.getRepoDeployments
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = GetRepoDeploymentsResponse
                 , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
@@ -189,7 +214,7 @@ view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Ms
 view shared route model =
     { title = "Deployments"
     , body =
-        [ viewDeployments model route.params.org route.params.repo model.deployments
+        [ viewDeployments model route
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
         ]
     }
@@ -197,8 +222,8 @@ view shared route model =
 
 {-| viewDeployments : renders a list of deployments
 -}
-viewDeployments : Model -> String -> String -> WebData (List Vela.Deployment) -> Html Msg
-viewDeployments model org repo deployments =
+viewDeployments : Model -> Route { org : String, repo : String } -> Html Msg
+viewDeployments model route =
     let
         actions =
             Just <|
@@ -209,7 +234,7 @@ viewDeployments model org repo deployments =
                         , class "button-with-icon"
                         , Util.testAttribute "add-deployment"
                         , Route.Path.href <|
-                            Route.Path.Org_Repo_DeploymentsAdd { org = org, repo = repo }
+                            Route.Path.Org_Repo_DeploymentsAdd { org = route.params.org, repo = route.params.repo }
                         ]
                         [ text "Add Deployment"
                         , FeatherIcons.plus
@@ -220,29 +245,17 @@ viewDeployments model org repo deployments =
                     ]
 
         ( noRowsView, rows ) =
-            case deployments of
-                RemoteData.Success d ->
+            case ( model.repo, model.deployments ) of
+                ( RemoteData.Success r, RemoteData.Success d ) ->
                     ( text "No deployments found for this repo"
-                    , deploymentsToRows org repo d
+                    , deploymentsToRows r d
                     )
 
-                RemoteData.Failure error ->
-                    ( span [ Util.testAttribute "repo-deployments-error" ]
-                        [ text <|
-                            case error of
-                                Http.BadStatus statusCode ->
-                                    case statusCode of
-                                        401 ->
-                                            "No deployments found for this repo, most likely due to not having access to the source control repo"
+                ( RemoteData.Failure error, _ ) ->
+                    ( viewError error, [] )
 
-                                        _ ->
-                                            "No deployments found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
-
-                                _ ->
-                                    "No deployments found for this repo, there was an error with the server"
-                        ]
-                    , []
-                    )
+                ( _, RemoteData.Failure error ) ->
+                    ( viewError error, [] )
 
                 _ ->
                     ( Util.largeLoader, [] )
@@ -267,9 +280,9 @@ viewDeployments model org repo deployments =
 
 {-| deploymentsToRows : takes list of deployments and produces list of Table rows
 -}
-deploymentsToRows : String -> String -> List Vela.Deployment -> Components.Table.Rows Vela.Deployment Msg
-deploymentsToRows org repo deployments =
-    List.map (\deployment -> Components.Table.Row deployment (renderDeployment org repo)) deployments
+deploymentsToRows : Vela.Repository -> List Vela.Deployment -> Components.Table.Rows Vela.Deployment Msg
+deploymentsToRows repo deployments =
+    List.map (\deployment -> Components.Table.Row deployment (renderDeployment repo)) deployments
 
 
 {-| tableHeaders : returns table headers for deployments table
@@ -288,14 +301,8 @@ tableHeaders =
 
 {-| renderDeployment : takes deployment and renders a table row
 -}
-renderDeployment : String -> String -> Vela.Deployment -> Html Msg
-renderDeployment org repo deployment =
-    let
-        -- todo: somehow build the repo clone link and append the commit hash
-        -- Util.buildRepoCloneLink org repo
-        repoCloneLink =
-            ""
-    in
+renderDeployment : Vela.Repository -> Vela.Deployment -> Html Msg
+renderDeployment repo deployment =
     tr [ Util.testAttribute <| "deployments-row", class "-success" ]
         [ Components.Table.viewIconCell
             { dataLabel = "status"
@@ -327,7 +334,7 @@ renderDeployment org repo deployment =
             , parentClassList = []
             , itemClassList = []
             , children =
-                [ a [ href <| Util.buildRefURL repoCloneLink deployment.commit ]
+                [ a [ href <| Util.buildRefURL repo.clone deployment.commit ]
                     [ text <| Util.trimCommitHash deployment.commit ]
                 ]
             }
@@ -357,7 +364,7 @@ renderDeployment org repo deployment =
                     [ class "redeploy-link"
                     , attribute "aria-label" <| "redeploy deployment " ++ String.fromInt deployment.id
                     , Route.href <|
-                        { path = Route.Path.Org_Repo_DeploymentsAdd { org = org, repo = repo }
+                        { path = Route.Path.Org_Repo_DeploymentsAdd { org = repo.org, repo = repo.name }
                         , query =
                             Dict.fromList <|
                                 [ ( "target", deployment.target )
@@ -388,4 +395,22 @@ renderDeployment org repo deployment =
                     ]
                 ]
             }
+        ]
+
+
+viewError : Http.Error -> Html msg
+viewError error =
+    span [ Util.testAttribute "repo-deployments-error" ]
+        [ text <|
+            case error of
+                Http.BadStatus statusCode ->
+                    case statusCode of
+                        401 ->
+                            "No deployments found for this repo, most likely due to not having access to the source control repo"
+
+                        _ ->
+                            "No deployments found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+
+                _ ->
+                    "No deployments found for this repo, there was an error with the server"
         ]

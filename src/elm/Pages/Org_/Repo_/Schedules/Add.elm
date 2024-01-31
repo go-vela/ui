@@ -141,7 +141,7 @@ update shared route msg model =
             in
             ( model
             , Effect.addRepoSchedule
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = AddRepoScheduleResponse
                 , org = route.params.org

@@ -73,7 +73,7 @@ init shared route () =
       , confirmingDelete = False
       }
     , Effect.getRepoSchedule
-        { baseUrl = shared.velaAPI
+        { baseUrl = shared.velaAPIBaseURL
         , session = shared.session
         , onResponse = GetRepoScheduleResponse
         , org = route.params.org
@@ -199,7 +199,7 @@ update shared route msg model =
             in
             ( model
             , Effect.updateRepoSchedule
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = UpdateRepoScheduleResponse
                 , org = route.params.org
@@ -222,7 +222,7 @@ update shared route msg model =
         ConfirmDelete ->
             ( { model | confirmingDelete = False }
             , Effect.deleteRepoSchedule
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = DeleteScheduleResponse
                 , org = route.params.org

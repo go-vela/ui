@@ -95,7 +95,7 @@ init shared route () =
       , showSteps = True
       }
     , Effect.getBuildGraph
-        { baseUrl = shared.velaAPI
+        { baseUrl = shared.velaAPIBaseURL
         , session = shared.session
         , onResponse = GetBuildGraphResponse { freshDraw = True }
         , org = route.params.org
@@ -177,7 +177,7 @@ update shared route msg model =
               }
             , Effect.batch
                 [ Effect.getBuildGraph
-                    { baseUrl = shared.velaAPI
+                    { baseUrl = shared.velaAPIBaseURL
                     , session = shared.session
                     , onResponse = GetBuildGraphResponse { freshDraw = options.freshDraw }
                     , org = route.params.org

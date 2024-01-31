@@ -65,7 +65,7 @@ init shared route () =
     ( { repos = RemoteData.Loading
       }
     , Effect.getOrgRepos
-        { baseUrl = shared.velaAPI
+        { baseUrl = shared.velaAPIBaseURL
         , session = shared.session
         , onResponse = GetOrgReposResponse
         , org = route.params.org
@@ -112,7 +112,7 @@ update shared route msg model =
         Tick options ->
             ( model
             , Effect.getOrgRepos
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = GetOrgReposResponse
                 , org = route.params.org

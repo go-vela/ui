@@ -93,7 +93,7 @@ viewHelp docsUrl =
     div [ class "help" ]
         [ text "Need help? Visit our "
         , a
-            [ href "/usage/schedule_build/"
+            [ href <| docsUrl ++ "/usage/schedule_build/"
             , target "_blank"
             ]
             [ text "docs" ]

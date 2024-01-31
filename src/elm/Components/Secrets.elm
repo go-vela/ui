@@ -263,6 +263,7 @@ copyButton copyYaml copyMsg =
 -}
 editSecretHref : Vela.SecretType -> Vela.Secret -> Html.Attribute msg
 editSecretHref type_ secret =
+    -- todo: do we need this?
     -- let
     --     encodedTeam =
     --         Url.percentEncode secret.team

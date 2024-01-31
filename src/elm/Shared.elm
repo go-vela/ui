@@ -30,6 +30,7 @@ import Shared.Msg
 import Task
 import Time
 import Toasty as Alerting
+import Url
 import Utils.Errors
 import Utils.Favicons as Favicons
 import Utils.Favorites as Favorites
@@ -118,15 +119,21 @@ init flagsResult route =
 
             else
                 Effect.none
+
+        uiBaseURL =
+            route.url |> (\entryUrl -> Url.toString { entryUrl | path = "" })
     in
     ( { -- FLAGS
-        velaAPI = flags.velaAPI
+        velaAPIBaseURL = flags.velaAPI
       , velaFeedbackURL = flags.velaFeedbackURL
       , velaDocsURL = flags.velaDocsURL
       , velaRedirect = flags.velaRedirect
       , velaLogBytesLimit = flags.velaLogBytesLimit
       , velaMaxBuildLimit = flags.velaMaxBuildLimit
       , velaScheduleAllowlist = Util.stringToAllowlist flags.velaScheduleAllowlist
+
+      -- BASE URL
+      , velaUIBaseURL = uiBaseURL
 
       -- AUTH
       , session = Auth.Session.Unauthenticated
@@ -253,7 +260,7 @@ update route msg model =
             ( model
             , Effect.sendCmd <|
                 Api.try Shared.Msg.TokenResponse <|
-                    Api.Operations.finishAuthentication model.velaAPI <|
+                    Api.Operations.finishAuthentication model.velaAPIBaseURL <|
                         Auth.Session.AuthParams options.code options.state
             )
 
@@ -378,7 +385,7 @@ update route msg model =
             ( model
             , Effect.sendCmd <|
                 Api.try Shared.Msg.TokenResponse <|
-                    Api.Operations.getToken model.velaAPI
+                    Api.Operations.getToken model.velaAPIBaseURL
             )
 
         Shared.Msg.Logout options ->
@@ -387,7 +394,7 @@ update route msg model =
                 [ Effect.setRedirect { redirect = Maybe.withDefault "/" options.from }
                 , Api.try
                     (Shared.Msg.LogoutResponse options)
-                    (Api.Operations.logout model.velaAPI model.session)
+                    (Api.Operations.logout model.velaAPIBaseURL model.session)
                     |> Effect.sendCmd
                 ]
             )
@@ -412,7 +419,7 @@ update route msg model =
             ( model
             , Api.try
                 Shared.Msg.CurrentUserResponse
-                (Api.Operations.getCurrentUser model.velaAPI model.session)
+                (Api.Operations.getCurrentUser model.velaAPIBaseURL model.session)
                 |> Effect.sendCmd
             )
 
@@ -454,7 +461,7 @@ update route msg model =
             ( model
             , Api.try
                 (Shared.Msg.RepoFavoriteResponse { favorite = favorite, favorited = favorited })
-                (Api.Operations.updateCurrentUser model.velaAPI model.session body)
+                (Api.Operations.updateCurrentUser model.velaAPIBaseURL model.session body)
                 |> Effect.sendCmd
             )
 
@@ -483,7 +490,7 @@ update route msg model =
             ( model
             , Api.try
                 Shared.Msg.GetRepoBuildsResponse
-                (Api.Operations.getRepoBuilds model.velaAPI model.session options)
+                (Api.Operations.getRepoBuilds model.velaAPIBaseURL model.session options)
                 |> Effect.sendCmd
             )
 
@@ -504,7 +511,7 @@ update route msg model =
             ( model
             , Api.try
                 Shared.Msg.GetRepoHooksResponse
-                (Api.Operations.getRepoHooks model.velaAPI model.session options)
+                (Api.Operations.getRepoHooks model.velaAPIBaseURL model.session options)
                 |> Effect.sendCmd
             )
 

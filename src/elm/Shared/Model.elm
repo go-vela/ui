@@ -18,13 +18,16 @@ import Vela
 
 type alias Model =
     { -- FLAGS
-      velaAPI : String
+      velaAPIBaseURL : String
     , velaFeedbackURL : String
     , velaDocsURL : String
     , velaRedirect : String
     , velaLogBytesLimit : Int
     , velaMaxBuildLimit : Int
     , velaScheduleAllowlist : List ( String, String )
+
+    -- BASE URL
+    , velaUIBaseURL : String
 
     --AUTH
     , session : Session

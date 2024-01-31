@@ -76,7 +76,7 @@ init shared route () =
       , showActionsMenus = []
       }
     , Effect.getRepoBuilds
-        { baseUrl = shared.velaAPI
+        { baseUrl = shared.velaAPIBaseURL
         , session = shared.session
         , onResponse = GetRepoBuildsResponse
         , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
@@ -115,7 +115,7 @@ update shared route msg model =
         OnEventQueryParameterChanged options ->
             ( model
             , Effect.getRepoBuilds
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = GetRepoBuildsResponse
                 , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
@@ -152,7 +152,7 @@ update shared route msg model =
                     , hash = route.hash
                     }
                 , Effect.getRepoBuilds
-                    { baseUrl = shared.velaAPI
+                    { baseUrl = shared.velaAPIBaseURL
                     , session = shared.session
                     , onResponse = GetRepoBuildsResponse
                     , pageNumber = Just pageNumber
@@ -236,7 +236,7 @@ update shared route msg model =
                     , hash = route.hash
                     }
                 , Effect.getRepoBuilds
-                    { baseUrl = shared.velaAPI
+                    { baseUrl = shared.velaAPIBaseURL
                     , session = shared.session
                     , onResponse = GetRepoBuildsResponse
                     , pageNumber = Nothing
@@ -255,7 +255,7 @@ update shared route msg model =
         Tick options ->
             ( model
             , Effect.getRepoBuilds
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = GetRepoBuildsResponse
                 , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt

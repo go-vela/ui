@@ -78,7 +78,7 @@ init shared route () =
       , confirmingDelete = False
       }
     , Effect.getOrgSecret
-        { baseUrl = shared.velaAPI
+        { baseUrl = shared.velaAPIBaseURL
         , session = shared.session
         , onResponse = GetSecretResponse
         , org = route.params.org
@@ -244,7 +244,7 @@ update shared route msg model =
             in
             ( model
             , Effect.updateOrgSecret
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = UpdateSecretResponse
                 , org = route.params.org
@@ -266,7 +266,7 @@ update shared route msg model =
         ConfirmDelete ->
             ( { model | confirmingDelete = False }
             , Effect.deleteOrgSecret
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = DeleteSecretResponse
                 , org = route.params.org

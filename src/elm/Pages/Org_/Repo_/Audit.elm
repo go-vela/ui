@@ -93,7 +93,7 @@ init shared route () =
       , pager = []
       }
     , Effect.getRepoHooks
-        { baseUrl = shared.velaAPI
+        { baseUrl = shared.velaAPIBaseURL
         , session = shared.session
         , onResponse = GetRepoHooksResponse
         , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
@@ -140,7 +140,7 @@ update shared route msg model =
         RedeliverRepoHook options ->
             ( model
             , Effect.redeliverHook
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = RedeliverRepoHookResponse
                 , org = route.params.org
@@ -171,7 +171,7 @@ update shared route msg model =
                     , hash = route.hash
                     }
                 , Effect.getRepoHooks
-                    { baseUrl = shared.velaAPI
+                    { baseUrl = shared.velaAPIBaseURL
                     , session = shared.session
                     , onResponse = GetRepoHooksResponse
                     , pageNumber = Just pageNumber
@@ -186,7 +186,7 @@ update shared route msg model =
         Tick options ->
             ( model
             , Effect.getRepoHooks
-                { baseUrl = shared.velaAPI
+                { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = GetRepoHooksResponse
                 , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
