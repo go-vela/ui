@@ -64,7 +64,7 @@ import Html.Attributes
         , type_
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy, lazy2, lazy3, lazy5, lazy7, lazy8)
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy5, lazy7, lazy8)
 import Http
 import Http.Detailed
 import Interop
@@ -2974,7 +2974,7 @@ viewContent model =
         Pages.RepositoryDeployments org repo maybePage _ ->
             ( String.join "/" [ org, repo ] ++ " deployments" ++ Util.pageToString maybePage
             , div []
-                [ lazy3 Pages.Deployments.View.viewDeployments model.repo org repo
+                [ lazy4 Pages.Deployments.View.viewDeployments model.zone model.repo org repo
                 , Pager.view model.repo.deployments.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -3894,6 +3894,9 @@ loadRepoSubPage model org repo toPage =
 
                     Pages.RepoSettings o r ->
                         ( model, getRepo model o r )
+
+                    Pages.RepositoryDeployments o r maybePage maybePerPage ->
+                        ( model, getDeployments model o r maybePage maybePerPage )
 
                     Pages.PromoteDeployment o r deploymentNumber ->
                         ( model, getDeployment model o r deploymentNumber )

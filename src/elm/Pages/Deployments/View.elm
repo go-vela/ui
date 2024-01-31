@@ -21,6 +21,7 @@ import Routes
 import Svg.Attributes
 import SvgBuilder exposing (hookSuccess)
 import Table
+import Time exposing (Zone)
 import Util exposing (largeLoader)
 import Vela exposing (Deployment, Org, Repo, RepoModel, Repository)
 
@@ -73,8 +74,8 @@ addForm deploymentModel =
 
 {-| viewDeployments : renders a list of deployments
 -}
-viewDeployments : RepoModel -> Org -> Repo -> Html msg
-viewDeployments repoModel org repo =
+viewDeployments : Zone -> RepoModel -> Org -> Repo -> Html msg
+viewDeployments zone repoModel org repo =
     let
         addButton =
             a
@@ -101,7 +102,7 @@ viewDeployments repoModel org repo =
             case ( repoModel.repo, repoModel.deployments.deployments ) of
                 ( RemoteData.Success repo_, RemoteData.Success s ) ->
                     ( text "No deployments found for this repo"
-                    , deploymentsToRows repo_ s
+                    , deploymentsToRows zone repo_ s
                     )
 
                 ( _, RemoteData.Failure error ) ->
@@ -161,9 +162,9 @@ viewDeployments repoModel org repo =
 
 {-| deploymentsToRows : takes list of deployments and produces list of Table rows
 -}
-deploymentsToRows : Repository -> List Deployment -> Table.Rows Deployment msg
-deploymentsToRows repo_ deployments =
-    List.map (\deployment -> Table.Row deployment (renderDeployment repo_)) deployments
+deploymentsToRows : Zone -> Repository -> List Deployment -> Table.Rows Deployment msg
+deploymentsToRows zone repo_ deployments =
+    List.map (\deployment -> Table.Row deployment (renderDeployment zone repo_)) deployments
 
 
 {-| tableHeaders : returns table headers for deployments table
@@ -176,15 +177,17 @@ tableHeaders =
     , ( Nothing, "commit" )
     , ( Nothing, "ref" )
     , ( Nothing, "description" )
-    , ( Nothing, "user" )
+    , ( Nothing, "builds" )
+    , ( Nothing, "created by" )
+    , ( Nothing, "created at" )
     , ( Nothing, "" )
     ]
 
 
 {-| renderDeployment : takes deployment and renders a table row
 -}
-renderDeployment : Repository -> Deployment -> Html msg
-renderDeployment repo_ deployment =
+renderDeployment : Zone -> Repository -> Deployment -> Html msg
+renderDeployment zone repo_ deployment =
     tr [ Util.testAttribute <| "deployments-row" ]
         [ td
             [ attribute "data-label" ""
@@ -194,12 +197,12 @@ renderDeployment repo_ deployment =
             ]
             [ hookSuccess ]
         , td
-            [ attribute "data-label" "id"
+            [ attribute "data-label" "number"
             , scope "row"
             , class "break-word"
-            , Util.testAttribute <| "deployments-row-id"
+            , Util.testAttribute <| "deployments-row-number"
             ]
-            [ text <| String.fromInt deployment.id ]
+            [ text <| String.fromInt deployment.number ]
         , td
             [ attribute "data-label" "target"
             , scope "row"
@@ -232,11 +235,24 @@ renderDeployment repo_ deployment =
             ]
             [ text deployment.description ]
         , td
-            [ attribute "data-label" "user"
+            [ attribute "data-label" "builds"
+            , scope "row"
+            , class "break-word"
+            , class "build"
+            ]
+            [ linksView (pullBuildLinks deployment) ]
+        , td
+            [ attribute "data-label" "created by"
             , scope "row"
             , class "break-word"
             ]
-            [ text deployment.user ]
+            [ text deployment.created_by ]
+        , td
+            [ attribute "data-label" "created at"
+            , scope "row"
+            , class "break-word"
+            ]
+            [ text <| Util.humanReadableDateTimeWithDefault zone deployment.created_at ]
         , td
             [ attribute "data-label" ""
             , scope "row"
@@ -258,3 +274,38 @@ redeployLink org repo deployment =
         ]
         [ text "Redeploy"
         ]
+
+
+{-| pullBuildLinks : takes deployment and creates a list of links to every build in the builds field
+-}
+pullBuildLinks : Deployment -> List String
+pullBuildLinks deployment =
+    case deployment.builds of
+        Nothing ->
+            []
+
+        Just builds ->
+            List.map .link builds
+
+
+{-| linksView : takes list of links and creates an HTML msg that displays as a list of links
+-}
+linksView : List String -> Html msg
+linksView links =
+    links
+        |> List.map
+            (\link ->
+                a
+                    [ href link ]
+                    [ text
+                        (link
+                            |> String.split "/"
+                            |> List.reverse
+                            |> List.head
+                            |> Maybe.withDefault ""
+                            |> String.append "#"
+                        )
+                    ]
+            )
+        |> List.intersperse (text ", ")
+        |> div []
