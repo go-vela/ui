@@ -471,6 +471,8 @@ allowEventsToList events =
     []
         |> appendLabel events.push.branch "push"
         |> appendLabel events.push.tag "tag"
+        |> appendLabel events.push.delete_branch "delete:branch"
+        |> appendLabel events.push.delete_tag "delete:tag"
         |> appendLabel events.pull.opened "pull_request:opened"
         |> appendLabel events.pull.synchronize "pull_request:synchronize"
         |> appendLabel events.pull.edited "pull_request:edited"

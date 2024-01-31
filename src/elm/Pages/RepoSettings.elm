@@ -368,6 +368,19 @@ events repo msg =
                       <|
                         msg repo.org repo.name repo "allow_comment_edited"
                     ]
+                , h3 [ class "settings-subtitle" ] [ text "Delete" ]
+                , div [ class "form-controls", class "-two-col" ]
+                    [ checkbox "Branch"
+                        "allow_push_delete_branch"
+                        allowEvents.push.delete_branch
+                      <|
+                        msg repo.org repo.name repo "allow_push_delete_branch"
+                    , checkbox "Tag"
+                        "allow_push_delete_tag"
+                        allowEvents.push.delete_tag
+                      <|
+                        msg repo.org repo.name repo "allow_push_delete_tag"
+                    ]
                 ]
 
 
@@ -950,6 +963,12 @@ msgPrefix field =
         "allow_push_tag" ->
             "Push tag events for $ "
 
+        "allow_push_delete_branch" ->
+            "Push delete branch events for $ "
+
+        "allow_push_delete_tag" ->
+            "Push delete tag events for $ "
+
         "allow_deploy_created" ->
             "Deploy events for $ "
 
@@ -1039,6 +1058,22 @@ msgSuffix field repo =
 
                 Just allowEvents ->
                     toggleText "allow_push_tag" allowEvents.push.tag
+
+        "allow_push_delete_branch" ->
+            case repo.allow_events of
+                Nothing ->
+                    ""
+
+                Just allowEvents ->
+                    toggleText "allow_push_delete_branch" allowEvents.push.branch
+
+        "allow_push_delete_tag" ->
+            case repo.allow_events of
+                Nothing ->
+                    ""
+
+                Just allowEvents ->
+                    toggleText "allow_push_delete_tag" allowEvents.push.tag
 
         "allow_deploy_created" ->
             case repo.allow_events of

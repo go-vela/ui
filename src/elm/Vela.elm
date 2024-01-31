@@ -928,6 +928,8 @@ type alias Deployment =
 type alias PushActions =
     { branch : Bool
     , tag : Bool
+    , delete_branch : Bool
+    , delete_tag : Bool
     }
 
 
@@ -1014,6 +1016,8 @@ decodePushActions =
     Decode.succeed PushActions
         |> required "branch" bool
         |> required "tag" bool
+        |> required "delete_branch" bool
+        |> required "delete_tag" bool
 
 
 decodePullActions : Decoder PullActions
@@ -1186,6 +1190,8 @@ encodePushActions push =
     Encode.object
         [ ( "branch", Encode.bool <| push.branch )
         , ( "tag", Encode.bool <| push.tag )
+        , ( "delete_branch", Encode.bool <| push.delete_branch )
+        , ( "delete_tag", Encode.bool <| push.delete_tag )
         ]
 
 
@@ -1251,6 +1257,8 @@ type alias AllowEventsPayload =
 type alias PushActionsPayload =
     { branch : Bool
     , tag : Bool
+    , delete_branch : Bool
+    , delete_tag : Bool
     }
 
 
@@ -1330,10 +1338,10 @@ defaultPushActionsPayload : Maybe PushActions -> PushActionsPayload
 defaultPushActionsPayload pushActions =
     case pushActions of
         Nothing ->
-            PushActionsPayload False False
+            PushActionsPayload False False False False
 
         Just push ->
-            PushActionsPayload push.branch push.tag
+            PushActionsPayload push.branch push.tag push.delete_branch push.delete_tag
 
 
 defaultPullActionsPayload : Maybe PullActions -> PullActionsPayload
@@ -1441,6 +1449,12 @@ buildUpdateRepoEventsPayload repository field value =
 
         "allow_push_tag" ->
             { defaultUpdateRepositoryPayload | allow_events = Just { events | push = { pushActions | tag = value } } }
+
+        "allow_push_delete_branch" ->
+            { defaultUpdateRepositoryPayload | allow_events = Just { events | push = { pushActions | delete_branch = value } } }
+
+        "allow_push_delete_tag" ->
+            { defaultUpdateRepositoryPayload | allow_events = Just { events | push = { pushActions | delete_tag = value } } }
 
         "allow_pull_opened" ->
             { defaultUpdateRepositoryPayload | allow_events = Just { events | pull = { pullActions | opened = value } } }
@@ -2503,7 +2517,7 @@ secretToKey secret =
 
 defaultSecretAllowEvents : AllowEvents
 defaultSecretAllowEvents =
-    { push = { branch = True, tag = True }, pull = defaultPullActionsPayload Nothing, deploy = { created = True }, comment = defaultCommentActionsPayload Nothing, schedule = defaultScheduleActionsPayload Nothing }
+    { push = { branch = True, tag = True, delete_branch = False, delete_tag = False }, pull = defaultPullActionsPayload Nothing, deploy = { created = True }, comment = defaultCommentActionsPayload Nothing, schedule = defaultScheduleActionsPayload Nothing }
 
 
 decodeSecret : Decoder Secret
