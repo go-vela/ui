@@ -20,7 +20,6 @@ import Html
         , a
         , code
         , div
-        , small
         , span
         , td
         , text
@@ -32,7 +31,6 @@ import Html.Attributes
         , class
         , href
         , rows
-        , scope
         )
 import Http
 import Http.Detailed
@@ -45,7 +43,6 @@ import Route exposing (Route)
 import Shared
 import Time
 import Utils.Ansi
-import Utils.Favorites as Favorites
 import Utils.Helpers as Util
 import Utils.Interval as Interval
 import Vela
@@ -277,7 +274,7 @@ viewHooks shared model hooks =
 hooksToRows : Time.Posix -> List Vela.Hook -> ({ hook : Vela.Hook } -> Msg) -> Components.Table.Rows Vela.Hook Msg
 hooksToRows now hooks redeliverHook =
     hooks
-        |> List.concatMap (\hook -> [ Just <| Components.Table.Row hook (renderHook now redeliverHook), hookErrorRow hook ])
+        |> List.concatMap (\hook -> [ Just <| Components.Table.Row hook (viewHook now redeliverHook), hookErrorRow hook ])
         |> List.filterMap identity
 
 
@@ -294,10 +291,10 @@ tableHeaders =
     ]
 
 
-{-| renderHook : takes hook and renders a table row
+{-| viewHook : takes hook and renders a table row
 -}
-renderHook : Time.Posix -> ({ hook : Vela.Hook } -> msg) -> Vela.Hook -> Html msg
-renderHook now redeliverHook hook =
+viewHook : Time.Posix -> ({ hook : Vela.Hook } -> msg) -> Vela.Hook -> Html msg
+viewHook now redeliverHook hook =
     tr [ Util.testAttribute <| "hooks-row", hookStatusToRowClass hook.status ]
         [ Components.Table.viewIconCell
             { dataLabel = "status"
