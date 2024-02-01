@@ -1553,6 +1553,7 @@ details.build-toggle {
 .secret-form,
 .deployment-form,
 .schedule-form {
+  max-width: 45rem;
   margin-bottom: 0.5rem;
   padding-top: 1rem;
 }
@@ -1632,25 +1633,6 @@ details.build-toggle {
   padding: 1rem;
 }
 
-.manage-secret .subheader,
-.manage-deployment .subheader {
-  width: 80%;
-  margin-top: 1rem;
-
-  border-bottom: 2px solid var(--color-primary);
-}
-
-.manage-secret input,
-.manage-deployment input {
-  max-width: 400px;
-}
-
-.manage-secret textarea,
-.manage-deployment textarea,
-.manage-schedule textarea {
-  max-width: 70%;
-}
-
 .secret-form .help,
 .deployment-form .help,
 .schedule-form .help {
@@ -1661,10 +1643,6 @@ details.build-toggle {
 .deployment-form .form-action,
 .schedule-form .form-action {
   padding-left: 1rem;
-}
-
-.deployment-form h2.deployment-header {
-  margin-bottom: 1rem;
 }
 
 .add-deployment-buttons {

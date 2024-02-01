@@ -36,7 +36,8 @@ addDeployment : PartialModel a msg -> Html Msg
 addDeployment model =
     div [ class "manage-deployment", Util.testAttribute "add-deployment" ]
         [ div []
-            [ addForm model.deploymentModel
+            [ h2 [] [ text "Add Deployment" ]
+            , addForm model.deploymentModel
             ]
         ]
 
@@ -58,8 +59,7 @@ addForm deploymentModel =
                     ""
     in
     div [ class "deployment-form" ]
-        [ h2 [ class "deployment-header" ] [ text "Add Deployment" ]
-        , viewDeployEnabled deploymentModel.repo_settings
+        [ viewDeployEnabled deploymentModel.repo_settings
 
         -- GitHub default is "production". If we support more SCMs, this line may need tweaking
         , viewValueInput "Target" deployment.target "provide the name for the target deployment environment (default: \"production\")"
