@@ -66,25 +66,39 @@ toLayout user route model =
 
 
 type alias Model =
-    { secrets : WebData (List Vela.Secret)
+    { orgSecrets : WebData (List Vela.Secret)
+    , sharedSecrets : WebData (List Vela.Secret)
     , pager : List WebLink
     }
 
 
 init : Shared.Model -> Route { engine : String, org : String } -> () -> ( Model, Effect Msg )
 init shared route () =
-    ( { secrets = RemoteData.Loading
+    ( { orgSecrets = RemoteData.Loading
+      , sharedSecrets = RemoteData.Loading
       , pager = []
       }
-    , Effect.getOrgSecrets
-        { baseUrl = shared.velaAPIBaseURL
-        , session = shared.session
-        , onResponse = GetOrgSecretsResponse
-        , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
-        , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
-        , engine = route.params.engine
-        , org = route.params.org
-        }
+    , Effect.batch
+        [ Effect.getOrgSecrets
+            { baseUrl = shared.velaAPIBaseURL
+            , session = shared.session
+            , onResponse = GetOrgSecretsResponse
+            , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
+            , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+            , engine = route.params.engine
+            , org = route.params.org
+            }
+        , Effect.getSharedSecrets
+            { baseUrl = shared.velaAPIBaseURL
+            , session = shared.session
+            , onResponse = GetSharedSecretsResponse
+            , pageNumber = Nothing
+            , perPage = Nothing
+            , engine = route.params.engine
+            , org = route.params.org
+            , team = "*"
+            }
+        ]
     )
 
 
@@ -95,6 +109,7 @@ init shared route () =
 type Msg
     = -- SECRETS
       GetOrgSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Secret ))
+    | GetSharedSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Secret ))
     | GotoPage Int
       -- ALERTS
     | AddAlertCopiedToClipboard String
@@ -110,14 +125,28 @@ update shared route msg model =
             case response of
                 Ok ( meta, secrets ) ->
                     ( { model
-                        | secrets = RemoteData.Success secrets
+                        | orgSecrets = RemoteData.Success secrets
                         , pager = Api.Pagination.get meta.headers
                       }
                     , Effect.none
                     )
 
                 Err error ->
-                    ( { model | secrets = Utils.Errors.toFailure error }
+                    ( { model | orgSecrets = Utils.Errors.toFailure error }
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
+        GetSharedSecretsResponse response ->
+            case response of
+                Ok ( _, secrets ) ->
+                    ( { model
+                        | sharedSecrets = RemoteData.Success secrets
+                      }
+                    , Effect.none
+                    )
+
+                Err error ->
+                    ( { model | sharedSecrets = Utils.Errors.toFailure error }
                     , Effect.handleHttpError { httpError = error }
                     )
 
@@ -151,15 +180,27 @@ update shared route msg model =
         -- REFRESH
         Tick options ->
             ( model
-            , Effect.getOrgSecrets
-                { baseUrl = shared.velaAPIBaseURL
-                , session = shared.session
-                , onResponse = GetOrgSecretsResponse
-                , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
-                , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
-                , engine = route.params.engine
-                , org = route.params.org
-                }
+            , Effect.batch
+                [ Effect.getOrgSecrets
+                    { baseUrl = shared.velaAPIBaseURL
+                    , session = shared.session
+                    , onResponse = GetOrgSecretsResponse
+                    , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
+                    , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+                    , engine = route.params.engine
+                    , org = route.params.org
+                    }
+                , Effect.getSharedSecrets
+                    { baseUrl = shared.velaAPIBaseURL
+                    , session = shared.session
+                    , onResponse = GetSharedSecretsResponse
+                    , pageNumber = Nothing
+                    , perPage = Nothing
+                    , engine = route.params.engine
+                    , org = route.params.org
+                    , team = "*"
+                    }
+                ]
             )
 
 
@@ -185,7 +226,8 @@ view shared route model =
                 { showCopyAlert = AddAlertCopiedToClipboard
                 }
             , engine = route.params.engine
-            , secrets = model.secrets
+            , key = route.params.org
+            , secrets = model.orgSecrets
             , tableButtons =
                 Just
                     [ a
@@ -194,7 +236,10 @@ view shared route model =
                         , class "button-with-icon"
                         , Util.testAttribute "add-org-secret"
                         , Route.Path.href <|
-                            Route.Path.SecretsEngine_OrgOrg_Add { org = route.params.org, engine = route.params.engine }
+                            Route.Path.SecretsEngine_OrgOrg_Add
+                                { engine = route.params.engine
+                                , org = route.params.org
+                                }
                         ]
                         [ text "Add Org Secret"
                         , FeatherIcons.plus
@@ -205,5 +250,33 @@ view shared route model =
                     ]
             }
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
+        , Components.Secrets.viewSharedSecrets shared
+            { msgs =
+                { showCopyAlert = AddAlertCopiedToClipboard
+                }
+            , engine = route.params.engine
+            , key = route.params.org ++ "/*"
+            , secrets = model.sharedSecrets
+            , tableButtons =
+                Just
+                    [ a
+                        [ class "button"
+                        , class "-outline"
+                        , class "button-with-icon"
+                        , Util.testAttribute "manage-shared-secrets"
+                        , Route.Path.href <|
+                            Route.Path.SecretsEngine_SharedOrg_Team_
+                                { engine = route.params.engine
+                                , org = route.params.org
+                                , team = "*"
+                                }
+                        ]
+                        [ text "Manage Shared Secrets"
+                        , FeatherIcons.plus
+                            |> FeatherIcons.withSize 18
+                            |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
+                        ]
+                    ]
+            }
         ]
     }

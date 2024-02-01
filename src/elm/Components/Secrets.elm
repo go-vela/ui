@@ -14,6 +14,7 @@ import Http
 import RemoteData exposing (WebData)
 import Route.Path
 import Shared
+import Url
 import Utils.Helpers as Util
 import Vela
 
@@ -26,6 +27,7 @@ type alias Msgs msg =
 type alias Props msg =
     { msgs : Msgs msg
     , engine : String
+    , key : String
     , secrets : WebData (List Vela.Secret)
     , tableButtons : Maybe (List (Html msg))
     }
@@ -44,7 +46,7 @@ viewOrgSecrets shared props =
         ( noRowsView, rows ) =
             case props.secrets of
                 RemoteData.Success s ->
-                    ( text "No secrets found for this org"
+                    ( text <| "No secrets found for the org (" ++ props.key ++ ")"
                     , secretsToRows props.engine Vela.OrgSecret props.msgs.showCopyAlert s
                     )
 
@@ -55,13 +57,13 @@ viewOrgSecrets shared props =
                                 Http.BadStatus statusCode ->
                                     case statusCode of
                                         401 ->
-                                            "No secrets found for this org, most likely due to not being an admin of the source control org"
+                                            "No secrets found for the org (" ++ props.key ++ "), most likely due to not being an admin of the source control org"
 
                                         _ ->
-                                            "No secrets found for this org, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+                                            "No secrets found for the org (" ++ props.key ++ "), there was an error with the server (" ++ String.fromInt statusCode ++ ")"
 
                                 _ ->
-                                    "No secrets found for this org, there was an error with the server"
+                                    "No secrets found for the org (" ++ props.key ++ "), there was an error with the server"
                         ]
                     , []
                     )
@@ -94,7 +96,7 @@ viewRepoSecrets shared props =
         ( noRowsView, rows ) =
             case props.secrets of
                 RemoteData.Success s ->
-                    ( text "No secrets found for this repo"
+                    ( text <| "No secrets found for the repo: (" ++ props.key ++ ")"
                     , secretsToRows props.engine Vela.RepoSecret props.msgs.showCopyAlert s
                     )
 
@@ -105,13 +107,13 @@ viewRepoSecrets shared props =
                                 Http.BadStatus statusCode ->
                                     case statusCode of
                                         401 ->
-                                            "No secrets found for this repo, most likely due to not being an admin of the source control repo"
+                                            "No secrets found for the repo: (" ++ props.key ++ "), most likely due to not being an admin of the source control repo"
 
                                         _ ->
-                                            "No secrets found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+                                            "No secrets found for the repo: (" ++ props.key ++ "), there was an error with the server (" ++ String.fromInt statusCode ++ ")"
 
                                 _ ->
-                                    "No secrets found for this repo, there was an error with the server"
+                                    "No secrets found for the repo: (" ++ props.key ++ "), there was an error with the server"
                         ]
                     , []
                     )
@@ -123,6 +125,56 @@ viewRepoSecrets shared props =
             Components.Table.Config
                 "Repo Secrets"
                 "repo-secrets"
+                noRowsView
+                tableHeaders
+                rows
+                actions
+    in
+    div [] [ Components.Table.view cfg ]
+
+
+{-| viewSharedSecrets : takes secrets model and renders table for viewing shared secrets
+-}
+viewSharedSecrets : Shared.Model -> Props msg -> Html msg
+viewSharedSecrets shared props =
+    let
+        actions =
+            Maybe.map
+                (\tableButtons -> div [ class "buttons" ] tableButtons)
+                props.tableButtons
+
+        ( noRowsView, rows ) =
+            case props.secrets of
+                RemoteData.Success s ->
+                    ( text <| "No secrets found for the org/team: (" ++ props.key ++ "), most likely due to not being a member of a team within the organization"
+                    , secretsToRows props.engine Vela.SharedSecret props.msgs.showCopyAlert s
+                    )
+
+                RemoteData.Failure error ->
+                    ( span [ Util.testAttribute "repo-secrets-error" ]
+                        [ text <|
+                            case error of
+                                Http.BadStatus statusCode ->
+                                    case statusCode of
+                                        401 ->
+                                            "No secrets found for the org/team: (" ++ props.key ++ "), most likely due to not being a member of a team within the organization"
+
+                                        _ ->
+                                            "No secrets found for the org/team: (" ++ props.key ++ "), there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+
+                                _ ->
+                                    "No secrets found for the org/team: (" ++ props.key ++ "), there was an error with the server"
+                        ]
+                    , []
+                    )
+
+                _ ->
+                    ( Util.largeLoader, [] )
+
+        cfg =
+            Components.Table.Config
+                "Shared Secrets"
+                "shared-secrets"
                 noRowsView
                 tableHeaders
                 rows
@@ -264,20 +316,34 @@ copyButton copyYaml copyMsg =
 -}
 editSecretHref : String -> Vela.SecretType -> Vela.Secret -> Html.Attribute msg
 editSecretHref engine type_ secret =
-    -- todo: do we need this?
-    -- let
-    --     encodedTeam =
-    --         Url.percentEncode secret.team
-    --     encodedName =
-    --        Url.percentEncode secret.name
-    -- in
+    let
+        encodedTeam =
+            Url.percentEncode secret.team
+
+        encodedName =
+            Url.percentEncode secret.name
+    in
     Route.Path.href <|
         case type_ of
             Vela.OrgSecret ->
-                Route.Path.SecretsEngine_OrgOrg_Edit_ { org = secret.org, name = secret.name, engine = engine }
+                Route.Path.SecretsEngine_OrgOrg_Edit_
+                    { org = secret.org
+                    , name = encodedName
+                    , engine = engine
+                    }
 
             Vela.RepoSecret ->
-                Route.Path.SecretsEngine_RepoOrg_Repo_Edit_ { org = secret.org, repo = secret.repo, name = secret.name, engine = engine }
+                Route.Path.SecretsEngine_RepoOrg_Repo_Edit_
+                    { org = secret.org
+                    , repo = secret.repo
+                    , name = encodedName
+                    , engine = engine
+                    }
 
             Vela.SharedSecret ->
-                Route.Path.SecretsEngine_OrgOrg_ { org = secret.org, engine = engine }
+                Route.Path.SecretsEngine_SharedOrg_Team_Edit_
+                    { org = secret.org
+                    , team = encodedTeam
+                    , name = secret.name
+                    , engine = engine
+                    }

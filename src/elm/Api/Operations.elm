@@ -13,6 +13,7 @@ module Api.Operations exposing
     , deleteOrgSecret
     , deleteRepoSchedule
     , deleteRepoSecret
+    , deleteSharedSecret
     , disableRepo
     , enableRepo
     , expandPipelineConfig
@@ -38,6 +39,7 @@ module Api.Operations exposing
     , getRepoSchedules
     , getRepoSecret
     , getRepoSecrets
+    , getSharedSecret
     , getSharedSecrets
     , getToken
     , getUserSourceRepos
@@ -49,6 +51,7 @@ module Api.Operations exposing
     , updateRepo
     , updateRepoSchedule
     , updateRepoSecret
+    , updateSharedSecret
     )
 
 import Api.Api exposing (Request, delete, get, patch, post, put, withAuth)
@@ -220,329 +223,6 @@ getOrgBuilds baseUrl session options =
             options.org
         )
         Vela.decodeBuilds
-        |> withAuth session
-
-
-{-| getOrgSecrets : retrieves secrets for an org
--}
-getOrgSecrets :
-    String
-    -> Session
-    ->
-        { a
-            | engine : String
-            , org : String
-            , pageNumber : Maybe Int
-            , perPage : Maybe Int
-        }
-    -> Request (List Vela.Secret)
-getOrgSecrets baseUrl session options =
-    get baseUrl
-        (Api.Endpoint.Secrets
-            options.pageNumber
-            options.perPage
-            options.engine
-            "org"
-            options.org
-            "*"
-        )
-        Vela.decodeSecrets
-        |> withAuth session
-
-
-{-| getOrgSecret : retrieves a secret for an org
--}
-getOrgSecret :
-    String
-    -> Session
-    ->
-        { a
-            | engine : String
-            , org : String
-            , name : String
-        }
-    -> Request Vela.Secret
-getOrgSecret baseUrl session options =
-    get baseUrl
-        (Api.Endpoint.Secret
-            options.engine
-            "org"
-            options.org
-            "*"
-            options.name
-        )
-        Vela.decodeSecret
-        |> withAuth session
-
-
-{-| updateOrgSecret : updates a secret for an org
--}
-updateOrgSecret :
-    String
-    -> Session
-    ->
-        { a
-            | engine : String
-            , org : String
-            , name : String
-            , body : Http.Body
-        }
-    -> Request Vela.Secret
-updateOrgSecret baseUrl session options =
-    put baseUrl
-        (Api.Endpoint.Secret
-            options.engine
-            "org"
-            options.org
-            "*"
-            options.name
-        )
-        options.body
-        Vela.decodeSecret
-        |> withAuth session
-
-
-{-| addOrgSecret : adds an org secret
--}
-addOrgSecret :
-    String
-    -> Session
-    ->
-        { a
-            | engine : String
-            , org : String
-            , body : Http.Body
-        }
-    -> Request Vela.Secret
-addOrgSecret baseUrl session options =
-    post baseUrl
-        (Api.Endpoint.Secrets
-            Nothing
-            Nothing
-            options.engine
-            "org"
-            options.org
-            "*"
-        )
-        options.body
-        Vela.decodeSecret
-        |> withAuth session
-
-
-{-| deleteOrgSecret : deletes a secret for an org
--}
-deleteOrgSecret :
-    String
-    -> Session
-    ->
-        { a
-            | engine : String
-            , org : String
-            , name : String
-        }
-    -> Request String
-deleteOrgSecret baseUrl session options =
-    delete baseUrl
-        (Api.Endpoint.Secret
-            options.engine
-            "org"
-            options.org
-            "*"
-            options.name
-        )
-        Json.Decode.string
-        |> withAuth session
-
-
-{-| getRepoSecrets : retrieves secrets for a repo
--}
-getRepoSecrets :
-    String
-    -> Session
-    ->
-        { a
-            | engine : String
-            , org : String
-            , repo : String
-            , pageNumber : Maybe Int
-            , perPage : Maybe Int
-        }
-    -> Request (List Vela.Secret)
-getRepoSecrets baseUrl session options =
-    get baseUrl
-        (Api.Endpoint.Secrets
-            options.pageNumber
-            options.perPage
-            options.engine
-            "repo"
-            options.org
-            options.repo
-        )
-        Vela.decodeSecrets
-        |> withAuth session
-
-
-{-| getRepoSecret : retrieve a secret for a repo
--}
-getRepoSecret :
-    String
-    -> Session
-    ->
-        { a
-            | engine : String
-            , org : String
-            , repo : String
-            , name : String
-        }
-    -> Request Vela.Secret
-getRepoSecret baseUrl session options =
-    get baseUrl
-        (Api.Endpoint.Secret
-            options.engine
-            "repo"
-            options.org
-            options.repo
-            options.name
-        )
-        Vela.decodeSecret
-        |> withAuth session
-
-
-{-| updateRepoSecret : updates a secret for a repo
--}
-updateRepoSecret :
-    String
-    -> Session
-    ->
-        { a
-            | engine : String
-            , org : String
-            , repo : String
-            , name : String
-            , body : Http.Body
-        }
-    -> Request Vela.Secret
-updateRepoSecret baseUrl session options =
-    put baseUrl
-        (Api.Endpoint.Secret
-            options.engine
-            "repo"
-            options.org
-            options.repo
-            options.name
-        )
-        options.body
-        Vela.decodeSecret
-        |> withAuth session
-
-
-{-| addRepoSecret : adds a repo secret
--}
-addRepoSecret :
-    String
-    -> Session
-    ->
-        { a
-            | engine : String
-            , org : String
-            , repo : String
-            , body : Http.Body
-        }
-    -> Request Vela.Secret
-addRepoSecret baseUrl session options =
-    post baseUrl
-        (Api.Endpoint.Secrets
-            Nothing
-            Nothing
-            options.engine
-            "repo"
-            options.org
-            options.repo
-        )
-        options.body
-        Vela.decodeSecret
-        |> withAuth session
-
-
-{-| deleteRepoSecret : deletes a secret for an repo
--}
-deleteRepoSecret :
-    String
-    -> Session
-    ->
-        { a
-            | engine : String
-            , org : String
-            , repo : String
-            , name : String
-        }
-    -> Request String
-deleteRepoSecret baseUrl session options =
-    delete baseUrl
-        (Api.Endpoint.Secret
-            options.engine
-            "repo"
-            options.org
-            options.repo
-            options.name
-        )
-        Json.Decode.string
-        |> withAuth session
-
-
-{-| getSharedSecrets : retrieves secrets for a org/team
--}
-getSharedSecrets :
-    String
-    -> Session
-    ->
-        { a
-            | engine : String
-            , org : String
-            , team : String
-            , pageNumber : Maybe Int
-            , perPage : Maybe Int
-        }
-    -> Request (List Vela.Secret)
-getSharedSecrets baseUrl session options =
-    get baseUrl
-        (Api.Endpoint.Secrets
-            options.pageNumber
-            options.perPage
-            options.engine
-            "shared"
-            options.org
-            options.team
-        )
-        Vela.decodeSecrets
-        |> withAuth session
-
-
-{-| addSharedSecret : adds a shared secret
--}
-addSharedSecret :
-    String
-    -> Session
-    ->
-        { a
-            | engine : String
-            , org : String
-            , team : String
-            , body : Http.Body
-        }
-    -> Request Vela.Secret
-addSharedSecret baseUrl session options =
-    post baseUrl
-        (Api.Endpoint.Secrets
-            Nothing
-            Nothing
-            options.engine
-            "shared"
-            options.org
-            options.team
-        )
-        options.body
-        Vela.decodeSecret
         |> withAuth session
 
 
@@ -1009,4 +689,407 @@ getBuildGraph baseUrl session options =
             options.buildNumber
         )
         Vela.decodeBuildGraph
+        |> withAuth session
+
+
+{-| getOrgSecrets : retrieves secrets for an org
+-}
+getOrgSecrets :
+    String
+    -> Session
+    ->
+        { a
+            | engine : String
+            , org : String
+            , pageNumber : Maybe Int
+            , perPage : Maybe Int
+        }
+    -> Request (List Vela.Secret)
+getOrgSecrets baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.Secrets
+            options.pageNumber
+            options.perPage
+            options.engine
+            "org"
+            options.org
+            "*"
+        )
+        Vela.decodeSecrets
+        |> withAuth session
+
+
+{-| getOrgSecret : retrieves a secret for an org
+-}
+getOrgSecret :
+    String
+    -> Session
+    ->
+        { a
+            | engine : String
+            , org : String
+            , name : String
+        }
+    -> Request Vela.Secret
+getOrgSecret baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.Secret
+            options.engine
+            "org"
+            options.org
+            "*"
+            options.name
+        )
+        Vela.decodeSecret
+        |> withAuth session
+
+
+{-| updateOrgSecret : updates a secret for an org
+-}
+updateOrgSecret :
+    String
+    -> Session
+    ->
+        { a
+            | engine : String
+            , org : String
+            , name : String
+            , body : Http.Body
+        }
+    -> Request Vela.Secret
+updateOrgSecret baseUrl session options =
+    put baseUrl
+        (Api.Endpoint.Secret
+            options.engine
+            "org"
+            options.org
+            "*"
+            options.name
+        )
+        options.body
+        Vela.decodeSecret
+        |> withAuth session
+
+
+{-| addOrgSecret : adds an org secret
+-}
+addOrgSecret :
+    String
+    -> Session
+    ->
+        { a
+            | engine : String
+            , org : String
+            , body : Http.Body
+        }
+    -> Request Vela.Secret
+addOrgSecret baseUrl session options =
+    post baseUrl
+        (Api.Endpoint.Secrets
+            Nothing
+            Nothing
+            options.engine
+            "org"
+            options.org
+            "*"
+        )
+        options.body
+        Vela.decodeSecret
+        |> withAuth session
+
+
+{-| deleteOrgSecret : deletes a secret for an org
+-}
+deleteOrgSecret :
+    String
+    -> Session
+    ->
+        { a
+            | engine : String
+            , org : String
+            , name : String
+        }
+    -> Request String
+deleteOrgSecret baseUrl session options =
+    delete baseUrl
+        (Api.Endpoint.Secret
+            options.engine
+            "org"
+            options.org
+            "*"
+            options.name
+        )
+        Json.Decode.string
+        |> withAuth session
+
+
+{-| getRepoSecrets : retrieves secrets for a repo
+-}
+getRepoSecrets :
+    String
+    -> Session
+    ->
+        { a
+            | engine : String
+            , org : String
+            , repo : String
+            , pageNumber : Maybe Int
+            , perPage : Maybe Int
+        }
+    -> Request (List Vela.Secret)
+getRepoSecrets baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.Secrets
+            options.pageNumber
+            options.perPage
+            options.engine
+            "repo"
+            options.org
+            options.repo
+        )
+        Vela.decodeSecrets
+        |> withAuth session
+
+
+{-| getRepoSecret : retrieve a secret for a repo
+-}
+getRepoSecret :
+    String
+    -> Session
+    ->
+        { a
+            | engine : String
+            , org : String
+            , repo : String
+            , name : String
+        }
+    -> Request Vela.Secret
+getRepoSecret baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.Secret
+            options.engine
+            "repo"
+            options.org
+            options.repo
+            options.name
+        )
+        Vela.decodeSecret
+        |> withAuth session
+
+
+{-| updateRepoSecret : updates a secret for a repo
+-}
+updateRepoSecret :
+    String
+    -> Session
+    ->
+        { a
+            | engine : String
+            , org : String
+            , repo : String
+            , name : String
+            , body : Http.Body
+        }
+    -> Request Vela.Secret
+updateRepoSecret baseUrl session options =
+    put baseUrl
+        (Api.Endpoint.Secret
+            options.engine
+            "repo"
+            options.org
+            options.repo
+            options.name
+        )
+        options.body
+        Vela.decodeSecret
+        |> withAuth session
+
+
+{-| addRepoSecret : adds a repo secret
+-}
+addRepoSecret :
+    String
+    -> Session
+    ->
+        { a
+            | engine : String
+            , org : String
+            , repo : String
+            , body : Http.Body
+        }
+    -> Request Vela.Secret
+addRepoSecret baseUrl session options =
+    post baseUrl
+        (Api.Endpoint.Secrets
+            Nothing
+            Nothing
+            options.engine
+            "repo"
+            options.org
+            options.repo
+        )
+        options.body
+        Vela.decodeSecret
+        |> withAuth session
+
+
+{-| deleteRepoSecret : deletes a secret for a repo
+-}
+deleteRepoSecret :
+    String
+    -> Session
+    ->
+        { a
+            | engine : String
+            , org : String
+            , repo : String
+            , name : String
+        }
+    -> Request String
+deleteRepoSecret baseUrl session options =
+    delete baseUrl
+        (Api.Endpoint.Secret
+            options.engine
+            "repo"
+            options.org
+            options.repo
+            options.name
+        )
+        Json.Decode.string
+        |> withAuth session
+
+
+{-| getSharedSecrets : retrieves secrets for an org/team
+-}
+getSharedSecrets :
+    String
+    -> Session
+    ->
+        { a
+            | engine : String
+            , org : String
+            , team : String
+            , pageNumber : Maybe Int
+            , perPage : Maybe Int
+        }
+    -> Request (List Vela.Secret)
+getSharedSecrets baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.Secrets
+            options.pageNumber
+            options.perPage
+            options.engine
+            "shared"
+            options.org
+            options.team
+        )
+        Vela.decodeSecrets
+        |> withAuth session
+
+
+{-| getSharedSecret : retrieve a secret for an org/team
+-}
+getSharedSecret :
+    String
+    -> Session
+    ->
+        { a
+            | engine : String
+            , org : String
+            , team : String
+            , name : String
+        }
+    -> Request Vela.Secret
+getSharedSecret baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.Secret
+            options.engine
+            "shared"
+            options.org
+            options.team
+            options.name
+        )
+        Vela.decodeSecret
+        |> withAuth session
+
+
+{-| updateSharedSecret : updates a secret for an org/team
+-}
+updateSharedSecret :
+    String
+    -> Session
+    ->
+        { a
+            | engine : String
+            , org : String
+            , team : String
+            , name : String
+            , body : Http.Body
+        }
+    -> Request Vela.Secret
+updateSharedSecret baseUrl session options =
+    put baseUrl
+        (Api.Endpoint.Secret
+            options.engine
+            "shared"
+            options.org
+            options.team
+            options.name
+        )
+        options.body
+        Vela.decodeSecret
+        |> withAuth session
+
+
+{-| addSharedSecret : adds a shared secret
+-}
+addSharedSecret :
+    String
+    -> Session
+    ->
+        { a
+            | engine : String
+            , org : String
+            , team : String
+            , body : Http.Body
+        }
+    -> Request Vela.Secret
+addSharedSecret baseUrl session options =
+    post baseUrl
+        (Api.Endpoint.Secrets
+            Nothing
+            Nothing
+            options.engine
+            "shared"
+            options.org
+            options.team
+        )
+        options.body
+        Vela.decodeSecret
+        |> withAuth session
+
+
+{-| deleteSharedSecret : deletes a secret for an org/team
+-}
+deleteSharedSecret :
+    String
+    -> Session
+    ->
+        { a
+            | engine : String
+            , org : String
+            , team : String
+            , name : String
+        }
+    -> Request String
+deleteSharedSecret baseUrl session options =
+    delete baseUrl
+        (Api.Endpoint.Secret
+            options.engine
+            "shared"
+            options.org
+            options.team
+            options.name
+        )
+        Json.Decode.string
         |> withAuth session

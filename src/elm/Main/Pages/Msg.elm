@@ -30,6 +30,9 @@ import Pages.Secrets.Engine_.Org.Org_.Edit_
 import Pages.Secrets.Engine_.Repo.Org_.Repo_
 import Pages.Secrets.Engine_.Repo.Org_.Repo_.Add
 import Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_
+import Pages.Secrets.Engine_.Shared.Org_.Team_
+import Pages.Secrets.Engine_.Shared.Org_.Team_.Add
+import Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_
 
 
 type Msg
@@ -57,4 +60,7 @@ type Msg
     | SecretsEngine_RepoOrg_Repo_ Pages.Secrets.Engine_.Repo.Org_.Repo_.Msg
     | SecretsEngine_RepoOrg_Repo_Add Pages.Secrets.Engine_.Repo.Org_.Repo_.Add.Msg
     | SecretsEngine_RepoOrg_Repo_Edit_ Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_.Msg
+    | SecretsEngine_SharedOrg_Team_ Pages.Secrets.Engine_.Shared.Org_.Team_.Msg
+    | SecretsEngine_SharedOrg_Team_Add Pages.Secrets.Engine_.Shared.Org_.Team_.Add.Msg
+    | SecretsEngine_SharedOrg_Team_Edit_ Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_.Msg
     | NotFound_ Pages.NotFound_.Msg

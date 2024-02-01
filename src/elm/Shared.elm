@@ -581,14 +581,18 @@ update route msg model =
             let
                 ( shared, redirect ) =
                     case error of
-                        Http.Detailed.BadStatus meta _ ->
-                            case meta.statusCode of
-                                401 ->
-                                    ( { model | session = Auth.Session.Unauthenticated, velaRedirect = "/" }, Effect.replacePath <| Route.Path.AccountLogin )
-
-                                _ ->
-                                    ( model, Effect.none )
-
+                        -- Http.Detailed.BadStatus meta _ ->
+                        --     case meta.statusCode of
+                        --         -- todo: FIX THIS! secrets can easily return a 401 for normal reasons
+                        --         401 ->
+                        --             ( { model
+                        --                 | session = Auth.Session.Unauthenticated
+                        --                 , velaRedirect = "/"
+                        --               }
+                        --             , Effect.replacePath <| Route.Path.AccountLogin
+                        --             )
+                        --         _ ->
+                        --             ( model, Effect.none )
                         _ ->
                             ( model, Effect.none )
             in

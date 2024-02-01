@@ -229,6 +229,7 @@ view shared route model =
                 { showCopyAlert = AddAlertCopiedToClipboard
                 }
             , engine = route.params.engine
+            , key = route.params.org ++ "/" ++ route.params.repo
             , secrets = model.repoSecrets
             , tableButtons =
                 Just
@@ -238,7 +239,11 @@ view shared route model =
                         , class "button-with-icon"
                         , Util.testAttribute "add-repo-secret"
                         , Route.Path.href <|
-                            Route.Path.SecretsEngine_RepoOrg_Repo_Add { org = route.params.org, repo = route.params.repo, engine = route.params.engine }
+                            Route.Path.SecretsEngine_RepoOrg_Repo_Add
+                                { engine = route.params.engine
+                                , org = route.params.org
+                                , repo = route.params.repo
+                                }
                         ]
                         [ text "Add Repo Secret"
                         , FeatherIcons.plus
@@ -253,6 +258,7 @@ view shared route model =
                 { showCopyAlert = AddAlertCopiedToClipboard
                 }
             , engine = route.params.engine
+            , key = route.params.org
             , secrets = model.orgSecrets
             , tableButtons =
                 Just
@@ -260,7 +266,10 @@ view shared route model =
                         [ class "button"
                         , class "-outline"
                         , Route.Path.href <|
-                            Route.Path.SecretsEngine_OrgOrg_ { org = route.params.org, engine = route.params.engine }
+                            Route.Path.SecretsEngine_OrgOrg_
+                                { engine = route.params.engine
+                                , org = route.params.org
+                                }
                         , Util.testAttribute "manage-org-secrets"
                         ]
                         [ text "Manage Org Secrets" ]

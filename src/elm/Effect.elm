@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, addDeployment, addOrgSecret, addRepoSchedule, addRepoSecret, alertsUpdate, chownRepo, clearRedirect, deleteOrgSecret, deleteRepoSchedule, deleteRepoSecret, disableRepo, downloadFile, enableRepo, expandPipelineConfig, finishAuthentication, focusOn, getBuild, getBuildGraph, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoBuildsShared, getRepoDeployments, getRepoHooks, getRepoHooksShared, getRepoSchedule, getRepoSchedules, getRepoSecret, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, redeliverHook, repairRepo, replacePath, setRedirect, setTheme, updateFavorites, updateOrgSecret, updateRepo, updateRepoSchedule, updateRepoSecret
+    , addAlertError, addAlertSuccess, addDeployment, addOrgSecret, addRepoSchedule, addRepoSecret, addSharedSecret, alertsUpdate, chownRepo, clearRedirect, deleteOrgSecret, deleteRepoSchedule, deleteRepoSecret, deleteSharedSecret, disableRepo, downloadFile, enableRepo, expandPipelineConfig, finishAuthentication, focusOn, getBuild, getBuildGraph, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoBuildsShared, getRepoDeployments, getRepoHooks, getRepoHooksShared, getRepoSchedule, getRepoSchedules, getRepoSecret, getRepoSecrets, getSharedSecret, getSharedSecrets, handleHttpError, logout, pushPath, redeliverHook, repairRepo, replacePath, setRedirect, setTheme, updateFavorites, updateOrgSecret, updateRepo, updateRepoSchedule, updateRepoSecret, updateSharedSecret
     )
 
 {-|
@@ -408,237 +408,6 @@ getOrgBuilds options =
         |> sendCmd
 
 
-getOrgSecrets :
-    { baseUrl : String
-    , session : Auth.Session.Session
-    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Secret ) -> msg
-    , pageNumber : Maybe Int
-    , perPage : Maybe Int
-    , engine : String
-    , org : String
-    }
-    -> Effect msg
-getOrgSecrets options =
-    Api.try
-        options.onResponse
-        (Api.Operations.getOrgSecrets
-            options.baseUrl
-            options.session
-            options
-        )
-        |> sendCmd
-
-
-getOrgSecret :
-    { baseUrl : String
-    , session : Auth.Session.Session
-    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ) -> msg
-    , engine : String
-    , org : String
-    , name : String
-    }
-    -> Effect msg
-getOrgSecret options =
-    Api.try
-        options.onResponse
-        (Api.Operations.getOrgSecret
-            options.baseUrl
-            options.session
-            options
-        )
-        |> sendCmd
-
-
-updateOrgSecret :
-    { baseUrl : String
-    , session : Auth.Session.Session
-    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ) -> msg
-    , engine : String
-    , org : String
-    , name : String
-    , body : Http.Body
-    }
-    -> Effect msg
-updateOrgSecret options =
-    Api.try
-        options.onResponse
-        (Api.Operations.updateOrgSecret
-            options.baseUrl
-            options.session
-            options
-        )
-        |> sendCmd
-
-
-addOrgSecret :
-    { baseUrl : String
-    , session : Auth.Session.Session
-    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ) -> msg
-    , engine : String
-    , org : String
-    , body : Http.Body
-    }
-    -> Effect msg
-addOrgSecret options =
-    Api.try
-        options.onResponse
-        (Api.Operations.addOrgSecret
-            options.baseUrl
-            options.session
-            options
-        )
-        |> sendCmd
-
-
-deleteOrgSecret :
-    { baseUrl : String
-    , session : Auth.Session.Session
-    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> msg
-    , engine : String
-    , org : String
-    , name : String
-    }
-    -> Effect msg
-deleteOrgSecret options =
-    Api.tryString
-        options.onResponse
-        (Api.Operations.deleteOrgSecret
-            options.baseUrl
-            options.session
-            options
-        )
-        |> sendCmd
-
-
-getRepoSecrets :
-    { baseUrl : String
-    , session : Auth.Session.Session
-    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Secret ) -> msg
-    , engine : String
-    , pageNumber : Maybe Int
-    , perPage : Maybe Int
-    , org : String
-    , repo : String
-    }
-    -> Effect msg
-getRepoSecrets options =
-    Api.try
-        options.onResponse
-        (Api.Operations.getRepoSecrets
-            options.baseUrl
-            options.session
-            options
-        )
-        |> sendCmd
-
-
-getRepoSecret :
-    { baseUrl : String
-    , session : Auth.Session.Session
-    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ) -> msg
-    , engine : String
-    , org : String
-    , repo : String
-    , name : String
-    }
-    -> Effect msg
-getRepoSecret options =
-    Api.try
-        options.onResponse
-        (Api.Operations.getRepoSecret
-            options.baseUrl
-            options.session
-            options
-        )
-        |> sendCmd
-
-
-updateRepoSecret :
-    { baseUrl : String
-    , session : Auth.Session.Session
-    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ) -> msg
-    , engine : String
-    , org : String
-    , repo : String
-    , name : String
-    , body : Http.Body
-    }
-    -> Effect msg
-updateRepoSecret options =
-    Api.try
-        options.onResponse
-        (Api.Operations.updateRepoSecret
-            options.baseUrl
-            options.session
-            options
-        )
-        |> sendCmd
-
-
-addRepoSecret :
-    { baseUrl : String
-    , session : Auth.Session.Session
-    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ) -> msg
-    , engine : String
-    , org : String
-    , repo : String
-    , body : Http.Body
-    }
-    -> Effect msg
-addRepoSecret options =
-    Api.try
-        options.onResponse
-        (Api.Operations.addRepoSecret
-            options.baseUrl
-            options.session
-            options
-        )
-        |> sendCmd
-
-
-deleteRepoSecret :
-    { baseUrl : String
-    , session : Auth.Session.Session
-    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> msg
-    , engine : String
-    , org : String
-    , repo : String
-    , name : String
-    }
-    -> Effect msg
-deleteRepoSecret options =
-    Api.tryString
-        options.onResponse
-        (Api.Operations.deleteRepoSecret
-            options.baseUrl
-            options.session
-            options
-        )
-        |> sendCmd
-
-
-getRepoBuilds :
-    { baseUrl : String
-    , session : Auth.Session.Session
-    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ) -> msg
-    , pageNumber : Maybe Int
-    , perPage : Maybe Int
-    , maybeEvent : Maybe String
-    , org : String
-    , repo : String
-    }
-    -> Effect msg
-getRepoBuilds options =
-    Api.try
-        options.onResponse
-        (Api.Operations.getRepoBuilds
-            options.baseUrl
-            options.session
-            options
-        )
-        |> sendCmd
-
-
 getRepoBuildsShared :
     { pageNumber : Maybe Int
     , perPage : Maybe Int
@@ -649,28 +418,6 @@ getRepoBuildsShared :
     -> Effect msg
 getRepoBuildsShared options =
     SendSharedMsg <| Shared.Msg.GetRepoBuilds options
-
-
-getSharedSecrets :
-    { baseUrl : String
-    , session : Auth.Session.Session
-    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Secret ) -> msg
-    , engine : String
-    , pageNumber : Maybe Int
-    , perPage : Maybe Int
-    , org : String
-    , team : String
-    }
-    -> Effect msg
-getSharedSecrets options =
-    Api.try
-        options.onResponse
-        (Api.Operations.getSharedSecrets
-            options.baseUrl
-            options.session
-            options
-        )
-        |> sendCmd
 
 
 getRepoDeployments :
@@ -976,26 +723,6 @@ getBuildServiceLog options =
         |> sendCmd
 
 
-getBuildGraph :
-    { baseUrl : String
-    , session : Auth.Session.Session
-    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.BuildGraph ) -> msg
-    , org : String
-    , repo : String
-    , buildNumber : String
-    }
-    -> Effect msg
-getBuildGraph options =
-    Api.try
-        options.onResponse
-        (Api.Operations.getBuildGraph
-            options.baseUrl
-            options.session
-            options
-        )
-        |> sendCmd
-
-
 getPipelineConfig :
     { baseUrl : String
     , session : Auth.Session.Session
@@ -1049,6 +776,364 @@ getPipelineTemplates options =
     Api.try
         options.onResponse
         (Api.Operations.getPipelineTemplates
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+getBuildGraph :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.BuildGraph ) -> msg
+    , org : String
+    , repo : String
+    , buildNumber : String
+    }
+    -> Effect msg
+getBuildGraph options =
+    Api.try
+        options.onResponse
+        (Api.Operations.getBuildGraph
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+getOrgSecrets :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Secret ) -> msg
+    , pageNumber : Maybe Int
+    , perPage : Maybe Int
+    , engine : String
+    , org : String
+    }
+    -> Effect msg
+getOrgSecrets options =
+    Api.try
+        options.onResponse
+        (Api.Operations.getOrgSecrets
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+getOrgSecret :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ) -> msg
+    , engine : String
+    , org : String
+    , name : String
+    }
+    -> Effect msg
+getOrgSecret options =
+    Api.try
+        options.onResponse
+        (Api.Operations.getOrgSecret
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+updateOrgSecret :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ) -> msg
+    , engine : String
+    , org : String
+    , name : String
+    , body : Http.Body
+    }
+    -> Effect msg
+updateOrgSecret options =
+    Api.try
+        options.onResponse
+        (Api.Operations.updateOrgSecret
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+addOrgSecret :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ) -> msg
+    , engine : String
+    , org : String
+    , body : Http.Body
+    }
+    -> Effect msg
+addOrgSecret options =
+    Api.try
+        options.onResponse
+        (Api.Operations.addOrgSecret
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+deleteOrgSecret :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> msg
+    , engine : String
+    , org : String
+    , name : String
+    }
+    -> Effect msg
+deleteOrgSecret options =
+    Api.tryString
+        options.onResponse
+        (Api.Operations.deleteOrgSecret
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+getRepoSecrets :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Secret ) -> msg
+    , engine : String
+    , pageNumber : Maybe Int
+    , perPage : Maybe Int
+    , org : String
+    , repo : String
+    }
+    -> Effect msg
+getRepoSecrets options =
+    Api.try
+        options.onResponse
+        (Api.Operations.getRepoSecrets
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+getRepoSecret :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ) -> msg
+    , engine : String
+    , org : String
+    , repo : String
+    , name : String
+    }
+    -> Effect msg
+getRepoSecret options =
+    Api.try
+        options.onResponse
+        (Api.Operations.getRepoSecret
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+updateRepoSecret :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ) -> msg
+    , engine : String
+    , org : String
+    , repo : String
+    , name : String
+    , body : Http.Body
+    }
+    -> Effect msg
+updateRepoSecret options =
+    Api.try
+        options.onResponse
+        (Api.Operations.updateRepoSecret
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+addRepoSecret :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ) -> msg
+    , engine : String
+    , org : String
+    , repo : String
+    , body : Http.Body
+    }
+    -> Effect msg
+addRepoSecret options =
+    Api.try
+        options.onResponse
+        (Api.Operations.addRepoSecret
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+deleteRepoSecret :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> msg
+    , engine : String
+    , org : String
+    , repo : String
+    , name : String
+    }
+    -> Effect msg
+deleteRepoSecret options =
+    Api.tryString
+        options.onResponse
+        (Api.Operations.deleteRepoSecret
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+getSharedSecrets :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Secret ) -> msg
+    , engine : String
+    , pageNumber : Maybe Int
+    , perPage : Maybe Int
+    , org : String
+    , team : String
+    }
+    -> Effect msg
+getSharedSecrets options =
+    Api.try
+        options.onResponse
+        (Api.Operations.getSharedSecrets
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+getSharedSecret :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ) -> msg
+    , engine : String
+    , org : String
+    , team : String
+    , name : String
+    }
+    -> Effect msg
+getSharedSecret options =
+    Api.try
+        options.onResponse
+        (Api.Operations.getSharedSecret
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+updateSharedSecret :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ) -> msg
+    , engine : String
+    , org : String
+    , team : String
+    , name : String
+    , body : Http.Body
+    }
+    -> Effect msg
+updateSharedSecret options =
+    Api.try
+        options.onResponse
+        (Api.Operations.updateSharedSecret
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+addSharedSecret :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ) -> msg
+    , engine : String
+    , org : String
+    , team : String
+    , body : Http.Body
+    }
+    -> Effect msg
+addSharedSecret options =
+    Api.try
+        options.onResponse
+        (Api.Operations.addSharedSecret
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+deleteSharedSecret :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> msg
+    , engine : String
+    , org : String
+    , team : String
+    , name : String
+    }
+    -> Effect msg
+deleteSharedSecret options =
+    Api.tryString
+        options.onResponse
+        (Api.Operations.deleteSharedSecret
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+getRepoBuilds :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ) -> msg
+    , pageNumber : Maybe Int
+    , perPage : Maybe Int
+    , maybeEvent : Maybe String
+    , org : String
+    , repo : String
+    }
+    -> Effect msg
+getRepoBuilds options =
+    Api.try
+        options.onResponse
+        (Api.Operations.getRepoBuilds
             options.baseUrl
             options.session
             options

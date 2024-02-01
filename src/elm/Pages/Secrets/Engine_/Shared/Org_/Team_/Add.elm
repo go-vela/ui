@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Secrets.Engine_.Org.Org_.Edit_ exposing (Model, Msg, page, view)
+module Pages.Secrets.Engine_.Shared.Org_.Team_.Add exposing (Model, Msg, page, view)
 
 import Auth
 import Components.Form
@@ -16,17 +16,17 @@ import Http.Detailed
 import Layouts
 import List.Extra
 import Page exposing (Page)
-import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Route.Path
 import Shared
 import String.Extra
+import Url
 import Utils.Helpers as Util
 import Vela exposing (defaultSecretPayload)
 import View exposing (View)
 
 
-page : Auth.User -> Shared.Model -> Route { engine : String, org : String, name : String } -> Page Model Msg
+page : Auth.User -> Shared.Model -> Route { engine : String, org : String, team : String } -> Page Model Msg
 page user shared route =
     Page.new
         { init = init shared route
@@ -41,7 +41,7 @@ page user shared route =
 -- LAYOUT
 
 
-toLayout : Auth.User -> Route { engine : String, org : String, name : String } -> Model -> Layouts.Layout Msg
+toLayout : Auth.User -> Route { engine : String, org : String, team : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
         { navButtons = []
@@ -50,9 +50,9 @@ toLayout user route model =
         , crumbs =
             [ ( "Overview", Just Route.Path.Home )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( "Secrets", Just <| Route.Path.SecretsEngine_OrgOrg_ { org = route.params.org, engine = route.params.engine } )
-            , ( "Edit", Nothing )
-            , ( route.params.name, Nothing )
+            , ( route.params.team, Nothing )
+            , ( "Secrets", Just <| Route.Path.SecretsEngine_SharedOrg_Team_ { engine = route.params.engine, org = route.params.org, team = route.params.team } )
+            , ( "Add", Nothing )
             ]
         , repo = Nothing
         }
@@ -63,36 +63,32 @@ toLayout user route model =
 
 
 type alias Model =
-    { secret : WebData Vela.Secret
+    { team : String
     , name : String
     , value : String
     , events : List String
     , images : List String
     , image : String
     , allowCommand : Bool
-    , confirmingDelete : Bool
     }
 
 
-init : Shared.Model -> Route { engine : String, org : String, name : String } -> () -> ( Model, Effect Msg )
+init : Shared.Model -> Route { engine : String, org : String, team : String } -> () -> ( Model, Effect Msg )
 init shared route () =
-    ( { secret = RemoteData.Loading
+    ( { team =
+            if route.params.team == "*" then
+                ""
+
+            else
+                Maybe.withDefault route.params.team <| Url.percentDecode route.params.team
       , name = ""
       , value = ""
       , events = [ "push" ]
       , images = []
       , image = ""
       , allowCommand = True
-      , confirmingDelete = False
       }
-    , Effect.getOrgSecret
-        { baseUrl = shared.velaAPIBaseURL
-        , session = shared.session
-        , onResponse = GetSecretResponse
-        , engine = route.params.engine
-        , org = route.params.org
-        , name = route.params.name
-        }
+    , Effect.none
     )
 
 
@@ -102,9 +98,8 @@ init shared route () =
 
 type Msg
     = -- SECRETS
-      GetSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
-    | UpdateSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
-    | DeleteSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+      AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
+    | TeamOnInput String
     | NameOnInput String
     | ValueOnInput String
     | ImageOnInput String
@@ -113,39 +108,18 @@ type Msg
     | RemoveImage String
     | AllowCommandsOnClick String
     | SubmitForm
-    | ClickDelete
-    | CancelDelete
-    | ConfirmDelete
 
 
-update : Shared.Model -> Route { engine : String, org : String, name : String } -> Msg -> Model -> ( Model, Effect Msg )
+update : Shared.Model -> Route { engine : String, org : String, team : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
         -- SECRETS
-        GetSecretResponse response ->
-            case response of
-                Ok ( _, secret ) ->
-                    ( { model
-                        | secret = RemoteData.succeed secret
-                        , name = secret.name
-                        , events = secret.events
-                        , images = secret.images
-                        , allowCommand = secret.allowCommand
-                      }
-                    , Effect.none
-                    )
-
-                Err error ->
-                    ( model
-                    , Effect.handleHttpError { httpError = error }
-                    )
-
-        UpdateSecretResponse response ->
+        AddSecretResponse response ->
             case response of
                 Ok ( _, secret ) ->
                     ( model
                     , Effect.addAlertSuccess
-                        { content = "Org secret " ++ secret.name ++ " updated."
+                        { content = secret.name ++ " added to shared secrets."
                         , addToastIfUnique = True
                         }
                     )
@@ -155,27 +129,10 @@ update shared route msg model =
                     , Effect.handleHttpError { httpError = error }
                     )
 
-        DeleteSecretResponse response ->
-            case response of
-                Ok ( _, result ) ->
-                    ( model
-                    , Effect.batch
-                        [ Effect.addAlertSuccess
-                            { content = result
-                            , addToastIfUnique = True
-                            }
-                        , Effect.pushPath <|
-                            Route.Path.SecretsEngine_OrgOrg_
-                                { org = route.params.org
-                                , engine = route.params.engine
-                                }
-                        ]
-                    )
-
-                Err error ->
-                    ( model
-                    , Effect.handleHttpError { httpError = error }
-                    )
+        TeamOnInput val ->
+            ( { model | team = val }
+            , Effect.none
+            )
 
         NameOnInput val ->
             ( { model | name = val }
@@ -238,10 +195,10 @@ update shared route msg model =
             let
                 payload =
                     { defaultSecretPayload
-                        | type_ = Just Vela.OrgSecret
+                        | type_ = Just Vela.SharedSecret
                         , org = Just route.params.org
                         , repo = Nothing
-                        , team = Nothing
+                        , team = Just model.team
                         , name = Util.stringToMaybe model.name
                         , value = Util.stringToMaybe model.value
                         , events = Just model.events
@@ -253,36 +210,14 @@ update shared route msg model =
                     Http.jsonBody <| Vela.encodeSecretPayload payload
             in
             ( model
-            , Effect.updateOrgSecret
+            , Effect.addSharedSecret
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
-                , onResponse = UpdateSecretResponse
+                , onResponse = AddSecretResponse
                 , engine = route.params.engine
                 , org = route.params.org
-                , name = route.params.name
+                , team = model.team
                 , body = body
-                }
-            )
-
-        ClickDelete ->
-            ( { model | confirmingDelete = True }
-            , Effect.none
-            )
-
-        CancelDelete ->
-            ( { model | confirmingDelete = False }
-            , Effect.none
-            )
-
-        ConfirmDelete ->
-            ( { model | confirmingDelete = False }
-            , Effect.deleteOrgSecret
-                { baseUrl = shared.velaAPIBaseURL
-                , session = shared.session
-                , onResponse = DeleteSecretResponse
-                , engine = route.params.engine
-                , org = route.params.org
-                , name = route.params.name
                 }
             )
 
@@ -300,42 +235,54 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Route { engine : String, org : String, name : String } -> Model -> View Msg
+view : Shared.Model -> Route { engine : String, org : String, team : String } -> Model -> View Msg
 view shared route model =
-    { title = "Edit Secret"
+    { title = "Add Secret"
     , body =
         [ div [ class "manage-secret", Util.testAttribute "manage-secret" ]
             [ div []
-                [ h2 [] [ text <| String.Extra.toTitleCase "edit org secret" ]
+                [ h2 [] [ text <| String.Extra.toTitleCase "add shared secret" ]
                 , div [ class "secret-form" ]
                     [ Components.Form.viewInput
+                        { title = Just "Team"
+                        , subtitle = Nothing
+                        , id_ = "team"
+                        , val = model.team
+                        , placeholder_ = "GitHub Team"
+                        , classList_ = [ ( "secret-team", True ) ]
+                        , rows_ = Nothing
+                        , wrap_ = Nothing
+                        , msg = TeamOnInput
+                        , disabled_ = False
+                        }
+                    , Components.Form.viewInput
                         { title = Just "Name"
                         , subtitle = Nothing
                         , id_ = "name"
-                        , val = RemoteData.unwrap "" .name model.secret
-                        , placeholder_ = "loading..."
+                        , val = model.name
+                        , placeholder_ = "Secret Name"
                         , classList_ = [ ( "secret-name", True ) ]
                         , rows_ = Nothing
                         , wrap_ = Nothing
                         , msg = NameOnInput
-                        , disabled_ = True
+                        , disabled_ = False
                         }
                     , Components.Form.viewTextarea
                         { title = Just "Value"
                         , subtitle = Nothing
                         , id_ = "value"
                         , val = model.value
-                        , placeholder_ = RemoteData.unwrap "loading..." (\_ -> "<leave blank to make no change to the value>") model.secret
+                        , placeholder_ = "secret-value"
                         , classList_ = [ ( "secret-value", True ) ]
                         , rows_ = Just 2
                         , wrap_ = Just "soft"
                         , msg = ValueOnInput
-                        , disabled_ = not <| RemoteData.isSuccess model.secret
+                        , disabled_ = False
                         }
                     , Components.SecretForm.viewEventsSelect shared
                         { msg = EventOnCheck
                         , events = model.events
-                        , disabled_ = not <| RemoteData.isSuccess model.secret
+                        , disabled_ = False
                         }
                     , Components.SecretForm.viewImagesInput
                         { onInput_ = ImageOnInput
@@ -343,47 +290,20 @@ view shared route model =
                         , removeImage = RemoveImage
                         , images = model.images
                         , imageValue = model.image
-                        , disabled_ = not <| RemoteData.isSuccess model.secret
+                        , disabled_ = False
                         }
                     , Components.SecretForm.viewAllowCommandsInput
                         { msg = AllowCommandsOnClick
                         , value = model.allowCommand
-                        , disabled_ = not <| RemoteData.isSuccess model.secret
+                        , disabled_ = False
                         }
                     , Components.SecretForm.viewHelp shared.velaDocsURL
-                    , div [ class "buttons" ]
-                        [ Components.Form.viewButton
-                            { msg = SubmitForm
-                            , text_ = "Submit"
-                            , classList_ = []
-                            , disabled_ = not <| RemoteData.isSuccess model.secret
-                            }
-                        , if not model.confirmingDelete then
-                            Components.Form.viewButton
-                                { msg = ClickDelete
-                                , text_ = "Delete"
-                                , classList_ = []
-                                , disabled_ = not <| RemoteData.isSuccess model.secret
-                                }
-
-                          else
-                            Components.Form.viewButton
-                                { msg = CancelDelete
-                                , text_ = "Cancel"
-                                , classList_ = []
-                                , disabled_ = not <| RemoteData.isSuccess model.secret
-                                }
-                        , if model.confirmingDelete then
-                            Components.Form.viewButton
-                                { msg = ConfirmDelete
-                                , text_ = "Confirm"
-                                , classList_ = [ ( "-secret-delete-confirm", True ) ]
-                                , disabled_ = not <| RemoteData.isSuccess model.secret
-                                }
-
-                          else
-                            text ""
-                        ]
+                    , Components.Form.viewButton
+                        { msg = SubmitForm
+                        , text_ = "Submit"
+                        , classList_ = []
+                        , disabled_ = False
+                        }
                     ]
                 ]
             ]

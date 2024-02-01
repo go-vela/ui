@@ -52,6 +52,9 @@ import Pages.Secrets.Engine_.Org.Org_.Edit_
 import Pages.Secrets.Engine_.Repo.Org_.Repo_
 import Pages.Secrets.Engine_.Repo.Org_.Repo_.Add
 import Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_
+import Pages.Secrets.Engine_.Shared.Org_.Team_
+import Pages.Secrets.Engine_.Shared.Org_.Team_.Add
+import Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_
 import Route exposing (Route)
 import Route.Path
 import Shared
@@ -903,6 +906,78 @@ initPageAndLayout model =
                     }
                 )
 
+        Route.Path.SecretsEngine_SharedOrg_Team_ params ->
+            runWhenAuthenticatedWithLayout
+                model
+                (\user ->
+                    let
+                        page : Page.Page Pages.Secrets.Engine_.Shared.Org_.Team_.Model Pages.Secrets.Engine_.Shared.Org_.Team_.Msg
+                        page =
+                            Pages.Secrets.Engine_.Shared.Org_.Team_.page user model.shared (Route.fromUrl params model.url)
+
+                        ( pageModel, pageEffect ) =
+                            Page.init page ()
+                    in
+                    { page =
+                        Tuple.mapBoth
+                            (Main.Pages.Model.SecretsEngine_SharedOrg_Team_ params)
+                            (Effect.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_ >> fromPageEffect model)
+                            ( pageModel, pageEffect )
+                    , layout =
+                        Page.layout pageModel page
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_SharedOrg_Team_ >> Page))
+                            |> Maybe.map (initLayout model)
+                    }
+                )
+
+        Route.Path.SecretsEngine_SharedOrg_Team_Add params ->
+            runWhenAuthenticatedWithLayout
+                model
+                (\user ->
+                    let
+                        page : Page.Page Pages.Secrets.Engine_.Shared.Org_.Team_.Add.Model Pages.Secrets.Engine_.Shared.Org_.Team_.Add.Msg
+                        page =
+                            Pages.Secrets.Engine_.Shared.Org_.Team_.Add.page user model.shared (Route.fromUrl params model.url)
+
+                        ( pageModel, pageEffect ) =
+                            Page.init page ()
+                    in
+                    { page =
+                        Tuple.mapBoth
+                            (Main.Pages.Model.SecretsEngine_SharedOrg_Team_Add params)
+                            (Effect.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Add >> fromPageEffect model)
+                            ( pageModel, pageEffect )
+                    , layout =
+                        Page.layout pageModel page
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Add >> Page))
+                            |> Maybe.map (initLayout model)
+                    }
+                )
+
+        Route.Path.SecretsEngine_SharedOrg_Team_Edit_ params ->
+            runWhenAuthenticatedWithLayout
+                model
+                (\user ->
+                    let
+                        page : Page.Page Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_.Model Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_.Msg
+                        page =
+                            Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_.page user model.shared (Route.fromUrl params model.url)
+
+                        ( pageModel, pageEffect ) =
+                            Page.init page ()
+                    in
+                    { page =
+                        Tuple.mapBoth
+                            (Main.Pages.Model.SecretsEngine_SharedOrg_Team_Edit_ params)
+                            (Effect.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Edit_ >> fromPageEffect model)
+                            ( pageModel, pageEffect )
+                    , layout =
+                        Page.layout pageModel page
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Edit_ >> Page))
+                            |> Maybe.map (initLayout model)
+                    }
+                )
+
         Route.Path.NotFound_ ->
             let
                 page : Page.Page Pages.NotFound_.Model Pages.NotFound_.Msg
@@ -1381,6 +1456,36 @@ updateFromPage msg model =
                         (Page.update (Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
+        ( Main.Pages.Msg.SecretsEngine_SharedOrg_Team_ pageMsg, Main.Pages.Model.SecretsEngine_SharedOrg_Team_ params pageModel ) ->
+            runWhenAuthenticated
+                model
+                (\user ->
+                    Tuple.mapBoth
+                        (Main.Pages.Model.SecretsEngine_SharedOrg_Team_ params)
+                        (Effect.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_ >> fromPageEffect model)
+                        (Page.update (Pages.Secrets.Engine_.Shared.Org_.Team_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
+                )
+
+        ( Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Add pageMsg, Main.Pages.Model.SecretsEngine_SharedOrg_Team_Add params pageModel ) ->
+            runWhenAuthenticated
+                model
+                (\user ->
+                    Tuple.mapBoth
+                        (Main.Pages.Model.SecretsEngine_SharedOrg_Team_Add params)
+                        (Effect.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Add >> fromPageEffect model)
+                        (Page.update (Pages.Secrets.Engine_.Shared.Org_.Team_.Add.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
+                )
+
+        ( Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Edit_ pageMsg, Main.Pages.Model.SecretsEngine_SharedOrg_Team_Edit_ params pageModel ) ->
+            runWhenAuthenticated
+                model
+                (\user ->
+                    Tuple.mapBoth
+                        (Main.Pages.Model.SecretsEngine_SharedOrg_Team_Edit_ params)
+                        (Effect.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Edit_ >> fromPageEffect model)
+                        (Page.update (Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
+                )
+
         ( Main.Pages.Msg.NotFound_ pageMsg, Main.Pages.Model.NotFound_ pageModel ) ->
             Tuple.mapBoth
                 Main.Pages.Model.NotFound_
@@ -1611,6 +1716,24 @@ toLayoutFromPage model =
                 |> toAuthProtectedPage model Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_.page
                 |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Edit_ >> Page))
+
+        Main.Pages.Model.SecretsEngine_SharedOrg_Team_ params pageModel ->
+            Route.fromUrl params model.url
+                |> toAuthProtectedPage model Pages.Secrets.Engine_.Shared.Org_.Team_.page
+                |> Maybe.andThen (Page.layout pageModel)
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_SharedOrg_Team_ >> Page))
+
+        Main.Pages.Model.SecretsEngine_SharedOrg_Team_Add params pageModel ->
+            Route.fromUrl params model.url
+                |> toAuthProtectedPage model Pages.Secrets.Engine_.Shared.Org_.Team_.Add.page
+                |> Maybe.andThen (Page.layout pageModel)
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Add >> Page))
+
+        Main.Pages.Model.SecretsEngine_SharedOrg_Team_Edit_ params pageModel ->
+            Route.fromUrl params model.url
+                |> toAuthProtectedPage model Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_.page
+                |> Maybe.andThen (Page.layout pageModel)
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Edit_ >> Page))
 
         Main.Pages.Model.NotFound_ pageModel ->
             Route.fromUrl () model.url
@@ -1853,6 +1976,33 @@ subscriptions model =
                         (\user ->
                             Page.subscriptions (Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_.page user model.shared (Route.fromUrl params model.url)) pageModel
                                 |> Sub.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Edit_
+                                |> Sub.map Page
+                        )
+                        (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+                Main.Pages.Model.SecretsEngine_SharedOrg_Team_ params pageModel ->
+                    Auth.Action.subscriptions
+                        (\user ->
+                            Page.subscriptions (Pages.Secrets.Engine_.Shared.Org_.Team_.page user model.shared (Route.fromUrl params model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_
+                                |> Sub.map Page
+                        )
+                        (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+                Main.Pages.Model.SecretsEngine_SharedOrg_Team_Add params pageModel ->
+                    Auth.Action.subscriptions
+                        (\user ->
+                            Page.subscriptions (Pages.Secrets.Engine_.Shared.Org_.Team_.Add.page user model.shared (Route.fromUrl params model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Add
+                                |> Sub.map Page
+                        )
+                        (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+                Main.Pages.Model.SecretsEngine_SharedOrg_Team_Edit_ params pageModel ->
+                    Auth.Action.subscriptions
+                        (\user ->
+                            Page.subscriptions (Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_.page user model.shared (Route.fromUrl params model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Edit_
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -2250,6 +2400,33 @@ viewPage model =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
+        Main.Pages.Model.SecretsEngine_SharedOrg_Team_ params pageModel ->
+            Auth.Action.view
+                (\user ->
+                    Page.view (Pages.Secrets.Engine_.Shared.Org_.Team_.page user model.shared (Route.fromUrl params model.url)) pageModel
+                        |> View.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_
+                        |> View.map Page
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+        Main.Pages.Model.SecretsEngine_SharedOrg_Team_Add params pageModel ->
+            Auth.Action.view
+                (\user ->
+                    Page.view (Pages.Secrets.Engine_.Shared.Org_.Team_.Add.page user model.shared (Route.fromUrl params model.url)) pageModel
+                        |> View.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Add
+                        |> View.map Page
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+        Main.Pages.Model.SecretsEngine_SharedOrg_Team_Edit_ params pageModel ->
+            Auth.Action.view
+                (\user ->
+                    Page.view (Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_.page user model.shared (Route.fromUrl params model.url)) pageModel
+                        |> View.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Edit_
+                        |> View.map Page
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
         Main.Pages.Model.NotFound_ pageModel ->
             Page.view (Pages.NotFound_.page model.shared (Route.fromUrl () model.url)) pageModel
                 |> View.map Main.Pages.Msg.NotFound_
@@ -2561,6 +2738,36 @@ toPageUrlHookCmd model routes =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
+        Main.Pages.Model.SecretsEngine_SharedOrg_Team_ params pageModel ->
+            Auth.Action.command
+                (\user ->
+                    Page.toUrlMessages routes (Pages.Secrets.Engine_.Shared.Org_.Team_.page user model.shared (Route.fromUrl params model.url))
+                        |> List.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_
+                        |> List.map Page
+                        |> toCommands
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+        Main.Pages.Model.SecretsEngine_SharedOrg_Team_Add params pageModel ->
+            Auth.Action.command
+                (\user ->
+                    Page.toUrlMessages routes (Pages.Secrets.Engine_.Shared.Org_.Team_.Add.page user model.shared (Route.fromUrl params model.url))
+                        |> List.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Add
+                        |> List.map Page
+                        |> toCommands
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+        Main.Pages.Model.SecretsEngine_SharedOrg_Team_Edit_ params pageModel ->
+            Auth.Action.command
+                (\user ->
+                    Page.toUrlMessages routes (Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_.page user model.shared (Route.fromUrl params model.url))
+                        |> List.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Edit_
+                        |> List.map Page
+                        |> toCommands
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
         Main.Pages.Model.Redirecting_ ->
             Cmd.none
 
@@ -2765,6 +2972,15 @@ isAuthProtected routePath =
             True
 
         Route.Path.SecretsEngine_RepoOrg_Repo_Edit_ _ ->
+            True
+
+        Route.Path.SecretsEngine_SharedOrg_Team_ _ ->
+            True
+
+        Route.Path.SecretsEngine_SharedOrg_Team_Add _ ->
+            True
+
+        Route.Path.SecretsEngine_SharedOrg_Team_Edit_ _ ->
             True
 
         Route.Path.NotFound_ ->
