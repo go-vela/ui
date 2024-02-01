@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Org_.Secrets exposing (Model, Msg, page, view)
+module Pages.Secrets.Engine_.Org.Org_ exposing (Model, Msg, page, view)
 
 import Api.Pagination
 import Auth
@@ -194,7 +194,7 @@ view shared route model =
                         , class "button-with-icon"
                         , Util.testAttribute "add-org-secret"
                         , Route.Path.href <|
-                            Route.Path.Org_SecretsAdd { org = route.params.org, engine = route.params.engine }
+                            Route.Path.SecretsEngine_OrgOrg_Add { org = route.params.org, engine = route.params.engine }
                         ]
                         [ text "Add Org Secret"
                         , FeatherIcons.plus

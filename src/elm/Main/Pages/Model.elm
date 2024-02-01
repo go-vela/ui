@@ -23,13 +23,13 @@ import Pages.Org_.Repo_.Deployments.Add
 import Pages.Org_.Repo_.Schedules
 import Pages.Org_.Repo_.Schedules.Add
 import Pages.Org_.Repo_.Schedules.Edit_
-import Pages.Org_.Repo_.Secrets
-import Pages.Org_.Repo_.Secrets.Add
-import Pages.Org_.Repo_.Secrets.Edit_
 import Pages.Org_.Repo_.Settings
-import Pages.Org_.Secrets
-import Pages.Org_.Secrets.Add
-import Pages.Org_.Secrets.Edit_
+import Pages.Secrets.Engine_.Org.Org_
+import Pages.Secrets.Engine_.Org.Org_.Add
+import Pages.Secrets.Engine_.Org.Org_.Edit_
+import Pages.Secrets.Engine_.Repo.Org_.Repo_
+import Pages.Secrets.Engine_.Repo.Org_.Repo_.Add
+import Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_
 
 
 type Model
@@ -39,9 +39,6 @@ type Model
     | Home Pages.Home.Model
     | Org_ { org : String } Pages.Org_.Model
     | Org_Builds { org : String } Pages.Org_.Builds.Model
-    | Org_Secrets { org : String, engine : String } Pages.Org_.Secrets.Model
-    | Org_SecretsAdd { org : String, engine : String } Pages.Org_.Secrets.Add.Model
-    | Org_SecretsEdit_ { org : String, name : String, engine : String } Pages.Org_.Secrets.Edit_.Model
     | Org_Repo_ { org : String, repo : String } Pages.Org_.Repo_.Model
     | Org_Repo_Deployments { org : String, repo : String } Pages.Org_.Repo_.Deployments.Model
     | Org_Repo_DeploymentsAdd { org : String, repo : String } Pages.Org_.Repo_.Deployments.Add.Model
@@ -50,13 +47,16 @@ type Model
     | Org_Repo_SchedulesEdit_ { org : String, repo : String, name : String } Pages.Org_.Repo_.Schedules.Edit_.Model
     | Org_Repo_Audit { org : String, repo : String } Pages.Org_.Repo_.Audit.Model
     | Org_Repo_Settings { org : String, repo : String } Pages.Org_.Repo_.Settings.Model
-    | Org_Repo_Secrets { org : String, repo : String, engine : String } Pages.Org_.Repo_.Secrets.Model
-    | Org_Repo_SecretsAdd { org : String, repo : String, engine : String } Pages.Org_.Repo_.Secrets.Add.Model
-    | Org_Repo_SecretsEdit_ { org : String, repo : String, name : String, engine : String } Pages.Org_.Repo_.Secrets.Edit_.Model
     | Org_Repo_Build_ { org : String, repo : String, buildNumber : String } Pages.Org_.Repo_.Build_.Model
     | Org_Repo_Build_Services { org : String, repo : String, buildNumber : String } Pages.Org_.Repo_.Build_.Services.Model
     | Org_Repo_Build_Pipeline { org : String, repo : String, buildNumber : String } Pages.Org_.Repo_.Build_.Pipeline.Model
     | Org_Repo_Build_Graph { org : String, repo : String, buildNumber : String } Pages.Org_.Repo_.Build_.Graph.Model
+    | SecretsEngine_OrgOrg_ { org : String, engine : String } Pages.Secrets.Engine_.Org.Org_.Model
+    | SecretsEngine_OrgOrg_Add { org : String, engine : String } Pages.Secrets.Engine_.Org.Org_.Add.Model
+    | SecretsEngine_OrgOrg_Edit_ { org : String, name : String, engine : String } Pages.Secrets.Engine_.Org.Org_.Edit_.Model
+    | SecretsEngine_RepoOrg_Repo_ { org : String, repo : String, engine : String } Pages.Secrets.Engine_.Repo.Org_.Repo_.Model
+    | SecretsEngine_RepoOrg_Repo_Add { org : String, repo : String, engine : String } Pages.Secrets.Engine_.Repo.Org_.Repo_.Add.Model
+    | SecretsEngine_RepoOrg_Repo_Edit_ { org : String, repo : String, name : String, engine : String } Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_.Model
+    | NotFound_ Pages.NotFound_.Model
     | Redirecting_
     | Loading_
-    | NotFound_ Pages.NotFound_.Model

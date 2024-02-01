@@ -111,7 +111,7 @@ viewOrgTabs props =
               }
             , { name = "Secrets"
               , currentPath = props.currentPath
-              , toPath = Route.Path.Org_Secrets { org = props.org, engine = "native" }
+              , toPath = Route.Path.SecretsEngine_OrgOrg_ { org = props.org, engine = "native" }
               , isAlerting = False
               , show = True
               }
@@ -190,7 +190,7 @@ viewRepoTabs shared props =
             , { name = "Secrets"
               , currentPath = props.currentPath
               , toPath =
-                    Route.Path.Org_Repo_Secrets
+                    Route.Path.SecretsEngine_RepoOrg_Repo_
                         { org = props.org
                         , repo = props.repo
                         , engine = "native"

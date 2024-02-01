@@ -23,13 +23,13 @@ import Pages.Org_.Repo_.Deployments.Add
 import Pages.Org_.Repo_.Schedules
 import Pages.Org_.Repo_.Schedules.Add
 import Pages.Org_.Repo_.Schedules.Edit_
-import Pages.Org_.Repo_.Secrets
-import Pages.Org_.Repo_.Secrets.Add
-import Pages.Org_.Repo_.Secrets.Edit_
 import Pages.Org_.Repo_.Settings
-import Pages.Org_.Secrets
-import Pages.Org_.Secrets.Add
-import Pages.Org_.Secrets.Edit_
+import Pages.Secrets.Engine_.Org.Org_
+import Pages.Secrets.Engine_.Org.Org_.Add
+import Pages.Secrets.Engine_.Org.Org_.Edit_
+import Pages.Secrets.Engine_.Repo.Org_.Repo_
+import Pages.Secrets.Engine_.Repo.Org_.Repo_.Add
+import Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_
 
 
 type Msg
@@ -39,9 +39,6 @@ type Msg
     | Home Pages.Home.Msg
     | Org_ Pages.Org_.Msg
     | Org_Builds Pages.Org_.Builds.Msg
-    | Org_Secrets Pages.Org_.Secrets.Msg
-    | Org_SecretsAdd Pages.Org_.Secrets.Add.Msg
-    | Org_SecretsEdit_ Pages.Org_.Secrets.Edit_.Msg
     | Org_Repo_ Pages.Org_.Repo_.Msg
     | Org_Repo_Deployments Pages.Org_.Repo_.Deployments.Msg
     | Org_Repo_DeploymentsAdd Pages.Org_.Repo_.Deployments.Add.Msg
@@ -50,11 +47,14 @@ type Msg
     | Org_Repo_SchedulesEdit_ Pages.Org_.Repo_.Schedules.Edit_.Msg
     | Org_Repo_Audit Pages.Org_.Repo_.Audit.Msg
     | Org_Repo_Settings Pages.Org_.Repo_.Settings.Msg
-    | Org_Repo_Secrets Pages.Org_.Repo_.Secrets.Msg
-    | Org_Repo_SecretsAdd Pages.Org_.Repo_.Secrets.Add.Msg
-    | Org_Repo_SecretsEdit_ Pages.Org_.Repo_.Secrets.Edit_.Msg
     | Org_Repo_Build_ Pages.Org_.Repo_.Build_.Msg
     | Org_Repo_Build_Services Pages.Org_.Repo_.Build_.Services.Msg
     | Org_Repo_Build_Pipeline Pages.Org_.Repo_.Build_.Pipeline.Msg
     | Org_Repo_Build_Graph Pages.Org_.Repo_.Build_.Graph.Msg
+    | SecretsEngine_OrgOrg_ Pages.Secrets.Engine_.Org.Org_.Msg
+    | SecretsEngine_OrgOrg_Add Pages.Secrets.Engine_.Org.Org_.Add.Msg
+    | SecretsEngine_OrgOrg_Edit_ Pages.Secrets.Engine_.Org.Org_.Edit_.Msg
+    | SecretsEngine_RepoOrg_Repo_ Pages.Secrets.Engine_.Repo.Org_.Repo_.Msg
+    | SecretsEngine_RepoOrg_Repo_Add Pages.Secrets.Engine_.Repo.Org_.Repo_.Add.Msg
+    | SecretsEngine_RepoOrg_Repo_Edit_ Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_.Msg
     | NotFound_ Pages.NotFound_.Msg

@@ -20,9 +20,9 @@ type Path
     | AccountSourceRepos
     | Org_ { org : String }
     | Org_Builds { org : String }
-    | Org_Secrets { org : String, engine : String }
-    | Org_SecretsAdd { org : String, engine : String }
-    | Org_SecretsEdit_ { org : String, name : String, engine : String }
+    | SecretsEngine_OrgOrg_ { org : String, engine : String }
+    | SecretsEngine_OrgOrg_Add { org : String, engine : String }
+    | SecretsEngine_OrgOrg_Edit_ { org : String, name : String, engine : String }
     | Org_Repo_ { org : String, repo : String }
     | Org_Repo_Deployments { org : String, repo : String }
     | Org_Repo_DeploymentsAdd { org : String, repo : String }
@@ -31,9 +31,9 @@ type Path
     | Org_Repo_SchedulesEdit_ { org : String, repo : String, name : String }
     | Org_Repo_Audit { org : String, repo : String }
     | Org_Repo_Settings { org : String, repo : String }
-    | Org_Repo_Secrets { org : String, repo : String, engine : String }
-    | Org_Repo_SecretsAdd { org : String, repo : String, engine : String }
-    | Org_Repo_SecretsEdit_ { org : String, repo : String, name : String, engine : String }
+    | SecretsEngine_RepoOrg_Repo_ { org : String, repo : String, engine : String }
+    | SecretsEngine_RepoOrg_Repo_Add { org : String, repo : String, engine : String }
+    | SecretsEngine_RepoOrg_Repo_Edit_ { org : String, repo : String, name : String, engine : String }
     | Org_Repo_Build_ { org : String, repo : String, buildNumber : String }
     | Org_Repo_Build_Services { org : String, repo : String, buildNumber : String }
     | Org_Repo_Build_Pipeline { org : String, repo : String, buildNumber : String }
@@ -88,21 +88,21 @@ fromString urlPath =
                 |> Just
 
         "-" :: "secrets" :: engine :: "org" :: org :: [] ->
-            Org_Secrets
+            SecretsEngine_OrgOrg_
                 { org = org
                 , engine = engine
                 }
                 |> Just
 
         "-" :: "secrets" :: engine :: "org" :: org :: "add" :: [] ->
-            Org_SecretsAdd
+            SecretsEngine_OrgOrg_Add
                 { org = org
                 , engine = engine
                 }
                 |> Just
 
         "-" :: "secrets" :: engine :: "org" :: org :: name :: [] ->
-            Org_SecretsEdit_
+            SecretsEngine_OrgOrg_Edit_
                 { org = org
                 , name = name
                 , engine = engine
@@ -167,7 +167,7 @@ fromString urlPath =
                 |> Just
 
         "-" :: "secrets" :: engine :: "repo" :: org :: repo :: [] ->
-            Org_Repo_Secrets
+            SecretsEngine_RepoOrg_Repo_
                 { org = org
                 , repo = repo
                 , engine = engine
@@ -175,7 +175,7 @@ fromString urlPath =
                 |> Just
 
         "-" :: "secrets" :: engine :: "repo" :: org :: repo :: "add" :: [] ->
-            Org_Repo_SecretsAdd
+            SecretsEngine_RepoOrg_Repo_Add
                 { org = org
                 , repo = repo
                 , engine = engine
@@ -183,7 +183,7 @@ fromString urlPath =
                 |> Just
 
         "-" :: "secrets" :: engine :: "repo" :: org :: repo :: name :: [] ->
-            Org_Repo_SecretsEdit_
+            SecretsEngine_RepoOrg_Repo_Edit_
                 { org = org
                 , repo = repo
                 , name = name
@@ -262,13 +262,13 @@ toString path =
                 Org_Builds params ->
                     [ params.org, "builds" ]
 
-                Org_Secrets params ->
+                SecretsEngine_OrgOrg_ params ->
                     [ "-", "secrets", params.engine, "org", params.org ]
 
-                Org_SecretsAdd params ->
+                SecretsEngine_OrgOrg_Add params ->
                     [ "-", "secrets", params.engine, "org", params.org, "add" ]
 
-                Org_SecretsEdit_ params ->
+                SecretsEngine_OrgOrg_Edit_ params ->
                     [ "-", "secrets", params.engine, "org", params.org, params.name ]
 
                 Org_Repo_ params ->
@@ -295,13 +295,13 @@ toString path =
                 Org_Repo_Settings params ->
                     [ params.org, params.repo, "settings" ]
 
-                Org_Repo_Secrets params ->
+                SecretsEngine_RepoOrg_Repo_ params ->
                     [ "-", "secrets", params.engine, "repo", params.org, params.repo ]
 
-                Org_Repo_SecretsAdd params ->
+                SecretsEngine_RepoOrg_Repo_Add params ->
                     [ "-", "secrets", params.engine, "repo", params.org, params.repo, "add" ]
 
-                Org_Repo_SecretsEdit_ params ->
+                SecretsEngine_RepoOrg_Repo_Edit_ params ->
                     [ "-", "secrets", params.engine, "repo", params.org, params.repo, params.name ]
 
                 Org_Repo_Build_ params ->

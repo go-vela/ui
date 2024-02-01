@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Org_.Repo_.Secrets.Add exposing (Model, Msg, page, view)
+module Pages.Secrets.Engine_.Repo.Org_.Repo_.Add exposing (Model, Msg, page, view)
 
 import Auth
 import Components.Form
@@ -50,7 +50,7 @@ toLayout user route model =
             [ ( "Overview", Just Route.Path.Home )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
             , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
-            , ( "Secrets", Just <| Route.Path.Org_Repo_Secrets { org = route.params.org, repo = route.params.repo, engine = route.params.engine } )
+            , ( "Secrets", Just <| Route.Path.SecretsEngine_RepoOrg_Repo_ { org = route.params.org, repo = route.params.repo, engine = route.params.engine } )
             , ( "Add", Nothing )
             ]
         , repo = Nothing

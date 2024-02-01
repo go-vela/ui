@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Org_.Repo_.Secrets exposing (Model, Msg, page, view)
+module Pages.Secrets.Engine_.Repo.Org_.Repo_ exposing (Model, Msg, page, view)
 
 import Api.Pagination
 import Auth
@@ -238,7 +238,7 @@ view shared route model =
                         , class "button-with-icon"
                         , Util.testAttribute "add-repo-secret"
                         , Route.Path.href <|
-                            Route.Path.Org_Repo_SecretsAdd { org = route.params.org, repo = route.params.repo, engine = route.params.engine }
+                            Route.Path.SecretsEngine_RepoOrg_Repo_Add { org = route.params.org, repo = route.params.repo, engine = route.params.engine }
                         ]
                         [ text "Add Repo Secret"
                         , FeatherIcons.plus
@@ -260,7 +260,7 @@ view shared route model =
                         [ class "button"
                         , class "-outline"
                         , Route.Path.href <|
-                            Route.Path.Org_Secrets { org = route.params.org, engine = route.params.engine }
+                            Route.Path.SecretsEngine_OrgOrg_ { org = route.params.org, engine = route.params.engine }
                         , Util.testAttribute "manage-org-secrets"
                         ]
                         [ text "Manage Org Secrets" ]

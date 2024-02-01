@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Org_.Secrets.Edit_ exposing (Model, Msg, page, view)
+module Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_ exposing (Model, Msg, page, view)
 
 import Auth
 import Components.Form
@@ -26,7 +26,7 @@ import Vela exposing (defaultSecretPayload)
 import View exposing (View)
 
 
-page : Auth.User -> Shared.Model -> Route { org : String, name : String, engine : String } -> Page Model Msg
+page : Auth.User -> Shared.Model -> Route { org : String, repo : String, name : String, engine : String } -> Page Model Msg
 page user shared route =
     Page.new
         { init = init shared route
@@ -41,7 +41,7 @@ page user shared route =
 -- LAYOUT
 
 
-toLayout : Auth.User -> Route { org : String, name : String, engine : String } -> Model -> Layouts.Layout Msg
+toLayout : Auth.User -> Route { org : String, repo : String, name : String, engine : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
         { navButtons = []
@@ -50,7 +50,8 @@ toLayout user route model =
         , crumbs =
             [ ( "Overview", Just Route.Path.Home )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( "Secrets", Just <| Route.Path.Org_Secrets { org = route.params.org, engine = route.params.engine } )
+            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
+            , ( "Secrets", Just <| Route.Path.SecretsEngine_RepoOrg_Repo_ { org = route.params.org, repo = route.params.repo, engine = route.params.engine } )
             , ( "Edit", Nothing )
             , ( route.params.name, Nothing )
             ]
@@ -74,7 +75,7 @@ type alias Model =
     }
 
 
-init : Shared.Model -> Route { org : String, name : String, engine : String } -> () -> ( Model, Effect Msg )
+init : Shared.Model -> Route { org : String, repo : String, name : String, engine : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { secret = RemoteData.Loading
       , name = ""
@@ -85,12 +86,13 @@ init shared route () =
       , allowCommand = True
       , confirmingDelete = False
       }
-    , Effect.getOrgSecret
+    , Effect.getRepoSecret
         { baseUrl = shared.velaAPIBaseURL
         , session = shared.session
         , onResponse = GetSecretResponse
         , engine = route.params.engine
         , org = route.params.org
+        , repo = route.params.repo
         , name = route.params.name
         }
     )
@@ -101,11 +103,11 @@ init shared route () =
 
 
 type Msg
-    = -- SECRETS
-      GetSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
+    = NoOp
+      -- SECRETS
+    | GetSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
     | UpdateSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
     | DeleteSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | NameOnInput String
     | ValueOnInput String
     | ImageOnInput String
     | EventOnCheck String Bool
@@ -118,9 +120,12 @@ type Msg
     | ConfirmDelete
 
 
-update : Shared.Model -> Route { org : String, name : String, engine : String } -> Msg -> Model -> ( Model, Effect Msg )
+update : Shared.Model -> Route { org : String, repo : String, name : String, engine : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
+        NoOp ->
+            ( model, Effect.none )
+
         -- SECRETS
         GetSecretResponse response ->
             case response of
@@ -145,7 +150,7 @@ update shared route msg model =
                 Ok ( _, secret ) ->
                     ( model
                     , Effect.addAlertSuccess
-                        { content = "Org secret " ++ secret.name ++ " updated."
+                        { content = "Repo secret " ++ secret.name ++ " updated."
                         , addToastIfUnique = True
                         }
                     )
@@ -165,8 +170,9 @@ update shared route msg model =
                             , addToastIfUnique = True
                             }
                         , Effect.pushPath <|
-                            Route.Path.Org_Secrets
+                            Route.Path.SecretsEngine_RepoOrg_Repo_
                                 { org = route.params.org
+                                , repo = route.params.repo
                                 , engine = route.params.engine
                                 }
                         ]
@@ -176,11 +182,6 @@ update shared route msg model =
                     ( model
                     , Effect.handleHttpError { httpError = error }
                     )
-
-        NameOnInput val ->
-            ( { model | name = val }
-            , Effect.none
-            )
 
         ValueOnInput val ->
             ( { model | value = val }
@@ -238,9 +239,9 @@ update shared route msg model =
             let
                 payload =
                     { defaultSecretPayload
-                        | type_ = Just Vela.OrgSecret
+                        | type_ = Just Vela.RepoSecret
                         , org = Just route.params.org
-                        , repo = Nothing
+                        , repo = Just route.params.repo
                         , team = Nothing
                         , name = Util.stringToMaybe model.name
                         , value = Util.stringToMaybe model.value
@@ -253,12 +254,13 @@ update shared route msg model =
                     Http.jsonBody <| Vela.encodeSecretPayload payload
             in
             ( model
-            , Effect.updateOrgSecret
+            , Effect.updateRepoSecret
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = UpdateSecretResponse
                 , engine = route.params.engine
                 , org = route.params.org
+                , repo = route.params.repo
                 , name = route.params.name
                 , body = body
                 }
@@ -276,12 +278,13 @@ update shared route msg model =
 
         ConfirmDelete ->
             ( { model | confirmingDelete = False }
-            , Effect.deleteOrgSecret
+            , Effect.deleteRepoSecret
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = DeleteSecretResponse
                 , engine = route.params.engine
                 , org = route.params.org
+                , repo = route.params.repo
                 , name = route.params.name
                 }
             )
@@ -300,13 +303,13 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Route { org : String, name : String, engine : String } -> Model -> View Msg
+view : Shared.Model -> Route { org : String, repo : String, name : String, engine : String } -> Model -> View Msg
 view shared route model =
     { title = "Edit Secret"
     , body =
         [ div [ class "manage-secret", Util.testAttribute "manage-secret" ]
             [ div []
-                [ h2 [] [ text <| String.Extra.toTitleCase <| "edit " ++ Vela.secretTypeToString Vela.OrgSecret ++ " secret" ]
+                [ h2 [] [ text <| String.Extra.toTitleCase <| "edit " ++ Vela.secretTypeToString Vela.RepoSecret ++ " secret" ]
                 , div [ class "secret-form" ]
                     [ Components.Form.viewInput
                         { title = Just "Name"
@@ -317,7 +320,7 @@ view shared route model =
                         , classList_ = [ ( "secret-name", True ) ]
                         , rows_ = Nothing
                         , wrap_ = Nothing
-                        , msg = NameOnInput
+                        , msg = \_ -> NoOp
                         , disabled_ = True
                         }
                     , Components.Form.viewTextarea

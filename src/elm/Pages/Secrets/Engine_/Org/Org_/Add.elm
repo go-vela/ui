@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Org_.Secrets.Add exposing (Model, Msg, page, view)
+module Pages.Secrets.Engine_.Org.Org_.Add exposing (Model, Msg, page, view)
 
 import Auth
 import Components.Form
@@ -49,7 +49,7 @@ toLayout user route model =
         , crumbs =
             [ ( "Overview", Just Route.Path.Home )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( "Secrets", Just <| Route.Path.Org_Secrets { org = route.params.org, engine = route.params.engine } )
+            , ( "Secrets", Just <| Route.Path.SecretsEngine_OrgOrg_ { org = route.params.org, engine = route.params.engine } )
             , ( "Add", Nothing )
             ]
         , repo = Nothing
