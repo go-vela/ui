@@ -259,7 +259,7 @@ viewEventsSelect secret model =
                     OnChangeEvent "allow_comment_edited"
                 ]
             , strong [ class "settings-subtitle" ] [ text "Delete" ]
-            , div [ class "form-controls", class "-two-col-secrets" ]
+            , div [ class "form-controls", class "-two-col" ]
                 [ checkbox "Branch"
                     "allow_push_delete_branch"
                     secret.allowEvents.push.delete_branch
