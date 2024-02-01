@@ -24,7 +24,9 @@
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
@@ -66,7 +68,9 @@
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
@@ -107,7 +111,9 @@
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
@@ -149,7 +155,9 @@
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,

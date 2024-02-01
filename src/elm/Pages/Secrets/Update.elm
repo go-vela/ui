@@ -188,6 +188,12 @@ updateSecretEvents sform field value =
         "allow_push_tag" ->
             { sform | allowEvents = { events | push = { pushActions | tag = value } } }
 
+        "allow_push_delete_branch" ->
+            { sform | allowEvents = { events | push = { pushActions | delete_branch = value } } }
+
+        "allow_push_delete_tag" ->
+            { sform | allowEvents = { events | push = { pushActions | delete_tag = value } } }
+
         "allow_pull_opened" ->
             { sform | allowEvents = { events | pull = { pullActions | opened = value } } }
 
