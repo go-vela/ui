@@ -87,19 +87,19 @@ fromString urlPath =
                 }
                 |> Just
 
-        org :: "secrets" :: [] ->
+        "-" :: "secrets" :: "native" :: "org" :: org :: [] ->
             Org_Secrets
                 { org = org
                 }
                 |> Just
 
-        org :: "secrets" :: "add" :: [] ->
+        "-" :: "secrets" :: "native" :: "org" :: org :: "add" :: [] ->
             Org_SecretsAdd
                 { org = org
                 }
                 |> Just
 
-        org :: "secrets" :: name :: [] ->
+        "-" :: "secrets" :: "native" :: "org" :: org :: name :: [] ->
             Org_SecretsEdit_
                 { org = org
                 , name = name
@@ -163,21 +163,21 @@ fromString urlPath =
                 }
                 |> Just
 
-        org :: repo :: "secrets" :: [] ->
+        "-" :: "secrets" :: "native" :: "repo" :: org :: repo :: [] ->
             Org_Repo_Secrets
                 { org = org
                 , repo = repo
                 }
                 |> Just
 
-        org :: repo :: "secrets" :: "add" :: [] ->
+        "-" :: "secrets" :: "native" :: "repo" :: org :: repo :: "add" :: [] ->
             Org_Repo_SecretsAdd
                 { org = org
                 , repo = repo
                 }
                 |> Just
 
-        org :: repo :: "secrets" :: name :: [] ->
+        "-" :: "secrets" :: "native" :: "repo" :: org :: repo :: name :: [] ->
             Org_Repo_SecretsEdit_
                 { org = org
                 , repo = repo
@@ -257,13 +257,13 @@ toString path =
                     [ params.org, "builds" ]
 
                 Org_Secrets params ->
-                    [ params.org, "secrets" ]
+                    [ "-", "secrets", "native", "org", params.org ]
 
                 Org_SecretsAdd params ->
-                    [ params.org, "secrets", "add" ]
+                    [ "-", "secrets", "native", "org", params.org, "add" ]
 
                 Org_SecretsEdit_ params ->
-                    [ params.org, "secrets", params.name ]
+                    [ "-", "secrets", "native", "org", params.org, params.name ]
 
                 Org_Repo_ params ->
                     [ params.org, params.repo ]
@@ -290,13 +290,13 @@ toString path =
                     [ params.org, params.repo, "settings" ]
 
                 Org_Repo_Secrets params ->
-                    [ params.org, params.repo, "secrets" ]
+                    [ "-", "secrets", "native", "repo", params.org, params.repo ]
 
                 Org_Repo_SecretsAdd params ->
-                    [ params.org, params.repo, "secrets", "add" ]
+                    [ "-", "secrets", "native", "repo", params.org, params.repo, "add" ]
 
                 Org_Repo_SecretsEdit_ params ->
-                    [ params.org, params.repo, "secrets", params.name ]
+                    [ "-", "secrets", "native", "repo", params.org, params.repo, params.name ]
 
                 Org_Repo_Build_ params ->
                     [ params.org, params.repo, params.buildNumber ]
