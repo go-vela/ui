@@ -20,9 +20,9 @@ type Path
     | AccountSourceRepos
     | Org_ { org : String }
     | Org_Builds { org : String }
-    | SecretsEngine_OrgOrg_ { org : String, engine : String }
-    | SecretsEngine_OrgOrg_Add { org : String, engine : String }
-    | SecretsEngine_OrgOrg_Edit_ { org : String, name : String, engine : String }
+    | SecretsEngine_OrgOrg_ { engine : String, org : String }
+    | SecretsEngine_OrgOrg_Add { engine : String, org : String }
+    | SecretsEngine_OrgOrg_Edit_ { engine : String, org : String, name : String }
     | Org_Repo_ { org : String, repo : String }
     | Org_Repo_Deployments { org : String, repo : String }
     | Org_Repo_DeploymentsAdd { org : String, repo : String }
@@ -31,9 +31,9 @@ type Path
     | Org_Repo_SchedulesEdit_ { org : String, repo : String, name : String }
     | Org_Repo_Audit { org : String, repo : String }
     | Org_Repo_Settings { org : String, repo : String }
-    | SecretsEngine_RepoOrg_Repo_ { org : String, repo : String, engine : String }
-    | SecretsEngine_RepoOrg_Repo_Add { org : String, repo : String, engine : String }
-    | SecretsEngine_RepoOrg_Repo_Edit_ { org : String, repo : String, name : String, engine : String }
+    | SecretsEngine_RepoOrg_Repo_ { engine : String, org : String, repo : String }
+    | SecretsEngine_RepoOrg_Repo_Add { engine : String, org : String, repo : String }
+    | SecretsEngine_RepoOrg_Repo_Edit_ { engine : String, org : String, repo : String, name : String }
     | Org_Repo_Build_ { org : String, repo : String, buildNumber : String }
     | Org_Repo_Build_Services { org : String, repo : String, buildNumber : String }
     | Org_Repo_Build_Pipeline { org : String, repo : String, buildNumber : String }

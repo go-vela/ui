@@ -32,7 +32,7 @@ import Vela
 import View exposing (View)
 
 
-page : Auth.User -> Shared.Model -> Route { org : String, engine : String } -> Page Model Msg
+page : Auth.User -> Shared.Model -> Route { engine : String, org : String } -> Page Model Msg
 page user shared route =
     Page.new
         { init = init shared route
@@ -47,7 +47,7 @@ page user shared route =
 -- LAYOUT
 
 
-toLayout : Auth.User -> Route { org : String, engine : String } -> Model -> Layouts.Layout Msg
+toLayout : Auth.User -> Route { engine : String, org : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Org
         { navButtons = []
@@ -71,7 +71,7 @@ type alias Model =
     }
 
 
-init : Shared.Model -> Route { org : String, engine : String } -> () -> ( Model, Effect Msg )
+init : Shared.Model -> Route { engine : String, org : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { secrets = RemoteData.Loading
       , pager = []
@@ -102,7 +102,7 @@ type Msg
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
-update : Shared.Model -> Route { org : String, engine : String } -> Msg -> Model -> ( Model, Effect Msg )
+update : Shared.Model -> Route { engine : String, org : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
         -- SECRETS
@@ -176,7 +176,7 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Route { org : String, engine : String } -> Model -> View Msg
+view : Shared.Model -> Route { engine : String, org : String } -> Model -> View Msg
 view shared route model =
     { title = "Secrets"
     , body =

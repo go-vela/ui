@@ -51,12 +51,12 @@ type Model
     | Org_Repo_Build_Services { org : String, repo : String, buildNumber : String } Pages.Org_.Repo_.Build_.Services.Model
     | Org_Repo_Build_Pipeline { org : String, repo : String, buildNumber : String } Pages.Org_.Repo_.Build_.Pipeline.Model
     | Org_Repo_Build_Graph { org : String, repo : String, buildNumber : String } Pages.Org_.Repo_.Build_.Graph.Model
-    | SecretsEngine_OrgOrg_ { org : String, engine : String } Pages.Secrets.Engine_.Org.Org_.Model
-    | SecretsEngine_OrgOrg_Add { org : String, engine : String } Pages.Secrets.Engine_.Org.Org_.Add.Model
-    | SecretsEngine_OrgOrg_Edit_ { org : String, name : String, engine : String } Pages.Secrets.Engine_.Org.Org_.Edit_.Model
-    | SecretsEngine_RepoOrg_Repo_ { org : String, repo : String, engine : String } Pages.Secrets.Engine_.Repo.Org_.Repo_.Model
-    | SecretsEngine_RepoOrg_Repo_Add { org : String, repo : String, engine : String } Pages.Secrets.Engine_.Repo.Org_.Repo_.Add.Model
-    | SecretsEngine_RepoOrg_Repo_Edit_ { org : String, repo : String, name : String, engine : String } Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_.Model
+    | SecretsEngine_OrgOrg_ { engine : String, org : String } Pages.Secrets.Engine_.Org.Org_.Model
+    | SecretsEngine_OrgOrg_Add { engine : String, org : String } Pages.Secrets.Engine_.Org.Org_.Add.Model
+    | SecretsEngine_OrgOrg_Edit_ { engine : String, org : String, name : String } Pages.Secrets.Engine_.Org.Org_.Edit_.Model
+    | SecretsEngine_RepoOrg_Repo_ { engine : String, org : String, repo : String } Pages.Secrets.Engine_.Repo.Org_.Repo_.Model
+    | SecretsEngine_RepoOrg_Repo_Add { engine : String, org : String, repo : String } Pages.Secrets.Engine_.Repo.Org_.Repo_.Add.Model
+    | SecretsEngine_RepoOrg_Repo_Edit_ { engine : String, org : String, repo : String, name : String } Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_.Model
     | NotFound_ Pages.NotFound_.Model
     | Redirecting_
     | Loading_

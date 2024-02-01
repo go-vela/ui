@@ -32,7 +32,7 @@ import Vela
 import View exposing (View)
 
 
-page : Auth.User -> Shared.Model -> Route { org : String, repo : String, engine : String } -> Page Model Msg
+page : Auth.User -> Shared.Model -> Route { engine : String, org : String, repo : String } -> Page Model Msg
 page user shared route =
     Page.new
         { init = init shared route
@@ -47,7 +47,7 @@ page user shared route =
 -- LAYOUT
 
 
-toLayout : Auth.User -> Route { org : String, repo : String, engine : String } -> Model -> Layouts.Layout Msg
+toLayout : Auth.User -> Route { engine : String, org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Repo
         { navButtons = []
@@ -74,7 +74,7 @@ type alias Model =
     }
 
 
-init : Shared.Model -> Route { org : String, repo : String, engine : String } -> () -> ( Model, Effect Msg )
+init : Shared.Model -> Route { engine : String, org : String, repo : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { orgSecrets = RemoteData.Loading
       , repoSecrets = RemoteData.Loading
@@ -119,7 +119,7 @@ type Msg
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
-update : Shared.Model -> Route { org : String, repo : String, engine : String } -> Msg -> Model -> ( Model, Effect Msg )
+update : Shared.Model -> Route { engine : String, org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
         -- SECRETS
@@ -220,7 +220,7 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Route { org : String, repo : String, engine : String } -> Model -> View Msg
+view : Shared.Model -> Route { engine : String, org : String, repo : String } -> Model -> View Msg
 view shared route model =
     { title = "Secrets"
     , body =

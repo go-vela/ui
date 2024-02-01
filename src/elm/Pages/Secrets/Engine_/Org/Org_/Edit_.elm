@@ -26,7 +26,7 @@ import Vela exposing (defaultSecretPayload)
 import View exposing (View)
 
 
-page : Auth.User -> Shared.Model -> Route { org : String, name : String, engine : String } -> Page Model Msg
+page : Auth.User -> Shared.Model -> Route { engine : String, org : String, name : String } -> Page Model Msg
 page user shared route =
     Page.new
         { init = init shared route
@@ -41,7 +41,7 @@ page user shared route =
 -- LAYOUT
 
 
-toLayout : Auth.User -> Route { org : String, name : String, engine : String } -> Model -> Layouts.Layout Msg
+toLayout : Auth.User -> Route { engine : String, org : String, name : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
         { navButtons = []
@@ -74,7 +74,7 @@ type alias Model =
     }
 
 
-init : Shared.Model -> Route { org : String, name : String, engine : String } -> () -> ( Model, Effect Msg )
+init : Shared.Model -> Route { engine : String, org : String, name : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { secret = RemoteData.Loading
       , name = ""
@@ -118,7 +118,7 @@ type Msg
     | ConfirmDelete
 
 
-update : Shared.Model -> Route { org : String, name : String, engine : String } -> Msg -> Model -> ( Model, Effect Msg )
+update : Shared.Model -> Route { engine : String, org : String, name : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
         -- SECRETS
@@ -300,7 +300,7 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Route { org : String, name : String, engine : String } -> Model -> View Msg
+view : Shared.Model -> Route { engine : String, org : String, name : String } -> Model -> View Msg
 view shared route model =
     { title = "Edit Secret"
     , body =
