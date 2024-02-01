@@ -38,6 +38,7 @@ import Html.Events exposing (onClick)
 import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
+import Route.Path
 import Shared
 import Time
 import Utils.Helpers as Util
@@ -65,6 +66,10 @@ toLayout user model =
         { navButtons = []
         , utilButtons = []
         , helpCommands = []
+        , crumbs =
+            [ ( "Overview", Just Route.Path.Home )
+            , ( "My Settings", Nothing )
+            ]
         , repo = Nothing
         }
 

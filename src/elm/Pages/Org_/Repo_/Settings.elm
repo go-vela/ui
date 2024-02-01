@@ -19,6 +19,7 @@ import Page exposing (Page)
 import Pages.Account.SourceRepos exposing (Msg(..))
 import RemoteData exposing (WebData)
 import Route exposing (Route)
+import Route.Path
 import Shared
 import Time
 import Utils.Helpers as Util
@@ -48,6 +49,11 @@ toLayout user route model =
         { navButtons = []
         , utilButtons = []
         , helpCommands = []
+        , crumbs =
+            [ ( "Overview", Just Route.Path.Home )
+            , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
+            , ( route.params.repo, Nothing )
+            ]
         , org = route.params.org
         , repo = route.params.repo
         }

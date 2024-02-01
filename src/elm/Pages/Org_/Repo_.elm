@@ -21,6 +21,7 @@ import Maybe.Extra
 import Page exposing (Page)
 import RemoteData exposing (WebData)
 import Route exposing (Route)
+import Route.Path
 import Shared
 import Time
 import Utils.Errors
@@ -52,6 +53,11 @@ toLayout user route model =
         { navButtons = []
         , utilButtons = []
         , helpCommands = []
+        , crumbs =
+            [ ( "Overview", Just Route.Path.Home )
+            , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
+            , ( route.params.repo, Nothing )
+            ]
         , org = route.params.org
         , repo = route.params.repo
         }

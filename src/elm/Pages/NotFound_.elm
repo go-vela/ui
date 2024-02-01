@@ -10,6 +10,7 @@ import Html exposing (..)
 import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
+import Route.Path
 import Shared
 import View exposing (View)
 
@@ -35,6 +36,7 @@ toLayout model =
         { navButtons = []
         , utilButtons = []
         , helpCommands = []
+        , crumbs = [ ( "Overview", Just Route.Path.Home ), ( "Not Found", Nothing ) ]
         , repo = Nothing
         }
 

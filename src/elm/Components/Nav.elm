@@ -27,11 +27,17 @@ import Utils.Helpers as Util
 import Vela
 
 
-view : Shared.Model -> Route () -> List (Html msg) -> Html msg
-view shared route buttons =
+type alias Props msg =
+    { buttons : List (Html msg)
+    , crumbs : Html msg
+    }
+
+
+view : Shared.Model -> Route () -> Props msg -> Html msg
+view shared route props =
     nav [ class "navigation", attribute "aria-label" "Navigation" ]
-        (Components.Crumbs.view route.path
-            :: buttons
+        (props.crumbs
+            :: props.buttons
         )
 
 

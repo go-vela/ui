@@ -95,6 +95,11 @@ toLayout user shared model =
             ]
         , utilButtons = []
         , helpCommands = []
+        , crumbs =
+            [ ( "Overview", Just Route.Path.Home )
+            , ( "Account", Nothing )
+            , ( "Source Repositories", Nothing )
+            ]
         , repo = Nothing
         }
 

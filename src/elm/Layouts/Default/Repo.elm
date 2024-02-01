@@ -5,7 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 module Layouts.Default.Repo exposing (Model, Msg, Props, layout, map)
 
-import Components.Favorites
+import Components.Crumbs
 import Components.Help
 import Components.Tabs
 import Effect exposing (Effect)
@@ -24,6 +24,7 @@ type alias Props contentMsg =
     { navButtons : List (Html contentMsg)
     , utilButtons : List (Html contentMsg)
     , helpCommands : List Components.Help.Command
+    , crumbs : List Components.Crumbs.Crumb
     , org : String
     , repo : String
     }
@@ -34,6 +35,7 @@ map fn props =
     { navButtons = List.map (Html.map fn) props.navButtons
     , utilButtons = List.map (Html.map fn) props.utilButtons
     , helpCommands = props.helpCommands
+    , crumbs = props.crumbs
     , org = props.org
     , repo = props.repo
     }
@@ -58,6 +60,7 @@ layout props shared route =
                     }
                     :: props.utilButtons
             , helpCommands = props.helpCommands
+            , crumbs = props.crumbs
             , repo = Just ( props.org, props.repo )
             }
 

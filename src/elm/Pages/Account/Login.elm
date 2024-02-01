@@ -53,6 +53,10 @@ toLayout model =
         { navButtons = []
         , utilButtons = []
         , helpCommands = []
+        , crumbs =
+            [ ( "Account", Nothing )
+            , ( "Login", Nothing )
+            ]
         , repo = Nothing
         }
 

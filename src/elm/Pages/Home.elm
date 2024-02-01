@@ -77,6 +77,7 @@ toLayout user model =
             ]
         , utilButtons = []
         , helpCommands = []
+        , crumbs = [ ( "Overview", Nothing ) ]
         , repo = Nothing
         }
 

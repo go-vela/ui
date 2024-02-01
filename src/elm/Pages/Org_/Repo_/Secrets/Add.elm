@@ -17,6 +17,7 @@ import Layouts
 import List.Extra
 import Page exposing (Page)
 import Route exposing (Route)
+import Route.Path
 import Shared
 import String.Extra
 import Utils.Helpers as Util
@@ -45,6 +46,13 @@ toLayout user route model =
         { navButtons = []
         , utilButtons = []
         , helpCommands = []
+        , crumbs =
+            [ ( "Overview", Just Route.Path.Home )
+            , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
+            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
+            , ( "Secrets", Just <| Route.Path.Org_Repo_Secrets { org = route.params.org, repo = route.params.repo } )
+            , ( "Add", Nothing )
+            ]
         , repo = Nothing
         }
 

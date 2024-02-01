@@ -57,6 +57,12 @@ toLayout user route model =
         { navButtons = []
         , utilButtons = []
         , helpCommands = []
+        , crumbs =
+            [ ( "Overview", Just Route.Path.Home )
+            , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
+            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
+            , ( "#" ++ route.params.buildNumber, Nothing )
+            ]
         , org = route.params.org
         , repo = route.params.repo
         , buildNumber = route.params.buildNumber

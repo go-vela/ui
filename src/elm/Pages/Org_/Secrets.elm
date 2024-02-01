@@ -53,6 +53,10 @@ toLayout user route model =
         { navButtons = []
         , utilButtons = []
         , helpCommands = []
+        , crumbs =
+            [ ( "Overview", Just Route.Path.Home )
+            , ( route.params.org, Nothing )
+            ]
         , org = route.params.org
         }
 

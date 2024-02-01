@@ -8,6 +8,7 @@ module Layouts.Default exposing (Model, Msg, Props, layout, map)
 import Api.Endpoint exposing (Endpoint(..))
 import Auth.Session exposing (Session(..))
 import Components.Alerts exposing (Alert)
+import Components.Crumbs
 import Components.Favorites
 import Components.Footer
 import Components.Header
@@ -35,6 +36,7 @@ type alias Props contentMsg =
     { navButtons : List (Html contentMsg)
     , utilButtons : List (Html contentMsg)
     , helpCommands : List Components.Help.Command
+    , crumbs : List Components.Crumbs.Crumb
     , repo : Maybe ( String, String )
     }
 
@@ -44,6 +46,7 @@ map fn props =
     { navButtons = List.map (Html.map fn) props.navButtons
     , utilButtons = List.map (Html.map fn) props.utilButtons
     , helpCommands = props.helpCommands
+    , crumbs = props.crumbs
     , repo = props.repo
     }
 
@@ -208,20 +211,22 @@ view props shared route { toContentMsg, model, content } =
             |> Html.map toContentMsg
         , Components.Nav.view shared
             route
-            (props.navButtons
-                ++ [ props.repo
-                        |> Maybe.Extra.unwrap (text "")
-                            (\( org, repo ) ->
-                                Components.Favorites.viewStarToggle
-                                    { msg = ToggleFavorite
-                                    , org = org
-                                    , repo = repo
-                                    , user = shared.user
-                                    }
-                                    |> Html.map toContentMsg
-                            )
-                   ]
-            )
+            { buttons =
+                props.navButtons
+                    ++ [ props.repo
+                            |> Maybe.Extra.unwrap (text "")
+                                (\( org, repo ) ->
+                                    Components.Favorites.viewStarToggle
+                                        { msg = ToggleFavorite
+                                        , org = org
+                                        , repo = repo
+                                        , user = shared.user
+                                        }
+                                        |> Html.map toContentMsg
+                                )
+                       ]
+            , crumbs = Components.Crumbs.view route.path props.crumbs
+            }
         , main_ [ class "content-wrap" ]
             (Components.Util.view shared route props.utilButtons
                 :: content.body

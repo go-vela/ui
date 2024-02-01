@@ -70,6 +70,11 @@ toLayout user route model =
     Layouts.Default_Repo
         { navButtons = []
         , utilButtons = []
+        , crumbs =
+            [ ( "Overview", Just Route.Path.Home )
+            , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
+            , ( route.params.repo, Nothing )
+            ]
         , helpCommands =
             [ { name = "List Deployments"
               , content = "vela view deployments --help"
