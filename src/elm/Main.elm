@@ -966,7 +966,12 @@ runWhenAuthenticatedWithLayout model toRecord =
         Auth.Action.ReplaceRoute options ->
             { page =
                 ( Main.Pages.Model.Redirecting_
-                , toCmd (Effect.replaceRoute options)
+                , Cmd.batch
+                    [ toCmd (Effect.replaceRoute options)
+                    , Maybe.Extra.unwrap Cmd.none
+                        (\from -> Interop.setRedirect <| Json.Encode.string from)
+                        (Dict.get "from" options.query)
+                    ]
                 )
             , layout = Nothing
             }

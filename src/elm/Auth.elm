@@ -30,7 +30,7 @@ onPageLoad shared route =
                 }
 
         Unauthenticated ->
-            Auth.Action.pushRoute
+            Auth.Action.replaceRoute
                 { path = Route.Path.AccountLogin
                 , query =
                     Dict.fromList

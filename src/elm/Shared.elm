@@ -303,7 +303,7 @@ update route msg model =
                         redirectEffect =
                             case currentSession of
                                 Auth.Session.Unauthenticated ->
-                                    Effect.pushRoute
+                                    Effect.replaceRoute
                                         redirectRoute
 
                                 Auth.Session.Authenticated _ ->
@@ -329,7 +329,7 @@ update route msg model =
                                     Effect.none
 
                                 _ ->
-                                    Effect.pushPath Route.Path.AccountLogin
+                                    Effect.replacePath Route.Path.AccountLogin
                     in
                     case error of
                         Http.Detailed.BadStatus meta _ ->
@@ -405,7 +405,7 @@ update route msg model =
                     Maybe.withDefault "/" options.from
             in
             ( { model | session = Auth.Session.Unauthenticated, velaRedirect = from }
-            , Effect.pushRoute <|
+            , Effect.replaceRoute <|
                 { path = Route.Path.AccountLogin
                 , query =
                     Dict.fromList
@@ -584,7 +584,7 @@ update route msg model =
                         Http.Detailed.BadStatus meta _ ->
                             case meta.statusCode of
                                 401 ->
-                                    ( { model | session = Auth.Session.Unauthenticated, velaRedirect = "/" }, Effect.pushPath <| Route.Path.AccountLogin )
+                                    ( { model | session = Auth.Session.Unauthenticated, velaRedirect = "/" }, Effect.replacePath <| Route.Path.AccountLogin )
 
                                 _ ->
                                     ( model, Effect.none )
