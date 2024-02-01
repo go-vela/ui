@@ -25,6 +25,7 @@ type alias Msgs msg =
 
 type alias Props msg =
     { msgs : Msgs msg
+    , engine : String
     , secrets : WebData (List Vela.Secret)
     , tableButtons : Maybe (List (Html msg))
     }
@@ -44,7 +45,7 @@ viewOrgSecrets shared props =
             case props.secrets of
                 RemoteData.Success s ->
                     ( text "No secrets found for this org"
-                    , secretsToRows Vela.OrgSecret props.msgs.showCopyAlert s
+                    , secretsToRows props.engine Vela.OrgSecret props.msgs.showCopyAlert s
                     )
 
                 RemoteData.Failure error ->
@@ -94,7 +95,7 @@ viewRepoSecrets shared props =
             case props.secrets of
                 RemoteData.Success s ->
                     ( text "No secrets found for this repo"
-                    , secretsToRows Vela.RepoSecret props.msgs.showCopyAlert s
+                    , secretsToRows props.engine Vela.RepoSecret props.msgs.showCopyAlert s
                     )
 
                 RemoteData.Failure error ->
@@ -146,9 +147,9 @@ tableHeaders =
 
 {-| secretsToRows : takes list of secrets and produces list of Table rows
 -}
-secretsToRows : Vela.SecretType -> (String -> msg) -> List Vela.Secret -> Components.Table.Rows Vela.Secret msg
-secretsToRows type_ copyMsg secrets =
-    List.map (\secret -> Components.Table.Row (addKey secret) (viewSecret type_ copyMsg)) secrets
+secretsToRows : String -> Vela.SecretType -> (String -> msg) -> List Vela.Secret -> Components.Table.Rows Vela.Secret msg
+secretsToRows engine type_ copyMsg secrets =
+    List.map (\secret -> Components.Table.Row (addKey secret) (viewSecret engine type_ copyMsg)) secrets
 
 
 {-| addKey : helper to create secret key
@@ -168,8 +169,8 @@ addKey secret =
 
 {-| viewSecret : takes secret and secret type and renders a table row
 -}
-viewSecret : Vela.SecretType -> (String -> msg) -> Vela.Secret -> Html msg
-viewSecret type_ copyMsg secret =
+viewSecret : String -> Vela.SecretType -> (String -> msg) -> Vela.Secret -> Html msg
+viewSecret engine type_ copyMsg secret =
     tr [ Util.testAttribute <| "secrets-row" ]
         [ Components.Table.viewIconCell
             { dataLabel = "copy yaml"
@@ -183,7 +184,7 @@ viewSecret type_ copyMsg secret =
             { dataLabel = "name"
             , parentClassList = []
             , itemClassList = []
-            , children = [ a [ editSecretHref type_ secret ] [ text secret.name ] ]
+            , children = [ a [ editSecretHref engine type_ secret ] [ text secret.name ] ]
             }
         , Components.Table.viewListItemCell
             { dataLabel = "key"
@@ -261,8 +262,8 @@ copyButton copyYaml copyMsg =
 
 {-| editSecretHref : takes secret and secret type and returns href link for routing to view/edit secret page
 -}
-editSecretHref : Vela.SecretType -> Vela.Secret -> Html.Attribute msg
-editSecretHref type_ secret =
+editSecretHref : String -> Vela.SecretType -> Vela.Secret -> Html.Attribute msg
+editSecretHref engine type_ secret =
     -- todo: do we need this?
     -- let
     --     encodedTeam =
@@ -273,10 +274,10 @@ editSecretHref type_ secret =
     Route.Path.href <|
         case type_ of
             Vela.OrgSecret ->
-                Route.Path.Org_SecretsEdit_ { org = secret.org, name = secret.name }
+                Route.Path.Org_SecretsEdit_ { org = secret.org, name = secret.name, engine = engine }
 
             Vela.RepoSecret ->
-                Route.Path.Org_Repo_SecretsEdit_ { org = secret.org, repo = secret.repo, name = secret.name }
+                Route.Path.Org_Repo_SecretsEdit_ { org = secret.org, repo = secret.repo, name = secret.name, engine = engine }
 
             Vela.SharedSecret ->
-                Route.Path.Org_Secrets { org = secret.org }
+                Route.Path.Org_Secrets { org = secret.org, engine = engine }

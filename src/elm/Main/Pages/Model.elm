@@ -39,9 +39,9 @@ type Model
     | Home Pages.Home.Model
     | Org_ { org : String } Pages.Org_.Model
     | Org_Builds { org : String } Pages.Org_.Builds.Model
-    | Org_Secrets { org : String } Pages.Org_.Secrets.Model
-    | Org_SecretsAdd { org : String } Pages.Org_.Secrets.Add.Model
-    | Org_SecretsEdit_ { org : String, name : String } Pages.Org_.Secrets.Edit_.Model
+    | Org_Secrets { org : String, engine : String } Pages.Org_.Secrets.Model
+    | Org_SecretsAdd { org : String, engine : String } Pages.Org_.Secrets.Add.Model
+    | Org_SecretsEdit_ { org : String, name : String, engine : String } Pages.Org_.Secrets.Edit_.Model
     | Org_Repo_ { org : String, repo : String } Pages.Org_.Repo_.Model
     | Org_Repo_Deployments { org : String, repo : String } Pages.Org_.Repo_.Deployments.Model
     | Org_Repo_DeploymentsAdd { org : String, repo : String } Pages.Org_.Repo_.Deployments.Add.Model
@@ -50,9 +50,9 @@ type Model
     | Org_Repo_SchedulesEdit_ { org : String, repo : String, name : String } Pages.Org_.Repo_.Schedules.Edit_.Model
     | Org_Repo_Audit { org : String, repo : String } Pages.Org_.Repo_.Audit.Model
     | Org_Repo_Settings { org : String, repo : String } Pages.Org_.Repo_.Settings.Model
-    | Org_Repo_Secrets { org : String, repo : String } Pages.Org_.Repo_.Secrets.Model
-    | Org_Repo_SecretsAdd { org : String, repo : String } Pages.Org_.Repo_.Secrets.Add.Model
-    | Org_Repo_SecretsEdit_ { org : String, repo : String, name : String } Pages.Org_.Repo_.Secrets.Edit_.Model
+    | Org_Repo_Secrets { org : String, repo : String, engine : String } Pages.Org_.Repo_.Secrets.Model
+    | Org_Repo_SecretsAdd { org : String, repo : String, engine : String } Pages.Org_.Repo_.Secrets.Add.Model
+    | Org_Repo_SecretsEdit_ { org : String, repo : String, name : String, engine : String } Pages.Org_.Repo_.Secrets.Edit_.Model
     | Org_Repo_Build_ { org : String, repo : String, buildNumber : String } Pages.Org_.Repo_.Build_.Model
     | Org_Repo_Build_Services { org : String, repo : String, buildNumber : String } Pages.Org_.Repo_.Build_.Services.Model
     | Org_Repo_Build_Pipeline { org : String, repo : String, buildNumber : String } Pages.Org_.Repo_.Build_.Pipeline.Model

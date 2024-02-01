@@ -25,7 +25,7 @@ import Vela exposing (defaultSecretPayload)
 import View exposing (View)
 
 
-page : Auth.User -> Shared.Model -> Route { org : String, repo : String } -> Page Model Msg
+page : Auth.User -> Shared.Model -> Route { org : String, repo : String, engine : String } -> Page Model Msg
 page user shared route =
     Page.new
         { init = init shared
@@ -40,7 +40,7 @@ page user shared route =
 -- LAYOUT
 
 
-toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
+toLayout : Auth.User -> Route { org : String, repo : String, engine : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
         { navButtons = []
@@ -50,7 +50,7 @@ toLayout user route model =
             [ ( "Overview", Just Route.Path.Home )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
             , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
-            , ( "Secrets", Just <| Route.Path.Org_Repo_Secrets { org = route.params.org, repo = route.params.repo } )
+            , ( "Secrets", Just <| Route.Path.Org_Repo_Secrets { org = route.params.org, repo = route.params.repo, engine = route.params.engine } )
             , ( "Add", Nothing )
             ]
         , repo = Nothing
@@ -101,7 +101,7 @@ type Msg
     | SubmitForm
 
 
-update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
+update : Shared.Model -> Route { org : String, repo : String, engine : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
         -- SECRETS
@@ -200,6 +200,7 @@ update shared route msg model =
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = AddSecretResponse
+                , engine = route.params.engine
                 , org = route.params.org
                 , repo = route.params.repo
                 , body = body
@@ -220,7 +221,7 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
+view : Shared.Model -> Route { org : String, repo : String, engine : String } -> Model -> View Msg
 view shared route model =
     { title = "Add Secret"
     , body =

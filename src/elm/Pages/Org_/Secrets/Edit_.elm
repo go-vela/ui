@@ -26,7 +26,7 @@ import Vela exposing (defaultSecretPayload)
 import View exposing (View)
 
 
-page : Auth.User -> Shared.Model -> Route { org : String, name : String } -> Page Model Msg
+page : Auth.User -> Shared.Model -> Route { org : String, name : String, engine : String } -> Page Model Msg
 page user shared route =
     Page.new
         { init = init shared route
@@ -41,7 +41,7 @@ page user shared route =
 -- LAYOUT
 
 
-toLayout : Auth.User -> Route { org : String, name : String } -> Model -> Layouts.Layout Msg
+toLayout : Auth.User -> Route { org : String, name : String, engine : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
         { navButtons = []
@@ -50,7 +50,7 @@ toLayout user route model =
         , crumbs =
             [ ( "Overview", Just Route.Path.Home )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( "Secrets", Just <| Route.Path.Org_Secrets { org = route.params.org } )
+            , ( "Secrets", Just <| Route.Path.Org_Secrets { org = route.params.org, engine = route.params.engine } )
             , ( "Edit", Nothing )
             , ( route.params.name, Nothing )
             ]
@@ -74,7 +74,7 @@ type alias Model =
     }
 
 
-init : Shared.Model -> Route { org : String, name : String } -> () -> ( Model, Effect Msg )
+init : Shared.Model -> Route { org : String, name : String, engine : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { secret = RemoteData.Loading
       , name = ""
@@ -89,6 +89,7 @@ init shared route () =
         { baseUrl = shared.velaAPIBaseURL
         , session = shared.session
         , onResponse = GetSecretResponse
+        , engine = route.params.engine
         , org = route.params.org
         , name = route.params.name
         }
@@ -117,7 +118,7 @@ type Msg
     | ConfirmDelete
 
 
-update : Shared.Model -> Route { org : String, name : String } -> Msg -> Model -> ( Model, Effect Msg )
+update : Shared.Model -> Route { org : String, name : String, engine : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
         -- SECRETS
@@ -166,6 +167,7 @@ update shared route msg model =
                         , Effect.pushPath <|
                             Route.Path.Org_Secrets
                                 { org = route.params.org
+                                , engine = route.params.engine
                                 }
                         ]
                     )
@@ -255,6 +257,7 @@ update shared route msg model =
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = UpdateSecretResponse
+                , engine = route.params.engine
                 , org = route.params.org
                 , name = route.params.name
                 , body = body
@@ -277,6 +280,7 @@ update shared route msg model =
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = DeleteSecretResponse
+                , engine = route.params.engine
                 , org = route.params.org
                 , name = route.params.name
                 }
@@ -296,7 +300,7 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Route { org : String, name : String } -> Model -> View Msg
+view : Shared.Model -> Route { org : String, name : String, engine : String } -> Model -> View Msg
 view shared route model =
     { title = "Edit Secret"
     , body =

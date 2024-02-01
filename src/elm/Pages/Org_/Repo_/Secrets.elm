@@ -32,7 +32,7 @@ import Vela
 import View exposing (View)
 
 
-page : Auth.User -> Shared.Model -> Route { org : String, repo : String } -> Page Model Msg
+page : Auth.User -> Shared.Model -> Route { org : String, repo : String, engine : String } -> Page Model Msg
 page user shared route =
     Page.new
         { init = init shared route
@@ -47,7 +47,7 @@ page user shared route =
 -- LAYOUT
 
 
-toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
+toLayout : Auth.User -> Route { org : String, repo : String, engine : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Repo
         { navButtons = []
@@ -74,7 +74,7 @@ type alias Model =
     }
 
 
-init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
+init : Shared.Model -> Route { org : String, repo : String, engine : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { orgSecrets = RemoteData.Loading
       , repoSecrets = RemoteData.Loading
@@ -87,6 +87,7 @@ init shared route () =
             , onResponse = GetOrgSecretsResponse
             , pageNumber = Nothing
             , perPage = Nothing
+            , engine = route.params.engine
             , org = route.params.org
             }
         , Effect.getRepoSecrets
@@ -95,6 +96,7 @@ init shared route () =
             , onResponse = GetRepoSecretsResponse
             , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
             , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+            , engine = route.params.engine
             , org = route.params.org
             , repo = route.params.repo
             }
@@ -117,7 +119,7 @@ type Msg
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
-update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
+update : Shared.Model -> Route { org : String, repo : String, engine : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
         -- SECRETS
@@ -165,6 +167,7 @@ update shared route msg model =
                     , onResponse = GetRepoSecretsResponse
                     , pageNumber = Just pageNumber
                     , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+                    , engine = route.params.engine
                     , org = route.params.org
                     , repo = route.params.repo
                     }
@@ -187,6 +190,7 @@ update shared route msg model =
                     , onResponse = GetOrgSecretsResponse
                     , pageNumber = Nothing
                     , perPage = Nothing
+                    , engine = route.params.engine
                     , org = route.params.org
                     }
                 , Effect.getRepoSecrets
@@ -195,6 +199,7 @@ update shared route msg model =
                     , onResponse = GetRepoSecretsResponse
                     , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
                     , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+                    , engine = route.params.engine
                     , org = route.params.org
                     , repo = route.params.repo
                     }
@@ -215,7 +220,7 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
+view : Shared.Model -> Route { org : String, repo : String, engine : String } -> Model -> View Msg
 view shared route model =
     { title = "Secrets"
     , body =
@@ -223,6 +228,7 @@ view shared route model =
             { msgs =
                 { showCopyAlert = AddAlertCopiedToClipboard
                 }
+            , engine = route.params.engine
             , secrets = model.repoSecrets
             , tableButtons =
                 Just
@@ -232,7 +238,7 @@ view shared route model =
                         , class "button-with-icon"
                         , Util.testAttribute "add-repo-secret"
                         , Route.Path.href <|
-                            Route.Path.Org_Repo_SecretsAdd { org = route.params.org, repo = route.params.repo }
+                            Route.Path.Org_Repo_SecretsAdd { org = route.params.org, repo = route.params.repo, engine = route.params.engine }
                         ]
                         [ text "Add Repo Secret"
                         , FeatherIcons.plus
@@ -246,6 +252,7 @@ view shared route model =
             { msgs =
                 { showCopyAlert = AddAlertCopiedToClipboard
                 }
+            , engine = route.params.engine
             , secrets = model.orgSecrets
             , tableButtons =
                 Just
@@ -253,7 +260,7 @@ view shared route model =
                         [ class "button"
                         , class "-outline"
                         , Route.Path.href <|
-                            Route.Path.Org_Secrets { org = route.params.org }
+                            Route.Path.Org_Secrets { org = route.params.org, engine = route.params.engine }
                         , Util.testAttribute "manage-org-secrets"
                         ]
                         [ text "Manage Org Secrets" ]
