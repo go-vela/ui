@@ -243,6 +243,14 @@ update route msg model =
             , Effect.none
             )
 
+        -- FAVICON
+        Shared.Msg.UpdateFavicon options ->
+            let
+                ( newFavicon, updateFavicon ) =
+                    Favicons.updateFavicon model.favicon options.favicon
+            in
+            ( { model | favicon = newFavicon }, updateFavicon |> Effect.sendCmd )
+
         -- TIME
         Shared.Msg.AdjustTimeZone options ->
             ( { model | zone = options.zone }
@@ -609,14 +617,6 @@ update route msg model =
 
                 Interval.FiveSeconds ->
                     ( model, Effect.none )
-
-        -- FAVICON
-        Shared.Msg.UpdateFavicon options ->
-            let
-                ( newFavicon, updateFavicon ) =
-                    Favicons.updateFavicon model.favicon options.favicon
-            in
-            ( { model | favicon = newFavicon }, updateFavicon |> Effect.sendCmd )
 
 
 subscriptions : Route () -> Model -> Sub Msg

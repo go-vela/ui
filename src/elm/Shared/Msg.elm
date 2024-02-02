@@ -29,6 +29,8 @@ type Msg
     | OnKeyDown { key : String }
     | OnKeyUp { key : String }
     | VisibilityChanged { visibility : Browser.Events.Visibility }
+      -- FAVICON
+    | UpdateFavicon { favicon : Favicons.Favicon }
       -- TIME
     | AdjustTimeZone { zone : Time.Zone }
     | AdjustTime { time : Time.Posix }
@@ -60,5 +62,3 @@ type Msg
     | HandleHttpError (Http.Detailed.Error String)
       -- REFRESH
     | Tick { interval : Interval.Interval, time : Time.Posix }
-      -- FAVICON
-    | UpdateFavicon { favicon : Favicons.Favicon }
