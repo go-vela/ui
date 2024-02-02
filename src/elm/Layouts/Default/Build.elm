@@ -23,6 +23,7 @@ import Route.Path
 import Shared
 import Time
 import Utils.Errors
+import Utils.Favicons as Favicons
 import Utils.Interval as Interval
 import Vela
 import View exposing (View)
@@ -150,12 +151,15 @@ update props shared msg model =
                     ( { model
                         | build = RemoteData.Success build
                       }
-                    , Effect.none
+                    , Effect.updateFavicon { favicon = Favicons.statusToFavicon build.status }
                     )
 
                 Err error ->
                     ( { model | build = Utils.Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.batch
+                        [ Effect.handleHttpError { httpError = error }
+                        , Effect.updateFavicon { favicon = Favicons.statusToFavicon Vela.Error }
+                        ]
                     )
 
         -- REFRESH

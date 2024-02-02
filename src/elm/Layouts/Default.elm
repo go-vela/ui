@@ -26,6 +26,7 @@ import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
 import Toasty as Alerting
+import Utils.Favicons as Favicons
 import Utils.Favorites as Favorites
 import Utils.Helpers as Util
 import Utils.Theme as Theme
@@ -76,7 +77,7 @@ init shared _ =
     ( { showIdentity = False
       , showHelp = False
       }
-    , Effect.none
+    , Effect.updateFavicon { favicon = Favicons.defaultFavicon }
     )
 
 

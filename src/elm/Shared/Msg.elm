@@ -13,6 +13,7 @@ import Http
 import Http.Detailed
 import Time
 import Toasty as Alerting
+import Utils.Favicons as Favicons
 import Utils.Favorites as Favorites
 import Utils.Interval as Interval
 import Utils.Theme as Theme
@@ -49,8 +50,6 @@ type Msg
       -- HOOKS
     | GetRepoHooks { org : String, repo : String, pageNumber : Maybe Int, perPage : Maybe Int, maybeEvent : Maybe String }
     | GetRepoHooksResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Hook ))
-      -- BUILD GRAPH
-    | BuildGraphInteraction Vela.BuildGraphInteraction
       -- THEME
     | SetTheme { theme : Theme.Theme }
       -- ALERTS
@@ -59,5 +58,7 @@ type Msg
     | AlertsUpdate (Alerting.Msg Alert)
       -- ERRORS
     | HandleHttpError (Http.Detailed.Error String)
-      --REFRESH
+      -- REFRESH
     | Tick { interval : Interval.Interval, time : Time.Posix }
+      -- FAVICON
+    | UpdateFavicon { favicon : Favicons.Favicon }

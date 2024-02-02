@@ -3,17 +3,12 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Utils.Favicons exposing (..)
+module Utils.Favicons exposing (Favicon, defaultFavicon, statusToFavicon, updateFavicon)
 
 import Interop
 import Json.Encode
-import RemoteData exposing (WebData)
 import Url.Builder
 import Vela
-
-
-
--- STATUS FAVICONS
 
 
 type alias Favicon =
@@ -27,35 +22,15 @@ defaultFavicon =
     Url.Builder.absolute [ "images", "favicon.ico" ] []
 
 
-{-| setDefaultFavicon : restores the favicon to the default
+{-| updateFavicon : sets the browser tab favicon
 -}
-setDefaultFavicon : Favicon -> ( Favicon, Cmd msg )
-setDefaultFavicon currentFavicon =
-    if currentFavicon /= defaultFavicon then
-        ( defaultFavicon, Interop.setFavicon <| Json.Encode.string defaultFavicon )
+updateFavicon : Favicon -> Favicon -> ( Favicon, Cmd msg )
+updateFavicon currentFavicon newFavicon =
+    if currentFavicon /= newFavicon then
+        ( newFavicon, Interop.setFavicon <| Json.Encode.string newFavicon )
 
     else
         ( currentFavicon, Cmd.none )
-
-
-{-| refreshBuildFavicon : updates the favicon, to be used on pages with status updates
--}
-refreshBuildFavicon : Favicon -> WebData Vela.Build -> ( Favicon, Cmd msg )
-refreshBuildFavicon currentFavicon build =
-    case build of
-        RemoteData.Success b ->
-            let
-                newFavicon =
-                    statusToFavicon b.status
-            in
-            if currentFavicon /= newFavicon then
-                ( newFavicon, Interop.setFavicon <| Json.Encode.string newFavicon )
-
-            else
-                ( currentFavicon, Cmd.none )
-
-        _ ->
-            ( currentFavicon, Cmd.none )
 
 
 {-| statusToFavicon : takes build status and returns absolute path to the appropriate favicon

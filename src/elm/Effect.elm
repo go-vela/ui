@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, addDeployment, addOrgSecret, addRepoSchedule, addRepoSecret, addSharedSecret, alertsUpdate, chownRepo, clearRedirect, deleteOrgSecret, deleteRepoSchedule, deleteRepoSecret, deleteSharedSecret, disableRepo, downloadFile, enableRepo, expandPipelineConfig, finishAuthentication, focusOn, getBuild, getBuildGraph, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoBuildsShared, getRepoDeployments, getRepoHooks, getRepoHooksShared, getRepoSchedule, getRepoSchedules, getRepoSecret, getRepoSecrets, getSharedSecret, getSharedSecrets, handleHttpError, logout, pushPath, redeliverHook, repairRepo, replacePath, setRedirect, setTheme, updateFavorites, updateOrgSecret, updateRepo, updateRepoSchedule, updateRepoSecret, updateSharedSecret
+    , addAlertError, addAlertSuccess, addDeployment, addOrgSecret, addRepoSchedule, addRepoSecret, addSharedSecret, alertsUpdate, chownRepo, clearRedirect, deleteOrgSecret, deleteRepoSchedule, deleteRepoSecret, deleteSharedSecret, disableRepo, downloadFile, enableRepo, expandPipelineConfig, finishAuthentication, focusOn, getBuild, getBuildGraph, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoBuildsShared, getRepoDeployments, getRepoHooks, getRepoHooksShared, getRepoSchedule, getRepoSchedules, getRepoSecret, getRepoSecrets, getSharedSecret, getSharedSecrets, handleHttpError, logout, pushPath, redeliverHook, repairRepo, replacePath, setRedirect, setTheme, updateFavicon, updateFavorites, updateOrgSecret, updateRepo, updateRepoSchedule, updateRepoSecret, updateSharedSecret
     )
 
 {-|
@@ -40,6 +40,7 @@ import Shared.Msg
 import Task
 import Toasty as Alerting
 import Url exposing (Url)
+import Utils.Favicons as Favicons
 import Utils.Favorites as Favorites
 import Utils.Theme as Theme
 import Vela
@@ -1139,6 +1140,11 @@ getRepoBuilds options =
             options
         )
         |> sendCmd
+
+
+updateFavicon : { favicon : Favicons.Favicon } -> Effect msg
+updateFavicon options =
+    SendSharedMsg <| Shared.Msg.UpdateFavicon options
 
 
 handleHttpError : { httpError : Http.Detailed.Error String } -> Effect msg

@@ -20,7 +20,6 @@ import Http.Detailed
 import Interop
 import Json.Decode
 import Json.Decode.Pipeline exposing (required)
-import Json.Encode
 import RemoteData
 import Route exposing (Route)
 import Route.Path
@@ -113,6 +112,10 @@ init flagsResult route =
                 |> Interop.setTheme
                 |> Effect.sendCmd
 
+        setFavicon =
+            Effect.updateFavicon
+                { favicon = Favicons.defaultFavicon }
+
         fetchInitialToken =
             if String.length flags.velaRedirect == 0 then
                 Effect.sendCmd <| Api.try Shared.Msg.TokenResponse <| Api.Operations.getToken flags.velaAPI
@@ -170,12 +173,8 @@ init flagsResult route =
         [ setTimeZone
         , setTime
         , setTheme
+        , setFavicon
         , fetchInitialToken
-
-        -- need to reference these interops to let the app load properly
-        -- this should be removed when build graph and refresh logic are implemented
-        , Interop.renderBuildGraph Json.Encode.null |> Effect.sendCmd
-        , Interop.setFavicon Json.Encode.null |> Effect.sendCmd
         ]
     )
 
@@ -346,7 +345,10 @@ update route msg model =
                                                 Auth.Session.Authenticated _ ->
                                                     [ redirectToLogin
                                                     , Effect.setRedirect { redirect = velaRedirect }
-                                                    , Effect.addAlertError { content = "Your session has expired or you logged in somewhere else, please log in again.", addToastIfUnique = True }
+                                                    , Effect.addAlertError
+                                                        { content = "Your session has expired or you logged in somewhere else, please log in again."
+                                                        , addToastIfUnique = True
+                                                        }
                                                     ]
                                     in
                                     ( { model
@@ -527,10 +529,6 @@ update route msg model =
                     , Effect.handleHttpError { httpError = error }
                     )
 
-        -- BUILD GRAPH
-        Shared.Msg.BuildGraphInteraction _ ->
-            ( model, Effect.none )
-
         -- THEME
         Shared.Msg.SetTheme options ->
             if options.theme == model.theme then
@@ -611,6 +609,14 @@ update route msg model =
 
                 Interval.FiveSeconds ->
                     ( model, Effect.none )
+
+        -- FAVICON
+        Shared.Msg.UpdateFavicon options ->
+            let
+                ( newFavicon, updateFavicon ) =
+                    Favicons.updateFavicon model.favicon options.favicon
+            in
+            ( { model | favicon = newFavicon }, updateFavicon |> Effect.sendCmd )
 
 
 subscriptions : Route () -> Model -> Sub Msg
