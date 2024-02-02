@@ -68,29 +68,20 @@ toLayout user route model =
 
 
 type alias Model =
-    { orgSecrets : WebData (List Vela.Secret)
-    , repoSecrets : WebData (List Vela.Secret)
+    { repoSecrets : WebData (List Vela.Secret)
+    , orgSecrets : WebData (List Vela.Secret)
     , pager : List WebLink
     }
 
 
 init : Shared.Model -> Route { engine : String, org : String, repo : String } -> () -> ( Model, Effect Msg )
 init shared route () =
-    ( { orgSecrets = RemoteData.Loading
-      , repoSecrets = RemoteData.Loading
+    ( { repoSecrets = RemoteData.Loading
+      , orgSecrets = RemoteData.Loading
       , pager = []
       }
     , Effect.batch
-        [ Effect.getOrgSecrets
-            { baseUrl = shared.velaAPIBaseURL
-            , session = shared.session
-            , onResponse = GetOrgSecretsResponse
-            , pageNumber = Nothing
-            , perPage = Nothing
-            , engine = route.params.engine
-            , org = route.params.org
-            }
-        , Effect.getRepoSecrets
+        [ Effect.getRepoSecrets
             { baseUrl = shared.velaAPIBaseURL
             , session = shared.session
             , onResponse = GetRepoSecretsResponse
@@ -99,6 +90,15 @@ init shared route () =
             , engine = route.params.engine
             , org = route.params.org
             , repo = route.params.repo
+            }
+        , Effect.getOrgSecrets
+            { baseUrl = shared.velaAPIBaseURL
+            , session = shared.session
+            , onResponse = GetOrgSecretsResponse
+            , pageNumber = Nothing
+            , perPage = Nothing
+            , engine = route.params.engine
+            , org = route.params.org
             }
         ]
     )
@@ -110,8 +110,8 @@ init shared route () =
 
 type Msg
     = -- SECRETS
-      GetOrgSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Secret ))
-    | GetRepoSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Secret ))
+      GetRepoSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Secret ))
+    | GetOrgSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Secret ))
     | GotoPage Int
       -- ALERTS
     | AddAlertCopiedToClipboard String
@@ -123,20 +123,6 @@ update : Shared.Model -> Route { engine : String, org : String, repo : String } 
 update shared route msg model =
     case msg of
         -- SECRETS
-        GetOrgSecretsResponse response ->
-            case response of
-                Ok ( _, secrets ) ->
-                    ( { model
-                        | orgSecrets = RemoteData.Success secrets
-                      }
-                    , Effect.none
-                    )
-
-                Err error ->
-                    ( { model | orgSecrets = Utils.Errors.toFailure error }
-                    , Effect.none
-                    )
-
         GetRepoSecretsResponse response ->
             case response of
                 Ok ( meta, secrets ) ->
@@ -150,6 +136,20 @@ update shared route msg model =
                 Err error ->
                     ( { model | repoSecrets = Utils.Errors.toFailure error }
                     , Effect.handleHttpError { httpError = error }
+                    )
+
+        GetOrgSecretsResponse response ->
+            case response of
+                Ok ( _, secrets ) ->
+                    ( { model
+                        | orgSecrets = RemoteData.Success secrets
+                      }
+                    , Effect.none
+                    )
+
+                Err error ->
+                    ( { model | orgSecrets = Utils.Errors.toFailure error }
+                    , Effect.none
                     )
 
         GotoPage pageNumber ->
@@ -184,16 +184,7 @@ update shared route msg model =
         Tick options ->
             ( model
             , Effect.batch
-                [ Effect.getOrgSecrets
-                    { baseUrl = shared.velaAPIBaseURL
-                    , session = shared.session
-                    , onResponse = GetOrgSecretsResponse
-                    , pageNumber = Nothing
-                    , perPage = Nothing
-                    , engine = route.params.engine
-                    , org = route.params.org
-                    }
-                , Effect.getRepoSecrets
+                [ Effect.getRepoSecrets
                     { baseUrl = shared.velaAPIBaseURL
                     , session = shared.session
                     , onResponse = GetRepoSecretsResponse
@@ -202,6 +193,15 @@ update shared route msg model =
                     , engine = route.params.engine
                     , org = route.params.org
                     , repo = route.params.repo
+                    }
+                , Effect.getOrgSecrets
+                    { baseUrl = shared.velaAPIBaseURL
+                    , session = shared.session
+                    , onResponse = GetOrgSecretsResponse
+                    , pageNumber = Nothing
+                    , perPage = Nothing
+                    , engine = route.params.engine
+                    , org = route.params.org
                     }
                 ]
             )

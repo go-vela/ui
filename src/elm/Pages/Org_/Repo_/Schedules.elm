@@ -12,8 +12,8 @@ import Components.Table
 import Dict
 import Effect exposing (Effect)
 import FeatherIcons
-import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html exposing (Html, a, div, span, text, tr)
+import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
 import Layouts
@@ -26,7 +26,6 @@ import Shared
 import Svg.Attributes
 import Time
 import Utils.Errors
-import Utils.Favorites as Favorites
 import Utils.Helpers as Util
 import Utils.Interval as Interval
 import Vela

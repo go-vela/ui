@@ -147,7 +147,7 @@ update shared route msg model =
 
                 Err error ->
                     ( { model | sharedSecrets = Utils.Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.none
                     )
 
         GotoPage pageNumber ->

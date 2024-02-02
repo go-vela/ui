@@ -288,11 +288,11 @@ subscriptions model =
     Sub.batch
         [ Interop.onGraphInteraction
             (Vela.decodeOnGraphInteraction OnBuildGraphInteraction NoOp)
-        , Interval.tickEveryOneSecond Tick
 
         -- on visiblity changed, same as shared
         , Browser.Events.onVisibilityChange
             (\visibility -> VisibilityChanged { visibility = visibility })
+        , Interval.tickEveryOneSecond Tick
         ]
 
 
