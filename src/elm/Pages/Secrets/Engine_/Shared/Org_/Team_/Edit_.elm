@@ -150,7 +150,7 @@ update shared route msg model =
                 Ok ( _, secret ) ->
                     ( model
                     , Effect.addAlertSuccess
-                        { content = "Repo secret " ++ secret.name ++ " updated."
+                        { content = "Shared secret " ++ secret.name ++ " updated."
                         , addToastIfUnique = True
                         }
                     )
