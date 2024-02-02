@@ -64,8 +64,8 @@ toLayout : Auth.User -> Model -> Layouts.Layout Msg
 toLayout user model =
     Layouts.Default
         { navButtons = []
-        , utilButtons = []
         , helpCommands = []
+        , utilButtons = []
         , crumbs =
             [ ( "Overview", Just Route.Path.Home )
             , ( "My Settings", Nothing )

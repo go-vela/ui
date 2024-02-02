@@ -93,8 +93,8 @@ toLayout user shared model =
                         text "Refresh List"
                 ]
             ]
-        , utilButtons = []
         , helpCommands = []
+        , utilButtons = []
         , crumbs =
             [ ( "Overview", Just Route.Path.Home )
             , ( "Account", Nothing )

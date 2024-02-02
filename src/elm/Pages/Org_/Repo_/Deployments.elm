@@ -273,7 +273,7 @@ viewDeployments model route =
                     ( viewError error, [] )
 
                 _ ->
-                    ( Util.largeLoader, [] )
+                    ( Util.smallLoader, [] )
 
         cfg =
             Components.Table.Config

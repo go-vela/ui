@@ -8,15 +8,18 @@ module Layouts.Default.Repo exposing (Model, Msg, Props, layout, map)
 import Components.Crumbs
 import Components.Help
 import Components.Tabs
+import Components.Util
+import Dict exposing (Dict)
 import Effect exposing (Effect)
 import Html exposing (..)
 import Layout exposing (Layout)
 import Layouts.Default
 import Route exposing (Route)
+import Route.Path
 import Shared
 import Time
+import Url exposing (Url)
 import Utils.Interval as Interval
-import Vela
 import View exposing (View)
 
 
@@ -44,21 +47,15 @@ map fn props =
 layout : Props contentMsg -> Shared.Model -> Route () -> Layout (Layouts.Default.Props contentMsg) Model Msg contentMsg
 layout props shared route =
     Layout.new
-        { init = init props shared
-        , update = update props
+        { init = init props shared route
+        , update = update props route
         , view = view props shared route
         , subscriptions = subscriptions
         }
+        |> Layout.withOnUrlChanged OnUrlChanged
         |> Layout.withParentProps
             { navButtons = props.navButtons
-            , utilButtons =
-                Components.Tabs.viewRepoTabs
-                    shared
-                    { org = props.org
-                    , repo = props.repo
-                    , currentPath = route.path
-                    }
-                    :: props.utilButtons
+            , utilButtons = []
             , helpCommands = props.helpCommands
             , crumbs = props.crumbs
             , repo = Just ( props.org, props.repo )
@@ -70,12 +67,13 @@ layout props shared route =
 
 
 type alias Model =
-    {}
+    { tabHistory : Dict String Url }
 
 
-init : Props contentMsg -> Shared.Model -> () -> ( Model, Effect Msg )
-init props shared _ =
-    ( {}
+init : Props contentMsg -> Shared.Model -> Route () -> () -> ( Model, Effect Msg )
+init props shared route _ =
+    ( { tabHistory = Dict.empty
+      }
     , Effect.batch
         [ Effect.getCurrentUser {}
         , Effect.getRepoBuildsShared
@@ -101,12 +99,23 @@ init props shared _ =
 
 
 type Msg
-    = Tick { time : Time.Posix, interval : Interval.Interval }
+    = --BROWSER
+      OnUrlChanged { from : Route (), to : Route () }
+      -- REFRESH
+    | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
-update : Props contentMsg -> Msg -> Model -> ( Model, Effect Msg )
-update props msg model =
+update : Props contentMsg -> Route () -> Msg -> Model -> ( Model, Effect Msg )
+update props route msg model =
     case msg of
+        OnUrlChanged options ->
+            ( { model
+                | tabHistory =
+                    model.tabHistory |> Dict.insert (Route.Path.toString options.to.path) options.to.url
+              }
+            , Effect.replaceRouteRemoveTabHistorySkipDomFocus route
+            )
+
         Tick options ->
             ( model
             , Effect.batch
@@ -141,5 +150,17 @@ subscriptions model =
 view : Props contentMsg -> Shared.Model -> Route () -> { toContentMsg : Msg -> contentMsg, content : View contentMsg, model : Model } -> View contentMsg
 view props shared route { toContentMsg, model, content } =
     { title = props.org ++ "/" ++ props.repo ++ " " ++ content.title
-    , body = content.body
+    , body =
+        Components.Util.view shared
+            route
+            (Components.Tabs.viewRepoTabs
+                shared
+                { org = props.org
+                , repo = props.repo
+                , currentPath = route.path
+                , tabHistory = model.tabHistory
+                }
+                :: props.utilButtons
+            )
+            :: content.body
     }

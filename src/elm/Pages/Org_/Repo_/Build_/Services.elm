@@ -98,16 +98,18 @@ init shared route () =
       , focus = Focus.fromString route.hash
       , logFollow = 0
       }
-    , Effect.getBuildServices
-        { baseUrl = shared.velaAPIBaseURL
-        , session = shared.session
-        , onResponse = GetBuildServicesResponse
-        , pageNumber = Nothing
-        , perPage = Just 100
-        , org = route.params.org
-        , repo = route.params.repo
-        , buildNumber = route.params.buildNumber
-        }
+    , Effect.batch
+        [ Effect.getBuildServices
+            { baseUrl = shared.velaAPIBaseURL
+            , session = shared.session
+            , onResponse = GetBuildServicesResponse
+            , pageNumber = Nothing
+            , perPage = Just 100
+            , org = route.params.org
+            , repo = route.params.repo
+            , buildNumber = route.params.buildNumber
+            }
+        ]
     )
 
 

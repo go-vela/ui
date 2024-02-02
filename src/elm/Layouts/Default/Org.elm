@@ -8,12 +8,16 @@ module Layouts.Default.Org exposing (Model, Msg, Props, layout, map)
 import Components.Crumbs
 import Components.Help
 import Components.Tabs
+import Components.Util
+import Dict exposing (Dict)
 import Effect exposing (Effect)
 import Html exposing (..)
 import Layout exposing (Layout)
 import Layouts.Default
 import Route exposing (Route)
+import Route.Path
 import Shared
+import Url exposing (Url)
 import View exposing (View)
 
 
@@ -39,22 +43,15 @@ map fn props =
 layout : Props contentMsg -> Shared.Model -> Route () -> Layout (Layouts.Default.Props contentMsg) Model Msg contentMsg
 layout props shared route =
     Layout.new
-        { init = init shared
-        , update = update
+        { init = init shared route
+        , update = update shared route
         , view = view props shared route
         , subscriptions = subscriptions
         }
+        |> Layout.withOnUrlChanged OnUrlChanged
         |> Layout.withParentProps
             { navButtons = props.navButtons
-            , utilButtons =
-                [ Components.Tabs.viewOrgTabs
-                    { org = props.org
-                    , currentPath = route.path
-                    , maybePage = Nothing
-                    , maybePerPage = Nothing
-                    , maybeEvent = Nothing
-                    }
-                ]
+            , utilButtons = []
             , helpCommands = props.helpCommands
             , crumbs = props.crumbs
             , repo = Nothing
@@ -66,12 +63,13 @@ layout props shared route =
 
 
 type alias Model =
-    {}
+    { tabHistory : Dict String Url }
 
 
-init : Shared.Model -> () -> ( Model, Effect Msg )
-init shared _ =
-    ( {}
+init : Shared.Model -> Route () -> () -> ( Model, Effect Msg )
+init shared route _ =
+    ( { tabHistory = Dict.empty
+      }
     , Effect.getCurrentUser {}
     )
 
@@ -81,15 +79,18 @@ init shared _ =
 
 
 type Msg
-    = NoOp
+    = OnUrlChanged { from : Route (), to : Route () }
 
 
-update : Msg -> Model -> ( Model, Effect Msg )
-update msg model =
+update : Shared.Model -> Route () -> Msg -> Model -> ( Model, Effect Msg )
+update shared route msg model =
     case msg of
-        NoOp ->
-            ( model
-            , Effect.none
+        OnUrlChanged options ->
+            ( { model
+                | tabHistory =
+                    model.tabHistory |> Dict.insert (Route.Path.toString options.to.path) options.to.url
+              }
+            , Effect.replaceRouteRemoveTabHistorySkipDomFocus route
             )
 
 
@@ -106,6 +107,15 @@ view : Props contentMsg -> Shared.Model -> Route () -> { toContentMsg : Msg -> c
 view props shared route { toContentMsg, model, content } =
     { title = props.org ++ " " ++ content.title
     , body =
-        [ Html.span [] content.body
-        ]
+        Components.Util.view shared
+            route
+            (Components.Tabs.viewOrgTabs
+                shared
+                { org = props.org
+                , currentPath = route.path
+                , tabHistory = model.tabHistory
+                }
+                :: props.utilButtons
+            )
+            :: content.body
     }

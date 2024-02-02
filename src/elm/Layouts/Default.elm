@@ -228,10 +228,7 @@ view props shared route { toContentMsg, model, content } =
                        ]
             , crumbs = Components.Crumbs.view route.path props.crumbs
             }
-        , main_ [ class "content-wrap" ]
-            (Components.Util.view shared route props.utilButtons
-                :: content.body
-            )
+        , main_ [ class "content-wrap" ] (Components.Util.view shared route props.utilButtons :: content.body)
         , Components.Footer.view
             { toasties = shared.toasties
             , copyAlertMsg = AddAlertCopiedToClipboard

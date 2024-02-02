@@ -104,7 +104,7 @@ view links labels toMsg =
                 _ ->
                     1
     in
-    div [ class "pager-actions" ]
+    div [ class "pager-actions", class "buttons" ]
         [ button
             [ disabled <| isFirst || (List.length links == 0)
             , Util.testAttribute "pager-previous"

@@ -281,7 +281,7 @@ view shared route model =
             [ class "builds-caption"
             ]
             [ span [] []
-            , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
+            , Html.div [ class "buttons" ] [ Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage ]
             ]
         , Components.Builds.viewHeader
             { maybeEvent = Dict.get "event" route.query

@@ -6,19 +6,21 @@ SPDX-License-Identifier: Apache-2.0
 module Components.Tabs exposing (Tab, view, viewBuildTabs, viewOrgTabs, viewRepoTabs)
 
 import Api.Pagination as Pagination
+import Dict exposing (Dict)
 import Html exposing (Html, a, div, span, text)
 import Html.Attributes exposing (class, classList)
 import RemoteData
+import Route
 import Route.Path
 import Shared
+import Url exposing (Url)
 import Utils.Helpers as Util
 
 
 {-| Tab : record to represent information used by page navigation tab
 -}
 type alias Tab =
-    { currentPath : Route.Path.Path
-    , toPath : Route.Path.Path
+    { toPath : Route.Path.Path
     , name : String
     , isAlerting : Bool
     , show : Bool
@@ -27,10 +29,10 @@ type alias Tab =
 
 {-| view : takes list of tab records and renders them with spacers and horizontal filler
 -}
-view : List Tab -> String -> Html msg
-view tabs testLabel =
+view : Dict String Url -> Route.Path.Path -> List Tab -> String -> Html msg
+view tabHistory currentPath tabs testLabel =
     tabs
-        |> List.filterMap viewTab
+        |> List.filterMap (viewTab tabHistory currentPath)
         |> List.intersperse viewSpacer
         |> (\t -> t ++ [ viewFiller ])
         |> div [ class "jump-bar", Util.testAttribute testLabel ]
@@ -38,8 +40,25 @@ view tabs testLabel =
 
 {-| viewTab : takes single tab record and renders jump link, uses current page to display conditional style
 -}
-viewTab : Tab -> Maybe (Html msg)
-viewTab { name, currentPath, toPath, isAlerting, show } =
+viewTab : Dict String Url -> Route.Path.Path -> Tab -> Maybe (Html msg)
+viewTab tabHistory currentPath { name, toPath, isAlerting, show } =
+    let
+        toRoute =
+            Dict.get (Route.Path.toString toPath) tabHistory
+                |> Maybe.map (Route.fromUrl ())
+                |> Maybe.map
+                    (\r ->
+                        { path = r.path
+                        , query = r.query |> Dict.insert "tab_switch" "true"
+                        , hash = r.hash
+                        }
+                    )
+                |> Maybe.withDefault
+                    { path = toPath
+                    , query = Dict.empty
+                    , hash = Nothing
+                    }
+    in
     if show then
         Just <|
             a
@@ -48,7 +67,7 @@ viewTab { name, currentPath, toPath, isAlerting, show } =
                     , ( "alerting", isAlerting )
                     ]
                 , currentPathClass currentPath toPath
-                , Route.Path.href toPath
+                , Route.href toRoute
                 , Util.testAttribute <| "jump-" ++ name
                 ]
                 [ text name ]
@@ -87,37 +106,34 @@ currentPathClass p1 p2 =
 
 
 viewOrgTabs :
-    { currentPath : Route.Path.Path
-    , org : String
-    , maybePage : Maybe Pagination.Page
-    , maybePerPage : Maybe Pagination.PerPage
-    , maybeEvent : Maybe String
-    }
+    Shared.Model
+    ->
+        { currentPath : Route.Path.Path
+        , org : String
+        , tabHistory : Dict String Url
+        }
     -> Html msg
-viewOrgTabs props =
+viewOrgTabs shared props =
     let
         tabs =
             [ { name = "Repositories"
-              , currentPath = props.currentPath
               , toPath = Route.Path.Org_ { org = props.org }
               , isAlerting = False
               , show = True
               }
             , { name = "Builds"
-              , currentPath = props.currentPath
               , toPath = Route.Path.Org_Builds { org = props.org }
               , isAlerting = False
               , show = True
               }
             , { name = "Secrets"
-              , currentPath = props.currentPath
               , toPath = Route.Path.SecretsEngine_OrgOrg_ { org = props.org, engine = "native" }
               , isAlerting = False
               , show = True
               }
             ]
     in
-    view tabs "jump-bar-repo"
+    view props.tabHistory props.currentPath tabs "jump-bar-repo"
 
 
 
@@ -130,6 +146,7 @@ viewRepoTabs :
         { currentPath : Route.Path.Path
         , org : String
         , repo : String
+        , tabHistory : Dict String Url
         }
     -> Html msg
 viewRepoTabs shared props =
@@ -168,7 +185,6 @@ viewRepoTabs shared props =
 
         tabs =
             [ { name = "Builds"
-              , currentPath = props.currentPath
               , toPath =
                     Route.Path.Org_Repo_
                         { org = props.org
@@ -178,7 +194,6 @@ viewRepoTabs shared props =
               , show = True
               }
             , { name = "Deployments"
-              , currentPath = props.currentPath
               , toPath =
                     Route.Path.Org_Repo_Deployments
                         { org = props.org
@@ -188,7 +203,6 @@ viewRepoTabs shared props =
               , show = True
               }
             , { name = "Secrets"
-              , currentPath = props.currentPath
               , toPath =
                     Route.Path.SecretsEngine_RepoOrg_Repo_
                         { org = props.org
@@ -199,30 +213,28 @@ viewRepoTabs shared props =
               , show = True
               }
             , { name = "Schedules"
-              , currentPath = props.currentPath
               , toPath = Route.Path.Org_Repo_Schedules { org = props.org, repo = props.repo }
               , isAlerting = False
               , show = showSchedules
               }
             , { name = "Audit"
-              , currentPath = props.currentPath
               , toPath = Route.Path.Org_Repo_Audit { org = props.org, repo = props.repo }
               , isAlerting = auditAlerting
               , show = True
               }
             , { name = "Settings"
-              , currentPath = props.currentPath
               , toPath = Route.Path.Org_Repo_Settings { org = props.org, repo = props.repo }
               , isAlerting = False
               , show = True
               }
             ]
     in
-    view tabs "jump-bar-repo"
+    view props.tabHistory props.currentPath tabs "jump-bar-repo"
 
 
 
 -- BUILD
+-- fromHistory : Dict String Url -> String -> Route.Path.Path
 
 
 viewBuildTabs :
@@ -232,13 +244,13 @@ viewBuildTabs :
         , repo : String
         , buildNumber : String
         , currentPath : Route.Path.Path
+        , tabHistory : Dict String Url
         }
     -> Html msg
 viewBuildTabs shared props =
     let
         tabs =
             [ { name = "Build"
-              , currentPath = props.currentPath
               , toPath =
                     Route.Path.Org_Repo_Build_
                         { org = props.org
@@ -249,7 +261,6 @@ viewBuildTabs shared props =
               , show = True
               }
             , { name = "Services"
-              , currentPath = props.currentPath
               , toPath =
                     Route.Path.Org_Repo_Build_Services
                         { org = props.org
@@ -260,7 +271,6 @@ viewBuildTabs shared props =
               , show = True
               }
             , { name = "Pipeline"
-              , currentPath = props.currentPath
               , toPath =
                     Route.Path.Org_Repo_Build_Pipeline
                         { org = props.org
@@ -271,7 +281,6 @@ viewBuildTabs shared props =
               , show = True
               }
             , { name = "Visualize"
-              , currentPath = props.currentPath
               , toPath =
                     Route.Path.Org_Repo_Build_Graph
                         { org = props.org
@@ -283,4 +292,4 @@ viewBuildTabs shared props =
               }
             ]
     in
-    view tabs "jump-bar-build"
+    view props.tabHistory props.currentPath tabs "jump-bar-build"

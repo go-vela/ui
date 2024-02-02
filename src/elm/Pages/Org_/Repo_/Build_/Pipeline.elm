@@ -102,14 +102,23 @@ init shared route () =
                     (\e -> String.toLower e == "true")
       , expanding = False
       }
-    , Effect.getBuild
-        { baseUrl = shared.velaAPIBaseURL
-        , session = shared.session
-        , onResponse = GetBuildResponse
-        , org = route.params.org
-        , repo = route.params.repo
-        , buildNumber = route.params.buildNumber
-        }
+    , Effect.batch
+        [ Effect.getBuild
+            { baseUrl = shared.velaAPIBaseURL
+            , session = shared.session
+            , onResponse =
+                GetBuildResponse
+                    { applyDomFocus =
+                        route.query
+                            |> Dict.get "tab_switch"
+                            |> Maybe.withDefault "false"
+                            |> (==) "false"
+                    }
+            , org = route.params.org
+            , repo = route.params.repo
+            , buildNumber = route.params.buildNumber
+            }
+        ]
     )
 
 
@@ -118,17 +127,18 @@ init shared route () =
 
 
 type Msg
-    = -- BROWSER
-      OnExpandQueryParameterChanged { from : Maybe String, to : Maybe String }
+    = NoOp
+      -- BROWSER
+    | OnExpandQueryParameterChanged { from : Maybe String, to : Maybe String }
     | PushUrlQueryParameter { key : String, value : String }
     | OnHashChanged { from : Maybe String, to : Maybe String }
     | PushUrlHash { hash : String }
     | FocusOn { target : String }
       -- BUILD
-    | GetBuildResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
+    | GetBuildResponse { applyDomFocus : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
       -- PIPELINE
-    | GetBuildPipelineConfigResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.PipelineConfig ))
-    | GetExpandBuildPipelineConfigResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | GetBuildPipelineConfigResponse { applyDomFocus : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.PipelineConfig ))
+    | GetExpandBuildPipelineConfigResponse { applyDomFocus : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | ToggleExpand
     | DownloadPipeline { filename : String, content : String, map : String -> String }
       -- TEMPLATES
@@ -139,6 +149,9 @@ type Msg
 update : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
+        NoOp ->
+            ( model, Effect.none )
+
         -- BROWSER
         OnExpandQueryParameterChanged options ->
             let
@@ -157,7 +170,7 @@ update shared route msg model =
                                 Effect.expandPipelineConfig
                                     { baseUrl = shared.velaAPIBaseURL
                                     , session = shared.session
-                                    , onResponse = GetExpandBuildPipelineConfigResponse
+                                    , onResponse = GetExpandBuildPipelineConfigResponse { applyDomFocus = False }
                                     , org = route.params.org
                                     , repo = route.params.repo
                                     , ref = build.commit
@@ -167,7 +180,7 @@ update shared route msg model =
                                 Effect.getPipelineConfig
                                     { baseUrl = shared.velaAPIBaseURL
                                     , session = shared.session
-                                    , onResponse = GetBuildPipelineConfigResponse
+                                    , onResponse = GetBuildPipelineConfigResponse { applyDomFocus = False }
                                     , org = route.params.org
                                     , repo = route.params.repo
                                     , ref = build.commit
@@ -177,7 +190,7 @@ update shared route msg model =
                             Effect.getBuild
                                 { baseUrl = shared.velaAPIBaseURL
                                 , session = shared.session
-                                , onResponse = GetBuildResponse
+                                , onResponse = GetBuildResponse { applyDomFocus = False }
                                 , org = route.params.org
                                 , repo = route.params.repo
                                 , buildNumber = route.params.buildNumber
@@ -233,16 +246,18 @@ update shared route msg model =
                         , repo = route.params.repo
                         , buildNumber = route.params.buildNumber
                         }
-                , query = route.query
+                , query = route.query |> Dict.remove "focus"
                 , hash = Just options.hash
                 }
             )
 
         FocusOn options ->
-            ( model, Effect.focusOn options )
+            ( model
+            , Effect.focusOn options
+            )
 
         -- BUILD
-        GetBuildResponse response ->
+        GetBuildResponse options response ->
             case response of
                 Ok ( _, build ) ->
                     let
@@ -251,7 +266,7 @@ update shared route msg model =
                                 Effect.expandPipelineConfig
                                     { baseUrl = shared.velaAPIBaseURL
                                     , session = shared.session
-                                    , onResponse = GetExpandBuildPipelineConfigResponse
+                                    , onResponse = GetExpandBuildPipelineConfigResponse { applyDomFocus = options.applyDomFocus }
                                     , org = route.params.org
                                     , repo = route.params.repo
                                     , ref = build.commit
@@ -261,7 +276,7 @@ update shared route msg model =
                                 Effect.getPipelineConfig
                                     { baseUrl = shared.velaAPIBaseURL
                                     , session = shared.session
-                                    , onResponse = GetBuildPipelineConfigResponse
+                                    , onResponse = GetBuildPipelineConfigResponse { applyDomFocus = options.applyDomFocus }
                                     , org = route.params.org
                                     , repo = route.params.repo
                                     , ref = build.commit
@@ -287,7 +302,7 @@ update shared route msg model =
                     )
 
         -- PIPELINE
-        GetBuildPipelineConfigResponse response ->
+        GetBuildPipelineConfigResponse options response ->
             case response of
                 Ok ( _, pipeline ) ->
                     ( { model
@@ -298,7 +313,7 @@ update shared route msg model =
                                 }
                         , expanding = False
                       }
-                    , if Focus.canTarget model.focus then
+                    , if Focus.canTarget model.focus && options.applyDomFocus then
                         FocusOn { target = Focus.toDomTarget model.focus }
                             |> Effect.sendMsg
 
@@ -311,7 +326,7 @@ update shared route msg model =
                     , Effect.handleHttpError { httpError = error }
                     )
 
-        GetExpandBuildPipelineConfigResponse response ->
+        GetExpandBuildPipelineConfigResponse options response ->
             case response of
                 Ok ( _, expandedPipeline ) ->
                     ( { model
@@ -322,7 +337,12 @@ update shared route msg model =
                                 }
                         , expanding = False
                       }
-                    , Effect.none
+                    , if Focus.canTarget model.focus && options.applyDomFocus then
+                        FocusOn { target = Focus.toDomTarget model.focus }
+                            |> Effect.sendMsg
+
+                      else
+                        Effect.none
                     )
 
                 Err error ->

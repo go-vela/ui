@@ -101,14 +101,16 @@ init shared route () =
       , showServices = True
       , showSteps = True
       }
-    , Effect.getBuildGraph
-        { baseUrl = shared.velaAPIBaseURL
-        , session = shared.session
-        , onResponse = GetBuildGraphResponse { freshDraw = True }
-        , org = route.params.org
-        , repo = route.params.repo
-        , buildNumber = route.params.buildNumber
-        }
+    , Effect.batch
+        [ Effect.getBuildGraph
+            { baseUrl = shared.velaAPIBaseURL
+            , session = shared.session
+            , onResponse = GetBuildGraphResponse { freshDraw = True }
+            , org = route.params.org
+            , repo = route.params.repo
+            , buildNumber = route.params.buildNumber
+            }
+        ]
     )
 
 
@@ -499,10 +501,10 @@ view shared route model =
                             ]
 
                     RemoteData.Loading ->
-                        Util.largeLoader
+                        Util.smallLoader
 
                     RemoteData.NotAsked ->
-                        Util.largeLoader
+                        Util.smallLoader
                 , Svg.svg
                     [ Svg.Attributes.class "elm-build-graph-root"
                     ]

@@ -36,10 +36,10 @@ view shared props =
                     ]
 
             else
-                Util.smallLoader
+                text ""
 
         _ ->
-            text ""
+            Util.smallLoader
 
 
 {-| viewRecentBuild : takes recent build and renders status and link to build as a small icon widget

@@ -98,16 +98,26 @@ init shared route () =
       , focus = Focus.fromString route.hash
       , logFollow = 0
       }
-    , Effect.getBuildSteps
-        { baseUrl = shared.velaAPIBaseURL
-        , session = shared.session
-        , onResponse = GetBuildStepsResponse
-        , pageNumber = Nothing
-        , perPage = Just 100
-        , org = route.params.org
-        , repo = route.params.repo
-        , buildNumber = route.params.buildNumber
-        }
+    , Effect.batch
+        [ Effect.getBuildSteps
+            { baseUrl = shared.velaAPIBaseURL
+            , session = shared.session
+            , onResponse =
+                GetBuildStepsResponse
+                    { applyDomFocus =
+                        route.query
+                            |> Dict.get "tab_switch"
+                            |> Maybe.withDefault "false"
+                            |> (==) "false"
+                    }
+            , pageNumber = Nothing
+            , perPage = Just 100
+            , org = route.params.org
+            , repo = route.params.repo
+            , buildNumber = route.params.buildNumber
+            }
+        , Effect.none
+        ]
     )
 
 
@@ -122,7 +132,7 @@ type Msg
     | PushUrlHash { hash : String }
     | FocusOn { target : String }
       -- STEPS
-    | GetBuildStepsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Step ))
+    | GetBuildStepsResponse { applyDomFocus : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Step ))
     | GetBuildStepsRefreshResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Step ))
     | GetBuildStepLogResponse { step : Vela.Step, applyDomFocus : Bool, previousFocus : Maybe Focus.Focus } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Log ))
     | GetBuildStepLogRefreshResponse { step : Vela.Step } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Log ))
@@ -175,10 +185,12 @@ update shared route msg model =
             )
 
         FocusOn options ->
-            ( model, Effect.focusOn options )
+            ( model
+            , Effect.focusOn options
+            )
 
         -- STEPS
-        GetBuildStepsResponse response ->
+        GetBuildStepsResponse options response ->
             case response of
                 Ok ( _, steps ) ->
                     ( { model | steps = RemoteData.succeed steps }
@@ -189,7 +201,7 @@ update shared route msg model =
                             (\step ->
                                 ExpandStep
                                     { step = step
-                                    , applyDomFocus = True
+                                    , applyDomFocus = options.applyDomFocus
                                     , previousFocus = Nothing
                                     }
                                     |> Effect.sendMsg

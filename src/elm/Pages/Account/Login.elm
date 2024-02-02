@@ -51,8 +51,8 @@ toLayout : Model -> Layouts.Layout Msg
 toLayout model =
     Layouts.Default
         { navButtons = []
-        , utilButtons = []
         , helpCommands = []
+        , utilButtons = []
         , crumbs =
             [ ( "Account", Nothing )
             , ( "Login", Nothing )

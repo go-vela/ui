@@ -78,15 +78,17 @@ init shared route () =
     ( { schedules = RemoteData.Loading
       , pager = []
       }
-    , Effect.getRepoSchedules
-        { baseUrl = shared.velaAPIBaseURL
-        , session = shared.session
-        , onResponse = GetRepoSchedulesResponse
-        , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
-        , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
-        , org = route.params.org
-        , repo = route.params.repo
-        }
+    , Effect.batch
+        [ Effect.getRepoSchedules
+            { baseUrl = shared.velaAPIBaseURL
+            , session = shared.session
+            , onResponse = GetRepoSchedulesResponse
+            , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
+            , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+            , org = route.params.org
+            , repo = route.params.repo
+            }
+        ]
     )
 
 
@@ -241,7 +243,7 @@ viewRepoSchedules shared model org repo =
                         )
 
                     _ ->
-                        ( Util.largeLoader, [] )
+                        ( Util.smallLoader, [] )
 
             else
                 ( viewSchedulesNotAllowedSpan

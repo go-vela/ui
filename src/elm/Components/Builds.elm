@@ -127,10 +127,10 @@ view shared props =
                         builds
 
         RemoteData.Loading ->
-            Util.largeLoader
+            Util.smallLoader
 
         RemoteData.NotAsked ->
-            Util.largeLoader
+            Util.smallLoader
 
         RemoteData.Failure _ ->
             div [ Util.testAttribute "builds-error" ]

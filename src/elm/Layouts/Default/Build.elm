@@ -11,6 +11,7 @@ import Components.Favorites
 import Components.Help
 import Components.RecentBuilds
 import Components.Tabs
+import Dict exposing (Dict)
 import Effect exposing (Effect)
 import Html exposing (Html)
 import Http
@@ -22,6 +23,7 @@ import Route exposing (Route)
 import Route.Path
 import Shared
 import Time
+import Url exposing (Url)
 import Utils.Errors
 import Utils.Favicons as Favicons
 import Utils.Interval as Interval
@@ -57,8 +59,8 @@ map fn props =
 layout : Props contentMsg -> Shared.Model -> Route () -> Layout (Layouts.Default.Props contentMsg) Model Msg contentMsg
 layout props shared route =
     Layout.new
-        { init = init props shared
-        , update = update props shared
+        { init = init props shared route
+        , update = update props shared route
         , view = view props shared route
         , subscriptions = subscriptions
         }
@@ -78,12 +80,14 @@ layout props shared route =
 
 type alias Model =
     { build : WebData Vela.Build
+    , tabHistory : Dict String Url
     }
 
 
-init : Props contentMsg -> Shared.Model -> () -> ( Model, Effect Msg )
-init props shared _ =
+init : Props contentMsg -> Shared.Model -> Route () -> () -> ( Model, Effect Msg )
+init props shared route _ =
     ( { build = RemoteData.Loading
+      , tabHistory = Dict.empty
       }
     , Effect.batch
         [ Effect.getCurrentUser {}
@@ -111,7 +115,8 @@ init props shared _ =
 
 
 type Msg
-    = --BROWSER
+    = Pls
+    | --BROWSER
       OnUrlChanged { from : Route (), to : Route () }
       -- BUILD
     | GetBuildResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
@@ -119,12 +124,22 @@ type Msg
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
-update : Props contentMsg -> Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
-update props shared msg model =
+update : Props contentMsg -> Shared.Model -> Route () -> Msg -> Model -> ( Model, Effect Msg )
+update props shared route msg model =
     case msg of
+        Pls ->
+            let
+                _ =
+                    Debug.log "Pls" "123"
+            in
+            ( model, Effect.none )
+
         -- BROWSER
-        OnUrlChanged _ ->
-            ( model
+        OnUrlChanged options ->
+            ( { model
+                | tabHistory =
+                    model.tabHistory |> Dict.insert (Route.Path.toString options.to.path) options.to.url
+              }
             , Effect.batch
                 [ Effect.getRepoBuildsShared
                     { pageNumber = Nothing
@@ -141,6 +156,7 @@ update props shared msg model =
                     , repo = props.repo
                     , buildNumber = props.buildNumber
                     }
+                , Effect.replaceRouteRemoveTabHistorySkipDomFocus route
                 ]
             )
 
@@ -214,6 +230,7 @@ view props shared route { toContentMsg, model, content } =
             , repo = props.repo
             , buildNumber = props.buildNumber
             , currentPath = route.path
+            , tabHistory = model.tabHistory
             }
         ]
             ++ content.body

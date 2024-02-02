@@ -134,7 +134,10 @@ getUserSourceRepos baseUrl session =
 getRepo : String -> Session -> { a | org : String, repo : String } -> Request Vela.Repository
 getRepo baseUrl session options =
     get baseUrl
-        (Api.Endpoint.Repository options.org options.repo)
+        (Api.Endpoint.Repository
+            options.org
+            options.repo
+        )
         Vela.decodeRepository
         |> withAuth session
 
@@ -144,7 +147,10 @@ getRepo baseUrl session options =
 enableRepo : String -> Session -> Http.Body -> Request Vela.Repository
 enableRepo baseUrl session body =
     post baseUrl
-        (Api.Endpoint.Repositories Nothing Nothing)
+        (Api.Endpoint.Repositories
+            Nothing
+            Nothing
+        )
         body
         Vela.decodeRepository
         |> withAuth session
@@ -155,7 +161,10 @@ enableRepo baseUrl session body =
 updateRepo : String -> Session -> { a | org : String, repo : String, body : Http.Body } -> Request Vela.Repository
 updateRepo baseUrl session options =
     put baseUrl
-        (Api.Endpoint.Repository options.org options.repo)
+        (Api.Endpoint.Repository
+            options.org
+            options.repo
+        )
         options.body
         Vela.decodeRepository
         |> withAuth session
@@ -166,7 +175,10 @@ updateRepo baseUrl session options =
 repairRepo : String -> Session -> { a | org : String, repo : String } -> Request String
 repairRepo baseUrl session options =
     patch baseUrl
-        (Api.Endpoint.RepositoryRepair options.org options.repo)
+        (Api.Endpoint.RepositoryRepair
+            options.org
+            options.repo
+        )
         Json.Decode.string
         |> withAuth session
 
@@ -176,7 +188,10 @@ repairRepo baseUrl session options =
 chownRepo : String -> Session -> { a | org : String, repo : String } -> Request String
 chownRepo baseUrl session options =
     patch baseUrl
-        (Api.Endpoint.RepositoryChown options.org options.repo)
+        (Api.Endpoint.RepositoryChown
+            options.org
+            options.repo
+        )
         Json.Decode.string
         |> withAuth session
 
@@ -186,17 +201,33 @@ chownRepo baseUrl session options =
 disableRepo : String -> Session -> { a | org : String, repo : String } -> Request String
 disableRepo baseUrl session options =
     delete baseUrl
-        (Api.Endpoint.Repository options.org options.repo)
+        (Api.Endpoint.Repository
+            options.org
+            options.repo
+        )
         Json.Decode.string
         |> withAuth session
 
 
 {-| getOrgRepos : retrieves the repositories for an org
 -}
-getOrgRepos : String -> Session -> { a | org : String } -> Request (List Vela.Repository)
-getOrgRepos baseUrl session { org } =
+getOrgRepos :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , pageNumber : Maybe Int
+            , perPage : Maybe Int
+        }
+    -> Request (List Vela.Repository)
+getOrgRepos baseUrl session options =
     get baseUrl
-        (Api.Endpoint.OrgRepositories Nothing Nothing org)
+        (Api.Endpoint.OrgRepositories
+            options.pageNumber
+            options.perPage
+            options.org
+        )
         Vela.decodeRepositories
         |> withAuth session
 

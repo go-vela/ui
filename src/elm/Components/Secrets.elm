@@ -69,7 +69,7 @@ viewOrgSecrets shared props =
                     )
 
                 _ ->
-                    ( Util.largeLoader, [] )
+                    ( Util.smallLoader, [] )
 
         cfg =
             Components.Table.Config
@@ -119,7 +119,7 @@ viewRepoSecrets shared props =
                     )
 
                 _ ->
-                    ( Util.largeLoader, [] )
+                    ( Util.smallLoader, [] )
 
         cfg =
             Components.Table.Config
@@ -169,7 +169,7 @@ viewSharedSecrets shared props =
                     )
 
                 _ ->
-                    ( Util.largeLoader, [] )
+                    ( Util.smallLoader, [] )
 
         cfg =
             Components.Table.Config

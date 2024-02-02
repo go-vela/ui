@@ -93,7 +93,7 @@ type alias Model =
 
 init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
 init shared route () =
-    ( { hooks = RemoteData.Loading
+    ( { hooks = shared.hooks
       , pager = []
       }
     , Effect.getRepoHooks
@@ -231,9 +231,7 @@ viewHooks shared model hooks =
     let
         actions =
             Just <|
-                div [ class "buttons" ]
-                    [ Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
-                    ]
+                Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
 
         ( noRowsView, rows ) =
             case hooks of
@@ -261,7 +259,7 @@ viewHooks shared model hooks =
                     )
 
                 _ ->
-                    ( Util.largeLoader, [] )
+                    ( Util.smallLoader, [] )
 
         cfg =
             Components.Table.Config
