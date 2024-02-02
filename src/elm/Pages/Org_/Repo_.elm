@@ -12,6 +12,8 @@ import Components.Builds
 import Components.Pager
 import Dict
 import Effect exposing (Effect)
+import Html exposing (caption, span)
+import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
 import Layouts
@@ -25,7 +27,7 @@ import Route.Path
 import Shared
 import Time
 import Utils.Errors
-import Utils.Favorites as Favorites exposing (UpdateType(..))
+import Utils.Favorites exposing (UpdateType(..))
 import Utils.Helpers as Util
 import Utils.Interval as Interval
 import Vela
@@ -302,13 +304,18 @@ view shared route model =
     in
     { title = "Builds"
     , body =
-        [ Components.Builds.viewHeader
+        [ caption
+            [ class "builds-caption"
+            ]
+            [ span [] []
+            , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
+            ]
+        , Components.Builds.viewHeader
             { maybeEvent = Dict.get "event" route.query
             , showFullTimestamps = model.showFullTimestamps
             , filterByEvent = FilterByEvent
             , showHideFullTimestamps = ShowHideFullTimestamps
             }
-        , Components.Pager.viewIfNeeded model.pager Components.Pager.defaultLabels GotoPage model.builds
         , Components.Builds.view shared
             { msgs = msgs
             , builds = model.builds
