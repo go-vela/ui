@@ -46,7 +46,7 @@
   //  <label class="form-label">...</label>
   // </div>
   textarea {
-    width: 70%;
+    width: 100%;
     margin-top: 0.2rem;
     margin-bottom: 0.5rem;
     padding: 0.5rem;
@@ -246,7 +246,7 @@
 
 .form-controls {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   padding: 0.5rem 1rem;
 
   border: none;
@@ -255,16 +255,6 @@
   &.-two-col {
     flex-flow: row wrap;
     gap: 0.5rem;
-
-    .form-control {
-      flex: 0 0 40%;
-    }
-  }
-
-  &.-two-col-secrets {
-    flex-flow: row wrap;
-    gap: 0.5rem;
-    max-width: 30%;
 
     .form-control {
       flex: 0 0 40%;
@@ -287,7 +277,6 @@
   // .-row is for horizontally stacking controls
   &.-row {
     flex-flow: row nowrap;
-    justify-content: flex-start;
 
     .form-control:not(:last-child) {
       margin-right: 0.5rem;

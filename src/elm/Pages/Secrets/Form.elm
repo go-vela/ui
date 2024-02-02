@@ -178,7 +178,7 @@ viewEventsSelect secret model =
         scheduleOption =
             if schedulesAllowed then
                 [ strong [ class "settings-subtitle" ] [ text "Schedule" ]
-                , div [ class "form-controls", class "-two-col-secrets" ]
+                , div [ class "form-controls", class "-two-col" ]
                     [ checkbox "Schedule"
                         "schedule"
                         secret.allowEvents.schedule.run
@@ -202,7 +202,7 @@ viewEventsSelect secret model =
                 , pullRequestWarning
                 ]
             , strong [ class "settings-subtitle" ] [ text "Push" ]
-            , div [ class "form-controls", class "-two-col-secrets" ]
+            , div [ class "form-controls", class "-two-col" ]
                 [ checkbox "Push"
                     "allow_push_branch"
                     secret.allowEvents.push.branch
@@ -215,7 +215,7 @@ viewEventsSelect secret model =
                     OnChangeEvent "allow_push_tag"
                 ]
             , strong [ class "settings-subtitle" ] [ text "Pull Request" ]
-            , div [ class "form-controls", class "-two-col-secrets" ]
+            , div [ class "form-controls", class "-two-col" ]
                 [ checkbox "Opened"
                     "allow_pull_opened"
                     secret.allowEvents.pull.opened
@@ -238,7 +238,7 @@ viewEventsSelect secret model =
                     OnChangeEvent "allow_pull_reopened"
                 ]
             , strong [ class "settings-subtitle" ] [ text "Deployments" ]
-            , div [ class "form-controls", class "-two-col-secrets" ]
+            , div [ class "form-controls", class "-two-col" ]
                 [ checkbox "Created"
                     "allow_deploy_created"
                     secret.allowEvents.deploy.created
@@ -246,7 +246,7 @@ viewEventsSelect secret model =
                     OnChangeEvent "allow_deploy_created"
                 ]
             , strong [ class "settings-subtitle" ] [ text "Comment" ]
-            , div [ class "form-controls", class "-two-col-secrets" ]
+            , div [ class "form-controls", class "-two-col" ]
                 [ checkbox "Created"
                     "allow_comment_created"
                     secret.allowEvents.comment.created
@@ -259,7 +259,7 @@ viewEventsSelect secret model =
                     OnChangeEvent "allow_comment_edited"
                 ]
             , strong [ class "settings-subtitle" ] [ text "Delete" ]
-            , div [ class "form-controls", class "-two-col-secrets" ]
+            , div [ class "form-controls", class "-two-col" ]
                 [ checkbox "Branch"
                     "allow_push_delete_branch"
                     secret.allowEvents.push.delete_branch
