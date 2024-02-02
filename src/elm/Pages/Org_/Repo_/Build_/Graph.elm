@@ -110,6 +110,7 @@ init shared route () =
             , repo = route.params.repo
             , buildNumber = route.params.buildNumber
             }
+        , clearBuildGraph |> Effect.sendCmd
         ]
     )
 
