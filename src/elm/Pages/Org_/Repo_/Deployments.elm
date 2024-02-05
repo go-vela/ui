@@ -229,7 +229,7 @@ view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Ms
 view shared route model =
     { title = "Deployments"
     , body =
-        [ viewDeployments model route
+        [ viewDeployments shared model route
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
         ]
     }
@@ -237,8 +237,8 @@ view shared route model =
 
 {-| viewDeployments : renders a list of deployments
 -}
-viewDeployments : Model -> Route { org : String, repo : String } -> Html Msg
-viewDeployments model route =
+viewDeployments : Shared.Model -> Model -> Route { org : String, repo : String } -> Html Msg
+viewDeployments shared model route =
     let
         actions =
             Just <|
@@ -263,7 +263,7 @@ viewDeployments model route =
             case ( model.repo, model.deployments ) of
                 ( RemoteData.Success r, RemoteData.Success d ) ->
                     ( text "No deployments found for this repo"
-                    , deploymentsToRows r d
+                    , deploymentsToRows shared r d
                     )
 
                 ( RemoteData.Failure error, _ ) ->
@@ -295,9 +295,9 @@ viewDeployments model route =
 
 {-| deploymentsToRows : takes list of deployments and produces list of Table rows
 -}
-deploymentsToRows : Vela.Repository -> List Vela.Deployment -> Components.Table.Rows Vela.Deployment Msg
-deploymentsToRows repo deployments =
-    List.map (\deployment -> Components.Table.Row deployment (viewDeployment repo)) deployments
+deploymentsToRows : Shared.Model -> Vela.Repository -> List Vela.Deployment -> Components.Table.Rows Vela.Deployment Msg
+deploymentsToRows shared repo deployments =
+    List.map (\deployment -> Components.Table.Row deployment (viewDeployment shared repo)) deployments
 
 
 {-| tableHeaders : returns table headers for deployments table
@@ -310,14 +310,17 @@ tableHeaders =
     , ( Nothing, "commit" )
     , ( Nothing, "ref" )
     , ( Nothing, "description" )
+    , ( Nothing, "builds" )
+    , ( Nothing, "created by" )
+    , ( Nothing, "created at" )
     , ( Nothing, "" )
     ]
 
 
 {-| viewDeployment : takes deployment and renders a table row
 -}
-viewDeployment : Vela.Repository -> Vela.Deployment -> Html Msg
-viewDeployment repo deployment =
+viewDeployment : Shared.Model -> Vela.Repository -> Vela.Deployment -> Html Msg
+viewDeployment shared repo deployment =
     tr [ Util.testAttribute <| "deployments-row", class "-success" ]
         [ Components.Table.viewIconCell
             { dataLabel = "status"
@@ -329,11 +332,11 @@ viewDeployment repo deployment =
                 ]
             }
         , Components.Table.viewItemCell
-            { dataLabel = "id"
+            { dataLabel = "number"
             , parentClassList = []
             , itemClassList = []
             , children =
-                [ text <| String.fromInt deployment.id
+                [ text <| String.fromInt deployment.number
                 ]
             }
         , Components.Table.viewItemCell
@@ -368,6 +371,30 @@ viewDeployment repo deployment =
             , itemClassList = []
             , children =
                 [ text deployment.description
+                ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = "builds"
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ viewDeploymentBuildsLinks deployment
+                ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = "created by"
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ text <| deployment.created_by
+                ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = "created at"
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ text <| Util.humanReadableDateTimeWithDefault shared.zone deployment.created_at
                 ]
             }
         , Components.Table.viewItemCell
@@ -411,6 +438,27 @@ viewDeployment repo deployment =
                 ]
             }
         ]
+
+
+viewDeploymentBuildsLinks : Vela.Deployment -> Html msg
+viewDeploymentBuildsLinks deployment =
+    deployment.builds
+        |> List.map
+            (\build ->
+                a
+                    [ href build.link ]
+                    [ text
+                        (build.link
+                            |> String.split "/"
+                            |> List.reverse
+                            |> List.head
+                            |> Maybe.withDefault ""
+                            |> String.append "#"
+                        )
+                    ]
+            )
+        |> List.intersperse (text ", ")
+        |> div []
 
 
 viewError : Http.Error -> Html msg
