@@ -14,6 +14,10 @@ import Utils.Favorites as Favorites
 import Utils.Helpers as Util
 
 
+
+-- TYPES
+
+
 type alias Props msg =
     { toggleFavoriteMsg : Favorites.UpdateFavorites msg
     , org : String
@@ -21,6 +25,10 @@ type alias Props msg =
     , favorites : List String
     , filtered : Bool
     }
+
+
+
+-- VIEW
 
 
 view : Shared.Model -> Props msg -> Html msg

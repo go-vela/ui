@@ -18,6 +18,10 @@ import Utils.Logs as Logs
 import Vela
 
 
+
+-- TYPES
+
+
 type alias Msgs msg =
     { pushUrlHash : { hash : String } -> msg
     , focusOn : { target : String } -> msg
@@ -45,6 +49,10 @@ type alias LogLine msg =
     }
 
 
+
+-- VIEW
+
+
 view : Shared.Model -> Props msg -> Html msg
 view shared props =
     case props.log of
@@ -57,10 +65,6 @@ view shared props =
         _ ->
             div [ class "message" ]
                 [ Util.smallLoaderWithText "loading..." ]
-
-
-
--- LOGS
 
 
 {-| viewLogLines : takes number linefocus log and clickAction shiftDown and renders logs for a build resource

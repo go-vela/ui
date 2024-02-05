@@ -162,8 +162,6 @@ viewButton { msg, text_, classList_, disabled_ } =
         [ text text_ ]
 
 
-{-| viewAllowEvents : takes model and repo and renders the settings category for updating repo webhook events
--}
 viewAllowEvents :
     Shared.Model
     ->

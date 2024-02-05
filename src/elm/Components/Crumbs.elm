@@ -25,7 +25,7 @@ type alias Crumb =
 -- VIEW
 
 
-{-| crumbs : takes current page and returns Html breadcrumb that produce Msgs
+{-| view : takes current path and returns Html breadcrumbs
 -}
 view : Route.Path.Path -> List Crumb -> Html msg
 view path crumbs =

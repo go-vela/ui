@@ -10,15 +10,6 @@ import Api.Operations
 import Auth
 import Components.Favorites
 import Components.Search
-    exposing
-        ( Search
-        , filterRepo
-        , repoSearchBarGlobal
-        , repoSearchBarLocal
-        , searchFilterGlobal
-        , searchFilterLocal
-        , shouldSearch
-        )
 import Dict exposing (Dict)
 import Effect exposing (Effect)
 import FeatherIcons
@@ -277,7 +268,7 @@ view shared model =
     let
         body =
             div [ Util.testAttribute "source-repos" ]
-                [ repoSearchBarGlobal model.searchFilters UpdateSearchFilter
+                [ Components.Search.viewRepoSearchBarGlobal model.searchFilters UpdateSearchFilter
                 , viewSourceRepos shared model
                 ]
     in
@@ -294,7 +285,7 @@ viewSourceRepos : Shared.Model -> Model -> Html Msg
 viewSourceRepos shared model =
     case model.sourceRepos of
         RemoteData.Success repos ->
-            if shouldSearch <| searchFilterGlobal model.searchFilters then
+            if Components.Search.shouldSearch <| Components.Search.searchFilterGlobal model.searchFilters then
                 searchReposGlobal shared model repos EnableRepo ToggleFavorite
 
             else
@@ -382,12 +373,10 @@ viewSourceOrg :
 viewSourceOrg user filters org repos =
     let
         ( repos_, filtered, content ) =
-            if shouldSearch <| searchFilterLocal org filters then
-                -- Search and render repos using the global filter
+            if Components.Search.shouldSearch <| Components.Search.searchFilterLocal org filters then
                 searchReposLocal user org filters repos EnableRepo ToggleFavorite
 
             else
-                -- Render repos normally
                 ( repos, False, List.map (viewSourceRepo user EnableRepo ToggleFavorite) repos )
     in
     viewSourceOrgDetails filters org repos_ filtered content UpdateSearchFilter EnableRepos
@@ -401,7 +390,7 @@ viewSourceOrgDetails :
     -> List Vela.Repository
     -> Bool
     -> List (Html msg)
-    -> Search msg
+    -> Components.Search.Search msg
     -> (List Vela.Repository -> msg)
     -> Html msg
 viewSourceOrgDetails filters org repos filtered content search enableRepos =
@@ -417,7 +406,7 @@ viewSourceOrgSummary :
     -> List Vela.Repository
     -> Bool
     -> List (Html msg)
-    -> Search msg
+    -> Components.Search.Search msg
     -> (List Vela.Repository -> msg)
     -> List (Html msg)
 viewSourceOrgSummary filters org repos filtered content search enableRepos =
@@ -427,7 +416,7 @@ viewSourceOrgSummary filters org repos filtered content search enableRepos =
         , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
         ]
         :: div [ class "form-controls", class "-no-x-pad" ]
-            [ repoSearchBarLocal filters org search
+            [ Components.Search.viewRepoSearchBarLocal filters org search
             , enableReposButton org repos filtered enableRepos
             ]
         :: content
@@ -585,15 +574,13 @@ searchReposGlobal shared model repos enableRepo toggleFavorite =
                 |> Dict.toList
                 |> Util.filterEmptyLists
                 |> List.concatMap (\( _, repos_ ) -> repos_)
-                |> List.filter (\repo -> filterRepo filters Nothing <| repo.org ++ "/" ++ repo.name)
+                |> List.filter (\repo -> Components.Search.filterRepo filters Nothing <| repo.org ++ "/" ++ repo.name)
     in
     div [ class "filtered-repos" ] <|
-        -- Render the found repositories
         if not <| List.isEmpty filteredRepos then
             filteredRepos |> List.map (\repo -> viewSearchedSourceRepo enableRepo toggleFavorite repo user)
 
         else
-            -- No repos matched the search
             [ div [ class "item" ] [ text "No results" ] ]
 
 
@@ -608,10 +595,9 @@ searchReposLocal :
     -> Favorites.UpdateFavorites msg
     -> ( List Vela.Repository, Bool, List (Html msg) )
 searchReposLocal user org filters repos enableRepo toggleFavorite =
-    -- Filter the repos if the user typed more than 2 characters
     let
         filteredRepos =
-            List.filter (\repo -> filterRepo filters (Just org) repo.name) repos
+            List.filter (\repo -> Components.Search.filterRepo filters (Just org) repo.name) repos
     in
     ( filteredRepos
     , True

@@ -44,6 +44,7 @@ module Vela exposing
     , Template
     , Templates
     , Type
+    , allowEventsFilterQueryKeys
     , allowEventsToList
     , buildEnableRepoPayload
     , decodeBuild
@@ -718,6 +719,19 @@ allowEventsToList events =
     , ( events.comment.created, "comment:created" )
     , ( events.comment.edited, "comment:edited" )
     , ( events.schedule.run, "schedule" )
+    ]
+
+
+allowEventsFilterQueryKeys : List String
+allowEventsFilterQueryKeys =
+    [ "all"
+    , "push"
+    , "pull_request"
+    , "tag"
+    , "deployment"
+    , "schedule"
+    , "comment"
+    , "delete"
     ]
 
 

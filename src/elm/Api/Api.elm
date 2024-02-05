@@ -303,13 +303,11 @@ tryAll msg request_ =
         |> Task.attempt msg
 
 
+{-| tryString : way to request information from an endpoint with a string response
 
--- ENTRYPOINT
+    example usage:
+        Api.tryString UserResponse <| Api.getUser model authParams
 
-
-{-| try : default way to request information from an endpoint
-example usage:
-Api.try UserResponse <| Api.getUser model authParams
 -}
 tryString : (Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> msg) -> Request String -> Cmd msg
 tryString msg request_ =

@@ -27,10 +27,18 @@ import Utils.Helpers as Util
 import Vela
 
 
+
+-- TYPES
+
+
 type alias Props msg =
     { buttons : List (Html msg)
     , crumbs : Html msg
     }
+
+
+
+-- VIEW
 
 
 view : Shared.Model -> Route () -> Props msg -> Html msg

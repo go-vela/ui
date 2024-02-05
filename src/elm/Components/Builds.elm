@@ -148,7 +148,7 @@ viewHeader :
     }
     -> Html msg
 viewHeader props =
-    div [ class "build-bar" ]
+    div [ class "builds-header" ]
         [ viewFilter props.maybeEvent props.filterByEvent
         , viewTimeToggle props.showFullTimestamps props.showHideFullTimestamps
         ]
@@ -164,17 +164,6 @@ viewFilter maybeEvent filterByEventMsg =
 
                 _ ->
                     Just event
-
-        eventEnum =
-            [ "all"
-            , "push"
-            , "pull_request"
-            , "tag"
-            , "deployment"
-            , "schedule"
-            , "comment"
-            , "delete"
-            ]
     in
     div [ class "form-controls", class "build-filters", Util.testAttribute "build-filter" ] <|
         div [] [ text "Filter by Event:" ]
@@ -198,7 +187,7 @@ viewFilter maybeEvent filterByEventMsg =
                             [ text <| String.replace "_" " " e ]
                         ]
                 )
-                eventEnum
+                Vela.allowEventsFilterQueryKeys
 
 
 viewTimeToggle : Bool -> msg -> Html msg

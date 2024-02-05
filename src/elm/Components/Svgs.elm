@@ -43,6 +43,10 @@ import Utils.Helpers as Util
 import Vela
 
 
+
+-- VIEW
+
+
 {-| velaLogo: produces the svg for the Vela logo
 -}
 velaLogo : Int -> Html msg

@@ -5,7 +5,6 @@ SPDX-License-Identifier: Apache-2.0
 
 module Components.Help exposing (Command, Props, view)
 
-import Components.Build exposing (Props)
 import Components.Svgs as SvgBuilder
 import FeatherIcons
 import Html exposing (Html, a, button, details, div, label, span, strong, summary, text)
@@ -13,6 +12,10 @@ import Html.Attributes exposing (attribute, class, for, href, id, size, value)
 import Html.Events
 import Shared
 import Utils.Helpers as Util
+
+
+
+-- TYPES
 
 
 type alias Props msg =
@@ -28,6 +31,10 @@ type alias Command =
     , content : String
     , docs : Maybe String
     }
+
+
+
+-- VIEW
 
 
 view : Shared.Model -> Props msg -> Html msg

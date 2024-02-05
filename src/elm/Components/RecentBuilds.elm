@@ -15,12 +15,20 @@ import Utils.Helpers as Util
 import Vela
 
 
+
+--TYPES
+
+
 type alias Props =
     { builds : WebData (List Vela.Build)
     , build : WebData Vela.Build
     , num : Int
     , toPath : String -> Route.Path.Path
     }
+
+
+
+-- VIEW
 
 
 view : Shared.Model -> Props -> Html msg

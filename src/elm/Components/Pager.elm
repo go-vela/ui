@@ -15,6 +15,10 @@ import RemoteData exposing (WebData)
 import Utils.Helpers as Util
 
 
+
+-- TYPES
+
+
 type alias Labels =
     { previousLabel : String
     , nextLabel : String
@@ -35,8 +39,10 @@ prevNextLabels =
     }
 
 
-{-| view : renders pager controls
--}
+
+-- VIEW
+
+
 view : List WebLink -> Labels -> (Pagination.Page -> msg) -> Html msg
 view links labels toMsg =
     let

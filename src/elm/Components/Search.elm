@@ -7,13 +7,13 @@ module Components.Search exposing
     ( Search
     , SimpleSearch
     , filterRepo
-    , homeSearchBar
-    , repoSearchBarGlobal
-    , repoSearchBarLocal
     , searchFilterGlobal
     , searchFilterLocal
     , shouldSearch
     , toLowerContains
+    , viewHomeSearchBar
+    , viewRepoSearchBarGlobal
+    , viewRepoSearchBarLocal
     )
 
 import Dict exposing (Dict)
@@ -33,6 +33,10 @@ import Utils.Helpers as Util
 import Vela
 
 
+
+-- TYPES
+
+
 {-| Search : takes org and repo and searches/filters based on user input
 -}
 type alias Search msg =
@@ -45,8 +49,12 @@ type alias SimpleSearch msg =
     String -> msg
 
 
-homeSearchBar : String -> SimpleSearch msg -> Html msg
-homeSearchBar filter search =
+
+-- VIEW
+
+
+viewHomeSearchBar : String -> SimpleSearch msg -> Html msg
+viewHomeSearchBar filter search =
     div [ class "form-control", class "-with-icon", class "-is-expanded", Util.testAttribute "home-search-bar" ]
         [ input
             [ Util.testAttribute "home-search-input"
@@ -60,10 +68,10 @@ homeSearchBar filter search =
         ]
 
 
-{-| repoSearchBarGlobal : renders a input bar for searching across all repos
+{-| viewRepoSearchBarGlobal : renders a input bar for searching across all repos
 -}
-repoSearchBarGlobal : Dict Vela.Org String -> Search msg -> Html msg
-repoSearchBarGlobal searchFilters search =
+viewRepoSearchBarGlobal : Dict Vela.Org String -> Search msg -> Html msg
+viewRepoSearchBarGlobal searchFilters search =
     div [ class "form-control", class "-with-icon", class "-is-expanded", Util.testAttribute "global-search-bar" ]
         [ input
             [ Util.testAttribute "global-search-input"
@@ -77,10 +85,10 @@ repoSearchBarGlobal searchFilters search =
         ]
 
 
-{-| repoSearchBarLocal : takes an org and placeholder text and renders a search bar for local repo filtering
+{-| viewRepoSearchBarLocal : takes an org and placeholder text and renders a search bar for local repo filtering
 -}
-repoSearchBarLocal : Dict Vela.Org String -> Vela.Org -> Search msg -> Html msg
-repoSearchBarLocal searchFilters org search =
+viewRepoSearchBarLocal : Dict Vela.Org String -> Vela.Org -> Search msg -> Html msg
+viewRepoSearchBarLocal searchFilters org search =
     div [ class "form-control", class "-with-icon", class "-is-expanded", Util.testAttribute "local-search-bar" ]
         [ input
             [ Util.testAttribute <| "local-search-input-" ++ org
@@ -94,6 +102,10 @@ repoSearchBarLocal searchFilters org search =
             []
         , FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "aria-label" "filter" ]
         ]
+
+
+
+-- HELPERS
 
 
 {-| toLowerContains : takes user input and

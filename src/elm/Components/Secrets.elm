@@ -19,6 +19,10 @@ import Utils.Helpers as Util
 import Vela
 
 
+
+-- TYPES
+
+
 type alias Msgs msg =
     { showCopyAlert : String -> msg
     }
@@ -31,6 +35,10 @@ type alias Props msg =
     , secrets : WebData (List Vela.Secret)
     , tableButtons : Maybe (List (Html msg))
     }
+
+
+
+-- VIEW
 
 
 {-| viewOrgSecrets : takes secrets model and renders table for viewing org secrets
@@ -350,6 +358,8 @@ editSecretHref engine type_ secret =
                     }
 
 
+{-| enabledAllowEventsToList : takes allow events struct and converts it to a list of vieweable strings based on which events are enabled
+-}
 enabledAllowEventsToList : Vela.AllowEvents -> List String
 enabledAllowEventsToList allowEvents =
     allowEvents

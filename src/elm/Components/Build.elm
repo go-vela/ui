@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.Build exposing (..)
+module Components.Build exposing (view, viewActionsMenu)
 
 import Components.Svgs
 import DateFormat.Relative

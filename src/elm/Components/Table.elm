@@ -39,6 +39,10 @@ import String.Extra
 import Utils.Helpers as Util
 
 
+
+-- TYPES
+
+
 {-| Column : string alias for table column headers
 -}
 type alias Column =
@@ -75,6 +79,10 @@ type alias Config data msg =
     , rows : Rows data msg
     , headerElement : Maybe (Html msg)
     }
+
+
+
+-- VIEW
 
 
 {-| view : renders data table

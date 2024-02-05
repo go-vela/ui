@@ -20,6 +20,10 @@ import Utils.Helpers as Util
 import Utils.Theme as Theme
 
 
+
+-- TYPES
+
+
 type alias Props msg =
     { from : String
     , theme : Theme.Theme
@@ -28,6 +32,10 @@ type alias Props msg =
     , showId : Bool
     , showHideIdentity : Maybe Bool -> msg
     }
+
+
+
+-- VIEW
 
 
 view : Shared.Model -> Props msg -> Html msg

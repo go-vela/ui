@@ -9,8 +9,8 @@ import Auth
 import Components.Repo
 import Components.Search
     exposing
-        ( homeSearchBar
-        , toLowerContains
+        ( toLowerContains
+        , viewHomeSearchBar
         )
 import Components.Svgs as SvgBuilder
 import Dict exposing (Dict)
@@ -159,7 +159,7 @@ view shared model =
             case shared.user of
                 RemoteData.Success u ->
                     if List.length u.favorites > 0 then
-                        [ homeSearchBar model.favoritesFilter SearchFavorites
+                        [ viewHomeSearchBar model.favoritesFilter SearchFavorites
                         , viewFavorites shared u.favorites model.favoritesFilter
                         ]
 
@@ -177,7 +177,7 @@ view shared model =
                         ]
 
                 _ ->
-                    [ homeSearchBar model.favoritesFilter SearchFavorites
+                    [ viewHomeSearchBar model.favoritesFilter SearchFavorites
                     , viewFavorites shared [] model.favoritesFilter
                     ]
         ]

@@ -41,41 +41,6 @@ import Vela
 -- VIEW
 
 
-viewAllowEventsSelect :
-    Shared.Model
-    ->
-        { msg : { allowEvents : Vela.AllowEvents, event : String } -> Bool -> msg
-        , allowEvents : Vela.AllowEvents
-        , disabled_ : Bool
-        }
-    -> Html msg
-viewAllowEventsSelect shared props =
-    section []
-        [ div [ for "events-select" ]
-            ([ strong [] [ text "Limit to Events" ]
-             , span [ class "field-description" ]
-                [ text "( "
-                , em [] [ text "at least one event must be selected" ]
-                , text " )"
-                ]
-             , viewPullRequestWarning
-             ]
-                ++ Components.Form.viewAllowEvents
-                    shared
-                    props
-            )
-        ]
-
-
-viewPullRequestWarning : Html msg
-viewPullRequestWarning =
-    p [ class "notice" ]
-        [ text "Disclaimer: Native secrets do NOT have the "
-        , strong [] [ text "pull_request" ]
-        , text " event enabled by default. This is intentional to help mitigate exposure via a pull request against the repo. You can override this behavior, at your own risk, for each secret."
-        ]
-
-
 viewImagesInput :
     { onInput_ : String -> msg
     , addImage : String -> msg
@@ -204,4 +169,39 @@ viewHelp docsUrl =
             ]
             [ text "docs" ]
         , text "!"
+        ]
+
+
+viewAllowEventsSelect :
+    Shared.Model
+    ->
+        { msg : { allowEvents : Vela.AllowEvents, event : String } -> Bool -> msg
+        , allowEvents : Vela.AllowEvents
+        , disabled_ : Bool
+        }
+    -> Html msg
+viewAllowEventsSelect shared props =
+    section []
+        [ div [ for "events-select" ]
+            ([ strong [] [ text "Limit to Events" ]
+             , span [ class "field-description" ]
+                [ text "( "
+                , em [] [ text "at least one event must be selected" ]
+                , text " )"
+                ]
+             , viewPullRequestWarning
+             ]
+                ++ Components.Form.viewAllowEvents
+                    shared
+                    props
+            )
+        ]
+
+
+viewPullRequestWarning : Html msg
+viewPullRequestWarning =
+    p [ class "notice" ]
+        [ text "Disclaimer: Native secrets do NOT have the "
+        , strong [] [ text "pull_request" ]
+        , text " event enabled by default. This is intentional to help mitigate exposure via a pull request against the repo. You can override this behavior, at your own risk, for each secret."
         ]

@@ -5,7 +5,6 @@ SPDX-License-Identifier: Apache-2.0
 
 module Components.Tabs exposing (Tab, view, viewBuildTabs, viewOrgTabs, viewRepoTabs)
 
-import Api.Pagination as Pagination
 import Dict exposing (Dict)
 import Html exposing (Html, a, div, span, text)
 import Html.Attributes exposing (class, classList)
@@ -17,6 +16,10 @@ import Url exposing (Url)
 import Utils.Helpers as Util
 
 
+
+-- TYPES
+
+
 {-| Tab : record to represent information used by page navigation tab
 -}
 type alias Tab =
@@ -25,6 +28,10 @@ type alias Tab =
     , isAlerting : Bool
     , show : Bool
     }
+
+
+
+-- VIEW
 
 
 {-| view : takes list of tab records and renders them with spacers and horizontal filler

@@ -11,6 +11,10 @@ import Route exposing (Route)
 import Shared
 
 
+
+-- VIEW
+
+
 view : Shared.Model -> Route () -> List (Html msg) -> Html msg
 view shared route buttons =
     div [ class "util" ]
