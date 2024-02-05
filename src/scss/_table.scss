@@ -20,13 +20,11 @@
 
 .table-base .table-icon div {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  flex-direction: row;
   height: 2.5rem;
-  vertical-align: middle;
 }
-
 
 .table-base tr {
   padding: 0.35em;
@@ -68,7 +66,8 @@
 
 .table-base td {
   padding: 0.3em;
-  padding-left: .625em;
+  padding-left: 0.625em;
+
   vertical-align: top;
 }
 
@@ -77,9 +76,9 @@
 }
 
 .table-base .single-item {
+  display: inline-block;
   padding-top: 0.375rem;
   padding-bottom: 0.375rem;
-  display: inline-block;
 }
 
 .table-base td .list-item {

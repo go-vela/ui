@@ -36,23 +36,27 @@ header {
   justify-content: space-between;
   padding: 1em var(--horizontal-pad);
 
-  background: radial-gradient(circle at 50% -200%,
-      var(--color-bg-light) -7%,
-      transparent 50%);
+  background: radial-gradient(
+    circle at 50% -200%,
+    var(--color-bg-light) -7%,
+    transparent 50%
+  );
   border-top-width: 0;
   border-bottom: var(--line-width) solid;
   border-left-width: 0;
-  border-image-source: linear-gradient(to right,
-      var(--color-secondary) 55%,
-      transparent 55%,
-      transparent 58%,
-      var(--color-secondary) 58%,
-      var(--color-secondary) 69%,
-      transparent 69%,
-      transparent 75%,
-      var(--color-primary) 75%,
-      var(--color-primary) 76%,
-      transparent 76%);
+  border-image-source: linear-gradient(
+    to right,
+    var(--color-secondary) 55%,
+    transparent 55%,
+    transparent 58%,
+    var(--color-secondary) 58%,
+    var(--color-secondary) 69%,
+    transparent 69%,
+    transparent 75%,
+    var(--color-primary) 75%,
+    var(--color-primary) 76%,
+    transparent 76%
+  );
   border-image-slice: 1;
 }
 
@@ -266,13 +270,15 @@ nav {
 
   border-top: var(--line-width) solid;
   border-left: var(--line-width) solid;
-  border-image-source: linear-gradient(to right,
-      var(--color-bg-light) 75%,
-      transparent 75%,
-      transparent 77%,
-      var(--color-bg-light) 77%,
-      var(--color-bg-light) 84%,
-      transparent 84%);
+  border-image-source: linear-gradient(
+    to right,
+    var(--color-bg-light) 75%,
+    transparent 75%,
+    transparent 77%,
+    var(--color-bg-light) 77%,
+    var(--color-bg-light) 84%,
+    transparent 84%
+  );
   border-image-slice: 1;
 
   svg {
@@ -300,11 +306,13 @@ nav {
   bottom: 0;
   left: 0;
 
-  background-image: linear-gradient(90deg,
-      hsl(0, 0%, 34%, 0) 0,
-      hsl(0, 0%, 34%, 0.2) 20%,
-      hsl(0, 0%, 34%, 0.5) 60%,
-      hsl(0, 0%, 34%, 0));
+  background-image: linear-gradient(
+    90deg,
+    hsl(0, 0%, 34%, 0) 0,
+    hsl(0, 0%, 34%, 0.2) 20%,
+    hsl(0, 0%, 34%, 0.5) 60%,
+    hsl(0, 0%, 34%, 0)
+  );
   transform: translateX(-100%);
 
   animation: shimmer 2s infinite;
@@ -436,12 +444,11 @@ details.build-toggle {
 }
 
 .builds-caption {
-  margin: 0.75em 0 1.2rem;
-  justify-content: space-between;
-  padding-left: 1rem;
   display: flex;
+  justify-content: space-between;
+  margin: 0.75em 0 1.2rem;
+  padding-left: 1rem;
 }
-
 
 .hidden-spacer {
   visibility: hidden;
@@ -952,10 +959,12 @@ details.build-toggle {
 }
 
 .flowline-left {
-  background: linear-gradient(90deg,
-      hsla(0, 0%, 0%, 0) calc(2.25em - 1px),
-      var(--color-flowline) calc(2.25em),
-      hsla(0, 0%, 0%, 0) calc(2.25em + 1px));
+  background: linear-gradient(
+    90deg,
+    hsla(0, 0%, 0%, 0) calc(2.25em - 1px),
+    var(--color-flowline) calc(2.25em),
+    hsla(0, 0%, 0%, 0) calc(2.25em + 1px)
+  );
 }
 
 .step.flowline-left:last-child,
@@ -1048,7 +1057,7 @@ details.build-toggle {
   }
 }
 
-.logs code>div {
+.logs code > div {
   white-space: pre-wrap;
 }
 
@@ -1058,7 +1067,7 @@ details.build-toggle {
   flex-direction: row;
   padding-right: 3rem;
 
-  >code {
+  > code {
     flex: 1;
     margin-left: 1em;
   }
@@ -1422,7 +1431,7 @@ details.build-toggle {
   background-color: var(--color-bg);
   border: none;
 
-  +.button {
+  + .button {
     margin-left: 0.5rem;
   }
 }
@@ -1432,7 +1441,7 @@ details.build-toggle {
 }
 
 /* stylelint-disable selector-max-specificity */
-.help.details[open] .summary+*:first-of-type {
+.help.details[open] .summary + *:first-of-type {
   margin-top: 0.25rem;
 }
 
@@ -1443,7 +1452,7 @@ details.build-toggle {
   justify-content: flex-end;
   margin: 1rem 0.5rem 0 1rem;
 
-  >a {
+  > a {
     margin-left: 1rem;
   }
 }
@@ -1455,7 +1464,7 @@ details.build-toggle {
   margin-top: 8px;
   margin-right: 8px;
 
-  >a {
+  > a {
     margin-left: 6px;
 
     text-align: right;
