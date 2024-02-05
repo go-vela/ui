@@ -173,6 +173,7 @@ viewFilter maybeEvent filterByEventMsg =
             , "deployment"
             , "schedule"
             , "comment"
+            , "delete"
             ]
     in
     div [ class "form-controls", class "build-filters", Util.testAttribute "build-filter" ] <|
