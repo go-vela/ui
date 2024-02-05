@@ -9,6 +9,7 @@ import Html exposing (Html, br, button, div, em, h2, h3, input, label, p, sectio
 import Html.Attributes exposing (checked, class, classList, disabled, for, id, placeholder, rows, type_, value, wrap)
 import Html.Events exposing (onCheck, onClick, onInput)
 import Maybe.Extra
+import Shared
 import Utils.Helpers as Util
 import Vela
 
@@ -164,97 +165,95 @@ viewButton { msg, text_, classList_, disabled_ } =
 {-| viewAllowEvents : takes model and repo and renders the settings category for updating repo webhook events
 -}
 viewAllowEvents :
-    ({ a | allow_events : Maybe Vela.AllowEvents } -> String -> Bool -> msg)
-    -> Maybe Vela.AllowEvents
-    -> { a | allow_events : Maybe Vela.AllowEvents }
+    Shared.Model
+    ->
+        { msg : { allow_events : Vela.AllowEvents, event : String } -> Bool -> msg
+        , allow_events : Vela.AllowEvents
+        , disabled_ : Bool
+        }
     -> List (Html msg)
-viewAllowEvents msg allowEvents repo =
-    case allowEvents of
-        Just events ->
-            [ div [ class "form-controls", class "-two-col" ]
-                [ viewCheckbox
-                    { title = "Push"
-                    , subtitle = Nothing
-                    , field = "allow_push_branch"
-                    , state = events.push.branch
-                    , msg = msg repo "allow_push_branch"
-                    , disabled_ = False
-                    }
-                , viewCheckbox
-                    { title = "Tag"
-                    , subtitle = Nothing
-                    , field = "allow_push_tag"
-                    , state = events.push.tag
-                    , msg = msg repo "allow_push_tag"
-                    , disabled_ = False
-                    }
-                ]
-            , h3 [ class "settings-subtitle" ] [ text "Pull Request" ]
-            , div [ class "form-controls", class "-two-col" ]
-                [ viewCheckbox
-                    { title = "Opened"
-                    , subtitle = Nothing
-                    , field = "allow_pull_opened"
-                    , state = events.pull.opened
-                    , msg = msg repo "allow_pull_opened"
-                    , disabled_ = False
-                    }
-                , viewCheckbox
-                    { title = "Synchronize"
-                    , subtitle = Nothing
-                    , field = "allow_pull_synchronize"
-                    , state = events.pull.synchronize
-                    , msg = msg repo "allow_pull_synchronize"
-                    , disabled_ = False
-                    }
-                , viewCheckbox
-                    { title = "Edited"
-                    , subtitle = Nothing
-                    , field = "allow_pull_edited"
-                    , state = events.pull.edited
-                    , msg = msg repo "allow_pull_edited"
-                    , disabled_ = False
-                    }
-                , viewCheckbox
-                    { title = "Reopened"
-                    , subtitle = Nothing
-                    , field = "allow_pull_reopened"
-                    , state = events.pull.reopened
-                    , msg = msg repo "allow_pull_reopened"
-                    , disabled_ = False
-                    }
-                ]
-            , h3 [ class "settings-subtitle" ] [ text "Deployments" ]
-            , div [ class "form-controls", class "-two-col" ]
-                [ viewCheckbox
-                    { title = "Created"
-                    , subtitle = Nothing
-                    , field = "allow_deploy_created"
-                    , state = events.deploy.created
-                    , msg = msg repo "allow_deploy_created"
-                    , disabled_ = False
-                    }
-                ]
-            , h3 [ class "settings-subtitle" ] [ text "Comment" ]
-            , div [ class "form-controls", class "-two-col" ]
-                [ viewCheckbox
-                    { title = "Created"
-                    , subtitle = Nothing
-                    , field = "allow_comment_created"
-                    , state = events.comment.created
-                    , msg = msg repo "allow_comment_created"
-                    , disabled_ = False
-                    }
-                , viewCheckbox
-                    { title = "Edited"
-                    , subtitle = Nothing
-                    , field = "allow_comment_edited"
-                    , state = events.comment.edited
-                    , msg = msg repo "allow_comment_edited"
-                    , disabled_ = False
-                    }
-                ]
-            ]
-
-        Nothing ->
-            []
+viewAllowEvents shared { msg, allow_events } =
+    [ div [ class "form-controls", class "-two-col" ]
+        [ viewCheckbox
+            { title = "Push"
+            , subtitle = Nothing
+            , field = "allow_push_branch"
+            , state = allow_events.push.branch
+            , msg = msg { allow_events = allow_events, event = "allow_push_branch" }
+            , disabled_ = False
+            }
+        , viewCheckbox
+            { title = "Tag"
+            , subtitle = Nothing
+            , field = "allow_push_tag"
+            , state = allow_events.push.tag
+            , msg = msg { allow_events = allow_events, event = "allow_push_tag" }
+            , disabled_ = False
+            }
+        ]
+    , h3 [ class "settings-subtitle" ] [ text "Pull Request" ]
+    , div [ class "form-controls", class "-two-col" ]
+        [ viewCheckbox
+            { title = "Opened"
+            , subtitle = Nothing
+            , field = "allow_pull_opened"
+            , state = allow_events.pull.opened
+            , msg = msg { allow_events = allow_events, event = "allow_pull_opened" }
+            , disabled_ = False
+            }
+        , viewCheckbox
+            { title = "Synchronize"
+            , subtitle = Nothing
+            , field = "allow_pull_synchronize"
+            , state = allow_events.pull.synchronize
+            , msg = msg { allow_events = allow_events, event = "allow_pull_synchronize" }
+            , disabled_ = False
+            }
+        , viewCheckbox
+            { title = "Edited"
+            , subtitle = Nothing
+            , field = "allow_pull_edited"
+            , state = allow_events.pull.edited
+            , msg = msg { allow_events = allow_events, event = "allow_pull_edited" }
+            , disabled_ = False
+            }
+        , viewCheckbox
+            { title = "Reopened"
+            , subtitle = Nothing
+            , field = "allow_pull_reopened"
+            , state = allow_events.pull.reopened
+            , msg = msg { allow_events = allow_events, event = "allow_pull_reopened" }
+            , disabled_ = False
+            }
+        ]
+    , h3 [ class "settings-subtitle" ] [ text "Deployments" ]
+    , div [ class "form-controls", class "-two-col" ]
+        [ viewCheckbox
+            { title = "Created"
+            , subtitle = Nothing
+            , field = "allow_deploy_created"
+            , state = allow_events.deploy.created
+            , msg = msg { allow_events = allow_events, event = "allow_deploy_created" }
+            , disabled_ = False
+            }
+        ]
+    , h3 [ class "settings-subtitle" ] [ text "Comment" ]
+    , div [ class "form-controls", class "-two-col" ]
+        [ viewCheckbox
+            { title = "Created"
+            , subtitle = Nothing
+            , field = "allow_comment_created"
+            , state = allow_events.comment.created
+            , msg = msg { allow_events = allow_events, event = "allow_comment_created" }
+            , disabled_ = False
+            }
+        , viewCheckbox
+            { title = "Edited"
+            , subtitle = Nothing
+            , field = "allow_comment_edited"
+            , state = allow_events.comment.edited
+            , msg = msg { allow_events = allow_events, event = "allow_comment_edited" }
+            , disabled_ = False
+            }
+        ]
+    ]

@@ -66,10 +66,10 @@ type alias Model =
     { team : String
     , name : String
     , value : String
-    , events : List String
     , images : List String
     , image : String
     , allowCommand : Bool
+    , allow_events : Vela.AllowEvents
     }
 
 
@@ -83,10 +83,10 @@ init shared route () =
                 Maybe.withDefault route.params.team <| Url.percentDecode route.params.team
       , name = ""
       , value = ""
-      , events = [ "push" ]
       , images = []
       , image = ""
       , allowCommand = True
+      , allow_events = Vela.defaultAllowEvents
       }
     , Effect.none
     )
@@ -103,10 +103,10 @@ type Msg
     | NameOnInput String
     | ValueOnInput String
     | ImageOnInput String
-    | EventOnCheck String Bool
     | AddImage String
     | RemoveImage String
     | AllowCommandsOnClick String
+    | AllowEventsUpdate { allow_events : Vela.AllowEvents, event : String } Bool
     | SubmitForm
 
 
@@ -149,22 +149,6 @@ update shared route msg model =
             , Effect.none
             )
 
-        EventOnCheck event val ->
-            let
-                updatedEvents =
-                    if val then
-                        model.events
-                            |> List.append [ event ]
-                            |> List.Extra.unique
-
-                    else
-                        model.events
-                            |> List.filter ((/=) event)
-            in
-            ( { model | events = updatedEvents }
-            , Effect.none
-            )
-
         AddImage image ->
             ( { model
                 | images =
@@ -191,6 +175,11 @@ update shared route msg model =
             , Effect.none
             )
 
+        AllowEventsUpdate options val ->
+            ( Vela.setAllowEvents model options.event val
+            , Effect.none
+            )
+
         SubmitForm ->
             let
                 payload =
@@ -201,7 +190,7 @@ update shared route msg model =
                         , team = Just model.team
                         , name = Util.stringToMaybe model.name
                         , value = Util.stringToMaybe model.value
-                        , events = Just model.events
+                        , allow_events = Just model.allow_events
                         , images = Just model.images
                         , allowCommand = Just model.allowCommand
                     }
@@ -279,9 +268,10 @@ view shared route model =
                         , msg = ValueOnInput
                         , disabled_ = False
                         }
-                    , Components.SecretForm.viewEventsSelect shared
-                        { msg = EventOnCheck
-                        , events = model.events
+                    , Components.SecretForm.viewAllowEventsSelect
+                        shared
+                        { msg = AllowEventsUpdate
+                        , allow_events = model.allow_events
                         , disabled_ = False
                         }
                     , Components.SecretForm.viewImagesInput

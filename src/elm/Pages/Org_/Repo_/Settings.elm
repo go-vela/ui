@@ -105,7 +105,7 @@ type Msg
     | RepairRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | ChownRepo { repo : Vela.Repository }
     | ChownRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | AllowEventsUpdate Vela.Repository String Bool
+    | AllowEventsUpdate { allow_events : Vela.AllowEvents, event : String } Bool
     | AccessUpdate String
     | ForkPolicyUpdate String
     | BuildLimitOnInput String
@@ -386,12 +386,12 @@ update shared route msg model =
                     , Effect.handleHttpError { httpError = error }
                     )
 
-        AllowEventsUpdate repo event val ->
+        AllowEventsUpdate options val ->
             let
                 payload =
                     { defaultRepoPayload
                         | allow_events =
-                            (Vela.setAllowEvents repo event val).allow_events
+                            Just (Vela.setAllowEvents options options.event val).allow_events
                     }
 
                 body =
@@ -628,7 +628,12 @@ view shared route model =
                             , em [] [ text "Active repositories must have at least one event enabled." ]
                             ]
                          ]
-                            ++ Components.Form.viewAllowEvents AllowEventsUpdate repo.allow_events repo
+                            ++ Components.Form.viewAllowEvents
+                                shared
+                                { msg = AllowEventsUpdate
+                                , allow_events = repo.allow_events
+                                , disabled_ = False
+                                }
                         )
                     , viewAccess repo AccessUpdate
                     , viewForkPolicy repo ForkPolicyUpdate
@@ -644,109 +649,6 @@ view shared route model =
                 text ""
         ]
     }
-
-
-{-| viewAllowEvents : takes repo and renders the settings category for updating repo webhook events
--}
-viewAllowEvents : Vela.Repository -> Html Msg
-viewAllowEvents repo =
-    case repo.allow_events of
-        Just allowEvents ->
-            section [ class "settings", Util.testAttribute "repo-settings-events" ]
-                [ h2 [ class "settings-title" ] [ text "Webhook Events" ]
-                , p [ class "settings-description" ]
-                    [ text "Control which events on Git will trigger Vela pipelines."
-                    , br [] []
-                    , em [] [ text "Active repositories must have at least one event enabled." ]
-                    ]
-                , h3 [ class "settings-subtitle" ] [ text "Push" ]
-                , div [ class "form-controls", class "-two-col" ]
-                    [ Components.Form.viewCheckbox
-                        { title = "Push"
-                        , subtitle = Nothing
-                        , field = "allow_push_branch"
-                        , state = allowEvents.push.branch
-                        , msg = AllowEventsUpdate repo "allow_push_branch"
-                        , disabled_ = False
-                        }
-                    , Components.Form.viewCheckbox
-                        { title = "Tag"
-                        , subtitle = Nothing
-                        , field = "allow_push_tag"
-                        , state = allowEvents.push.tag
-                        , msg = AllowEventsUpdate repo "allow_push_tag"
-                        , disabled_ = False
-                        }
-                    ]
-                , h3 [ class "settings-subtitle" ] [ text "Pull Request" ]
-                , div [ class "form-controls", class "-two-col" ]
-                    [ Components.Form.viewCheckbox
-                        { title = "Opened"
-                        , subtitle = Nothing
-                        , field = "allow_pull_opened"
-                        , state = allowEvents.pull.opened
-                        , msg = AllowEventsUpdate repo "allow_pull_opened"
-                        , disabled_ = False
-                        }
-                    , Components.Form.viewCheckbox
-                        { title = "Synchronize"
-                        , subtitle = Nothing
-                        , field = "allow_pull_synchronize"
-                        , state = allowEvents.pull.synchronize
-                        , msg = AllowEventsUpdate repo "allow_pull_synchronize"
-                        , disabled_ = False
-                        }
-                    , Components.Form.viewCheckbox
-                        { title = "Edited"
-                        , subtitle = Nothing
-                        , field = "allow_pull_edited"
-                        , state = allowEvents.pull.edited
-                        , msg = AllowEventsUpdate repo "allow_pull_edited"
-                        , disabled_ = False
-                        }
-                    , Components.Form.viewCheckbox
-                        { title = "Reopened"
-                        , subtitle = Nothing
-                        , field = "allow_pull_reopened"
-                        , state = allowEvents.pull.reopened
-                        , msg = AllowEventsUpdate repo "allow_pull_reopened"
-                        , disabled_ = False
-                        }
-                    ]
-                , h3 [ class "settings-subtitle" ] [ text "Deployments" ]
-                , div [ class "form-controls", class "-two-col" ]
-                    [ Components.Form.viewCheckbox
-                        { title = "Created"
-                        , subtitle = Nothing
-                        , field = "allow_deploy_created"
-                        , state = allowEvents.deploy.created
-                        , msg = AllowEventsUpdate repo "allow_deploy_created"
-                        , disabled_ = False
-                        }
-                    ]
-                , h3 [ class "settings-subtitle" ] [ text "Comment" ]
-                , div [ class "form-controls", class "-two-col" ]
-                    [ Components.Form.viewCheckbox
-                        { title = "Created"
-                        , subtitle = Nothing
-                        , field = "allow_comment_created"
-                        , state = allowEvents.comment.created
-                        , msg = AllowEventsUpdate repo "allow_comment_created"
-                        , disabled_ = False
-                        }
-                    , Components.Form.viewCheckbox
-                        { title = "Edited"
-                        , subtitle = Nothing
-                        , field = "allow_comment_edited"
-                        , state = allowEvents.comment.edited
-                        , msg = AllowEventsUpdate repo "allow_comment_edited"
-                        , disabled_ = False
-                        }
-                    ]
-                ]
-
-        Nothing ->
-            text ""
 
 
 {-| viewAccess : takes model and repo and renders the settings category for updating repo access

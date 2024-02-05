@@ -63,7 +63,7 @@ toLayout user route model =
 type alias Model =
     { name : String
     , value : String
-    , events : List String
+    , allow_events : Vela.AllowEvents
     , images : List String
     , image : String
     , allowCommand : Bool
@@ -74,7 +74,7 @@ init : Shared.Model -> () -> ( Model, Effect Msg )
 init shared () =
     ( { name = ""
       , value = ""
-      , events = [ "push" ]
+      , allow_events = Vela.defaultAllowEvents
       , images = []
       , image = ""
       , allowCommand = True
@@ -93,10 +93,10 @@ type Msg
     | NameOnInput String
     | ValueOnInput String
     | ImageOnInput String
-    | EventOnCheck String Bool
     | AddImage String
     | RemoveImage String
     | AllowCommandsOnClick String
+    | AllowEventsUpdate { allow_events : Vela.AllowEvents, event : String } Bool
     | SubmitForm
 
 
@@ -134,22 +134,6 @@ update shared route msg model =
             , Effect.none
             )
 
-        EventOnCheck event val ->
-            let
-                updatedEvents =
-                    if val then
-                        model.events
-                            |> List.append [ event ]
-                            |> List.Extra.unique
-
-                    else
-                        model.events
-                            |> List.filter ((/=) event)
-            in
-            ( { model | events = updatedEvents }
-            , Effect.none
-            )
-
         AddImage image ->
             ( { model
                 | images =
@@ -176,6 +160,11 @@ update shared route msg model =
             , Effect.none
             )
 
+        AllowEventsUpdate options val ->
+            ( Vela.setAllowEvents model options.event val
+            , Effect.none
+            )
+
         SubmitForm ->
             let
                 payload =
@@ -186,9 +175,9 @@ update shared route msg model =
                         , team = Nothing
                         , name = Util.stringToMaybe model.name
                         , value = Util.stringToMaybe model.value
-                        , events = Just model.events
                         , images = Just model.images
                         , allowCommand = Just model.allowCommand
+                        , allow_events = Just model.allow_events
                     }
 
                 body =
@@ -251,9 +240,10 @@ view shared route model =
                         , msg = ValueOnInput
                         , disabled_ = False
                         }
-                    , Components.SecretForm.viewEventsSelect shared
-                        { msg = EventOnCheck
-                        , events = model.events
+                    , Components.SecretForm.viewAllowEventsSelect
+                        shared
+                        { msg = AllowEventsUpdate
+                        , allow_events = model.allow_events
                         , disabled_ = False
                         }
                     , Components.SecretForm.viewImagesInput
