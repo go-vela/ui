@@ -46,7 +46,7 @@
   //  <label class="form-label">...</label>
   // </div>
   textarea {
-    width: 70%;
+    width: 100%;
     margin-top: 0.2rem;
     margin-bottom: 0.5rem;
     padding: 0.5rem;
@@ -246,7 +246,7 @@
 
 .form-controls {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   padding: 0.5rem 1rem;
 
   border: none;

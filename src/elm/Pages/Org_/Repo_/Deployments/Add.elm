@@ -9,7 +9,7 @@ import Auth
 import Components.Form
 import Dict
 import Effect exposing (Effect)
-import Html exposing (Html, button, code, div, em, h2, label, section, span, strong, text)
+import Html exposing (Html, button, code, div, em, h2, label, p, section, span, strong, text)
 import Html.Attributes exposing (class, disabled, for, id)
 import Html.Events exposing (onClick)
 import Http
@@ -282,7 +282,7 @@ view shared route model =
                     [ case model.repo of
                         RemoteData.Success repo ->
                             if not repo.allow_deploy then
-                                section [ class "notice" ]
+                                p [ class "notice" ]
                                     [ strong []
                                         [ text "Deploy webhook for this repo must be enabled in settings"
                                         ]
