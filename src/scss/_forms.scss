@@ -277,7 +277,6 @@
   // .-row is for horizontally stacking controls
   &.-row {
     flex-flow: row nowrap;
-    justify-content: flex-start;
 
     .form-control:not(:last-child) {
       margin-right: 0.5rem;
