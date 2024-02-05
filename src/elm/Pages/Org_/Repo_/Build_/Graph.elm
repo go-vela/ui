@@ -173,7 +173,10 @@ update shared route msg model =
 
                 Err error ->
                     ( { model | graph = Utils.Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.batch
+                        [ Effect.handleHttpError { httpError = error }
+                        , clearBuildGraph |> Effect.sendCmd
+                        ]
                     )
 
         Refresh options ->
