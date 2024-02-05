@@ -458,6 +458,19 @@ defaultRepoPayload =
     }
 
 
+
+-- ALLOW EVENTS
+
+
+type alias AllowEvents =
+    { push : PushActions
+    , pull : PullActions
+    , deploy : DeployActions
+    , comment : CommentActions
+    , schedule : ScheduleActions
+    }
+
+
 type alias PushActions =
     { branch : Bool
     , tag : Bool
@@ -485,15 +498,6 @@ type alias CommentActions =
 
 type alias ScheduleActions =
     { run : Bool
-    }
-
-
-type alias AllowEvents =
-    { push : PushActions
-    , pull : PullActions
-    , deploy : DeployActions
-    , comment : CommentActions
-    , schedule : ScheduleActions
     }
 
 
@@ -1302,7 +1306,6 @@ type alias Secret =
     , name : String
     , type_ : SecretType
     , images : List String
-    , events : List String
     , allowCommand : Bool
     , allowEvents : AllowEvents
     }
@@ -1388,7 +1391,6 @@ decodeSecret =
         |> optional "name" string ""
         |> optional "type" secretTypeDecoder RepoSecret
         |> optional "images" (Json.Decode.list string) []
-        |> optional "events" (Json.Decode.list string) []
         |> optional "allow_command" bool False
         |> optional "allow_events" decodeAllowEvents defaultAllowEvents
 
