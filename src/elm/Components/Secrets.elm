@@ -5,6 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 module Components.Secrets exposing (viewOrgSecrets, viewRepoSecrets, viewSharedSecrets)
 
+import Components.Loading
 import Components.Table
 import FeatherIcons
 import Html exposing (Html, a, button, div, span, td, text, tr)
@@ -77,7 +78,7 @@ viewOrgSecrets shared props =
                     )
 
                 _ ->
-                    ( Util.smallLoader, [] )
+                    ( Components.Loading.viewSmallLoader, [] )
 
         cfg =
             Components.Table.Config
@@ -127,7 +128,7 @@ viewRepoSecrets shared props =
                     )
 
                 _ ->
-                    ( Util.smallLoader, [] )
+                    ( Components.Loading.viewSmallLoader, [] )
 
         cfg =
             Components.Table.Config
@@ -177,7 +178,7 @@ viewSharedSecrets shared props =
                     )
 
                 _ ->
-                    ( Util.smallLoader, [] )
+                    ( Components.Loading.viewSmallLoader, [] )
 
         cfg =
             Components.Table.Config

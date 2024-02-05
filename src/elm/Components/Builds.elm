@@ -6,6 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 module Components.Builds exposing (view, viewHeader)
 
 import Components.Build
+import Components.Loading
 import Html
     exposing
         ( Html
@@ -127,10 +128,10 @@ view shared props =
                         builds
 
         RemoteData.Loading ->
-            Util.smallLoader
+            Components.Loading.viewSmallLoader
 
         RemoteData.NotAsked ->
-            Util.smallLoader
+            Components.Loading.viewSmallLoader
 
         RemoteData.Failure _ ->
             div [ Util.testAttribute "builds-error" ]

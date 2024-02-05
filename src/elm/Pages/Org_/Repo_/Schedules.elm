@@ -7,6 +7,7 @@ module Pages.Org_.Repo_.Schedules exposing (Model, Msg, page, view)
 
 import Api.Pagination
 import Auth
+import Components.Loading
 import Components.Pager
 import Components.Table
 import Dict
@@ -243,7 +244,7 @@ viewRepoSchedules shared model org repo =
                         )
 
                     _ ->
-                        ( Util.smallLoader, [] )
+                        ( Components.Loading.viewSmallLoader, [] )
 
             else
                 ( viewSchedulesNotAllowedSpan

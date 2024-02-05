@@ -8,6 +8,7 @@ module Pages.Org_.Repo_.Build_.Pipeline exposing (..)
 import Ansi.Log
 import Array
 import Auth
+import Components.Loading
 import Dict exposing (Dict)
 import Effect exposing (Effect)
 import FeatherIcons
@@ -420,7 +421,7 @@ view shared route model =
                     text "error"
 
                 _ ->
-                    Util.smallLoaderWithText "loading pipeline templates"
+                    Components.Loading.viewSmallLoaderWithText "loading pipeline templates"
             , case model.pipeline of
                 RemoteData.Success pipeline ->
                     if String.length pipeline.decodedData > 0 then
@@ -440,7 +441,7 @@ view shared route model =
                                                 div [ class "action", class "expand-pipeline", Util.testAttribute "pipeline-expand" ]
                                                     [ viewExpandToggleButton model
                                                     , if model.expanding then
-                                                        Util.smallLoader
+                                                        Components.Loading.viewSmallLoader
 
                                                       else if model.expand then
                                                         div [ class "icon" ] [ FeatherIcons.checkCircle |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [] ]
@@ -486,7 +487,7 @@ view shared route model =
                         div [ class "no-pipeline" ] [ small [] [ code [] [ text "No pipeline found for this build." ] ] ]
 
                 _ ->
-                    Util.smallLoader
+                    Components.Loading.viewSmallLoader
             ]
         ]
     }

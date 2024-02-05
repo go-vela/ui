@@ -7,6 +7,7 @@ module Pages.Org_ exposing (Model, Msg, page, view)
 
 import Api.Pagination
 import Auth
+import Components.Loading
 import Components.Pager
 import Components.Repo
 import Dict
@@ -201,10 +202,10 @@ view shared route model =
                     div [] (List.map (\repository -> viewRepo shared (RemoteData.unwrap [] .favorites shared.user) False repository.org repository.name) repos)
 
             RemoteData.Loading ->
-                Util.smallLoader
+                Components.Loading.viewSmallLoader
 
             RemoteData.NotAsked ->
-                Util.smallLoader
+                Components.Loading.viewSmallLoader
 
             RemoteData.Failure _ ->
                 div [ Util.testAttribute "repos-error" ]

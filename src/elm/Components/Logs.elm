@@ -1,8 +1,14 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module Components.Logs exposing (view)
 
 import Ansi.Log
 import Array
 import Browser.Dom exposing (focus)
+import Components.Loading
 import FeatherIcons
 import Html exposing (Html, a, button, code, div, span, table, td, text, tr)
 import Html.Attributes exposing (attribute, class, href, id)
@@ -64,7 +70,7 @@ view shared props =
 
         _ ->
             div [ class "message" ]
-                [ Util.smallLoaderWithText "loading..." ]
+                [ Components.Loading.viewSmallLoaderWithText "loading..." ]
 
 
 {-| viewLogLines : takes number linefocus log and clickAction shiftDown and renders logs for a build resource

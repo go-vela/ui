@@ -5,7 +5,6 @@ SPDX-License-Identifier: Apache-2.0
 
 module Components.Nav exposing (view)
 
-import Components.Crumbs
 import Html
     exposing
         ( Html

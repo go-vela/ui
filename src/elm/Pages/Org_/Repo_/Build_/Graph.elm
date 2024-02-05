@@ -7,6 +7,7 @@ module Pages.Org_.Repo_.Build_.Graph exposing (..)
 
 import Auth
 import Browser.Events
+import Components.Loading
 import Components.Svgs
 import Dict exposing (Dict)
 import Effect exposing (Effect)
@@ -505,10 +506,10 @@ view shared route model =
                             ]
 
                     RemoteData.Loading ->
-                        Util.smallLoader
+                        Components.Loading.viewSmallLoader
 
                     RemoteData.NotAsked ->
-                        Util.smallLoader
+                        Components.Loading.viewSmallLoader
                 , Svg.svg
                     [ Svg.Attributes.class "elm-build-graph-root"
                     ]

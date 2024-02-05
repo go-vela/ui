@@ -7,6 +7,7 @@ module Pages.Org_.Repo_.Build_ exposing (..)
 
 import Auth
 import Browser.Dom exposing (focus)
+import Components.Loading
 import Components.Logs
 import Components.Svgs
 import Debug exposing (log)
@@ -508,7 +509,7 @@ view shared route model =
                     div [ class "no-steps" ] [ small [] [ code [] [ text "No steps found for this pipeline." ] ] ]
 
             _ ->
-                Util.smallLoader
+                Components.Loading.viewSmallLoader
         ]
     }
 

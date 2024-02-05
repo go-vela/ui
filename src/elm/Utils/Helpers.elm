@@ -27,7 +27,6 @@ module Utils.Helpers exposing
     , humanReadableDateWithDefault
     , isLoading
     , isSuccess
-    , largeLoader
     , mergeListsById
     , noBlanks
     , onClickPreventDefault
@@ -38,8 +37,6 @@ module Utils.Helpers exposing
     , pageToString
     , relativeTimeNoSeconds
     , secondsToMillis
-    , smallLoader
-    , smallLoaderWithText
     , stringToAllowlist
     , stringToMaybe
     , successful
@@ -402,27 +399,6 @@ open isOpen =
 ariaHidden : Html.Attribute msg
 ariaHidden =
     attribute "aria-hidden" "true"
-
-
-{-| smallLoader : renders a small loading spinner for better transitioning UX
--}
-smallLoader : Html msg
-smallLoader =
-    div [ class "small-loader" ] [ div [ class "-spinner" ] [], div [ class "-label" ] [] ]
-
-
-{-| smallLoaderWithText : renders a small loading spinner for better transitioning UX with additional loading text
--}
-smallLoaderWithText : String -> Html msg
-smallLoaderWithText label =
-    div [ class "small-loader" ] [ div [ class "-spinner" ] [], div [ class "-label" ] [ text label ] ]
-
-
-{-| largeLoader : renders a small loading spinner for better transitioning UX
--}
-largeLoader : Html msg
-largeLoader =
-    div [ class "large-loader" ] [ div [ class "-spinner" ] [], div [ class "-label" ] [] ]
 
 
 {-| attrIf : takes a Bool and returns either the Html.Attribute or the Html equivalent of nothing

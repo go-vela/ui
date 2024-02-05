@@ -7,6 +7,7 @@ module Pages.Org_.Repo_.Deployments exposing (..)
 
 import Api.Pagination
 import Auth
+import Components.Loading
 import Components.Pager
 import Components.Svgs
 import Components.Table
@@ -273,7 +274,7 @@ viewDeployments shared model route =
                     ( viewError error, [] )
 
                 _ ->
-                    ( Util.smallLoader, [] )
+                    ( Components.Loading.viewSmallLoader, [] )
 
         cfg =
             Components.Table.Config

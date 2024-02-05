@@ -9,6 +9,7 @@ import Ansi.Log
 import Api.Pagination
 import Array
 import Auth
+import Components.Loading
 import Components.Pager
 import Components.Svgs
 import Components.Table
@@ -259,7 +260,7 @@ viewHooks shared model hooks =
                     )
 
                 _ ->
-                    ( Util.smallLoader, [] )
+                    ( Components.Loading.viewSmallLoader, [] )
 
         cfg =
             Components.Table.Config

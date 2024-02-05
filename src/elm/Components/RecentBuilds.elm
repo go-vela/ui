@@ -5,6 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 module Components.RecentBuilds exposing (view)
 
+import Components.Loading
 import Components.Svgs
 import Html exposing (Html, a, div, em, li, p, span, text, ul)
 import Html.Attributes exposing (attribute, class)
@@ -47,7 +48,7 @@ view shared props =
                 text ""
 
         _ ->
-            Util.smallLoader
+            Components.Loading.viewSmallLoader
 
 
 {-| viewRecentBuild : takes recent build and renders status and link to build as a small icon widget
