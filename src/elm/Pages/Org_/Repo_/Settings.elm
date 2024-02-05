@@ -105,7 +105,7 @@ type Msg
     | RepairRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | ChownRepo { repo : Vela.Repository }
     | ChownRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | AllowEventsUpdate { allow_events : Vela.AllowEvents, event : String } Bool
+    | AllowEventsUpdate { allowEvents : Vela.AllowEvents, event : String } Bool
     | AccessUpdate String
     | ForkPolicyUpdate String
     | BuildLimitOnInput String
@@ -390,8 +390,8 @@ update shared route msg model =
             let
                 payload =
                     { defaultRepoPayload
-                        | allow_events =
-                            Just (Vela.setAllowEvents options options.event val).allow_events
+                        | allowEvents =
+                            Just (Vela.setAllowEvents options options.event val).allowEvents
                     }
 
                 body =
@@ -631,7 +631,7 @@ view shared route model =
                             ++ Components.Form.viewAllowEvents
                                 shared
                                 { msg = AllowEventsUpdate
-                                , allow_events = repo.allow_events
+                                , allowEvents = repo.allowEvents
                                 , disabled_ = False
                                 }
                         )

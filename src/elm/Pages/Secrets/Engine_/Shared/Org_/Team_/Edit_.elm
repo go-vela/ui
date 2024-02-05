@@ -70,7 +70,7 @@ type alias Model =
     , images : List String
     , image : String
     , allowCommand : Bool
-    , allow_events : Vela.AllowEvents
+    , allowEvents : Vela.AllowEvents
     , confirmingDelete : Bool
     }
 
@@ -83,7 +83,7 @@ init shared route () =
       , images = []
       , image = ""
       , allowCommand = True
-      , allow_events = Vela.defaultAllowEvents
+      , allowEvents = Vela.defaultAllowEvents
       , confirmingDelete = False
       }
     , Effect.getSharedSecret
@@ -113,7 +113,7 @@ type Msg
     | AddImage String
     | RemoveImage String
     | AllowCommandsOnClick String
-    | AllowEventsUpdate { allow_events : Vela.AllowEvents, event : String } Bool
+    | AllowEventsUpdate { allowEvents : Vela.AllowEvents, event : String } Bool
     | SubmitForm
     | ClickDelete
     | CancelDelete
@@ -135,7 +135,7 @@ update shared route msg model =
                         , name = secret.name
                         , images = secret.images
                         , allowCommand = secret.allowCommand
-                        , allow_events = secret.allow_events
+                        , allowEvents = secret.allowEvents
                       }
                     , Effect.none
                     )
@@ -236,7 +236,7 @@ update shared route msg model =
                         , value = Util.stringToMaybe model.value
                         , images = Just model.images
                         , allowCommand = Just model.allowCommand
-                        , allow_events = Just model.allow_events
+                        , allowEvents = Just model.allowEvents
                     }
 
                 body =
@@ -327,7 +327,7 @@ view shared route model =
                     , Components.SecretForm.viewAllowEventsSelect
                         shared
                         { msg = AllowEventsUpdate
-                        , allow_events = model.allow_events
+                        , allowEvents = model.allowEvents
                         , disabled_ = False
                         }
                     , Components.SecretForm.viewImagesInput

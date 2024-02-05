@@ -167,27 +167,27 @@ viewButton { msg, text_, classList_, disabled_ } =
 viewAllowEvents :
     Shared.Model
     ->
-        { msg : { allow_events : Vela.AllowEvents, event : String } -> Bool -> msg
-        , allow_events : Vela.AllowEvents
+        { msg : { allowEvents : Vela.AllowEvents, event : String } -> Bool -> msg
+        , allowEvents : Vela.AllowEvents
         , disabled_ : Bool
         }
     -> List (Html msg)
-viewAllowEvents shared { msg, allow_events } =
+viewAllowEvents shared { msg, allowEvents } =
     [ div [ class "form-controls", class "-two-col" ]
         [ viewCheckbox
             { title = "Push"
             , subtitle = Nothing
             , field = "allow_push_branch"
-            , state = allow_events.push.branch
-            , msg = msg { allow_events = allow_events, event = "allow_push_branch" }
+            , state = allowEvents.push.branch
+            , msg = msg { allowEvents = allowEvents, event = "allow_push_branch" }
             , disabled_ = False
             }
         , viewCheckbox
             { title = "Tag"
             , subtitle = Nothing
             , field = "allow_push_tag"
-            , state = allow_events.push.tag
-            , msg = msg { allow_events = allow_events, event = "allow_push_tag" }
+            , state = allowEvents.push.tag
+            , msg = msg { allowEvents = allowEvents, event = "allow_push_tag" }
             , disabled_ = False
             }
         ]
@@ -197,32 +197,32 @@ viewAllowEvents shared { msg, allow_events } =
             { title = "Opened"
             , subtitle = Nothing
             , field = "allow_pull_opened"
-            , state = allow_events.pull.opened
-            , msg = msg { allow_events = allow_events, event = "allow_pull_opened" }
+            , state = allowEvents.pull.opened
+            , msg = msg { allowEvents = allowEvents, event = "allow_pull_opened" }
             , disabled_ = False
             }
         , viewCheckbox
             { title = "Synchronize"
             , subtitle = Nothing
             , field = "allow_pull_synchronize"
-            , state = allow_events.pull.synchronize
-            , msg = msg { allow_events = allow_events, event = "allow_pull_synchronize" }
+            , state = allowEvents.pull.synchronize
+            , msg = msg { allowEvents = allowEvents, event = "allow_pull_synchronize" }
             , disabled_ = False
             }
         , viewCheckbox
             { title = "Edited"
             , subtitle = Nothing
             , field = "allow_pull_edited"
-            , state = allow_events.pull.edited
-            , msg = msg { allow_events = allow_events, event = "allow_pull_edited" }
+            , state = allowEvents.pull.edited
+            , msg = msg { allowEvents = allowEvents, event = "allow_pull_edited" }
             , disabled_ = False
             }
         , viewCheckbox
             { title = "Reopened"
             , subtitle = Nothing
             , field = "allow_pull_reopened"
-            , state = allow_events.pull.reopened
-            , msg = msg { allow_events = allow_events, event = "allow_pull_reopened" }
+            , state = allowEvents.pull.reopened
+            , msg = msg { allowEvents = allowEvents, event = "allow_pull_reopened" }
             , disabled_ = False
             }
         ]
@@ -232,8 +232,8 @@ viewAllowEvents shared { msg, allow_events } =
             { title = "Created"
             , subtitle = Nothing
             , field = "allow_deploy_created"
-            , state = allow_events.deploy.created
-            , msg = msg { allow_events = allow_events, event = "allow_deploy_created" }
+            , state = allowEvents.deploy.created
+            , msg = msg { allowEvents = allowEvents, event = "allow_deploy_created" }
             , disabled_ = False
             }
         ]
@@ -243,16 +243,16 @@ viewAllowEvents shared { msg, allow_events } =
             { title = "Created"
             , subtitle = Nothing
             , field = "allow_comment_created"
-            , state = allow_events.comment.created
-            , msg = msg { allow_events = allow_events, event = "allow_comment_created" }
+            , state = allowEvents.comment.created
+            , msg = msg { allowEvents = allowEvents, event = "allow_comment_created" }
             , disabled_ = False
             }
         , viewCheckbox
             { title = "Edited"
             , subtitle = Nothing
             , field = "allow_comment_edited"
-            , state = allow_events.comment.edited
-            , msg = msg { allow_events = allow_events, event = "allow_comment_edited" }
+            , state = allowEvents.comment.edited
+            , msg = msg { allowEvents = allowEvents, event = "allow_comment_edited" }
             , disabled_ = False
             }
         ]

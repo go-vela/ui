@@ -63,7 +63,7 @@ toLayout user route model =
 type alias Model =
     { name : String
     , value : String
-    , allow_events : Vela.AllowEvents
+    , allowEvents : Vela.AllowEvents
     , images : List String
     , image : String
     , allowCommand : Bool
@@ -74,7 +74,7 @@ init : Shared.Model -> () -> ( Model, Effect Msg )
 init shared () =
     ( { name = ""
       , value = ""
-      , allow_events = Vela.defaultAllowEvents
+      , allowEvents = Vela.defaultAllowEvents
       , images = []
       , image = ""
       , allowCommand = True
@@ -96,7 +96,7 @@ type Msg
     | AddImage String
     | RemoveImage String
     | AllowCommandsOnClick String
-    | AllowEventsUpdate { allow_events : Vela.AllowEvents, event : String } Bool
+    | AllowEventsUpdate { allowEvents : Vela.AllowEvents, event : String } Bool
     | SubmitForm
 
 
@@ -177,7 +177,7 @@ update shared route msg model =
                         , value = Util.stringToMaybe model.value
                         , images = Just model.images
                         , allowCommand = Just model.allowCommand
-                        , allow_events = Just model.allow_events
+                        , allowEvents = Just model.allowEvents
                     }
 
                 body =
@@ -243,7 +243,7 @@ view shared route model =
                     , Components.SecretForm.viewAllowEventsSelect
                         shared
                         { msg = AllowEventsUpdate
-                        , allow_events = model.allow_events
+                        , allowEvents = model.allowEvents
                         , disabled_ = False
                         }
                     , Components.SecretForm.viewImagesInput

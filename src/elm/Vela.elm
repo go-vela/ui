@@ -85,7 +85,6 @@ module Vela exposing
     , secretTypeToString
     , setAllowEvents
     , statusToString
-    , toAllowEventsPayload
     )
 
 import Bytes.Encode
@@ -218,7 +217,7 @@ buildEnableRepoPayload repo =
         repo.allow_deploy
         repo.allow_tag
         repo.allow_comment
-        repo.allow_events
+        repo.allowEvents
 
 
 encodeEnableRepository : EnableRepoPayload -> Json.Encode.Value
@@ -237,7 +236,7 @@ encodeEnableRepository repo =
         , ( "allow_deploy", Json.Encode.bool <| repo.allow_deploy )
         , ( "allow_tag", Json.Encode.bool <| repo.allow_tag )
         , ( "allow_comment", Json.Encode.bool <| repo.allow_comment )
-        , ( "allow_events", encodeAllowEvents repo.allow_events )
+        , ( "allow_events", encodeAllowEvents repo.allowEvents )
         ]
 
 
@@ -305,7 +304,7 @@ type alias EnableRepoPayload =
     , allow_deploy : Bool
     , allow_tag : Bool
     , allow_comment : Bool
-    , allow_events : AllowEventsPayload
+    , allowEvents : AllowEvents
     }
 
 
@@ -358,7 +357,7 @@ type alias Repository =
     , allow_deploy : Bool
     , allow_tag : Bool
     , allow_comment : Bool
-    , allow_events : AllowEvents
+    , allowEvents : AllowEvents
     , enabled : Enabled
     , pipeline_type : String
     }
@@ -408,7 +407,7 @@ type alias RepoPayload =
     , allow_deploy : Maybe Bool
     , allow_tag : Maybe Bool
     , allow_comment : Maybe Bool
-    , allow_events : Maybe AllowEventsPayload
+    , allowEvents : Maybe AllowEvents
     , visibility : Maybe String
     , approve_build : Maybe String
     , limit : Maybe Int
@@ -429,7 +428,7 @@ encodeRepoPayload repo =
         , ( "allow_deploy", encodeOptional Json.Encode.bool repo.allow_deploy )
         , ( "allow_tag", encodeOptional Json.Encode.bool repo.allow_tag )
         , ( "allow_comment", encodeOptional Json.Encode.bool repo.allow_comment )
-        , ( "allow_events", encodeOptional encodeAllowEvents repo.allow_events )
+        , ( "allow_events", encodeOptional encodeAllowEvents repo.allowEvents )
         , ( "visibility", encodeOptional Json.Encode.string repo.visibility )
         , ( "approve_build", encodeOptional Json.Encode.string repo.approve_build )
         , ( "build_limit", encodeOptional Json.Encode.int repo.limit )
@@ -449,85 +448,13 @@ defaultRepoPayload =
     , allow_deploy = Nothing
     , allow_tag = Nothing
     , allow_comment = Nothing
-    , allow_events = Nothing
+    , allowEvents = Nothing
     , visibility = Nothing
     , approve_build = Nothing
     , limit = Nothing
     , timeout = Nothing
     , counter = Nothing
     , pipeline_type = Nothing
-    }
-
-
-setAllowEvents :
-    { a | allow_events : AllowEvents }
-    -> String
-    -> Bool
-    -> { a | allow_events : AllowEventsPayload }
-setAllowEvents payload field val =
-    let
-        events =
-            toAllowEventsPayload payload
-
-        { push, pull, deploy, comment } =
-            events
-    in
-    case field of
-        "allow_push_branch" ->
-            { payload
-                | allow_events = { events | push = { push | branch = val } }
-            }
-
-        "allow_push_tag" ->
-            { payload
-                | allow_events = { events | push = { push | tag = val } }
-            }
-
-        "allow_pull_opened" ->
-            { payload
-                | allow_events = { events | pull = { pull | opened = val } }
-            }
-
-        "allow_pull_synchronize" ->
-            { payload
-                | allow_events = { events | pull = { pull | synchronize = val } }
-            }
-
-        "allow_pull_edited" ->
-            { payload
-                | allow_events = { events | pull = { pull | edited = val } }
-            }
-
-        "allow_pull_reopened" ->
-            { payload
-                | allow_events = { events | pull = { pull | reopened = val } }
-            }
-
-        "allow_deploy_created" ->
-            { payload
-                | allow_events = { events | deploy = { deploy | created = val } }
-            }
-
-        "allow_comment_created" ->
-            { payload
-                | allow_events = { events | comment = { comment | created = val } }
-            }
-
-        "allow_comment_edited" ->
-            { payload
-                | allow_events = { events | comment = { comment | edited = val } }
-            }
-
-        _ ->
-            payload
-
-
-type alias AllowEventsPayload =
-    { push : PushActions
-    , pull : PullActions
-    , deploy : DeployActions
-    , comment : CommentActions
-    , schedule : ScheduleActions
     }
 
 
@@ -570,7 +497,7 @@ type alias AllowEvents =
     }
 
 
-defaultAllowEvents : AllowEventsPayload
+defaultAllowEvents : AllowEvents
 defaultAllowEvents =
     { push =
         { branch = False
@@ -593,66 +520,6 @@ defaultAllowEvents =
         { run = False
         }
     }
-
-
-toAllowEventsPayload : { a | allow_events : AllowEvents } -> AllowEventsPayload
-toAllowEventsPayload { allow_events } =
-    AllowEventsPayload
-        (defaultPushActions (Just allow_events.push))
-        (defaultPullActions (Just allow_events.pull))
-        (defaultDeployActions (Just allow_events.deploy))
-        (defaultCommentActions (Just allow_events.comment))
-        (defaultScheduleActions (Just allow_events.schedule))
-
-
-defaultPushActions : Maybe PushActions -> PushActions
-defaultPushActions pushActions =
-    case pushActions of
-        Nothing ->
-            PushActions False False
-
-        Just push ->
-            PushActions push.branch push.tag
-
-
-defaultPullActions : Maybe PullActions -> PullActions
-defaultPullActions pullActions =
-    case pullActions of
-        Nothing ->
-            PullActions False False False False
-
-        Just pull ->
-            PullActions pull.opened pull.synchronize pull.edited pull.reopened
-
-
-defaultDeployActions : Maybe DeployActions -> DeployActions
-defaultDeployActions deployActions =
-    case deployActions of
-        Nothing ->
-            DeployActions False
-
-        Just deploy ->
-            DeployActions deploy.created
-
-
-defaultCommentActions : Maybe CommentActions -> CommentActions
-defaultCommentActions commentActions =
-    case commentActions of
-        Nothing ->
-            CommentActions False False
-
-        Just comment ->
-            CommentActions comment.created comment.edited
-
-
-defaultScheduleActions : Maybe ScheduleActions -> ScheduleActions
-defaultScheduleActions scheduleActions =
-    case scheduleActions of
-        Nothing ->
-            ScheduleActions False
-
-        Just schedule ->
-            ScheduleActions schedule.run
 
 
 decodePushActions : Decoder PushActions
@@ -700,7 +567,7 @@ decodeAllowEvents =
         |> required "schedule" decodeScheduleActions
 
 
-encodeAllowEvents : AllowEventsPayload -> Json.Encode.Value
+encodeAllowEvents : AllowEvents -> Json.Encode.Value
 encodeAllowEvents events =
     Json.Encode.object
         [ ( "push", encodePushActions events.push )
@@ -749,6 +616,69 @@ encodeScheduleActions schedule =
     Json.Encode.object
         [ ( "run", Json.Encode.bool <| schedule.run )
         ]
+
+
+setAllowEvents :
+    { a | allowEvents : AllowEvents }
+    -> String
+    -> Bool
+    -> { a | allowEvents : AllowEvents }
+setAllowEvents payload field val =
+    let
+        events =
+            payload.allowEvents
+
+        { push, pull, deploy, comment } =
+            events
+    in
+    case field of
+        "allow_push_branch" ->
+            { payload
+                | allowEvents = { events | push = { push | branch = val } }
+            }
+
+        "allow_push_tag" ->
+            { payload
+                | allowEvents = { events | push = { push | tag = val } }
+            }
+
+        "allow_pull_opened" ->
+            { payload
+                | allowEvents = { events | pull = { pull | opened = val } }
+            }
+
+        "allow_pull_synchronize" ->
+            { payload
+                | allowEvents = { events | pull = { pull | synchronize = val } }
+            }
+
+        "allow_pull_edited" ->
+            { payload
+                | allowEvents = { events | pull = { pull | edited = val } }
+            }
+
+        "allow_pull_reopened" ->
+            { payload
+                | allowEvents = { events | pull = { pull | reopened = val } }
+            }
+
+        "allow_deploy_created" ->
+            { payload
+                | allowEvents = { events | deploy = { deploy | created = val } }
+            }
+
+        "allow_comment_created" ->
+            { payload
+                | allowEvents = { events | comment = { comment | created = val } }
+            }
+
+        "allow_comment_edited" ->
+            { payload
+                | allowEvents = { events | comment = { comment | edited = val } }
+            }
+
+        _ ->
+            payload
 
 
 
@@ -1374,7 +1304,7 @@ type alias Secret =
     , images : List String
     , events : List String
     , allowCommand : Bool
-    , allow_events : AllowEvents
+    , allowEvents : AllowEvents
     }
 
 
@@ -1478,7 +1408,7 @@ type alias SecretPayload =
     , events : Maybe (List String)
     , images : Maybe (List String)
     , allowCommand : Maybe Bool
-    , allow_events : Maybe AllowEventsPayload
+    , allowEvents : Maybe AllowEvents
     }
 
 
@@ -1493,7 +1423,7 @@ defaultSecretPayload =
     , events = Nothing
     , images = Nothing
     , allowCommand = Nothing
-    , allow_events = Nothing
+    , allowEvents = Nothing
     }
 
 
@@ -1508,7 +1438,7 @@ encodeSecretPayload secret =
         , ( "value", encodeOptional Json.Encode.string secret.value )
         , ( "images", encodeOptionalList Json.Encode.string secret.images )
         , ( "allow_command", encodeOptional Json.Encode.bool secret.allowCommand )
-        , ( "allow_events", encodeOptional encodeAllowEvents secret.allow_events )
+        , ( "allow_events", encodeOptional encodeAllowEvents secret.allowEvents )
         ]
 
 

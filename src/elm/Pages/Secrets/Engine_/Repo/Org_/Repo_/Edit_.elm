@@ -67,7 +67,7 @@ type alias Model =
     { secret : WebData Vela.Secret
     , name : String
     , value : String
-    , allow_events : Vela.AllowEvents
+    , allowEvents : Vela.AllowEvents
     , images : List String
     , image : String
     , allowCommand : Bool
@@ -80,7 +80,7 @@ init shared route () =
     ( { secret = RemoteData.Loading
       , name = ""
       , value = ""
-      , allow_events = Vela.defaultAllowEvents
+      , allowEvents = Vela.defaultAllowEvents
       , images = []
       , image = ""
       , allowCommand = True
@@ -113,7 +113,7 @@ type Msg
     | AddImage String
     | RemoveImage String
     | AllowCommandsOnClick String
-    | AllowEventsUpdate { allow_events : Vela.AllowEvents, event : String } Bool
+    | AllowEventsUpdate { allowEvents : Vela.AllowEvents, event : String } Bool
     | SubmitForm
     | ClickDelete
     | CancelDelete
@@ -135,7 +135,7 @@ update shared route msg model =
                         , name = secret.name
                         , images = secret.images
                         , allowCommand = secret.allowCommand
-                        , allow_events = secret.allow_events
+                        , allowEvents = secret.allowEvents
                       }
                     , Effect.none
                     )
@@ -234,7 +234,7 @@ update shared route msg model =
                         , team = Nothing
                         , name = Util.stringToMaybe model.name
                         , value = Util.stringToMaybe model.value
-                        , allow_events = Just model.allow_events
+                        , allowEvents = Just model.allowEvents
                         , images = Just model.images
                         , allowCommand = Just model.allowCommand
                     }
@@ -327,7 +327,7 @@ view shared route model =
                     , Components.SecretForm.viewAllowEventsSelect
                         shared
                         { msg = AllowEventsUpdate
-                        , allow_events = model.allow_events
+                        , allowEvents = model.allowEvents
                         , disabled_ = False
                         }
                     , Components.SecretForm.viewImagesInput

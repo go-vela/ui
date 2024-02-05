@@ -291,7 +291,7 @@ viewSecret engine type_ copyMsg secret =
             , scope "row"
             , class "break-word"
             ]
-            [ Components.Table.viewListCell (allowEventsToList secret.allow_events) "no events" []
+            [ Components.Table.viewListCell (allowEventsToList secret.allowEvents) "no events" []
             ]
         , td
             [ attribute "data-label" "images"

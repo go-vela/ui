@@ -44,8 +44,8 @@ import Vela
 viewAllowEventsSelect :
     Shared.Model
     ->
-        { msg : { allow_events : Vela.AllowEvents, event : String } -> Bool -> msg
-        , allow_events : Vela.AllowEvents
+        { msg : { allowEvents : Vela.AllowEvents, event : String } -> Bool -> msg
+        , allowEvents : Vela.AllowEvents
         , disabled_ : Bool
         }
     -> Html msg
