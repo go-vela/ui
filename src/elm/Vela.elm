@@ -44,6 +44,7 @@ module Vela exposing
     , Template
     , Templates
     , Type
+    , allowEventsToList
     , buildEnableRepoPayload
     , decodeBuild
     , decodeBuildGraph
@@ -474,6 +475,8 @@ type alias AllowEvents =
 type alias PushActions =
     { branch : Bool
     , tag : Bool
+    , deleteBranch : Bool
+    , deleteTag : Bool
     }
 
 
@@ -506,6 +509,8 @@ defaultAllowEvents =
     { push =
         { branch = False
         , tag = False
+        , deleteBranch = False
+        , deleteTag = False
         }
     , pull =
         { opened = False
@@ -531,6 +536,8 @@ decodePushActions =
     Json.Decode.succeed PushActions
         |> required "branch" bool
         |> required "tag" bool
+        |> required "delete_branch" bool
+        |> required "delete_tag" bool
 
 
 decodePullActions : Decoder PullActions
@@ -587,6 +594,8 @@ encodePushActions push =
     Json.Encode.object
         [ ( "branch", Json.Encode.bool <| push.branch )
         , ( "tag", Json.Encode.bool <| push.tag )
+        , ( "delete_branch", Json.Encode.bool <| push.deleteBranch )
+        , ( "delete_tag", Json.Encode.bool <| push.deleteTag )
         ]
 
 
@@ -646,6 +655,16 @@ setAllowEvents payload field val =
                 | allowEvents = { events | push = { push | tag = val } }
             }
 
+        "allow_push_delete_branch" ->
+            { payload
+                | allowEvents = { events | push = { push | deleteBranch = val } }
+            }
+
+        "allow_push_delete_tag" ->
+            { payload
+                | allowEvents = { events | push = { push | deleteTag = val } }
+            }
+
         "allow_pull_opened" ->
             { payload
                 | allowEvents = { events | pull = { pull | opened = val } }
@@ -683,6 +702,23 @@ setAllowEvents payload field val =
 
         _ ->
             payload
+
+
+allowEventsToList : AllowEvents -> List ( Bool, String )
+allowEventsToList events =
+    [ ( events.push.branch, "push" )
+    , ( events.push.tag, "tag" )
+    , ( events.push.deleteBranch, "delete:branch" )
+    , ( events.push.deleteTag, "delete:tag" )
+    , ( events.pull.opened, "pull_request:opened" )
+    , ( events.pull.synchronize, "pull_request:synchronize" )
+    , ( events.pull.edited, "pull_request:edited" )
+    , ( events.pull.reopened, "pull_request:reopened" )
+    , ( events.deploy.created, "deployment" )
+    , ( events.comment.created, "comment:created" )
+    , ( events.comment.edited, "comment:edited" )
+    , ( events.schedule.run, "schedule" )
+    ]
 
 
 

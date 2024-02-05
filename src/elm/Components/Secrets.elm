@@ -219,41 +219,6 @@ addKey secret =
             { secret | key = secret.org ++ "/" ++ secret.repo ++ "/" ++ secret.name }
 
 
-appendLabel : Bool -> String -> List String -> List String
-appendLabel enabled label inList =
-    inList
-        ++ (if enabled then
-                [ label ]
-
-            else
-                []
-           )
-
-
-allowEventsToList : Vela.AllowEvents -> List String
-allowEventsToList events =
-    [ ( events.push.branch, "push" )
-    , ( events.push.tag, "tag" )
-    , ( events.pull.opened, "pull_request:opened" )
-    , ( events.pull.synchronize, "pull_request:synchronize" )
-    , ( events.pull.edited, "pull_request:edited" )
-    , ( events.pull.reopened, "pull_request:reopened" )
-    , ( events.deploy.created, "deployment" )
-    , ( events.comment.created, "comment:created" )
-    , ( events.comment.edited, "comment:edited" )
-    , ( events.schedule.run, "schedule" )
-    ]
-        |> List.map
-            (\( enabled, label ) ->
-                if enabled then
-                    Just label
-
-                else
-                    Nothing
-            )
-        |> List.filterMap identity
-
-
 {-| viewSecret : takes secret and secret type and renders a table row
 -}
 viewSecret : String -> Vela.SecretType -> (String -> msg) -> Vela.Secret -> Html msg
@@ -291,7 +256,7 @@ viewSecret engine type_ copyMsg secret =
             , scope "row"
             , class "break-word"
             ]
-            [ Components.Table.viewListCell (allowEventsToList secret.allowEvents) "no events" []
+            [ Components.Table.viewListCell (enabledAllowEventsToList secret.allowEvents) "no events" []
             ]
         , td
             [ attribute "data-label" "images"
@@ -383,3 +348,18 @@ editSecretHref engine type_ secret =
                     , name = secret.name
                     , engine = engine
                     }
+
+
+enabledAllowEventsToList : Vela.AllowEvents -> List String
+enabledAllowEventsToList allowEvents =
+    allowEvents
+        |> Vela.allowEventsToList
+        |> List.map
+            (\( enabled, label ) ->
+                if enabled then
+                    Just label
+
+                else
+                    Nothing
+            )
+        |> List.filterMap identity

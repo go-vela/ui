@@ -173,7 +173,8 @@ viewAllowEvents :
         }
     -> List (Html msg)
 viewAllowEvents shared { msg, allowEvents } =
-    [ div [ class "form-controls", class "-two-col" ]
+    [ h3 [ class "settings-subtitle" ] [ text "Push" ]
+    , div [ class "form-controls", class "-two-col" ]
         [ viewCheckbox
             { title = "Push"
             , subtitle = Nothing
@@ -188,6 +189,25 @@ viewAllowEvents shared { msg, allowEvents } =
             , field = "allow_push_tag"
             , state = allowEvents.push.tag
             , msg = msg { allowEvents = allowEvents, event = "allow_push_tag" }
+            , disabled_ = False
+            }
+        ]
+    , h3 [ class "settings-subtitle" ] [ text "Delete" ]
+    , div [ class "form-controls", class "-two-col" ]
+        [ viewCheckbox
+            { title = "Branch"
+            , subtitle = Nothing
+            , field = "allow_push_delete_branch"
+            , state = allowEvents.push.deleteBranch
+            , msg = msg { allowEvents = allowEvents, event = "allow_push_delete_branch" }
+            , disabled_ = False
+            }
+        , viewCheckbox
+            { title = "Tag"
+            , subtitle = Nothing
+            , field = "allow_push_delete_tag"
+            , state = allowEvents.push.deleteTag
+            , msg = msg { allowEvents = allowEvents, event = "allow_push_delete_tag" }
             , disabled_ = False
             }
         ]
