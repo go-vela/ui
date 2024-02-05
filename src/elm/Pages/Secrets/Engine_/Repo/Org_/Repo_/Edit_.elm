@@ -67,7 +67,7 @@ type alias Model =
     { secret : WebData Vela.Secret
     , name : String
     , value : String
-    , events : List String
+    , allow_events : Maybe Vela.AllowEvents
     , images : List String
     , image : String
     , allowCommand : Bool
@@ -80,7 +80,7 @@ init shared route () =
     ( { secret = RemoteData.Loading
       , name = ""
       , value = ""
-      , events = [ "push" ]
+      , allow_events = Just Vela.defaultAllowEventsPayload
       , images = []
       , image = ""
       , allowCommand = True
@@ -110,7 +110,7 @@ type Msg
     | DeleteSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | ValueOnInput String
     | ImageOnInput String
-    | EventOnCheck String Bool
+    -- | EventOnCheck String Bool
     | AddImage String
     | RemoveImage String
     | AllowCommandsOnClick String
@@ -133,9 +133,11 @@ update shared route msg model =
                     ( { model
                         | secret = RemoteData.succeed secret
                         , name = secret.name
-                        , events = secret.events
                         , images = secret.images
                         , allowCommand = secret.allowCommand
+
+                        -- todo: fill allowed_events?
+                        , allow_events = secret.allow_events
                       }
                     , Effect.none
                     )
@@ -193,21 +195,21 @@ update shared route msg model =
             , Effect.none
             )
 
-        EventOnCheck event val ->
-            let
-                updatedEvents =
-                    if val then
-                        model.events
-                            |> List.append [ event ]
-                            |> List.Extra.unique
+        -- EventOnCheck event val ->
+        --     let
+        --         updatedEvents =
+        --             if val then
+        --                 model.events
+        --                     |> List.append [ event ]
+        --                     |> List.Extra.unique
 
-                    else
-                        model.events
-                            |> List.filter ((/=) event)
-            in
-            ( { model | events = updatedEvents }
-            , Effect.none
-            )
+        --             else
+        --                 model.events
+        --                     |> List.filter ((/=) event)
+        --     in
+        --     ( { model | events = updatedEvents }
+        --     , Effect.none
+        --     )
 
         AddImage image ->
             ( { model
@@ -245,7 +247,8 @@ update shared route msg model =
                         , team = Nothing
                         , name = Util.stringToMaybe model.name
                         , value = Util.stringToMaybe model.value
-                        , events = Just model.events
+                        -- , events = Just model.events
+                        , allow_events = model.allow_events
                         , images = Just model.images
                         , allowCommand = Just model.allowCommand
                     }
@@ -335,11 +338,12 @@ view shared route model =
                         , msg = ValueOnInput
                         , disabled_ = not <| RemoteData.isSuccess model.secret
                         }
-                    , Components.SecretForm.viewEventsSelect shared
-                        { msg = EventOnCheck
-                        , events = model.events
-                        , disabled_ = not <| RemoteData.isSuccess model.secret
-                        }
+                    
+                    -- , Components.SecretForm.viewEventsSelect shared
+                    --     { msg = EventOnCheck
+                    --     , events = model.events
+                    --     , disabled_ = not <| RemoteData.isSuccess model.secret
+                    --     }
                     , Components.SecretForm.viewImagesInput
                         { onInput_ = ImageOnInput
                         , addImage = AddImage

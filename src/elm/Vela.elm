@@ -4,7 +4,8 @@ SPDX-License-Identifier: Apache-2.0
 
 
 module Vela exposing
-    ( Build
+    ( AllowEvents
+    , Build
     , BuildGraph
     , BuildGraphEdge
     , BuildGraphInteraction
@@ -66,6 +67,7 @@ module Vela exposing
     , decodeServices
     , decodeSourceRepositories
     , decodeSteps
+    , defaultAllowEventsPayload
     , defaultDeploymentPayload
     , defaultRepoPayload
     , defaultSchedulePayload
@@ -83,6 +85,7 @@ module Vela exposing
     , secretTypeToString
     , setAllowEvents
     , statusToString
+    , toAllowEventsPayload
     )
 
 import Bytes.Encode
@@ -442,11 +445,15 @@ defaultRepoPayload =
     }
 
 
-setAllowEvents : Repository -> String -> Bool -> RepoPayload -> RepoPayload
-setAllowEvents repo field val payload =
+setAllowEvents :
+    { a | allow_events : Maybe AllowEvents }
+    -> String
+    -> Bool
+    -> { a | allow_events : Maybe AllowEventsPayload }
+setAllowEvents payload field val =
     let
         events =
-            defaultAllowEventsPayload repo
+            toAllowEventsPayload payload
 
         { push, pull, deploy, comment } =
             events
@@ -542,15 +549,33 @@ type alias AllowEvents =
     }
 
 
-defaultAllowEventsPayload : Repository -> AllowEventsPayload
-defaultAllowEventsPayload repository =
-    case repository.allow_events of
+defaultAllowEventsPayload : AllowEventsPayload
+defaultAllowEventsPayload =
+    { push =
+        { branch = False
+        , tag = False
+        }
+    , pull =
+        { opened = False
+        , synchronize = False
+        , edited = False
+        , reopened = False
+        }
+    , deploy =
+        { created = False
+        }
+    , comment =
+        { created = False
+        , edited = False
+        }
+    }
+
+
+toAllowEventsPayload : { a | allow_events : Maybe AllowEvents } -> AllowEventsPayload
+toAllowEventsPayload resource =
+    case resource.allow_events of
         Nothing ->
-            AllowEventsPayload
-                (defaultPushActions Nothing)
-                (defaultPullActions Nothing)
-                (defaultDeployActions Nothing)
-                (defaultCommentActions Nothing)
+            defaultAllowEventsPayload
 
         Just events ->
             AllowEventsPayload
@@ -1304,6 +1329,7 @@ type alias Secret =
     , images : List String
     , events : List String
     , allowCommand : Bool
+    , allow_events : Maybe AllowEvents
     }
 
 
@@ -1389,6 +1415,7 @@ decodeSecret =
         |> optional "images" (Json.Decode.list string) []
         |> optional "events" (Json.Decode.list string) []
         |> optional "allow_command" bool False
+        |> optional "allow_events" (Json.Decode.maybe decodeAllowEvents) Nothing
 
 
 decodeSecrets : Decoder (List Secret)
@@ -1406,6 +1433,7 @@ type alias SecretPayload =
     , events : Maybe (List String)
     , images : Maybe (List String)
     , allowCommand : Maybe Bool
+    , allow_events : Maybe AllowEventsPayload
     }
 
 
@@ -1420,6 +1448,7 @@ defaultSecretPayload =
     , events = Nothing
     , images = Nothing
     , allowCommand = Nothing
+    , allow_events = Nothing
     }
 
 
@@ -1435,6 +1464,7 @@ encodeSecretPayload secret =
         , ( "events", encodeOptionalList Json.Encode.string secret.events )
         , ( "images", encodeOptionalList Json.Encode.string secret.images )
         , ( "allow_command", encodeOptional Json.Encode.bool secret.allowCommand )
+        , ( "allow_events", encodeOptional encodeAllowEvents secret.allow_events )
         ]
 
 
