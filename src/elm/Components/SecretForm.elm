@@ -3,8 +3,9 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.SecretForm exposing (..)
+module Components.SecretForm exposing (viewAllowCommandsInput, viewAllowEventsSelect, viewHelp, viewImagesInput)
 
+import Components.Alerts exposing (view)
 import Components.Form
 import Html
     exposing

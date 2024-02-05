@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Utils.Theme exposing (..)
+module Utils.Theme exposing (Theme(..), decodeTheme, encodeTheme, stringToTheme)
 
 import Json.Decode
 import Json.Encode

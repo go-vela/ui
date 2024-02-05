@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.Secrets exposing (..)
+module Components.Secrets exposing (viewOrgSecrets, viewRepoSecrets, viewSharedSecrets)
 
 import Components.Table
 import FeatherIcons

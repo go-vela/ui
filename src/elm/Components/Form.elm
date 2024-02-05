@@ -3,9 +3,9 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.Form exposing (..)
+module Components.Form exposing (viewAllowEvents, viewButton, viewCheckbox, viewInput, viewRadio, viewSubtitle, viewTextarea)
 
-import Html exposing (Html, br, button, div, em, h2, h3, input, label, p, section, span, strong, text, textarea)
+import Html exposing (Html, button, div, h3, input, label, p, section, span, strong, text, textarea)
 import Html.Attributes exposing (checked, class, classList, disabled, for, id, placeholder, rows, type_, value, wrap)
 import Html.Events exposing (onCheck, onClick, onInput)
 import Maybe.Extra

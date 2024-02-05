@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Utils.Logs exposing (..)
+module Utils.Logs exposing (bottomTrackerFocusId, safeDecodeLogData, topTrackerFocusId)
 
 import RemoteData exposing (WebData)
 import Utils.Helpers as Util

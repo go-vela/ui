@@ -244,7 +244,6 @@ viewRepoTabs shared props =
 
 
 -- BUILD
--- fromHistory : Dict String Url -> String -> Route.Path.Path
 
 
 viewBuildTabs :

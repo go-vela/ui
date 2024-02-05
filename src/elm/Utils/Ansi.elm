@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Utils.Ansi exposing (..)
+module Utils.Ansi exposing (colorClassesAnsi, decodeAnsi, defaultAnsiLogModel, defaultAnsiLogStyle, defaultPosition, styleAttributesAnsi)
 
 import Ansi
 import Ansi.Log

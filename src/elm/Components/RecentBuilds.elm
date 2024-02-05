@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.RecentBuilds exposing (..)
+module Components.RecentBuilds exposing (view)
 
 import Components.Svgs
 import Html exposing (Html, a, div, em, li, p, span, text, ul)
