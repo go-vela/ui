@@ -1,4 +1,4 @@
-module Test exposing (testNone)
+module NoneTest exposing (testNone)
 
 import Expect
 import Test exposing (..)
@@ -6,6 +6,6 @@ import Test exposing (..)
 
 testNone : Test
 testNone =
-    test "placeholder test" <|
+    test "placeholder 'None' test" <|
         \_ ->
             Expect.equal "abc123" "abc123"
