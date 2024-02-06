@@ -59,7 +59,7 @@ type alias Props msg =
     , builds : WebData (List Vela.Build)
     , maybeEvent : Maybe String
     , showFullTimestamps : Bool
-    , viewActionsMenu : Vela.Build -> Html msg
+    , viewActionsMenu : { build : Vela.Build } -> Html msg
     }
 
 
@@ -122,7 +122,7 @@ view shared props =
                             Components.Build.view shared
                                 { build = RemoteData.succeed build
                                 , showFullTimestamps = props.showFullTimestamps
-                                , actionsMenu = props.viewActionsMenu build
+                                , actionsMenu = props.viewActionsMenu { build = build }
                                 , showActionsMenuBool = True
                                 }
                         )

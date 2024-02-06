@@ -36,20 +36,8 @@ view shared props =
     case props.build of
         RemoteData.Success build ->
             let
-                path =
-                    build.link
-                        |> Url.fromString
-                        |> Maybe.Extra.unwrap build.link .path
-
                 ( org, repo ) =
-                    case Route.Path.fromString path of
-                        Just (Route.Path.Org_Repo_Build_ params) ->
-                            ( params.org, params.repo )
-
-                        _ ->
-                            ( Maybe.withDefault "" <| List.head (List.drop 1 (String.split "/" path))
-                            , Maybe.withDefault "" <| List.head (List.drop 2 (String.split "/" path))
-                            )
+                    Util.orgRepoFromBuildLink build.link
 
                 repoLink =
                     span []
@@ -267,6 +255,9 @@ viewActionsMenu :
     -> Html msg
 viewActionsMenu props =
     let
+        ( org, repo ) =
+            Util.orgRepoFromBuildLink props.build.link
+
         isMenuOpen =
             List.member props.build.id props.showActionsMenus
 
@@ -309,7 +300,12 @@ viewActionsMenu props =
                         [ a
                             [ href "#"
                             , class "menu-item"
-                            , Util.onClickPreventDefault <| props.msgs.restartBuild { org = "", repo = "", buildNumber = String.fromInt props.build.number }
+                            , Util.onClickPreventDefault <|
+                                props.msgs.restartBuild
+                                    { org = org
+                                    , repo = repo
+                                    , buildNumber = String.fromInt props.build.number
+                                    }
                             , Util.testAttribute "restart-build"
                             ]
                             [ text "Restart Build"

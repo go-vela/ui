@@ -33,6 +33,7 @@ module Utils.Helpers exposing
     , onMouseDownSubscription
     , oneSecondMillis
     , open
+    , orgRepoFromBuildLink
     , overwriteById
     , pageToString
     , relativeTimeNoSeconds
@@ -53,15 +54,18 @@ import Bytes.Decode
 import DateFormat
 import DateFormat.Relative exposing (defaultRelativeOptions, relativeTimeWithOptions)
 import Filesize
-import Html exposing (Attribute, Html, div, text)
+import Html exposing (Attribute)
 import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (custom)
 import Json.Decode
 import List.Extra
+import Maybe.Extra
 import RemoteData exposing (WebData)
+import Route.Path
 import String.Extra
 import Task exposing (perform, succeed)
 import Time exposing (Posix, Zone, posixToMillis, toHour, toMinute, utc)
+import Url
 
 
 {-| onMouseDownShowHelp : takes model and returns subscriptions for handling onMouseDown events at the browser level
@@ -547,6 +551,27 @@ pageToString maybePage =
 buildRefURL : String -> String -> String
 buildRefURL clone ref =
     String.dropRight 4 clone ++ "/tree/" ++ ref
+
+
+{-| orgRepoFromBuildLink : takes build and uses the link field to parse out org and repo
+if the build link has a host, then URL is used to parse, otherwise it splits on '/'
+-}
+orgRepoFromBuildLink : String -> ( String, String )
+orgRepoFromBuildLink link =
+    let
+        path =
+            link
+                |> Url.fromString
+                |> Maybe.Extra.unwrap link .path
+    in
+    case Route.Path.fromString path of
+        Just (Route.Path.Org_Repo_Build_ params) ->
+            ( params.org, params.repo )
+
+        _ ->
+            ( Maybe.withDefault "" <| List.head (List.drop 1 (String.split "/" path))
+            , Maybe.withDefault "" <| List.head (List.drop 2 (String.split "/" path))
+            )
 
 
 {-| trimCommitHash : takes the first 7 characters of the full commit hash

@@ -338,13 +338,13 @@ view shared route model =
             , maybeEvent = Dict.get "event" route.query
             , showFullTimestamps = model.showFullTimestamps
             , viewActionsMenu =
-                \b ->
+                \options ->
                     Components.Build.viewActionsMenu
                         { msgs =
                             { showHideActionsMenus = ShowHideActionsMenus
                             , restartBuild = RestartBuild
                             }
-                        , build = b
+                        , build = options.build
                         , showActionsMenus = model.showActionsMenus
                         , showActionsMenuBool = True
                         }
