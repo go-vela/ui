@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Route exposing (Route, fromUrl, href, toString)
+module Route exposing (Route, fromUrl, strip,href, toString)
 
 import Dict exposing (Dict)
 import Html
@@ -47,3 +47,11 @@ toString route =
             |> Maybe.map (String.append "#")
             |> Maybe.withDefault ""
         ]
+
+
+strip : Route params -> { path : Route.Path.Path, query : Dict String String, hash : Maybe String }
+strip route =
+    { path = route.path
+    , query = route.query
+    , hash = route.hash
+    }

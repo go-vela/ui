@@ -11,10 +11,14 @@ import FeatherIcons
 import Html exposing (Html, a, details, div, label, li, span, strong, summary, text, ul)
 import Html.Attributes exposing (attribute, class, classList, href, id, title)
 import List.Extra
+import Maybe.Extra
 import RemoteData exposing (WebData)
+import Route
 import Route.Path
 import Shared
+import Svg exposing (path)
 import Time
+import Url
 import Utils.Helpers as Util
 import Vela
 
@@ -31,11 +35,20 @@ view shared props =
     case props.build of
         RemoteData.Success build ->
             let
-                org =
-                    Maybe.withDefault "" <| List.head (List.drop 3 (String.split "/" build.link))
+                path =
+                    build.link
+                        |> Url.fromString
+                        |> Maybe.Extra.unwrap build.link .path
 
-                repo =
-                    Maybe.withDefault "" <| List.head (List.drop 4 (String.split "/" build.link))
+                ( org, repo ) =
+                    case Route.Path.fromString path of
+                        Just (Route.Path.Org_Repo_Build_ params) ->
+                            ( params.org, params.repo )
+
+                        _ ->
+                            ( Maybe.withDefault "" <| List.head (List.drop 1 (String.split "/" path))
+                            , Maybe.withDefault "" <| List.head (List.drop 2 (String.split "/" path))
+                            )
 
                 repoLink =
                     span []

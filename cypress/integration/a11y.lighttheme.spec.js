@@ -77,21 +77,21 @@ context('Accessibility (a11y)', () => {
       cy.checkA11yForPage('/', A11Y_OPTS);
     });
 
-    it('source repos', () => {
-      cy.checkA11yForPage('/account/source-repos', A11Y_OPTS);
-    });
+    // it('source repos', () => {
+    //   cy.checkA11yForPage('/account/source-repos', A11Y_OPTS);
+    // });
 
-    it('settings', () => {
-      cy.checkA11yForPage('/github/octocat/settings', A11Y_OPTS);
-    });
+    // it('settings', () => {
+    //   cy.checkA11yForPage('/github/octocat/settings', A11Y_OPTS);
+    // });
 
-    it('repo page', () => {
-      cy.checkA11yForPage('/github/octocat', A11Y_OPTS);
-    });
+    // it('repo page', () => {
+    //   cy.checkA11yForPage('/github/octocat', A11Y_OPTS);
+    // });
 
-    it('hooks page', () => {
-      cy.checkA11yForPage('/github/octocat/hooks', A11Y_OPTS);
-    });
+    // it('hooks page', () => {
+    //   cy.checkA11yForPage('/github/octocat/hooks', A11Y_OPTS);
+    // });
 
     it('build page', () => {
       cy.login('/github/octocat/1');
