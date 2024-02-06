@@ -31,11 +31,12 @@ Cypress.Commands.add('loggingIn', (path = '/') => {
   cy.server();
   cy.route('/token-refresh', 'fixture:auth.json');
   cy.route('/authenticate*', 'fixture:auth.json');
+
   cy.visit('/account/authenticate?code=deadbeef&state=1337', {
     onBeforeLoad: win => {
       win.localStorage.setItem(
         'vela-redirect',
-        `${Cypress.config('baseUrl')}${path}`,
+        `${path}`,
       );
     },
   });

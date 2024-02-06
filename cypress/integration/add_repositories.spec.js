@@ -58,9 +58,9 @@ context('Source Repositories', () => {
 
       cy.get('[data-test=enabled-cat-purr').should('not.be.visible');
 
-      cy.get('[data-test=failed-cat-purr')
+      cy.get('[data-test=source-repos-failed')
         .should('be.visible')
-        .and('contain', 'Failed');
+        .and('contain', 'error');
 
       cy.get('[data-test=alerts]').should('exist').contains('Error');
     });

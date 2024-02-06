@@ -361,11 +361,19 @@ viewActionsMenu props =
                     text ""
     in
     details (buildMenuBaseClassList :: buildMenuAttributeList)
-        [ summary [ class "summary", Util.onClickPreventDefault (props.msgs.showHideActionsMenus (Just props.build.id) Nothing), Util.testAttribute "build-menu" ]
+        [ summary
+            [ class "summary"
+            , Util.onClickPreventDefault (props.msgs.showHideActionsMenus (Just props.build.id) Nothing)
+            , Util.testAttribute "build-menu"
+            ]
             [ text "Actions"
             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml [ attribute "aria-label" "show build actions" ]
             ]
-        , ul [ class "build-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]
+        , ul
+            [ class "build-menu"
+            , attribute "aria-hidden" "true"
+            , attribute "role" "menu"
+            ]
             [ approveBuild
             , restartBuild
             , cancelBuild

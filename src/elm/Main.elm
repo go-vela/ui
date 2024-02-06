@@ -498,6 +498,30 @@ initPageAndLayout model =
                     }
                 )
 
+        Route.Path.Org_Repo_Pulls params ->
+            runWhenAuthenticatedWithLayout
+                model
+                (\user ->
+                    let
+                        page : Page.Page Pages.Org_.Repo_.Model Pages.Org_.Repo_.Msg
+                        page =
+                            Pages.Org_.Repo_.page user model.shared (Route.fromUrl params model.url)
+
+                        ( pageModel, pageEffect ) =
+                            Page.init page ()
+                    in
+                    { page =
+                        Tuple.mapBoth
+                            (Main.Pages.Model.Org_Repo_ params)
+                            (Effect.map Main.Pages.Msg.Org_Repo_ >> fromPageEffect model)
+                            ( pageModel, pageEffect )
+                    , layout =
+                        Page.layout pageModel page
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_ >> Page))
+                            |> Maybe.map (initLayout model)
+                    }
+                )
+
         Route.Path.Org_Repo_Deployments params ->
             runWhenAuthenticatedWithLayout
                 model
@@ -2921,6 +2945,9 @@ isAuthProtected routePath =
             True
 
         Route.Path.Org_Repo_ _ ->
+            True
+
+        Route.Path.Org_Repo_Pulls _ ->
             True
 
         Route.Path.Org_Repo_Deployments _ ->
