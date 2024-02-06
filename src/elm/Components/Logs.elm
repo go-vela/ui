@@ -358,7 +358,12 @@ viewJumpToBottomButton props =
         , onClick <| props.msgs.focusOn { target = Logs.bottomTrackerFocusId props.resourceNumber }
         , attribute "aria-label" <| "jump to bottom of logs for " ++ props.resourceType ++ " " ++ props.resourceNumber
         ]
-        [ FeatherIcons.arrowDown |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+        [ FeatherIcons.arrowDown
+            |> FeatherIcons.toHtml
+                [ attribute "role" "img"
+                , attribute "aria-label" <| "jump to the bottom of logs for " ++ props.resourceType ++ " " ++ props.resourceNumber
+                ]
+        ]
 
 
 {-| viewJumpToTopButton : renders action button for jumping to the top of a log
@@ -374,7 +379,12 @@ viewJumpToTopButton props =
         , onClick <| props.msgs.focusOn { target = Logs.topTrackerFocusId props.resourceNumber }
         , attribute "aria-label" <| "jump to top of logs for " ++ props.resourceType ++ " " ++ props.resourceNumber
         ]
-        [ FeatherIcons.arrowUp |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+        [ FeatherIcons.arrowUp
+            |> FeatherIcons.toHtml
+                [ attribute "role" "img"
+                , attribute "aria-label" <| "jump to the top of logs for " ++ props.resourceType ++ " " ++ props.resourceNumber
+                ]
+        ]
 
 
 {-| viewDownloadButton : renders action button for downloading a log
@@ -432,4 +442,9 @@ viewFollowButton props =
         , onClick <| props.msgs.follow { number = toFollow }
         , attribute "aria-label" <| tooltip ++ " for " ++ props.resourceType ++ " " ++ props.resourceNumber
         ]
-        [ icon |> FeatherIcons.toHtml [ attribute "role" "img", attribute "aria-label" "show build actions" ] ]
+        [ icon
+            |> FeatherIcons.toHtml
+                [ attribute "role" "img"
+                , attribute "aria-label" <| "follow logs for " ++ props.resourceType ++ " " ++ props.resourceNumber
+                ]
+        ]

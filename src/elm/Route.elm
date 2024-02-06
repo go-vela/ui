@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Route exposing (Route, fromUrl, strip,href, toString)
+module Route exposing (Route, fromUrl, href, strip, toString)
 
 import Dict exposing (Dict)
 import Html
