@@ -26,7 +26,8 @@ import Vela
 type alias Props msg =
     { build : WebData Vela.Build
     , showFullTimestamps : Bool
-    , actionsMenu : Maybe (Html msg)
+    , actionsMenu : Html msg
+    , showActionsMenuBool : Bool
     }
 
 
@@ -180,6 +181,7 @@ view shared props =
                 , infoRow = [ viewError build ]
                 , buildAnimation = [ buildAnimation build.status build.number ]
                 , hoverTitle = title hoverTime
+                , viewActionsMenu = props.actionsMenu
                 }
 
         _ ->
@@ -194,6 +196,7 @@ view shared props =
                 , infoRow = []
                 , buildAnimation = [ buildAnimation Vela.Pending 1 ]
                 , hoverTitle = Html.Attributes.class ""
+                , viewActionsMenu = Html.div [] []
                 }
 
 
@@ -208,6 +211,7 @@ viewBuildPreview :
     , infoRow : List (Html msg)
     , buildAnimation : List (Html msg)
     , hoverTitle : Html.Attribute msg
+    , viewActionsMenu : Html msg
     }
     -> Html msg
 viewBuildPreview props =
@@ -240,6 +244,7 @@ viewBuildPreview props =
                             , span [ class "delimiter" ] [ text " /" ]
                             , div [ class "duration" ] props.duration
                             ]
+                        , props.viewActionsMenu
                         ]
                     ]
                 , div [ class "row" ] props.infoRow
@@ -253,13 +258,18 @@ viewBuildPreview props =
 viewActionsMenu :
     { msgs :
         { showHideActionsMenus : Maybe Int -> Maybe Bool -> msg
+        , restartBuild : { org : String, repo : String, buildNumber : String } -> msg
         }
     , build : Vela.Build
     , showActionsMenus : List Int
+    , showActionsMenuBool : Bool
     }
     -> Html msg
 viewActionsMenu props =
     let
+        isMenuOpen =
+            List.member props.build.id props.showActionsMenus
+
         buildMenuBaseClassList =
             classList
                 [ ( "details", True )
@@ -299,8 +309,7 @@ viewActionsMenu props =
                         [ a
                             [ href "#"
                             , class "menu-item"
-
-                            -- , Util.onClickPreventDefault <| props.msgs.restartBuild org repo <| String.fromInt build.number
+                            , Util.onClickPreventDefault <| props.msgs.restartBuild { org = "", repo = "", buildNumber = String.fromInt props.build.number }
                             , Util.testAttribute "restart-build"
                             ]
                             [ text "Restart Build"

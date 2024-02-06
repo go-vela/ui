@@ -108,7 +108,7 @@ type Msg
     | GetRepoBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))
     | GotoPage Int
     | ApproveBuild Vela.Org Vela.Repo Vela.BuildNumber
-    | RestartBuild Vela.Org Vela.Repo Vela.BuildNumber
+    | RestartBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
     | CancelBuild Vela.Org Vela.Repo Vela.BuildNumber
     | ShowHideActionsMenus (Maybe Int) (Maybe Bool)
     | FilterByEvent (Maybe String)
@@ -188,13 +188,29 @@ update shared route msg model =
             in
             ( model, Effect.none )
 
-        RestartBuild _ _ _ ->
+        RestartBuild options ->
             let
                 _ =
-                    Debug.log "restart build clicked" ""
-            in
-            ( model, Effect.none )
+                    Debug.log "restart build clicked"
+                        ""
 
+                _ =
+                    Debug.log "options" options
+            in
+            ( model
+            , Effect.restartBuild
+                { org = options.org
+                , repo = options.repo
+                , buildNumber = options.buildNumber
+                }
+            )
+
+        -- RestartBuild _ ->
+        --     let
+        --         _ =
+        --             Debug.log "restart build clicked" ""
+        --     in
+        --     ( model, Effect.none )
         CancelBuild _ _ _ ->
             let
                 _ =
@@ -323,14 +339,15 @@ view shared route model =
             , showFullTimestamps = model.showFullTimestamps
             , viewActionsMenu =
                 \b ->
-                    Just <|
-                        Components.Build.viewActionsMenu
-                            { msgs =
-                                { showHideActionsMenus = ShowHideActionsMenus
-                                }
-                            , build = b
-                            , showActionsMenus = model.showActionsMenus
+                    Components.Build.viewActionsMenu
+                        { msgs =
+                            { showHideActionsMenus = ShowHideActionsMenus
+                            , restartBuild = RestartBuild
                             }
+                        , build = b
+                        , showActionsMenus = model.showActionsMenus
+                        , showActionsMenuBool = True
+                        }
             }
         , Components.Pager.viewIfNeeded model.pager Components.Pager.defaultLabels GotoPage model.builds
         ]

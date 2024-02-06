@@ -46,6 +46,7 @@ module Api.Operations exposing
     , logout
     , redeliverHook
     , repairRepo
+    , restartBuild
     , updateCurrentUser
     , updateOrgSecret
     , updateRepo
@@ -281,6 +282,28 @@ getRepoBuilds baseUrl session options =
             options.repo
         )
         Vela.decodeBuilds
+        |> withAuth session
+
+
+restartBuild :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , buildNumber : String
+        }
+    -> Request Vela.Build
+restartBuild baseUrl session options =
+    post baseUrl
+        (Api.Endpoint.Build
+            options.org
+            options.repo
+            options.buildNumber
+        )
+        Http.emptyBody
+        Vela.decodeBuild
         |> withAuth session
 
 

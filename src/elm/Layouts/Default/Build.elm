@@ -223,7 +223,8 @@ view props shared route { toContentMsg, model, content } =
         , Components.Build.view shared
             { build = model.build
             , showFullTimestamps = False
-            , actionsMenu = Nothing
+            , actionsMenu = Html.div [] []
+            , showActionsMenuBool = True
             }
         , Components.Tabs.viewBuildTabs shared
             { org = props.org

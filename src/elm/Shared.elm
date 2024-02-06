@@ -516,6 +516,43 @@ update route msg model =
                     , Effect.handleHttpError { httpError = error }
                     )
 
+        -- BUILD
+        Shared.Msg.RestartBuild options ->
+            let
+                _ =
+                    Debug.log "restart a build" options
+            in
+            ( model
+            , Api.try
+                (Shared.Msg.RestartBuildResponse options)
+                (Api.Operations.restartBuild model.velaAPI model.session options)
+                |> Effect.sendCmd
+            )
+
+        Shared.Msg.RestartBuildResponse options response ->
+            case response of
+                Ok ( _, build ) ->
+                    let
+                        restartedBuild =
+                            "Build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ]
+
+                        newBuildNumber =
+                            String.fromInt <| build.number
+
+                        newBuild =
+                            String.join "/" [ "", options.org, options.repo, newBuildNumber ]
+
+                        -- todo: create new build link, add to toastie, refresh builds
+                    in
+                    ( model
+                    , Effect.addAlertSuccess { content = restartedBuild ++ " restarted.", addToastIfUnique = True }
+                    )
+
+                Err error ->
+                    ( model
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
         -- BUILDS
         Shared.Msg.GetRepoHooks options ->
             ( model

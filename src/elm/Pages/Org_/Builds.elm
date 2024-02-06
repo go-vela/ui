@@ -105,7 +105,7 @@ type Msg
     | GetOrgBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))
     | GotoPage Int
     | ApproveBuild Vela.Org Vela.Repo Vela.BuildNumber
-    | RestartBuild Vela.Org Vela.Repo Vela.BuildNumber
+    | RestartBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
     | CancelBuild Vela.Org Vela.Repo Vela.BuildNumber
     | ShowHideActionsMenus (Maybe Int) (Maybe Bool)
     | FilterByEvent (Maybe String)
@@ -171,7 +171,7 @@ update shared route msg model =
         ApproveBuild _ _ _ ->
             ( model, Effect.none )
 
-        RestartBuild _ _ _ ->
+        RestartBuild _ ->
             ( model, Effect.none )
 
         CancelBuild _ _ _ ->
@@ -296,14 +296,15 @@ view shared route model =
             , showFullTimestamps = model.showFullTimestamps
             , viewActionsMenu =
                 \b ->
-                    Just <|
-                        Components.Build.viewActionsMenu
-                            { msgs =
-                                { showHideActionsMenus = ShowHideActionsMenus
-                                }
-                            , build = b
-                            , showActionsMenus = model.showActionsMenus
+                    Components.Build.viewActionsMenu
+                        { msgs =
+                            { showHideActionsMenus = ShowHideActionsMenus
+                            , restartBuild = RestartBuild
                             }
+                        , build = b
+                        , showActionsMenus = model.showActionsMenus
+                        , showActionsMenuBool = True
+                        }
             }
         , Components.Pager.viewIfNeeded model.pager Components.Pager.defaultLabels GotoPage model.builds
         ]
