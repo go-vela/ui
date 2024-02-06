@@ -21,6 +21,7 @@ type Path
     | Org_ { org : String }
     | Org_Builds { org : String }
     | Org_Repo_ { org : String, repo : String }
+    | Org_Repo_Pulls { org : String, repo : String }
     | Org_Repo_Deployments { org : String, repo : String }
     | Org_Repo_DeploymentsAdd { org : String, repo : String }
     | Org_Repo_Schedules { org : String, repo : String }
@@ -142,6 +143,13 @@ fromString urlPath =
 
         org :: repo :: "settings" :: [] ->
             Org_Repo_Settings
+                { org = org
+                , repo = repo
+                }
+                |> Just
+
+        org :: repo :: "pulls" :: [] ->
+            Org_Repo_Pulls
                 { org = org
                 , repo = repo
                 }
@@ -292,6 +300,9 @@ toString path =
 
                 Org_Repo_ params ->
                     [ params.org, params.repo ]
+
+                Org_Repo_Pulls params ->
+                    [ params.org, params.repo, "?event=pull_request" ]
 
                 Org_Repo_Deployments params ->
                     [ params.org, params.repo, "deployments" ]

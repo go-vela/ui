@@ -354,7 +354,7 @@ viewErrorSourceOrg =
         content =
             text "There was an error fetching your available repositories, please refresh or try again later!"
     in
-    div [ class "loading-skeleton" ]
+    div [ class "loading-skeleton", Util.testAttribute "source-repos-failed"]
         [ div []
             [ icon
             , content

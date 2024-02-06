@@ -548,7 +548,12 @@ viewStep shared model route step =
                     [ div [ class "-name" ] [ text step.name ]
                     , div [ class "-duration" ] [ text <| Util.formatRunTime shared.time step.started step.finished ]
                     ]
-                , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml [ attribute "aria-label" "show build actions" ]
+                , FeatherIcons.chevronDown
+                    |> FeatherIcons.withSize 20
+                    |> FeatherIcons.withClass "details-icon-expand"
+                    |> FeatherIcons.toHtml
+                        [ attribute "aria-label" <| "show build step " ++ step.name
+                        ]
                 ]
             , div [ class "logs-container" ]
                 [ viewLogs shared model route step <|

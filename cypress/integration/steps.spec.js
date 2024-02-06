@@ -278,7 +278,7 @@ context('Steps', () => {
       // load logs
       cy.clickSteps();
       cy.clickSteps();
-      cy.get('[data-test=full-build]').as('build');
+      cy.get('[data-test=build]').as('build');
       cy.get('@build').get('[data-test=build-status]').as('buildStatus');
     });
 

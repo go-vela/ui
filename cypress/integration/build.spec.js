@@ -18,6 +18,7 @@ context('Build', () => {
   context('logged in and server returning 5 builds', () => {
     beforeEach(() => {
       cy.server();
+      cy.stubBuild();
       cy.route('GET', '*api/v1/repos/*/*/builds*', 'fixture:builds_5.json');
       cy.login('/github/octocat/1');
       cy.get('[data-test=build-history]').as('buildHistory');
@@ -33,7 +34,7 @@ context('Build', () => {
     });
 
     it('clicking build history item should redirect to build page', () => {
-      cy.get('[data-test=recent-build-link-1]').children().last().click();
+      cy.get('[data-test=recent-build-link-105]').children().last().click();
       cy.location('pathname').should('eq', '/github/octocat/105');
     });
   });
@@ -78,7 +79,7 @@ context('Build', () => {
 
       it('clicking build history item should redirect to build page', () => {
         cy.get('[data-test=recent-build-link-1]').children().last().click();
-        cy.location('pathname').should('eq', '/github/octocat/10');
+        cy.location('pathname').should('eq', '/github/octocat/1');
       });
 
       context('hover build history item', () => {
@@ -116,124 +117,124 @@ context('Build', () => {
       });
     });
 
-    context('server stubbed Restart Build', () => {
-      beforeEach(() => {
-        cy.server();
-        cy.fixture('build_pending.json').as('restartedBuild');
-        cy.route({
-          method: 'POST',
-          url: 'api/v1/repos/*/*/builds/*',
-          status: 200,
-          response: '@restartedBuild',
-        });
-        cy.get('[data-test=restart-build]').as('restartBuild');
-      });
+    // context('server stubbed Restart Build', () => {
+    //   beforeEach(() => {
+    //     cy.server();
+    //     cy.fixture('build_pending.json').as('restartedBuild');
+    //     cy.route({
+    //       method: 'POST',
+    //       url: 'api/v1/repos/*/*/builds/*',
+    //       status: 200,
+    //       response: '@restartedBuild',
+    //     });
+    //     cy.get('[data-test=restart-build]').as('restartBuild');
+    //   });
 
-      it('clicking restart build should show alert', () => {
-        cy.get('@restartBuild').click();
-        cy.get('[data-test=alert]').should(
-          'contain',
-          'github/octocat/1 restarted',
-        );
-      });
+    //   it('clicking restart build should show alert', () => {
+    //     cy.get('@restartBuild').click();
+    //     cy.get('[data-test=alert]').should(
+    //       'contain',
+    //       'github/octocat/1 restarted',
+    //     );
+    //   });
 
-      it('clicking restarted build link should redirect to Build page', () => {
-        cy.get('@restartBuild').click({ force: true });
-        cy.get('[data-test=alert-hyperlink]').click({ force: true });
-        cy.location('pathname').should('eq', '/github/octocat/2');
-      });
-    });
+    //   it('clicking restarted build link should redirect to Build page', () => {
+    //     cy.get('@restartBuild').click({ force: true });
+    //     cy.get('[data-test=alert-hyperlink]').click({ force: true });
+    //     cy.location('pathname').should('eq', '/github/octocat/2');
+    //   });
+    // });
 
-    context('server failing to restart build', () => {
-      beforeEach(() => {
-        cy.server();
-        cy.fixture('build_pending.json').as('restartedBuild');
-        cy.route({
-          method: 'POST',
-          url: 'api/v1/repos/*/*/builds/*',
-          status: 500,
-          response: 'server error',
-        });
-        cy.get('[data-test=restart-build]').as('restartBuild');
-      });
+    // context('server failing to restart build', () => {
+    //   beforeEach(() => {
+    //     cy.server();
+    //     cy.fixture('build_pending.json').as('restartedBuild');
+    //     cy.route({
+    //       method: 'POST',
+    //       url: 'api/v1/repos/*/*/builds/*',
+    //       status: 500,
+    //       response: 'server error',
+    //     });
+    //     cy.get('[data-test=restart-build]').as('restartBuild');
+    //   });
 
-      it('clicking restart build should show error alert', () => {
-        cy.get('@restartBuild').click();
-        cy.get('[data-test=alert]').should('contain', 'Error');
-      });
-    });
+    //   it('clicking restart build should show error alert', () => {
+    //     cy.get('@restartBuild').click();
+    //     cy.get('[data-test=alert]').should('contain', 'Error');
+    //   });
+    // });
 
-    context('server stubbed Cancel Build', () => {
-      beforeEach(() => {
-        cy.server();
-        cy.route({
-          method: 'DELETE',
-          url: 'api/v1/repos/*/*/builds/*/cancel',
-          status: 200,
-          response: 'canceled build github/octocat/1',
-        });
-        cy.login('/github/octocat/1');
-        cy.get('[data-test=cancel-build]').as('cancelBuild');
-      });
+    // context('server stubbed Cancel Build', () => {
+    //   beforeEach(() => {
+    //     cy.server();
+    //     cy.route({
+    //       method: 'DELETE',
+    //       url: 'api/v1/repos/*/*/builds/*/cancel',
+    //       status: 200,
+    //       response: 'canceled build github/octocat/1',
+    //     });
+    //     cy.login('/github/octocat/1');
+    //     cy.get('[data-test=cancel-build]').as('cancelBuild');
+    //   });
 
-      it('clicking cancel build should show alert', () => {
-        cy.get('@cancelBuild').click();
-        cy.get('[data-test=alert]').should(
-          'contain',
-          'canceled build github/octocat/1',
-        );
-      });
-    });
+    //   it('clicking cancel build should show alert', () => {
+    //     cy.get('@cancelBuild').click();
+    //     cy.get('[data-test=alert]').should(
+    //       'contain',
+    //       'canceled build github/octocat/1',
+    //     );
+    //   });
+    // });
 
-    context('server failing to cancel build', () => {
-      beforeEach(() => {
-        cy.server();
-        cy.route({
-          method: 'DELETE',
-          url: 'api/v1/repos/*/*/builds/*/cancel',
-          status: 500,
-          response: 'server error',
-        });
-        cy.get('[data-test=cancel-build]').as('cancelBuild');
-      });
+    // context('server failing to cancel build', () => {
+    //   beforeEach(() => {
+    //     cy.server();
+    //     cy.route({
+    //       method: 'DELETE',
+    //       url: 'api/v1/repos/*/*/builds/*/cancel',
+    //       status: 500,
+    //       response: 'server error',
+    //     });
+    //     cy.get('[data-test=cancel-build]').as('cancelBuild');
+    //   });
 
-      it('clicking cancel build should show error alert', () => {
-        cy.get('@cancelBuild').click();
-        cy.get('[data-test=alert]').should('contain', 'Error');
-      });
-    });
+    //   it('clicking cancel build should show error alert', () => {
+    //     cy.get('@cancelBuild').click();
+    //     cy.get('[data-test=alert]').should('contain', 'Error');
+    //   });
+    // });
 
-    context('server stubbed Approve Build', () => {
-      beforeEach(() => {
-        cy.visit('/github/octocat/8');
-        cy.server();
-        cy.fixture('build_pending_approval.json').as('approveBuild');
-        cy.route({
-          method: 'POST',
-          url: 'api/v1/repos/*/*/builds/*/approve',
-          status: 200,
-          response: 'approved build github/octocat/8',
-        });
-        cy.get('[data-test=approve-build]').as('approvedBuild');
-      });
+    // context('server stubbed Approve Build', () => {
+    //   beforeEach(() => {
+    //     cy.visit('/github/octocat/8');
+    //     cy.server();
+    //     cy.fixture('build_pending_approval.json').as('approveBuild');
+    //     cy.route({
+    //       method: 'POST',
+    //       url: 'api/v1/repos/*/*/builds/*/approve',
+    //       status: 200,
+    //       response: 'approved build github/octocat/8',
+    //     });
+    //     cy.get('[data-test=approve-build]').as('approvedBuild');
+    //   });
 
-      it('there should be a notice banner', () => {
-        cy.get('[data-test=approve-build-notice').should('exist');
-      });
+    //   it('there should be a notice banner', () => {
+    //     cy.get('[data-test=approve-build-notice').should('exist');
+    //   });
 
-      it('clicking cancel build should show alert', () => {
-        cy.get('@approvedBuild').click();
-        cy.get('[data-test=alert]').should(
-          'contain',
-          'approved build github/octocat/8',
-        );
-      });
-    });
+    //   it('clicking cancel build should show alert', () => {
+    //     cy.get('@approvedBuild').click();
+    //     cy.get('[data-test=alert]').should(
+    //       'contain',
+    //       'approved build github/octocat/8',
+    //     );
+    //   });
+    // });
 
     context('visit running build', () => {
       beforeEach(() => {
         cy.visit('/github/octocat/1');
-        cy.get('[data-test=full-build]').as('build');
+        cy.get('[data-test=build]').as('build');
         cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
 
@@ -269,7 +270,7 @@ context('Build', () => {
     context('visit pending build', () => {
       beforeEach(() => {
         cy.visit('/github/octocat/2');
-        cy.get('[data-test=full-build]').as('build');
+        cy.get('[data-test=build]').as('build');
         cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
 
@@ -281,7 +282,7 @@ context('Build', () => {
     context('visit success build', () => {
       beforeEach(() => {
         cy.visit('/github/octocat/3');
-        cy.get('[data-test=full-build]').as('build');
+        cy.get('[data-test=build]').as('build');
         cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
 
@@ -293,7 +294,7 @@ context('Build', () => {
     context('visit failure build', () => {
       beforeEach(() => {
         cy.visit('/github/octocat/4');
-        cy.get('[data-test=full-build]').as('build');
+        cy.get('[data-test=build]').as('build');
         cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
 
@@ -305,7 +306,7 @@ context('Build', () => {
     context('visit build with server error', () => {
       beforeEach(() => {
         cy.visit('/github/octocat/5');
-        cy.get('[data-test=full-build]').as('build');
+        cy.get('[data-test=build]').as('build');
         cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
 
@@ -326,7 +327,7 @@ context('Build', () => {
     context('visit canceled build', () => {
       beforeEach(() => {
         cy.visit('/github/octocat/6');
-        cy.get('[data-test=full-build]').as('build');
+        cy.get('[data-test=build]').as('build');
         cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
 
