@@ -525,7 +525,7 @@ update route msg model =
             ( model
             , Api.try
                 (Shared.Msg.RestartBuildResponse options)
-                (Api.Operations.restartBuild model.velaAPI model.session options)
+                (Api.Operations.restartBuild model.velaAPIBaseURL model.session options)
                 |> Effect.sendCmd
             )
 
