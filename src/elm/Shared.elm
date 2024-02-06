@@ -553,7 +553,7 @@ update route msg model =
                     , Effect.handleHttpError { httpError = error }
                     )
 
-        -- BUILDS
+        -- HOOKS
         Shared.Msg.GetRepoHooks options ->
             ( model
             , Api.try
