@@ -261,6 +261,23 @@ viewDeployments shared model route =
                     ]
 
         ( noRowsView, rows ) =
+            let
+                viewHttpError e =
+                    span [ Util.testAttribute "repo-deployments-error" ]
+                        [ text <|
+                            case e of
+                                Http.BadStatus statusCode ->
+                                    case statusCode of
+                                        401 ->
+                                            "No deployments found for this repo, most likely due to not having access to the source control repo"
+
+                                        _ ->
+                                            "No deployments found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+
+                                _ ->
+                                    "No deployments found for this repo, there was an error with the server"
+                        ]
+            in
             case ( model.repo, model.deployments ) of
                 ( RemoteData.Success r, RemoteData.Success d ) ->
                     ( text "No deployments found for this repo"
@@ -268,10 +285,10 @@ viewDeployments shared model route =
                     )
 
                 ( RemoteData.Failure error, _ ) ->
-                    ( viewError error, [] )
+                    ( viewHttpError error, [] )
 
                 ( _, RemoteData.Failure error ) ->
-                    ( viewError error, [] )
+                    ( viewHttpError error, [] )
 
                 _ ->
                     ( Components.Loading.viewSmallLoader, [] )
@@ -460,21 +477,3 @@ viewDeploymentBuildsLinks deployment =
             )
         |> List.intersperse (text ", ")
         |> div []
-
-
-viewError : Http.Error -> Html msg
-viewError error =
-    span [ Util.testAttribute "repo-deployments-error" ]
-        [ text <|
-            case error of
-                Http.BadStatus statusCode ->
-                    case statusCode of
-                        401 ->
-                            "No deployments found for this repo, most likely due to not having access to the source control repo"
-
-                        _ ->
-                            "No deployments found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
-
-                _ ->
-                    "No deployments found for this repo, there was an error with the server"
-        ]

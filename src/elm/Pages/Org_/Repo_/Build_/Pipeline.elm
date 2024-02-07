@@ -403,94 +403,156 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> Model -> View Msg
 view shared route model =
+    let
+        viewExpandToggle =
+            case model.build of
+                RemoteData.Success build ->
+                    div [ class "action", class "expand-pipeline", Util.testAttribute "pipeline-expand" ]
+                        [ viewExpandToggleButton model
+                        , if model.expanding then
+                            Components.Loading.viewSmallLoader
+
+                          else if model.expand then
+                            div [ class "icon" ] [ FeatherIcons.checkCircle |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [] ]
+
+                          else
+                            div [ class "icon" ] [ FeatherIcons.circle |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [] ]
+                        , small [ class "tip" ] [ text "note: yaml fields will be sorted alphabetically when the pipeline is expanded." ]
+                        ]
+
+                _ ->
+                    text ""
+
+        downloadButton =
+            case model.pipeline of
+                RemoteData.Success pipeline ->
+                    div [ class "action" ]
+                        [ button
+                            [ class "button"
+                            , class "-link"
+                            , Util.testAttribute <| "download-yml"
+                            , onClick <|
+                                DownloadPipeline
+                                    { filename = "vela.yml"
+                                    , content = pipeline.decodedData
+                                    , map = identity
+                                    }
+                            , attribute "aria-label" <| "download pipeline configuration file for "
+                            ]
+                            [ text <|
+                                if model.expand then
+                                    "download (expanded) " ++ "vela.yml"
+
+                                else
+                                    "download " ++ "vela.yml"
+                            ]
+                        ]
+
+                _ ->
+                    text ""
+    in
     { title = "Pipeline"
     , body =
         [ div [ class "pipeline" ]
             [ case model.templates of
                 RemoteData.Success templates ->
                     if not <| Dict.isEmpty templates then
-                        templates
-                            |> Dict.toList
-                            |> List.map viewTemplate
-                            |> viewTemplatesDetails (class "-success") model.showTemplates ShowHideTemplates
+                        viewTemplatesDetails model <|
+                            div [ class "content", class "-success" ] <|
+                                (templates
+                                    |> Dict.toList
+                                    |> List.map viewTemplate
+                                )
 
                     else
                         text ""
 
-                RemoteData.Failure _ ->
-                    text "error"
+                RemoteData.Failure error ->
+                    viewTemplatesDetails model <|
+                        div [ class "content", class "-error" ]
+                            [ span [ Util.testAttribute "pipeline-templates-error" ]
+                                [ text <|
+                                    case error of
+                                        Http.BadStatus statusCode ->
+                                            case statusCode of
+                                                401 ->
+                                                    "No templates found for this pipeline, most likely due to not having access to the source control repo"
 
-                _ ->
-                    Components.Loading.viewSmallLoaderWithText "loading pipeline templates"
-            , case model.pipeline of
-                RemoteData.Success pipeline ->
-                    if String.length pipeline.decodedData > 0 then
-                        div [ class "logs-container", class "-pipeline" ]
-                            [ table
-                                [ class "logs-table"
-                                ]
-                                [ div [ class "header" ]
-                                    [ span []
-                                        [ text "Pipeline Configuration"
-                                        ]
-                                    ]
-                                , let
-                                    toggle =
-                                        case model.build of
-                                            RemoteData.Success build ->
-                                                div [ class "action", class "expand-pipeline", Util.testAttribute "pipeline-expand" ]
-                                                    [ viewExpandToggleButton model
-                                                    , if model.expanding then
-                                                        Components.Loading.viewSmallLoader
+                                                _ ->
+                                                    "No templates found for this pipeline, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
 
-                                                      else if model.expand then
-                                                        div [ class "icon" ] [ FeatherIcons.checkCircle |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [] ]
-
-                                                      else
-                                                        div [ class "icon" ] [ FeatherIcons.circle |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [] ]
-                                                    , small [ class "tip" ] [ text "note: yaml fields will be sorted alphabetically when the pipeline is expanded." ]
-                                                    ]
-
-                                            _ ->
-                                                text ""
-                                  in
-                                  div [ class "actions" ]
-                                    [ toggle
-                                    , div [ class "action" ]
-                                        [ button
-                                            [ class "button"
-                                            , class "-link"
-                                            , Util.testAttribute <| "download-yml"
-                                            , onClick <|
-                                                DownloadPipeline
-                                                    { filename = "vela.yml"
-                                                    , content = pipeline.decodedData
-                                                    , map = identity
-                                                    }
-                                            , attribute "aria-label" <| "download pipeline configuration file for "
-                                            ]
-                                            [ text <|
-                                                if model.expand then
-                                                    "download (expanded) " ++ "vela.yml"
-
-                                                else
-                                                    "download " ++ "vela.yml"
-                                            ]
-                                        ]
-                                    ]
-                                , div [ class "logs", Util.testAttribute "pipeline-configuration-data" ] <|
-                                    viewLines pipeline model.focus shared.shift
+                                        _ ->
+                                            "No templates found for this pipeline, there was an error with the server"
                                 ]
                             ]
 
-                    else
-                        div [ class "no-pipeline" ] [ small [] [ code [] [ text "No pipeline found for this build." ] ] ]
-
                 _ ->
-                    Components.Loading.viewSmallLoader
+                    viewTemplatesDetails model <|
+                        div [ class "content", class "-success" ] [ Components.Loading.viewSmallLoaderWithText "loading pipeline templates" ]
+            , div [ class "logs-container", class "-pipeline" ]
+                [ table
+                    [ class "logs-table"
+                    , class "pipeline"
+                    ]
+                    [ div [ class "header" ]
+                        [ span []
+                            [ text "Pipeline Configuration"
+                            ]
+                        ]
+                    , div [ class "actions" ]
+                        [ viewExpandToggle
+                        , downloadButton
+                        ]
+                    , case model.pipeline of
+                        RemoteData.Success pipeline ->
+                            if String.length pipeline.decodedData > 0 then
+                                div [ class "logs", Util.testAttribute "pipeline-configuration-data" ] <|
+                                    viewLines pipeline model.focus shared.shift
+
+                            else
+                                div [ class "no-pipeline" ] [ small [] [ code [] [ text "The pipeline found for this build/ref contains no data." ] ] ]
+
+                        RemoteData.Failure error ->
+                            div [ class "content", class "-error" ]
+                                [ span [ Util.testAttribute "pipeline-configuration-error" ]
+                                    [ text <|
+                                        case error of
+                                            Http.BadStatus statusCode ->
+                                                case statusCode of
+                                                    401 ->
+                                                        "No pipeline configuration (.vela.yml) found for this build/ref, most likely due to not being an admin of the source control repo"
+
+                                                    _ ->
+                                                        "No pipeline configuration (.vela.yml) found for this build/ref, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+
+                                            _ ->
+                                                "No pipeline configuration (.vela.yml) found for this build/ref, there was an error with the server"
+                                    ]
+                                ]
+
+                        _ ->
+                            Components.Loading.viewSmallLoader
+                    ]
+                ]
             ]
         ]
     }
+
+
+viewTemplatesDetails : Model -> Html Msg -> Html Msg
+viewTemplatesDetails model body =
+    details
+        (class "details"
+            :: class "templates"
+            :: Util.testAttribute "pipeline-templates"
+            :: Util.open model.showTemplates
+        )
+        [ summary [ class "summary", Util.onClickPreventDefault ShowHideTemplates ]
+            [ div [] [ text "Templates" ]
+            , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
+            ]
+        , body
+        ]
 
 
 viewExpandToggleButton : Model -> Html Msg
@@ -522,22 +584,6 @@ viewTemplate ( _, t ) =
                 ]
                 [ text t.link ]
             ]
-        ]
-
-
-viewTemplatesDetails : Html.Attribute msg -> Bool -> msg -> List (Html msg) -> Html msg
-viewTemplatesDetails cls open showHide content =
-    details
-        (class "details"
-            :: class "templates"
-            :: Util.testAttribute "pipeline-templates"
-            :: Util.open open
-        )
-        [ summary [ class "summary", Util.onClickPreventDefault showHide ]
-            [ div [] [ text "Templates" ]
-            , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
-            ]
-        , div [ class "content", cls ] content
         ]
 
 

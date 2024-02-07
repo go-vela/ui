@@ -160,7 +160,7 @@ viewSharedSecrets shared props =
                     )
 
                 RemoteData.Failure error ->
-                    ( span [ Util.testAttribute "repo-secrets-error" ]
+                    ( span [ Util.testAttribute "shared-secrets-error" ]
                         [ text <|
                             case error of
                                 Http.BadStatus statusCode ->
