@@ -52,6 +52,8 @@ type Msg
       -- BUILD
     | RestartBuild { org : String, repo : String, buildNumber : String }
     | RestartBuildResponse { org : String, repo : String, buildNumber : String } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
+    | CancelBuild { org : String, repo : String, buildNumber : String }
+    | CancelBuildResponse { org : String, repo : String, buildNumber : String } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
       -- HOOKS
     | GetRepoHooks { org : String, repo : String, pageNumber : Maybe Int, perPage : Maybe Int, maybeEvent : Maybe String }
     | GetRepoHooksResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Hook ))

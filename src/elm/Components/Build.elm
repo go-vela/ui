@@ -247,6 +247,7 @@ viewActionsMenu :
     { msgs :
         { showHideActionsMenus : Maybe Int -> Maybe Bool -> msg
         , restartBuild : { org : String, repo : String, buildNumber : String } -> msg
+        , cancelBuild : { org : String, repo : String, buildNumber : String } -> msg
         }
     , build : Vela.Build
     , showActionsMenus : List Int
@@ -319,8 +320,12 @@ viewActionsMenu props =
                         [ a
                             [ href "#"
                             , class "menu-item"
-
-                            -- , Util.onClickPreventDefault <| props.msgs.cancelBuild org repo <| String.fromInt build.number
+                            , Util.onClickPreventDefault <|
+                                props.msgs.cancelBuild
+                                    { org = org
+                                    , repo = repo
+                                    , buildNumber = String.fromInt props.build.number
+                                    }
                             , Util.testAttribute "cancel-build"
                             ]
                             [ text "Cancel Build"

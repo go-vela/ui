@@ -109,7 +109,7 @@ type Msg
     | GotoPage Int
     | ApproveBuild Vela.Org Vela.Repo Vela.BuildNumber
     | RestartBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
-    | CancelBuild Vela.Org Vela.Repo Vela.BuildNumber
+    | CancelBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
     | ShowHideActionsMenus (Maybe Int) (Maybe Bool)
     | FilterByEvent (Maybe String)
     | ShowHideFullTimestamps
@@ -205,18 +205,18 @@ update shared route msg model =
                 }
             )
 
-        -- RestartBuild _ ->
-        --     let
-        --         _ =
-        --             Debug.log "restart build clicked" ""
-        --     in
-        --     ( model, Effect.none )
-        CancelBuild _ _ _ ->
+        CancelBuild options ->
             let
                 _ =
                     Debug.log "cancel build clicked" ""
             in
-            ( model, Effect.none )
+            ( model
+            , Effect.cancelBuild
+                { org = options.org
+                , repo = options.repo
+                , buildNumber = options.buildNumber
+                }
+            )
 
         ShowHideActionsMenus build show ->
             let
@@ -343,6 +343,7 @@ view shared route model =
                         { msgs =
                             { showHideActionsMenus = ShowHideActionsMenus
                             , restartBuild = RestartBuild
+                            , cancelBuild = CancelBuild
                             }
                         , build = options.build
                         , showActionsMenus = model.showActionsMenus

@@ -9,6 +9,7 @@ module Api.Operations exposing
     , addRepoSchedule
     , addRepoSecret
     , addSharedSecret
+    , cancelBuild
     , chownRepo
     , deleteOrgSecret
     , deleteRepoSchedule
@@ -303,6 +304,27 @@ restartBuild baseUrl session options =
             options.buildNumber
         )
         Http.emptyBody
+        Vela.decodeBuild
+        |> withAuth session
+
+
+cancelBuild :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , buildNumber : String
+        }
+    -> Request Vela.Build
+cancelBuild baseUrl session options =
+    delete baseUrl
+        (Api.Endpoint.CancelBuild
+            options.org
+            options.repo
+            options.buildNumber
+        )
         Vela.decodeBuild
         |> withAuth session
 
