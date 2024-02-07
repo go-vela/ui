@@ -547,15 +547,6 @@ pageToString maybePage =
             )
 
 
-
--- case Maybe.map String.toInt maybePage of
---     Nothing ->
---         ""
---     Just (Just num) ->
---     _ ->
---         ""
-
-
 {-| buildRefURL : drops '.git' off the clone url and concatenates tree + ref
 -}
 buildRefURL : String -> String -> String

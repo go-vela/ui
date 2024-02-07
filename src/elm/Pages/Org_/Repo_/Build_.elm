@@ -513,8 +513,6 @@ view shared route model =
     }
 
 
-{-| viewStages : takes model and build model and renders steps grouped by stages
--}
 viewStages : Shared.Model -> Model -> Route { org : String, repo : String, buildNumber : String } -> List Vela.Step -> List (Html Msg)
 viewStages shared model route steps =
     steps
