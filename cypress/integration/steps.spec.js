@@ -13,7 +13,6 @@ context('Steps', () => {
       cy.get('[data-test=step]').as('step');
       cy.clickSteps();
       cy.get('[data-test=logs-1]').as('logs');
-      cy.clickSteps();
     });
 
     it('steps should show', () => {
@@ -45,15 +44,17 @@ context('Steps', () => {
     });
 
     it('logs should be hidden', () => {
+      cy.get('[data-test=step-header-1]').click({ force: true });
       cy.get('@logs').children().should('be.not.visible');
     });
-    context('click steps', () => {
+
+    context('click steps (to hide them)', () => {
       beforeEach(() => {
         cy.clickSteps();
       });
 
-      it('should show logs', () => {
-        cy.get('@logs').children().should('be.visible');
+      it('logs should be hidden', () => {
+        cy.get('@logs').children().should('be.not.visible');
       });
 
       context('click steps again', () => {
@@ -61,25 +62,24 @@ context('Steps', () => {
           cy.clickSteps();
         });
 
-        it('should hide logs', () => {
-          cy.get('@logs').children().should('be.not.visible');
+        it('should show logs', () => {
+          cy.get('@logs').children().should('be.visible');
         });
       });
     });
-    context('click first step', () => {
+    context('click first step twice', () => {
       beforeEach(() => {
+        cy.get('[data-test=step-header-1]').click({ force: true });
         cy.get('[data-test=step-header-1]').click({ force: true });
       });
       it('browser path should contain first step fragment', () => {
-        cy.hash().should('eq', '#step:1');
+        cy.hash().should('eq', '#1');
       });
-      context('click last step', () => {
-        beforeEach(() => {
-          cy.get('[data-test=step-header-5]').click({ force: true });
-        });
-        it('browser path should contain last step fragment', () => {
-          cy.hash().should('eq', '#step:5');
-        });
+
+      it('browser path should contain last step fragment', () => {
+        cy.get('[data-test=step-header-5]').click({ force: true });
+        cy.get('[data-test=step-header-5]').click({ force: true });
+        cy.hash().should('eq', '#5');
       });
     });
     context('click log line in last step', () => {
@@ -88,38 +88,37 @@ context('Steps', () => {
         cy.get('[data-test=step-skipped]').as('lineNumber');
         cy.get('@lineNumber').click({ force: true });
       });
-      context('click first step', () => {
+      context('click first step twice', () => {
         beforeEach(() => {
+          cy.get('[data-test=step-header-1]').click({ force: true });
           cy.get('[data-test=step-header-1]').click({ force: true });
         });
         it('browser path should contain first step fragment', () => {
-          cy.hash().should('eq', '#step:1');
+          cy.hash().should('eq', '#1');
         });
       });
     });
     context('click log line number', () => {
       beforeEach(() => {
-        cy.clickSteps();
         cy.wait('@getLogs-1');
-        cy.get('[data-test=log-line-step-1-3]').as('line');
-        cy.get('[data-test=log-line-num-step-1-3]').as('lineNumber');
+        cy.get('[data-test=log-line-1-3]').as('line');
+        cy.get('[data-test=log-line-num-1-3]').as('lineNumber');
         cy.get('@lineNumber').click({ force: true });
       });
 
       it('line should be highlighted', () => {
-        cy.clickSteps();
         cy.get('@lineNumber').click({ force: true });
         cy.get('@line').should('have.class', '-focus');
       });
 
       it('browser path should contain step and line fragment', () => {
-        cy.hash().should('eq', '#step:1:3');
+        cy.hash().should('eq', '#1:3');
       });
 
       context('click other log line number', () => {
         beforeEach(() => {
-          cy.get('[data-test=log-line-step-3-2]').as('otherLine');
-          cy.get('[data-test=log-line-num-step-3-2]').as('otherLineNumber');
+          cy.get('[data-test=log-line-3-2]').as('otherLine');
+          cy.get('[data-test=log-line-num-3-2]').as('otherLineNumber');
           cy.get('@otherLineNumber').click({ force: true });
         });
         it('original line should not be highlighted', () => {
@@ -133,44 +132,44 @@ context('Steps', () => {
 
         it('browser path should contain other step and line fragment', () => {
           cy.clickSteps();
-          cy.hash().should('eq', '#step:3:2');
+          cy.hash().should('eq', '#3:2');
         });
 
         it('browser path should contain other step and line fragment', () => {
           cy.get('@otherLineNumber').click({ force: true });
-          cy.hash().should('eq', '#step:3:2');
+          cy.hash().should('eq', '#3:2');
         });
       });
     });
     context('visit Build, then visit log line with fragment', () => {
       beforeEach(() => {
-        cy.visit('/github/octocat/1#step:2:2');
+        cy.visit('/github/octocat/1#2:2');
         cy.reload();
       });
       it('line should be highlighted', () => {
         cy.wait('@getLogs-2');
-        cy.get('[data-test=log-line-step-2-2]').as('line2:2');
-        cy.get('[data-test=log-line-num-step-2-2]').as('lineNumber2:2');
+        cy.get('[data-test=log-line-2-2]').as('line2:2');
+        cy.get('[data-test=log-line-num-2-2]').as('lineNumber2:2');
         cy.get('@line2:2').should('have.class', '-focus');
       });
     });
     context('visit Build, with only step fragment', () => {
       beforeEach(() => {
-        cy.visit('/github/octocat/1#step:2');
+        cy.visit('/github/octocat/1#2');
         cy.reload();
       });
       it('range start line should not be highlighted', () => {
         cy.wait('@getLogs-2');
-        cy.get('[data-test=log-line-step-2-2]').as('line2:2');
+        cy.get('[data-test=log-line-2-2]').as('line2:2');
         cy.get('@line2:2').should('not.have.class', '-focus');
       });
       context('click line 2, shift click line 5', () => {
         beforeEach(() => {
           cy.wait('@getLogs-2');
-          cy.get('[data-test=log-line-step-2-2]').as('line2:2');
-          cy.get('[data-test=log-line-step-2-5]').as('line2:5');
-          cy.get('[data-test=log-line-num-step-2-2]').as('lineNumber2:2');
-          cy.get('[data-test=log-line-num-step-2-5]').as('lineNumber2:5');
+          cy.get('[data-test=log-line-2-2]').as('line2:2');
+          cy.get('[data-test=log-line-2-5]').as('line2:5');
+          cy.get('[data-test=log-line-num-2-2]').as('lineNumber2:2');
+          cy.get('[data-test=log-line-num-2-5]').as('lineNumber2:5');
           cy.get('@lineNumber2:2')
             .type('{shift}', { release: false })
             .get('@lineNumber2:2')
@@ -179,55 +178,39 @@ context('Steps', () => {
         });
         it('range start line should be highlighted', () => {
           cy.wait('@getLogs-2');
-          cy.get('[data-test=log-line-step-2-2]').should(
-            'have.class',
-            '-focus',
-          );
+          cy.get('[data-test=log-line-2-2]').should('have.class', '-focus');
         });
         it('lines between range start and end should be highlighted', () => {
           cy.wait('@getLogs-2');
-          cy.get('[data-test=log-line-step-2-3]').should(
-            'have.class',
-            '-focus',
-          );
-          cy.get('[data-test=log-line-step-2-4]').should(
-            'have.class',
-            '-focus',
-          );
+          cy.get('[data-test=log-line-2-3]').should('have.class', '-focus');
+          cy.get('[data-test=log-line-2-4]').should('have.class', '-focus');
         });
       });
-      context('click first step', () => {
+      context('click first step twice', () => {
         beforeEach(() => {
+          cy.get('[data-test=step-header-1]').click({ force: true });
           cy.get('[data-test=step-header-1]').click({ force: true });
         });
         it('browser path should contain first step fragment', () => {
-          cy.hash().should('eq', '#step:1');
+          cy.hash().should('eq', '#1');
         });
       });
     });
     context('visit Build, then visit log line range with fragment', () => {
       beforeEach(() => {
-        cy.visit('/github/octocat/1#step:2:2:5');
+        cy.visit('/github/octocat/1#2:2:5');
         cy.reload();
         cy.wait('@getLogs-2');
       });
       it('range start line should be highlighted', () => {
-        cy.get('[data-test=log-line-step-2-2]').should('have.class', '-focus');
+        cy.get('[data-test=log-line-2-2]').should('have.class', '-focus');
       });
       it('range end line should be highlighted', () => {
-        cy.get('[data-test=log-line-step-2-5]').should('have.class', '-focus');
+        cy.get('[data-test=log-line-2-5]').should('have.class', '-focus');
       });
       it('lines between range start and end should be highlighted', () => {
-        cy.get('[data-test=log-line-step-2-3]').should('have.class', '-focus');
-        cy.get('[data-test=log-line-step-2-4]').should('have.class', '-focus');
-      });
-      context('click first step', () => {
-        beforeEach(() => {
-          cy.get('[data-test=step-header-1]').click({ force: true });
-        });
-        it('browser path should contain first step fragment', () => {
-          cy.hash().should('eq', '#step:1');
-        });
+        cy.get('[data-test=log-line-2-3]').should('have.class', '-focus');
+        cy.get('[data-test=log-line-2-4]').should('have.class', '-focus');
       });
     });
     context(
@@ -236,12 +219,12 @@ context('Steps', () => {
         beforeEach(() => {
           cy.visit('/github/octocat/1');
           cy.clickSteps();
-          cy.get('[data-test=log-line-step-2-2]').as('line2:2');
-          cy.get('[data-test=log-line-num-step-2-2]').as('lineNumber2:2');
-          cy.get('[data-test=log-line-step-3-3]').as('line3:3');
-          cy.get('[data-test=log-line-num-step-3-3]').as('lineNumber3:3');
+          cy.get('[data-test=log-line-2-2]').as('line2:2');
+          cy.get('[data-test=log-line-num-2-2]').as('lineNumber2:2');
+          cy.get('[data-test=log-line-3-3]').as('line3:3');
+          cy.get('[data-test=log-line-num-3-3]').as('lineNumber3:3');
           cy.get('@lineNumber3:3').click({ force: true });
-          cy.visit('/github/octocat/1#step:2:2');
+          cy.visit('/github/octocat/1#2:2');
           cy.reload();
         });
         it('original line should not be highlighted', () => {
@@ -252,12 +235,8 @@ context('Steps', () => {
         });
         context('click first step', () => {
           beforeEach(() => {
-            cy.get('[data-test=step-header-1]').click({ force: true });
+            cy.get('[data-test=step-header-5]').click({ force: true });
           });
-          it('browser path should contain first step fragment', () => {
-            cy.hash().should('eq', '#step:1');
-          });
-
           it('last step should contain killed/skip', () => {
             cy.get('[data-test=step]').last().as('killStep');
             cy.get('@killStep').should('be.visible').click();
@@ -304,7 +283,7 @@ context('Steps', () => {
 
     it('last step should not contain killed/skipped', () => {
       cy.get('[data-test=step]').last().as('echoStep');
-      cy.get('@echoStep').should('be.visible').click({ force: true });
+      cy.get('[data-test=step-header-5]').click({ force: true });
       cy.get('@echoStep').should('not.contain', 'error:');
       cy.get('@echoStep').should('not.contain', 'step was killed');
       cy.get('@echoStep').contains('$');

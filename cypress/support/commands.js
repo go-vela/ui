@@ -34,10 +34,7 @@ Cypress.Commands.add('loggingIn', (path = '/') => {
 
   cy.visit('/account/authenticate?code=deadbeef&state=1337', {
     onBeforeLoad: win => {
-      win.localStorage.setItem(
-        'vela-redirect',
-        `${path}`,
-      );
+      win.localStorage.setItem('vela-redirect', `${path}`);
     },
   });
 });

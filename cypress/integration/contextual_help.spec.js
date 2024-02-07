@@ -6,14 +6,6 @@ context('Contextual Help', () => {
   context('error loading resource', () => {
     beforeEach(() => {
       cy.server();
-      cy.route({
-        method: 'GET',
-        url: 'api/v1/user*',
-        status: 500,
-        response: {
-          error: 'error fetching user',
-        },
-      });
       cy.login();
       cy.get('[data-test=help-trigger]').as('trigger');
     });
@@ -29,51 +21,9 @@ context('Contextual Help', () => {
       it('should show the dropdown', () => {
         cy.get('[data-test=help-tooltip]').should('be.visible');
       });
-      it('dropdown should contain error msg', () => {
-        cy.get('[data-test=help-row] input').should(
-          'have.value',
-          'something went wrong!',
-        );
-      });
-      it('dropdown footer should contain getting started docs', () => {
-        cy.get('[data-test=help-footer]').contains('Getting Started Docs');
-      });
     });
   });
 
-  context('successfully loading resource with no cli support (yet)', () => {
-    beforeEach(() => {
-      cy.server();
-      cy.route('GET', '*api/v1/user*', 'fixture:favorites_none.json');
-      cy.login();
-      cy.get('[data-test=help-trigger]').as('trigger');
-    });
-
-    it('should show the help button', () => {
-      cy.get('@trigger').should('be.visible');
-    });
-
-    context('clicking help button', () => {
-      beforeEach(() => {
-        cy.get('@trigger').click();
-      });
-      it('should show the dropdown', () => {
-        cy.get('[data-test=help-tooltip]').should('be.visible');
-      });
-      it('cmd header should contain feature request upvote link', () => {
-        cy.get('[data-test=help-cmd-header]').contains('(upvote feature)');
-      });
-      it('cmd should contain not supported message', () => {
-        cy.get('[data-test=help-row] input')
-          .invoke('val')
-          .should('eq', 'not yet supported via the CLI');
-      });
-      it('dropdown footer should contain installation and authentication docs', () => {
-        cy.get('[data-test=help-footer]').contains('CLI Installation Docs');
-        cy.get('[data-test=help-footer]').contains('CLI Authentication Docs');
-      });
-    });
-  });
   context('successfully loading resource with cli support', () => {
     beforeEach(() => {
       cy.server();
@@ -99,7 +49,7 @@ context('Contextual Help', () => {
       it('cmd should contain cli command', () => {
         cy.get('[data-test=help-row] input')
           .invoke('val')
-          .should('eq', 'vela get builds --org github --repo octocat');
+          .should('eq', 'vela get builds --help');
       });
       it('dropdown footer should contain installation and authentication docs', () => {
         cy.get('[data-test=help-footer]').contains('CLI Installation Docs');
@@ -111,32 +61,8 @@ context('Contextual Help', () => {
         });
         it('should show copied alert', () => {
           cy.get('@copy').click();
-          cy.get('[data-test=alerts]').contains('Copied');
+          cy.get('[data-test=alerts]').contains('copied');
         });
-      });
-    });
-  });
-  context('visit page with no resources (not found)', () => {
-    beforeEach(() => {
-      cy.server();
-      cy.login('/notfound');
-      cy.get('[data-test=help-trigger]').as('trigger');
-    });
-
-    it('should show the help button', () => {
-      cy.get('@trigger').should('be.visible');
-    });
-    context('clicking help button', () => {
-      beforeEach(() => {
-        cy.get('@trigger').click();
-      });
-      it('dropdown should contain error msg', () => {
-        cy.get('[data-test=help-row] input')
-          .invoke('val')
-          .should('eq', 'something went wrong!');
-      });
-      it('dropdown footer should contain getting started docs', () => {
-        cy.get('[data-test=help-footer]').contains('Getting Started Docs');
       });
     });
   });

@@ -8,6 +8,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -40,6 +41,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -52,6 +56,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -84,6 +89,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -96,6 +104,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -128,6 +137,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -140,6 +152,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -172,6 +185,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -184,6 +200,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -216,6 +233,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -228,6 +248,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -260,6 +281,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -272,6 +296,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -304,6 +329,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -316,6 +344,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -348,6 +377,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -360,6 +392,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -392,6 +425,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -404,6 +440,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -436,6 +473,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   }
