@@ -533,7 +533,7 @@ Cypress.Commands.add('stubPipelineExpand', () => {
     url: '*api/v1/pipelines/*/*/*/expand*',
     status: 200,
     response: '@expanded',
-  });
+  }).as('expand');
 });
 
 Cypress.Commands.add('stubPipelineExpandErrors', () => {

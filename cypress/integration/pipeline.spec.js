@@ -95,6 +95,7 @@ context('Pipeline', () => {
           cy.get('[data-test=pipeline-expand-toggle]').click({
             force: true,
           });
+          cy.wait('@expand');
         });
 
         it('should update path with expand query', () => {
