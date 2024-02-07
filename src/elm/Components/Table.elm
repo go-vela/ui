@@ -103,7 +103,18 @@ view { label, testLabel, noRows, columns, rows, headerElement } =
                 , Maybe.withDefault (text "") headerElement
                 ]
             ]
-        , thead [] [ tr [] <| List.map (\( className, col ) -> th [ class <| Maybe.withDefault "" className, scope "col" ] [ text <| String.Extra.toTitleCase col ]) columns ]
+        , thead []
+            [ tr [] <|
+                List.map
+                    (\( className, col ) ->
+                        th
+                            [ class <| Maybe.withDefault "" className
+                            , scope "col"
+                            ]
+                            [ text <| String.Extra.toTitleCase col ]
+                    )
+                    columns
+            ]
         , viewFooter noRows numRows numColumns
         , tbody [] <| List.map (\row_ -> row_.display row_.data) rows
         ]
@@ -122,11 +133,12 @@ viewFooter noRows numRows numColumns =
 
 {-| viewListCell : takes list of items, text for none and className and renders a table cell
 -}
-viewListCell : List String -> String -> List ( String, Bool ) -> Html msg
-viewListCell items none itemWrapperClassList =
+viewListCell : { dataLabel : String, items : List String, none : String, itemWrapperClassList : List ( String, Bool ) } -> Html msg
+viewListCell { dataLabel, items, none, itemWrapperClassList } =
     if List.length items == 0 then
         span
             [ class "single-item"
+            , Util.testAttribute <| "cell-list-item-" ++ dataLabel
             ]
             [ text none ]
 
@@ -135,7 +147,10 @@ viewListCell items none itemWrapperClassList =
             |> List.sort
             |> List.map
                 (\item ->
-                    div [ classList itemWrapperClassList ]
+                    div
+                        [ classList itemWrapperClassList
+                        , Util.testAttribute <| "cell-list-item-" ++ dataLabel
+                        ]
                         [ span
                             [ class "list-item" ]
                             [ text item ]
@@ -152,7 +167,7 @@ viewListItemCell { dataLabel, parentClassList, itemWrapperClassList, itemClassLi
         [ attribute "data-label" dataLabel
         , class "break-word"
         , classList parentClassList
-        , scope "row"
+        , Util.testAttribute <| "cell-" ++ dataLabel
         ]
         [ div [ classList itemWrapperClassList ]
             [ span
@@ -172,7 +187,7 @@ viewItemCell { dataLabel, parentClassList, itemClassList, children } =
         [ attribute "data-label" dataLabel
         , class "break-word"
         , classList parentClassList
-        , scope "row"
+        , Util.testAttribute <| "cell-" ++ dataLabel
         ]
         [ span
             [ class "single-item"
@@ -191,6 +206,7 @@ viewIconCell { dataLabel, parentClassList, itemWrapperClassList, itemClassList, 
         , class "break-word"
         , class "table-icon"
         , classList parentClassList
+        , Util.testAttribute <| "cell-" ++ dataLabel
         ]
         [ div
             [ classList itemWrapperClassList

@@ -9,7 +9,7 @@ import Auth
 import Components.Form
 import Dict
 import Effect exposing (Effect)
-import Html exposing (Html, button, code, div, em, h2, label, p, section, span, strong, text)
+import Html exposing (button, code, div, em, h2, label, p, section, span, strong, text)
 import Html.Attributes exposing (class, disabled, for, id)
 import Html.Events exposing (onClick)
 import Http
@@ -344,7 +344,86 @@ view shared route model =
                         , wrap_ = Just "soft"
                         , msg = TaskOnInput
                         }
-                    , viewParametersInput model
+                    , section []
+                        [ div
+                            [ id "parameter-select"
+                            , class "form-control"
+                            , class "-stack"
+                            , class "parameters-container"
+                            ]
+                            [ label
+                                [ for "parameter-select"
+                                , class "form-label"
+                                ]
+                                [ strong [] [ text "Add Parameters" ]
+                                , span
+                                    [ class "field-description" ]
+                                    [ em [] [ text "(Optional)" ]
+                                    ]
+                                ]
+                            , div [ class "parameters-inputs" ]
+                                [ Components.Form.viewInput
+                                    { title = Nothing
+                                    , subtitle = Nothing
+                                    , id_ = "parameter-key"
+                                    , val = model.parameterKey
+                                    , placeholder_ = "key"
+                                    , classList_ = [ ( "parameter-input", True ) ]
+                                    , disabled_ = False
+                                    , rows_ = Just 2
+                                    , wrap_ = Just "soft"
+                                    , msg = ParameterKeyOnInput
+                                    }
+                                , Components.Form.viewInput
+                                    { title = Nothing
+                                    , subtitle = Nothing
+                                    , id_ = "parameter-value"
+                                    , val = model.parameterValue
+                                    , placeholder_ = "value"
+                                    , classList_ = [ ( "parameter-input", True ) ]
+                                    , disabled_ = False
+                                    , rows_ = Just 2
+                                    , wrap_ = Just "soft"
+                                    , msg = ParameterValueOnInput
+                                    }
+                                , button
+                                    [ class "button"
+                                    , class "-outline"
+                                    , class "add-parameter"
+                                    , onClick <| AddParameter
+                                    , Util.testAttribute "add-parameter-button"
+                                    , disabled <| String.length model.parameterKey == 0 || String.length model.parameterValue == 0
+                                    ]
+                                    [ text "Add"
+                                    ]
+                                ]
+                            ]
+                        , div [ class "parameters", Util.testAttribute "parameters-list" ] <|
+                            if List.length model.parameters > 0 then
+                                let
+                                    viewParameter parameter =
+                                        div [ class "parameter", class "chevron" ]
+                                            [ button
+                                                [ class "button"
+                                                , class "-outline"
+                                                , onClick <| RemoveParameter parameter
+                                                ]
+                                                [ text "remove"
+                                                ]
+                                            , div [ class "name" ] [ text (parameter.key ++ "=" ++ parameter.value) ]
+                                            ]
+                                in
+                                List.map viewParameter <| List.reverse model.parameters
+
+                            else
+                                [ div [ class "no-parameters" ]
+                                    [ div
+                                        [ class "none"
+                                        ]
+                                        [ code [] [ text "no parameters defined" ] ]
+                                    ]
+                                ]
+                        ]
                     , div [ class "help" ]
                         [ text "Need help? Visit our "
                         , Html.a
@@ -369,88 +448,3 @@ view shared route model =
             ]
         ]
     }
-
-
-viewParametersInput : Model -> Html Msg
-viewParametersInput model =
-    section []
-        [ div
-            [ id "parameter-select"
-            , class "form-control"
-            , class "-stack"
-            , class "parameters-container"
-            ]
-            [ label
-                [ for "parameter-select"
-                , class "form-label"
-                ]
-                [ strong [] [ text "Add Parameters" ]
-                , span
-                    [ class "field-description" ]
-                    [ em [] [ text "(Optional)" ]
-                    ]
-                ]
-            , div [ class "parameters-inputs" ]
-                [ Components.Form.viewInput
-                    { title = Nothing
-                    , subtitle = Nothing
-                    , id_ = "parameter-key"
-                    , val = model.parameterKey
-                    , placeholder_ = "key"
-                    , classList_ = [ ( "parameter-input", True ) ]
-                    , disabled_ = False
-                    , rows_ = Just 2
-                    , wrap_ = Just "soft"
-                    , msg = ParameterKeyOnInput
-                    }
-                , Components.Form.viewInput
-                    { title = Nothing
-                    , subtitle = Nothing
-                    , id_ = "parameter-value"
-                    , val = model.parameterValue
-                    , placeholder_ = "value"
-                    , classList_ = [ ( "parameter-input", True ) ]
-                    , disabled_ = False
-                    , rows_ = Just 2
-                    , wrap_ = Just "soft"
-                    , msg = ParameterValueOnInput
-                    }
-                , button
-                    [ class "button"
-                    , class "-outline"
-                    , class "add-parameter"
-                    , onClick <| AddParameter
-                    , Util.testAttribute "add-parameter-button"
-                    , disabled <| String.length model.parameterKey == 0 || String.length model.parameterValue == 0
-                    ]
-                    [ text "Add"
-                    ]
-                ]
-            ]
-        , div [ class "parameters", Util.testAttribute "parameters-list" ] <|
-            if List.length model.parameters > 0 then
-                List.map viewParameter <| List.reverse model.parameters
-
-            else
-                [ div [ class "no-parameters" ]
-                    [ div
-                        [ class "none"
-                        ]
-                        [ code [] [ text "no parameters defined" ] ]
-                    ]
-                ]
-        ]
-
-
-viewParameter : Vela.KeyValuePair -> Html Msg
-viewParameter parameter =
-    div [ class "parameter", class "chevron" ]
-        [ button
-            [ class "button"
-            , class "-outline"
-            , onClick <| RemoveParameter parameter
-            ]
-            [ text "remove"
-            ]
-        , div [ class "name" ] [ text (parameter.key ++ "=" ++ parameter.value) ]
-        ]

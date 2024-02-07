@@ -51,7 +51,7 @@ toLayout user route model =
             [ ( "Overview", Just Route.Path.Home )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
             , ( route.params.team, Nothing )
-            , ( "Secrets", Just <| Route.Path.SecretsEngine_SharedOrg_Team_ { engine = route.params.engine, org = route.params.org, team = route.params.team } )
+            , ( "Shared Secrets", Just <| Route.Path.SecretsEngine_SharedOrg_Team_ { engine = route.params.engine, org = route.params.org, team = route.params.team } )
             , ( "Add", Nothing )
             ]
         , repo = Nothing
@@ -293,6 +293,7 @@ view shared route model =
                         , text_ = "Submit"
                         , classList_ = []
                         , disabled_ = False
+                        , id_ = "submit"
                         }
                     ]
                 ]

@@ -54,7 +54,12 @@ toLayout user route model =
     Layouts.Default_Repo
         { navButtons = []
         , utilButtons = []
-        , helpCommands = []
+        , helpCommands =
+            [ { name = "List Builds"
+              , content = "vela get builds --help"
+              , docs = Just "builds/get"
+              }
+            ]
         , crumbs =
             [ ( "Overview", Just Route.Path.Home )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
@@ -318,7 +323,7 @@ view shared route model =
             , showHideActionsMenus = ShowHideActionsMenus
             }
     in
-    { title = "Builds"
+    { title = "Builds" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
         [ caption
             [ class "builds-caption"

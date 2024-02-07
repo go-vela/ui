@@ -175,7 +175,7 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String } -> Model -> View Msg
 view shared route model =
-    { title = "Repos"
+    { title = "Repos" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
         [ Html.caption
             [ class "builds-caption"

@@ -149,7 +149,7 @@ update shared route msg model =
         -- ALERTS
         AddAlertCopiedToClipboard contentCopied ->
             ( model
-            , Effect.addAlertSuccess { content = contentCopied, addToastIfUnique = False }
+            , Effect.addAlertSuccess { content = "'" ++ contentCopied ++ "' copied to clipboard.", addToastIfUnique = False }
             )
 
         -- REFRESH
@@ -183,7 +183,7 @@ subscriptions model =
 
 view : Shared.Model -> Route { engine : String, org : String, team : String } -> Model -> View Msg
 view shared route model =
-    { title = "Secrets"
+    { title = "Secrets" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
         [ Components.Secrets.viewSharedSecrets shared
             { msgs =

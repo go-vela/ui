@@ -494,14 +494,13 @@ view shared route model =
                             ]
                         , div [ class "steps" ]
                             [ div [ class "-items", Util.testAttribute "steps" ] <|
-                                List.map (viewStep shared model route) <|
-                                    List.sortBy .number <|
-                                        RemoteData.withDefault [] model.steps
+                                if hasStages steps then
+                                    viewStages shared model route steps
 
-                            -- if hasStages steps then
-                            --     viewStages model msgs rm steps
-                            -- else
-                            -- List.map viewStep<| steps
+                                else
+                                    List.map (viewStep shared model route) <|
+                                        List.sortBy .number <|
+                                            RemoteData.withDefault [] model.steps
                             ]
                         ]
 
@@ -512,6 +511,36 @@ view shared route model =
                 Components.Loading.viewSmallLoader
         ]
     }
+
+
+{-| viewStages : takes model and build model and renders steps grouped by stages
+-}
+viewStages : Shared.Model -> Model -> Route { org : String, repo : String, buildNumber : String } -> List Vela.Step -> List (Html Msg)
+viewStages shared model route steps =
+    steps
+        |> List.map .stage
+        |> List.Extra.unique
+        |> List.map
+            (\stage ->
+                steps
+                    |> List.filter
+                        (\step ->
+                            (stage == "init" && (step.stage == "init" || step.stage == "clone"))
+                                || (stage /= "clone" && step.stage == stage)
+                        )
+                    |> viewStage shared model route stage
+            )
+
+
+viewStage : Shared.Model -> Model -> Route { org : String, repo : String, buildNumber : String } -> String -> List Vela.Step -> Html Msg
+viewStage shared model route stage steps =
+    div
+        [ class "stage", Util.testAttribute <| "stage" ]
+        [ viewStageDivider stage
+        , steps
+            |> List.map (\step -> viewStep shared model route step)
+            |> div [ Util.testAttribute <| "stage-" ++ stage ]
+        ]
 
 
 viewStep : Shared.Model -> Model -> Route { org : String, repo : String, buildNumber : String } -> Vela.Step -> Html Msg
@@ -562,6 +591,29 @@ viewStep shared model route step =
                 ]
             ]
         ]
+
+
+{-| viewStageDivider : renders divider between stage
+-}
+viewStageDivider : String -> Html msg
+viewStageDivider stage =
+    if stage /= "init" && stage /= "clone" then
+        div [ class "divider", Util.testAttribute <| "stage-divider-" ++ stage ]
+            [ div [] [ text stage ] ]
+
+    else
+        text ""
+
+
+{-| hasStages : takes steps and returns true if the pipeline contain stages
+-}
+hasStages : List Vela.Step -> Bool
+hasStages steps =
+    steps
+        |> List.filter (\s -> s.stage /= "")
+        |> List.head
+        |> Maybe.Extra.unwrap "" .stage
+        |> (\stage -> stage /= "")
 
 
 viewLogs : Shared.Model -> Model -> Route { org : String, repo : String, buildNumber : String } -> Vela.Step -> WebData Vela.Log -> Html Msg

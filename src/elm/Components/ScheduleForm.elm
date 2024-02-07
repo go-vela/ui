@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.ScheduleForm exposing (viewCronHelp, viewEnabledInput, viewHelp, viewSubmitButton)
+module Components.ScheduleForm exposing (viewCronHelp, viewEnabledInput, viewHelp, viewSchedulesNotAllowedWarning, viewSubmitButton)
 
 import Components.Form
 import Html
@@ -75,6 +75,7 @@ viewEnabledInput { msg, value, disabled_ } =
                 , subtitle = Nothing
                 , msg = msg "yes"
                 , disabled_ = disabled_
+                , id_ = "schedule-active-yes"
                 }
             , Components.Form.viewRadio
                 { value = Util.boolToYesNo value
@@ -83,6 +84,7 @@ viewEnabledInput { msg, value, disabled_ } =
                 , subtitle = Nothing
                 , msg = msg "no"
                 , disabled_ = disabled_
+                , id_ = "schedule-active-no"
                 }
             ]
         ]
@@ -111,4 +113,11 @@ viewSubmitButton { msg, disabled_ } =
             , disabled disabled_
             ]
             [ text "Submit" ]
+        ]
+
+
+viewSchedulesNotAllowedWarning : Html msg
+viewSchedulesNotAllowedWarning =
+    span [ class "not-allowed", Util.testAttribute "repo-schedule-not-allowed" ]
+        [ text "Sorry, Administrators have not enabled Schedules for this repository."
         ]

@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Org_.Repo_.Audit exposing (..)
+module Pages.Org_.Repo_.Hooks exposing (..)
 
 import Ansi.Log
 import Api.Pagination
@@ -45,6 +45,7 @@ import Route.Path
 import Shared
 import Time
 import Utils.Ansi
+import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Utils.Interval as Interval
 import Vela
@@ -138,8 +139,8 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( model
-                    , Effect.none
+                    ( { model | hooks = Errors.toFailure error }
+                    , Effect.handleHttpError { httpError = error }
                     )
 
         RedeliverRepoHook options ->
@@ -217,7 +218,7 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
-    { title = "Audit"
+    { title = "Audit" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
         [ viewHooks shared model model.hooks
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
@@ -287,7 +288,7 @@ hooksToRows now hooks redeliverHook =
 -}
 tableHeaders : Components.Table.Columns
 tableHeaders =
-    [ ( Just "table-icon", "" )
+    [ ( Just "table-icon", "status" )
     , ( Nothing, "source" )
     , ( Nothing, "created" )
     , ( Nothing, "host" )

@@ -50,7 +50,7 @@ toLayout user route model =
         , crumbs =
             [ ( "Overview", Just Route.Path.Home )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( "Secrets", Just <| Route.Path.SecretsEngine_OrgOrg_ { org = route.params.org, engine = route.params.engine } )
+            , ( "Org Secrets", Just <| Route.Path.SecretsEngine_OrgOrg_ { org = route.params.org, engine = route.params.engine } )
             , ( "Edit", Nothing )
             , ( route.params.name, Nothing )
             ]
@@ -347,6 +347,7 @@ view shared route model =
                             , text_ = "Submit"
                             , classList_ = []
                             , disabled_ = not <| RemoteData.isSuccess model.secret
+                            , id_ = "submit"
                             }
                         , if not model.confirmingDelete then
                             Components.Form.viewButton
@@ -354,6 +355,7 @@ view shared route model =
                                 , text_ = "Delete"
                                 , classList_ = []
                                 , disabled_ = not <| RemoteData.isSuccess model.secret
+                                , id_ = "delete"
                                 }
 
                           else
@@ -362,6 +364,7 @@ view shared route model =
                                 , text_ = "Cancel"
                                 , classList_ = []
                                 , disabled_ = not <| RemoteData.isSuccess model.secret
+                                , id_ = "delete-cancel"
                                 }
                         , if model.confirmingDelete then
                             Components.Form.viewButton
@@ -369,6 +372,7 @@ view shared route model =
                                 , text_ = "Confirm"
                                 , classList_ = [ ( "-secret-delete-confirm", True ) ]
                                 , disabled_ = not <| RemoteData.isSuccess model.secret
+                                , id_ = "delete-confirm"
                                 }
 
                           else

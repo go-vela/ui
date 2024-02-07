@@ -78,7 +78,7 @@ toLayout user route model =
             ]
         , helpCommands =
             [ { name = "List Deployments"
-              , content = "vela view deployments --help"
+              , content = "vela get deployments --help"
               , docs = Just "deployment/get"
               }
             , { name = "Add Deployment"
@@ -228,7 +228,7 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
-    { title = "Deployments"
+    { title = "Deployments" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
         [ viewDeployments shared model route
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
@@ -305,7 +305,7 @@ deploymentsToRows shared repo deployments =
 -}
 tableHeaders : Components.Table.Columns
 tableHeaders =
-    [ ( Just "table-icon", "" )
+    [ ( Just "table-icon", "status" )
     , ( Nothing, "number" )
     , ( Nothing, "target" )
     , ( Nothing, "commit" )
@@ -314,7 +314,7 @@ tableHeaders =
     , ( Nothing, "builds" )
     , ( Nothing, "created by" )
     , ( Nothing, "created at" )
-    , ( Nothing, "" )
+    , ( Nothing, "redeploy" )
     ]
 
 

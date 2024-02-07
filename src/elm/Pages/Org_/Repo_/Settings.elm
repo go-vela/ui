@@ -102,7 +102,7 @@ type Msg
     | DisableRepo { repo : Vela.Repository }
     | DisableRepoResponse { repo : Vela.Repository } (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | RepairRepo { repo : Vela.Repository }
-    | RepairRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | RepairRepoResponse { repo : Vela.Repository } (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | ChownRepo { repo : Vela.Repository }
     | ChownRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | AllowEventsUpdate { allowEvents : Vela.AllowEvents, event : String } Bool
@@ -356,13 +356,13 @@ update shared route msg model =
             , Effect.repairRepo
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
-                , onResponse = RepairRepoResponse
+                , onResponse = RepairRepoResponse options
                 , org = route.params.org
                 , repo = route.params.repo
                 }
             )
 
-        RepairRepoResponse response ->
+        RepairRepoResponse options response ->
             case response of
                 Ok ( _, result ) ->
                     ( model
@@ -584,7 +584,7 @@ update shared route msg model =
         -- ALERTS
         AddAlertCopiedToClipboard contentCopied ->
             ( model
-            , Effect.addAlertSuccess { content = contentCopied, addToastIfUnique = False }
+            , Effect.addAlertSuccess { content = "'" ++ contentCopied ++ "' copied to clipboard.", addToastIfUnique = False }
             )
 
         -- REFRESH
@@ -666,6 +666,7 @@ viewAccess repo msg =
                 , field = "private"
                 , msg = msg "private"
                 , disabled_ = False
+                , id_ = "access-private"
                 }
             , Components.Form.viewRadio
                 { title = "Any"
@@ -674,6 +675,7 @@ viewAccess repo msg =
                 , field = "public"
                 , msg = msg "public"
                 , disabled_ = False
+                , id_ = "access-public"
                 }
             ]
         ]
@@ -694,6 +696,7 @@ viewForkPolicy repo msg =
                 , field = "fork-always"
                 , msg = msg "fork-always"
                 , disabled_ = False
+                , id_ = "fork-policy-always"
                 }
             , Components.Form.viewRadio
                 { title = "Require Admin Approval When Contributor Is Read Only"
@@ -702,6 +705,7 @@ viewForkPolicy repo msg =
                 , field = "fork-no-write"
                 , msg = msg "fork-no-write"
                 , disabled_ = False
+                , id_ = "fork-no-write"
                 }
             , Components.Form.viewRadio
                 { title = "Never Require Admin Approval"
@@ -710,6 +714,7 @@ viewForkPolicy repo msg =
                 , field = "never"
                 , msg = msg "never"
                 , disabled_ = False
+                , id_ = "fork-policy-never"
                 }
             ]
         ]
@@ -1100,7 +1105,6 @@ viewEnableButton disableRepoMsg enableRepoMsg repo =
                 , baseTestAttribute
                 , class "repo-disable-confirm"
                 , onClick disableRepoMsg
-                , class "-secret-delete-confirm"
                 ]
                 [ text "Really Disable?" ]
 
@@ -1177,6 +1181,7 @@ viewPipelineType repo msg =
                 , subtitle = Nothing
                 , msg = msg "yaml"
                 , disabled_ = False
+                , id_ = "type-yaml"
                 }
             , Components.Form.viewRadio
                 { value = repo.pipeline_type
@@ -1185,6 +1190,7 @@ viewPipelineType repo msg =
                 , subtitle = Nothing
                 , msg = msg "go"
                 , disabled_ = False
+                , id_ = "type-go"
                 }
             , Components.Form.viewRadio
                 { value = repo.pipeline_type
@@ -1193,6 +1199,7 @@ viewPipelineType repo msg =
                 , subtitle = Nothing
                 , msg = msg "starlark"
                 , disabled_ = False
+                , id_ = "type-starlark"
                 }
             ]
         ]

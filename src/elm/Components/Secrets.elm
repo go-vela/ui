@@ -196,7 +196,7 @@ viewSharedSecrets shared props =
 -}
 tableHeaders : Components.Table.Columns
 tableHeaders =
-    [ ( Just "table-icon", "" )
+    [ ( Just "table-icon", "copy" )
     , ( Nothing, "name" )
     , ( Nothing, "key" )
     , ( Nothing, "type" )
@@ -265,14 +265,25 @@ viewSecret engine type_ copyMsg secret =
             , scope "row"
             , class "break-word"
             ]
-            [ Components.Table.viewListCell (enabledAllowEventsToList secret.allowEvents) "no events" []
+            [ Components.Table.viewListCell
+                { dataLabel = "events"
+                , items = enabledAllowEventsToList secret.allowEvents
+                , none = "no events"
+                , itemWrapperClassList = []
+                }
             ]
         , td
             [ attribute "data-label" "images"
             , scope "row"
             , class "break-word"
             ]
-            [ Components.Table.viewListCell secret.images "all images" [ ( "secret-image", True ) ] ]
+            [ Components.Table.viewListCell
+                { dataLabel = "images"
+                , items = secret.images
+                , none = "all images"
+                , itemWrapperClassList = [ ( "secret-image", True ) ]
+                }
+            ]
         , Components.Table.viewItemCell
             { dataLabel = "allow command"
             , parentClassList = []

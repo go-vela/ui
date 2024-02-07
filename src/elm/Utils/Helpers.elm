@@ -532,18 +532,28 @@ base64Decode inStr =
 
 {-| pageToString : small helper to turn page number to a string to display in crumbs
 -}
-pageToString : Maybe Int -> String
+pageToString : Maybe String -> String
 pageToString maybePage =
-    case maybePage of
-        Nothing ->
-            ""
+    maybePage
+        |> Maybe.map String.toInt
+        |> Maybe.withDefault Nothing
+        |> Maybe.Extra.unwrap ""
+            (\num ->
+                if num > 1 then
+                    " (page " ++ String.fromInt num ++ ")"
 
-        Just num ->
-            if num > 1 then
-                " (page " ++ String.fromInt num ++ ")"
+                else
+                    ""
+            )
 
-            else
-                ""
+
+
+-- case Maybe.map String.toInt maybePage of
+--     Nothing ->
+--         ""
+--     Just (Just num) ->
+--     _ ->
+--         ""
 
 
 {-| buildRefURL : drops '.git' off the clone url and concatenates tree + ref

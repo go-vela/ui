@@ -279,7 +279,7 @@ view shared route model =
             , showHideActionsMenus = ShowHideActionsMenus
             }
     in
-    { title = "Builds"
+    { title = "Builds" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
         [ caption
             [ class "builds-caption"

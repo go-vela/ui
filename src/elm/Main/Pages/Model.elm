@@ -13,13 +13,13 @@ import Pages.NotFound_
 import Pages.Org_
 import Pages.Org_.Builds
 import Pages.Org_.Repo_
-import Pages.Org_.Repo_.Audit
 import Pages.Org_.Repo_.Build_
 import Pages.Org_.Repo_.Build_.Graph
 import Pages.Org_.Repo_.Build_.Pipeline
 import Pages.Org_.Repo_.Build_.Services
 import Pages.Org_.Repo_.Deployments
 import Pages.Org_.Repo_.Deployments.Add
+import Pages.Org_.Repo_.Hooks
 import Pages.Org_.Repo_.Schedules
 import Pages.Org_.Repo_.Schedules.Add
 import Pages.Org_.Repo_.Schedules.Edit_
@@ -48,7 +48,7 @@ type Model
     | Org_Repo_Schedules { org : String, repo : String } Pages.Org_.Repo_.Schedules.Model
     | Org_Repo_SchedulesAdd { org : String, repo : String } Pages.Org_.Repo_.Schedules.Add.Model
     | Org_Repo_SchedulesEdit_ { org : String, repo : String, name : String } Pages.Org_.Repo_.Schedules.Edit_.Model
-    | Org_Repo_Audit { org : String, repo : String } Pages.Org_.Repo_.Audit.Model
+    | Org_Repo_Hooks { org : String, repo : String } Pages.Org_.Repo_.Hooks.Model
     | Org_Repo_Settings { org : String, repo : String } Pages.Org_.Repo_.Settings.Model
     | Org_Repo_Build_ { org : String, repo : String, buildNumber : String } Pages.Org_.Repo_.Build_.Model
     | Org_Repo_Build_Services { org : String, repo : String, buildNumber : String } Pages.Org_.Repo_.Build_.Services.Model

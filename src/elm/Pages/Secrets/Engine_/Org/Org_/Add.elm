@@ -49,7 +49,7 @@ toLayout user route model =
         , crumbs =
             [ ( "Overview", Just Route.Path.Home )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( "Secrets", Just <| Route.Path.SecretsEngine_OrgOrg_ { org = route.params.org, engine = route.params.engine } )
+            , ( "Org Secrets", Just <| Route.Path.SecretsEngine_OrgOrg_ { org = route.params.org, engine = route.params.engine } )
             , ( "Add", Nothing )
             ]
         , repo = Nothing
@@ -265,6 +265,7 @@ view shared route model =
                         , text_ = "Submit"
                         , classList_ = []
                         , disabled_ = False
+                        , id_ = "submit"
                         }
                     ]
                 ]

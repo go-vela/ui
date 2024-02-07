@@ -19,9 +19,9 @@ import Vela
 
 
 viewInput :
-    { title : Maybe String
+    { id_ : String
+    , title : Maybe String
     , subtitle : Maybe (Html msg)
-    , id_ : String
     , val : String
     , placeholder_ : String
     , classList_ : List ( String, Bool )
@@ -31,7 +31,7 @@ viewInput :
     , disabled_ : Bool
     }
     -> Html msg
-viewInput { title, subtitle, id_, val, placeholder_, classList_, rows_, wrap_, msg, disabled_ } =
+viewInput { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, msg, disabled_ } =
     section
         [ class "form-control"
         , class "-stack"
@@ -51,15 +51,16 @@ viewInput { title, subtitle, id_, val, placeholder_, classList_, rows_, wrap_, m
             , Maybe.Extra.unwrap Util.attrNone wrap wrap_
             , onInput msg
             , disabled disabled_
+            , Util.testAttribute id_
             ]
             []
         ]
 
 
 viewTextarea :
-    { title : Maybe String
+    { id_ : String
+    , title : Maybe String
     , subtitle : Maybe (Html msg)
-    , id_ : String
     , val : String
     , placeholder_ : String
     , classList_ : List ( String, Bool )
@@ -69,7 +70,7 @@ viewTextarea :
     , disabled_ : Bool
     }
     -> Html msg
-viewTextarea { title, subtitle, id_, val, placeholder_, classList_, rows_, wrap_, msg, disabled_ } =
+viewTextarea { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, msg, disabled_ } =
     section
         [ class "form-control"
         , class "-stack"
@@ -89,13 +90,15 @@ viewTextarea { title, subtitle, id_, val, placeholder_, classList_, rows_, wrap_
             , Maybe.Extra.unwrap Util.attrNone wrap wrap_
             , onInput msg
             , disabled disabled_
+            , Util.testAttribute id_
             ]
             []
         ]
 
 
 viewCheckbox :
-    { title : String
+    { id_ : String
+    , title : String
     , subtitle : Maybe (Html msg)
     , field : String
     , state : Bool
@@ -103,7 +106,7 @@ viewCheckbox :
     , disabled_ : Bool
     }
     -> Html msg
-viewCheckbox { title, subtitle, field, state, msg, disabled_ } =
+viewCheckbox { id_, title, subtitle, field, state, msg, disabled_ } =
     div
         [ class "form-control"
         , Util.testAttribute <| "checkbox-" ++ field
@@ -114,6 +117,7 @@ viewCheckbox { title, subtitle, field, state, msg, disabled_ } =
             , checked state
             , onCheck msg
             , disabled disabled_
+            , Util.testAttribute id_
             ]
             []
         , label [ class "form-label", for <| "checkbox-" ++ field ]
@@ -122,7 +126,8 @@ viewCheckbox { title, subtitle, field, state, msg, disabled_ } =
 
 
 viewRadio :
-    { title : String
+    { id_ : String
+    , title : String
     , subtitle : Maybe (Html msg)
     , value : String
     , field : String
@@ -130,7 +135,7 @@ viewRadio :
     , disabled_ : Bool
     }
     -> Html msg
-viewRadio { title, subtitle, value, field, msg, disabled_ } =
+viewRadio { id_, title, subtitle, value, field, msg, disabled_ } =
     div [ class "form-control", Util.testAttribute <| "radio-" ++ field ]
         [ input
             [ type_ "radio"
@@ -138,6 +143,7 @@ viewRadio { title, subtitle, value, field, msg, disabled_ } =
             , checked (value == field)
             , onClick msg
             , disabled disabled_
+            , Util.testAttribute id_
             ]
             []
         , label [ class "form-label", for <| "radio-" ++ field ]
@@ -145,21 +151,22 @@ viewRadio { title, subtitle, value, field, msg, disabled_ } =
         ]
 
 
-viewSubtitle : Maybe (Html msg) -> Html msg
-viewSubtitle subtitle =
-    Maybe.Extra.unwrap (text "") (\s -> span [] [ text <| " ", s ]) subtitle
-
-
-viewButton : { msg : msg, text_ : String, classList_ : List ( String, Bool ), disabled_ : Bool } -> Html msg
-viewButton { msg, text_, classList_, disabled_ } =
+viewButton : { id_ : String, msg : msg, text_ : String, classList_ : List ( String, Bool ), disabled_ : Bool } -> Html msg
+viewButton { id_, msg, text_, classList_, disabled_ } =
     button
         [ class "button"
         , class "-outline"
         , onClick msg
         , disabled disabled_
         , classList classList_
+        , Util.testAttribute id_
         ]
         [ text text_ ]
+
+
+viewSubtitle : Maybe (Html msg) -> Html msg
+viewSubtitle subtitle =
+    Maybe.Extra.unwrap (text "") (\s -> span [] [ text <| " ", s ]) subtitle
 
 
 viewAllowEvents :
@@ -180,6 +187,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , state = allowEvents.push.branch
             , msg = msg { allowEvents = allowEvents, event = "allow_push_branch" }
             , disabled_ = False
+            , id_ = "allow-events-push-branch"
             }
         , viewCheckbox
             { title = "Tag"
@@ -188,6 +196,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , state = allowEvents.push.tag
             , msg = msg { allowEvents = allowEvents, event = "allow_push_tag" }
             , disabled_ = False
+            , id_ = "allow-events-push-tag"
             }
         ]
     , h3 [ class "settings-subtitle" ] [ text "Delete" ]
@@ -199,6 +208,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , state = allowEvents.push.deleteBranch
             , msg = msg { allowEvents = allowEvents, event = "allow_push_delete_branch" }
             , disabled_ = False
+            , id_ = "allow-events-push-delete-branch"
             }
         , viewCheckbox
             { title = "Tag"
@@ -207,6 +217,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , state = allowEvents.push.deleteTag
             , msg = msg { allowEvents = allowEvents, event = "allow_push_delete_tag" }
             , disabled_ = False
+            , id_ = "allow-events-push-delete-tag"
             }
         ]
     , h3 [ class "settings-subtitle" ] [ text "Pull Request" ]
@@ -218,6 +229,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , state = allowEvents.pull.opened
             , msg = msg { allowEvents = allowEvents, event = "allow_pull_opened" }
             , disabled_ = False
+            , id_ = "allow-events-pull-opened"
             }
         , viewCheckbox
             { title = "Synchronize"
@@ -226,6 +238,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , state = allowEvents.pull.synchronize
             , msg = msg { allowEvents = allowEvents, event = "allow_pull_synchronize" }
             , disabled_ = False
+            , id_ = "allow-events-pull-synchronize"
             }
         , viewCheckbox
             { title = "Edited"
@@ -234,6 +247,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , state = allowEvents.pull.edited
             , msg = msg { allowEvents = allowEvents, event = "allow_pull_edited" }
             , disabled_ = False
+            , id_ = "allow-events-pull-edited"
             }
         , viewCheckbox
             { title = "Reopened"
@@ -242,6 +256,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , state = allowEvents.pull.reopened
             , msg = msg { allowEvents = allowEvents, event = "allow_pull_reopened" }
             , disabled_ = False
+            , id_ = "allow-events-pull-reopened"
             }
         ]
     , h3 [ class "settings-subtitle" ] [ text "Deployments" ]
@@ -253,6 +268,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , state = allowEvents.deploy.created
             , msg = msg { allowEvents = allowEvents, event = "allow_deploy_created" }
             , disabled_ = False
+            , id_ = "allow-events-deploy-created"
             }
         ]
     , h3 [ class "settings-subtitle" ] [ text "Comment" ]
@@ -264,6 +280,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , state = allowEvents.comment.created
             , msg = msg { allowEvents = allowEvents, event = "allow_comment_created" }
             , disabled_ = False
+            , id_ = "allow-events-comment-created"
             }
         , viewCheckbox
             { title = "Edited"
@@ -272,6 +289,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , state = allowEvents.comment.edited
             , msg = msg { allowEvents = allowEvents, event = "allow_comment_edited" }
             , disabled_ = False
+            , id_ = "allow-events-comment-edited"
             }
         ]
     ]

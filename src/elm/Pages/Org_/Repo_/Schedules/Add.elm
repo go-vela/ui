@@ -27,7 +27,7 @@ import View exposing (View)
 page : Auth.User -> Shared.Model -> Route { org : String, repo : String } -> Page Model Msg
 page user shared route =
     Page.new
-        { init = init shared
+        { init = init shared route
         , update = update shared route
         , subscriptions = subscriptions
         , view = view shared route
@@ -65,15 +65,17 @@ type alias Model =
     , entry : String
     , enabled : Bool
     , branch : String
+    , repoSchedulesAllowed : Bool
     }
 
 
-init : Shared.Model -> () -> ( Model, Effect Msg )
-init shared () =
+init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
+init shared route () =
     ( { name = ""
       , entry = ""
       , enabled = True
       , branch = ""
+      , repoSchedulesAllowed = Util.checkScheduleAllowlist route.params.org route.params.repo shared.velaScheduleAllowlist
       }
     , Effect.none
     )
@@ -176,11 +178,20 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
+    let
+        formDisabled =
+            not model.repoSchedulesAllowed
+    in
     { title = "Add Schedule"
     , body =
         [ div [ class "manage-schedule", Util.testAttribute "manage-schedule" ]
             [ div []
                 [ h2 [] [ text <| String.Extra.toTitleCase <| "add repo schedule" ]
+                , if not model.repoSchedulesAllowed then
+                    Components.ScheduleForm.viewSchedulesNotAllowedWarning
+
+                  else
+                    text ""
                 , div [ class "schedule-form" ]
                     [ Components.Form.viewInput
                         { title = Just "Name"
@@ -192,24 +203,24 @@ view shared route model =
                         , rows_ = Nothing
                         , wrap_ = Nothing
                         , msg = NameOnInput
-                        , disabled_ = False
+                        , disabled_ = formDisabled
                         }
                     , Components.Form.viewTextarea
                         { title = Just "Cron Expression"
                         , subtitle = Just <| Components.ScheduleForm.viewCronHelp shared.time
-                        , id_ = "cron"
+                        , id_ = "entry"
                         , val = model.entry
                         , placeholder_ = "0 0 * * * (runs at 12:00 AM in UTC)"
                         , classList_ = [ ( "schedule-cron", True ) ]
                         , rows_ = Just 2
                         , wrap_ = Just "soft"
                         , msg = EntryOnInput
-                        , disabled_ = False
+                        , disabled_ = formDisabled
                         }
                     , Components.ScheduleForm.viewEnabledInput
                         { msg = EnabledOnClick
                         , value = model.enabled
-                        , disabled_ = False
+                        , disabled_ = formDisabled
                         }
                     , Components.Form.viewInput
                         { title = Just "Branch"
@@ -219,19 +230,22 @@ view shared route model =
                                     [ class "field-description" ]
                                     [ em [] [ text "(Leave blank to use default branch)" ]
                                     ]
-                        , id_ = "branch"
+                        , id_ = "branch-name"
                         , val = model.branch
                         , placeholder_ = "Branch Name"
                         , classList_ = [ ( "branch-name", True ) ]
                         , rows_ = Nothing
                         , wrap_ = Nothing
                         , msg = BranchOnInput
-                        , disabled_ = False
+                        , disabled_ = formDisabled
                         }
                     , Components.ScheduleForm.viewHelp shared.velaDocsURL
-                    , Components.ScheduleForm.viewSubmitButton
+                    , Components.Form.viewButton
                         { msg = SubmitForm
-                        , disabled_ = False
+                        , id_ = "submit"
+                        , text_ = "Submit"
+                        , classList_ = []
+                        , disabled_ = formDisabled
                         }
                     ]
                 ]
