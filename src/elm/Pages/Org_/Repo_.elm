@@ -189,14 +189,6 @@ update shared route msg model =
             ( model, Effect.none )
 
         RestartBuild options ->
-            let
-                _ =
-                    Debug.log "restart build clicked"
-                        ""
-
-                _ =
-                    Debug.log "options" options
-            in
             ( model
             , Effect.restartBuild
                 { org = options.org
@@ -206,10 +198,6 @@ update shared route msg model =
             )
 
         CancelBuild options ->
-            let
-                _ =
-                    Debug.log "cancel build clicked" ""
-            in
             ( model
             , Effect.cancelBuild
                 { org = options.org

@@ -172,14 +172,22 @@ update shared route msg model =
             ( model, Effect.none )
 
         RestartBuild options ->
-            let
-                _ =
-                    Debug.log "Org.Builds.RestartBuild" options
-            in
-            ( model, Effect.none )
+            ( model
+            , Effect.restartBuild
+                { org = options.org
+                , repo = options.repo
+                , buildNumber = options.buildNumber
+                }
+            )
 
-        CancelBuild _ ->
-            ( model, Effect.none )
+        CancelBuild options ->
+            ( model
+            , Effect.cancelBuild
+                { org = options.org
+                , repo = options.repo
+                , buildNumber = options.buildNumber
+                }
+            )
 
         ShowHideActionsMenus build show ->
             let
