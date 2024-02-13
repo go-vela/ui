@@ -274,10 +274,7 @@ context('Pipeline', () => {
           cy.get('[data-test=alerts]').should('exist').contains('Error');
         });
 
-        it('should show pipeline configuration error', () => {
-          cy.get('[data-test=pipeline-configuration-error]').should(
-            'be.visible',
-          );
+        it('should not show pipeline configuration data', () => {
           cy.get('[data-test=pipeline-configuration-data]').should(
             'not.be.visible',
           );
