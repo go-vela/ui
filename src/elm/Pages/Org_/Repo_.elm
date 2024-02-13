@@ -112,9 +112,12 @@ type Msg
       -- BUILDS
     | GetRepoBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))
     | GotoPage Int
-    | ApproveBuild Vela.Org Vela.Repo Vela.BuildNumber
     | RestartBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
-    | CancelBuild Vela.Org Vela.Repo Vela.BuildNumber
+    | RestartBuildResponse { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
+    | CancelBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
+    | CancelBuildResponse { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
+    | ApproveBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
+    | ApproveBuildResponse { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
     | ShowHideActionsMenus (Maybe Int) (Maybe Bool)
     | FilterByEvent (Maybe String)
     | ShowHideFullTimestamps
@@ -178,49 +181,98 @@ update shared route msg model =
                 ]
             )
 
-        ApproveBuild _ _ _ ->
-            let
-                _ =
-                    Debug.log "approve build clicked" ""
-
-                -- todo:
-                -- 1. write func in Effect.elm for "approveBuild"
-                -- 2. write Api.Operations.approveBuild that uses it
-                --   look at the code in Api.Operations and the other funcs in Api.Operations for inspiration
-                -- 3. write ApproveBuildResponse Msg in this file
-                -- 4. in ApproveBuildResponse, create a toasty?
-                -- look at how it's done in Main.elm
-            in
-            ( model, Effect.none )
-
         RestartBuild options ->
-            let
-                _ =
-                    Debug.log "restart build clicked"
-                        ""
-
-                _ =
-                    Debug.log "options" options
-            in
             ( model
             , Effect.restartBuild
-                { org = options.org
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse = RestartBuildResponse options
+                , org = options.org
                 , repo = options.repo
                 , buildNumber = options.buildNumber
                 }
             )
 
-        -- RestartBuild _ ->
-        --     let
-        --         _ =
-        --             Debug.log "restart build clicked" ""
-        --     in
-        --     ( model, Effect.none )
-        CancelBuild _ _ _ ->
-            let
-                _ =
-                    Debug.log "cancel build clicked" ""
-            in
+        RestartBuildResponse options response ->
+            case response of
+                Ok ( _, build ) ->
+                    let
+                        restartedBuild =
+                            "Build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ]
+
+                        newBuildNumber =
+                            String.fromInt <| build.number
+
+                        newBuild =
+                            String.join "/" [ "", options.org, options.repo, newBuildNumber ]
+
+                        -- todo: create new build link, add to toastie, refresh builds
+                    in
+                    ( model
+                    , Effect.batch
+                        [ Effect.getRepoBuilds
+                            { baseUrl = shared.velaAPIBaseURL
+                            , session = shared.session
+                            , onResponse = GetRepoBuildsResponse
+                            , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
+                            , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+                            , maybeEvent = Dict.get "event" route.query
+                            , org = route.params.org
+                            , repo = route.params.repo
+                            }
+                        , Effect.addAlertSuccess { content = restartedBuild ++ " restarted.", addToastIfUnique = True }
+                        ]
+                    )
+
+                Err error ->
+                    ( model
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
+        CancelBuild options ->
+            ( model
+            , Effect.cancelBuild
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse = RestartBuildResponse options
+                , org = options.org
+                , repo = options.repo
+                , buildNumber = options.buildNumber
+                }
+            )
+
+        CancelBuildResponse options response ->
+            case response of
+                Ok ( _, build ) ->
+                    let
+                        canceledBuild =
+                            "Build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ]
+                    in
+                    ( model
+                    , Effect.batch
+                        [ Effect.getRepoBuilds
+                            { baseUrl = shared.velaAPIBaseURL
+                            , session = shared.session
+                            , onResponse = GetRepoBuildsResponse
+                            , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
+                            , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+                            , maybeEvent = Dict.get "event" route.query
+                            , org = route.params.org
+                            , repo = route.params.repo
+                            }
+                        , Effect.addAlertSuccess { content = canceledBuild ++ " canceled.", addToastIfUnique = True }
+                        ]
+                    )
+
+                Err error ->
+                    ( model
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
+        ApproveBuild options ->
+            ( model, Effect.none )
+
+        ApproveBuildResponse options response ->
             ( model, Effect.none )
 
         ShowHideActionsMenus build show ->
@@ -351,7 +403,6 @@ view shared route model =
                             }
                         , build = options.build
                         , showActionsMenus = model.showActionsMenus
-                        , showActionsMenuBool = True
                         }
             }
         , Components.Pager.viewIfNeeded model.pager Components.Pager.defaultLabels GotoPage model.builds

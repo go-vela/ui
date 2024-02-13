@@ -7,9 +7,9 @@ module Pages.Org_.Repo_.Build_ exposing (..)
 
 import Auth
 import Browser.Dom exposing (focus)
+import Components.Build
 import Components.Loading
 import Components.Logs
-import Components.Nav
 import Components.Svgs
 import Debug exposing (log)
 import Dict exposing (Dict)
@@ -57,7 +57,10 @@ page user shared route =
 toLayout : Auth.User -> Route { org : String, repo : String, buildNumber : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Build
-        { navButtons = []
+        { navButtons =
+            [ Components.Build.viewRestartButton route.params.org route.params.repo route.params.buildNumber RestartBuild
+            , Components.Build.viewCancelButton route.params.org route.params.repo route.params.buildNumber CancelBuild
+            ]
         , utilButtons = []
         , helpCommands = []
         , crumbs =
@@ -133,6 +136,9 @@ type Msg
       OnHashChanged { from : Maybe String, to : Maybe String }
     | PushUrlHash { hash : String }
     | FocusOn { target : String }
+      -- BUILD
+    | RestartBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
+    | CancelBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
       -- STEPS
     | GetBuildStepsResponse { applyDomFocus : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Step ))
     | GetBuildStepsRefreshResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Step ))
@@ -189,6 +195,19 @@ update shared route msg model =
         FocusOn options ->
             ( model
             , Effect.focusOn options
+            )
+
+        -- BUILD
+        RestartBuild options ->
+            ( model
+            , Effect.none
+              -- removed the api call effect for now
+            )
+
+        CancelBuild options ->
+            ( model
+            , Effect.none
+              -- removed the api call effect for now
             )
 
         -- STEPS

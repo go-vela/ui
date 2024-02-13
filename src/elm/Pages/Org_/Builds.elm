@@ -104,9 +104,12 @@ type Msg
       -- BUILDS
     | GetOrgBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))
     | GotoPage Int
-    | ApproveBuild Vela.Org Vela.Repo Vela.BuildNumber
     | RestartBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
-    | CancelBuild Vela.Org Vela.Repo Vela.BuildNumber
+    | RestartBuildResponse { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
+    | CancelBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
+    | CancelBuildResponse { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
+    | ApproveBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
+    | ApproveBuildResponse { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
     | ShowHideActionsMenus (Maybe Int) (Maybe Bool)
     | FilterByEvent (Maybe String)
     | ShowHideFullTimestamps
@@ -168,17 +171,96 @@ update shared route msg model =
                 ]
             )
 
-        ApproveBuild _ _ _ ->
-            ( model, Effect.none )
-
         RestartBuild options ->
-            let
-                _ =
-                    Debug.log "Org.Builds.RestartBuild" options
-            in
+            ( model
+            , Effect.restartBuild
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse = RestartBuildResponse options
+                , org = options.org
+                , repo = options.repo
+                , buildNumber = options.buildNumber
+                }
+            )
+
+        RestartBuildResponse options response ->
+            case response of
+                Ok ( _, build ) ->
+                    let
+                        restartedBuild =
+                            "Build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ]
+
+                        newBuildNumber =
+                            String.fromInt <| build.number
+
+                        newBuild =
+                            String.join "/" [ "", options.org, options.repo, newBuildNumber ]
+
+                        -- todo: create new build link, add to toastie, refresh builds
+                    in
+                    ( model
+                    , Effect.batch
+                        [ Effect.getOrgBuilds
+                            { baseUrl = shared.velaAPIBaseURL
+                            , session = shared.session
+                            , onResponse = GetOrgBuildsResponse
+                            , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
+                            , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+                            , maybeEvent = Dict.get "event" route.query
+                            , org = route.params.org
+                            }
+                        , Effect.addAlertSuccess { content = restartedBuild ++ " restarted.", addToastIfUnique = True }
+                        ]
+                    )
+
+                Err error ->
+                    ( model
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
+        CancelBuild options ->
+            ( model
+            , Effect.cancelBuild
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse = RestartBuildResponse options
+                , org = options.org
+                , repo = options.repo
+                , buildNumber = options.buildNumber
+                }
+            )
+
+        CancelBuildResponse options response ->
+            case response of
+                Ok ( _, build ) ->
+                    let
+                        canceledBuild =
+                            "Build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ]
+                    in
+                    ( model
+                    , Effect.batch
+                        [ Effect.getOrgBuilds
+                            { baseUrl = shared.velaAPIBaseURL
+                            , session = shared.session
+                            , onResponse = GetOrgBuildsResponse
+                            , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
+                            , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+                            , maybeEvent = Dict.get "event" route.query
+                            , org = route.params.org
+                            }
+                        , Effect.addAlertSuccess { content = canceledBuild ++ " canceled.", addToastIfUnique = True }
+                        ]
+                    )
+
+                Err error ->
+                    ( model
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
+        ApproveBuild options ->
             ( model, Effect.none )
 
-        CancelBuild _ _ _ ->
+        ApproveBuildResponse options response ->
             ( model, Effect.none )
 
         ShowHideActionsMenus build show ->
@@ -307,7 +389,6 @@ view shared route model =
                             }
                         , build = options.build
                         , showActionsMenus = model.showActionsMenus
-                        , showActionsMenuBool = True
                         }
             }
         , Components.Pager.viewIfNeeded model.pager Components.Pager.defaultLabels GotoPage model.builds

@@ -113,8 +113,7 @@ init props shared route _ =
 
 
 type Msg
-    = Pls
-    | --BROWSER
+    = --BROWSER
       OnUrlChanged { from : Route (), to : Route () }
       -- BUILD
     | GetBuildResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
@@ -125,13 +124,6 @@ type Msg
 update : Props contentMsg -> Shared.Model -> Route () -> Msg -> Model -> ( Model, Effect Msg )
 update props shared route msg model =
     case msg of
-        Pls ->
-            let
-                _ =
-                    Debug.log "Pls" "123"
-            in
-            ( model, Effect.none )
-
         -- BROWSER
         OnUrlChanged options ->
             ( { model
@@ -214,11 +206,7 @@ view props shared route { toContentMsg, model, content } =
     , body =
         [ Components.Nav.view shared
             route
-            { buttons =
-                [ Html.button [ class "button", class "-outline" ] [ text "restart build" ]
-                , Html.button [ class "button", class "-outline" ] [ text "cancel build" ]
-                ]
-                    ++ props.navButtons
+            { buttons = [ text "<move build buttons here>" ] ++ props.navButtons
             , crumbs = Components.Crumbs.view route.path props.crumbs
             }
         , main_ [ class "content-wrap" ]
@@ -233,7 +221,6 @@ view props shared route { toContentMsg, model, content } =
                 { build = model.build
                 , showFullTimestamps = False
                 , actionsMenu = Html.div [] []
-                , showActionsMenuBool = True
                 }
              , Components.Tabs.viewBuildTabs shared
                 { org = props.org
