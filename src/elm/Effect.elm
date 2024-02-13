@@ -472,7 +472,7 @@ cancelBuild :
 cancelBuild options =
     Api.try
         options.onResponse
-        (Api.Operations.restartBuild options.baseUrl options.session options)
+        (Api.Operations.cancelBuild options.baseUrl options.session options)
         |> sendCmd
 
 

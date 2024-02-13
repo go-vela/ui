@@ -223,7 +223,7 @@ update shared route msg model =
             , Effect.cancelBuild
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
-                , onResponse = RestartBuildResponse options
+                , onResponse = CancelBuildResponse options
                 , org = options.org
                 , repo = options.repo
                 , buildNumber = options.buildNumber
