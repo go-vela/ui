@@ -6,11 +6,15 @@ SPDX-License-Identifier: Apache-2.0
 module Pages.PageTemplate exposing (Model, Msg, page, view)
 
 import Auth
+import Components.Crumbs
+import Components.Nav
 import Effect exposing (Effect)
 import Html
     exposing
-        ( text
+        ( main_
+        , text
         )
+import Html.Attributes exposing (class)
 import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
@@ -25,7 +29,7 @@ page user shared route =
         { init = init shared
         , update = update
         , subscriptions = subscriptions
-        , view = view shared
+        , view = view shared route
         }
         |> Page.withLayout (toLayout user)
 
@@ -37,16 +41,7 @@ page user shared route =
 toLayout : Auth.User -> Model -> Layouts.Layout Msg
 toLayout user model =
     Layouts.Default
-        { navButtons = []
-        , utilButtons = []
-        , helpCommands = []
-        , crumbs =
-            [ ( "Home", Just Route.Path.Home )
-            , ( "Crumbs", Nothing )
-            , ( "Go", Nothing )
-            , ( "Here", Nothing )
-            ]
-        , repo = Nothing
+        { helpCommands = []
         }
 
 
@@ -95,22 +90,38 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Model -> View Msg
-view shared model =
+view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
+view shared route model =
+    let
+        crumbs =
+            [ ( "Home", Just Route.Path.Home )
+            , ( "Crumbs", Nothing )
+            , ( "Go", Nothing )
+            , ( "Here", Nothing )
+            ]
+    in
     { title = "Pages.PageTemplate"
     , body =
-        [ Html.ul []
-            [ Html.li [] [ text "this is a template page\n" ]
-            , Html.li [] [ text "add page specific data to the Model like API resources\n" ]
-            , Html.li [] [ text "apply any Layouts to the page in toLayout\n" ]
-            , Html.li [] [ text "add html to the view to trigger page messages\n" ]
-            , Html.li [] [ text "re-use components first, but add new components when necessary\n" ]
-            , Html.li [] [ text "add page messages and pass them as components args\n" ]
-            , Html.li [] [ text "use page messages to dispatch shared Effects and handle API calls\n" ]
-            , Html.li [] [ text "use page messages and shared Effects to dispatch API calls\n" ]
-            , Html.li [] [ text "add page specific subscriptions like page refresh and favicon updates\n" ]
-            , Html.li [] [ text "try to implement things in the page!\n" ]
-            , Html.li [] [ text "avoid using Shared.Model whenever possible!\n" ]
+        [ Components.Nav.view
+            shared
+            route
+            { buttons = []
+            , crumbs = Components.Crumbs.view route.path crumbs
+            }
+        , main_ [ class "content-wrap" ]
+            [ Html.ul []
+                [ Html.li [] [ text "this is a template page\n" ]
+                , Html.li [] [ text "add page specific data to the Model like API resources\n" ]
+                , Html.li [] [ text "apply any Layouts to the page in toLayout\n" ]
+                , Html.li [] [ text "add html to the view to trigger page messages\n" ]
+                , Html.li [] [ text "re-use components first, but add new components when necessary\n" ]
+                , Html.li [] [ text "add page messages and pass them as components args\n" ]
+                , Html.li [] [ text "use page messages to dispatch shared Effects and handle API calls\n" ]
+                , Html.li [] [ text "use page messages and shared Effects to dispatch API calls\n" ]
+                , Html.li [] [ text "add page specific subscriptions like page refresh and favicon updates\n" ]
+                , Html.li [] [ text "try to implement things in the page!\n" ]
+                , Html.li [] [ text "avoid using Shared.Model whenever possible!\n" ]
+                ]
             ]
         ]
     }

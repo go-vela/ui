@@ -9,6 +9,7 @@ import Auth
 import Browser.Dom exposing (focus)
 import Components.Loading
 import Components.Logs
+import Components.Nav
 import Components.Svgs
 import Debug exposing (log)
 import Dict exposing (Dict)

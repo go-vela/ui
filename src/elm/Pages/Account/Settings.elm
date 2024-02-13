@@ -7,6 +7,8 @@ module Pages.Account.Settings exposing (..)
 
 import Auth
 import Auth.Session exposing (Session(..))
+import Components.Crumbs
+import Components.Nav
 import DateFormat.Relative exposing (relativeTime)
 import Effect exposing (Effect)
 import FeatherIcons
@@ -19,6 +21,7 @@ import Html
         , em
         , h2
         , label
+        , main_
         , p
         , section
         , text
@@ -51,7 +54,7 @@ page user shared route =
         { init = init
         , update = update
         , subscriptions = subscriptions
-        , view = view shared
+        , view = view shared route
         }
         |> Page.withLayout (toLayout user)
 
@@ -63,14 +66,7 @@ page user shared route =
 toLayout : Auth.User -> Model -> Layouts.Layout Msg
 toLayout user model =
     Layouts.Default
-        { navButtons = []
-        , helpCommands = []
-        , utilButtons = []
-        , crumbs =
-            [ ( "Overview", Just Route.Path.Home )
-            , ( "My Settings", Nothing )
-            ]
-        , repo = Nothing
+        { helpCommands = []
         }
 
 
@@ -127,17 +123,27 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Model -> View Msg
-view shared model =
+view : Shared.Model -> Route () -> Model -> View Msg
+view shared route model =
     let
-        body =
-            div [ Util.testAttribute "user-settings" ]
-                [ viewAccountSettings shared model
-                ]
+        crumbs =
+            [ ( "Overview", Just Route.Path.Home )
+            , ( "My Settings", Nothing )
+            ]
     in
     { title = "My Settings"
     , body =
-        [ body
+        [ Components.Nav.view
+            shared
+            route
+            { buttons = []
+            , crumbs = Components.Crumbs.view route.path crumbs
+            }
+        , main_ [ class "content-wrap" ]
+            [ div [ Util.testAttribute "user-settings" ]
+                [ viewAccountSettings shared model
+                ]
+            ]
         ]
     }
 

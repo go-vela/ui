@@ -3,12 +3,13 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.Nav exposing (view)
+module Components.Nav exposing (restartBuildButton, view)
 
 import Html
     exposing
         ( Html
         , button
+        , div
         , nav
         , text
         )
@@ -40,12 +41,12 @@ type alias Props msg =
 -- VIEW
 
 
-view : Shared.Model -> Route () -> Props msg -> Html msg
+view : Shared.Model -> Route params -> Props msg -> Html msg
 view shared route props =
     nav [ class "navigation", attribute "aria-label" "Navigation" ]
-        (props.crumbs
-            :: props.buttons
-        )
+        [ props.crumbs
+        , div [ class "buttons" ] props.buttons
+        ]
 
 
 

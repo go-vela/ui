@@ -620,21 +620,7 @@ view shared route model =
         [ case model.repo of
             RemoteData.Success repo ->
                 div [ class "repo-settings", Util.testAttribute "repo-settings" ]
-                    [ section [ class "settings", Util.testAttribute "repo-settings-events" ]
-                        ([ h2 [ class "settings-title" ] [ text "Webhook Events" ]
-                         , p [ class "settings-description" ]
-                            [ text "Control which events on Git will trigger Vela pipelines."
-                            , br [] []
-                            , em [] [ text "Active repositories must have at least one event enabled." ]
-                            ]
-                         ]
-                            ++ Components.Form.viewAllowEvents
-                                shared
-                                { msg = AllowEventsUpdate
-                                , allowEvents = repo.allowEvents
-                                , disabled_ = False
-                                }
-                        )
+                    [ viewAllowEvents shared repo AllowEventsUpdate
                     , viewAccess repo AccessUpdate
                     , viewForkPolicy repo ForkPolicyUpdate
                     , viewLimit shared repo model.inLimit BuildLimitUpdate BuildLimitOnInput
@@ -651,7 +637,28 @@ view shared route model =
     }
 
 
-{-| viewAccess : takes model and repo and renders the settings category for updating repo access
+{-| viewAllowEvents : takes shared model and repo and renders the settings category for updating repo allow events
+-}
+viewAllowEvents : Shared.Model -> Vela.Repository -> ({ allowEvents : Vela.AllowEvents, event : String } -> Bool -> msg) -> Html msg
+viewAllowEvents shared repo msg =
+    section [ class "settings", Util.testAttribute "repo-settings-events" ]
+        ([ h2 [ class "settings-title" ] [ text "Webhook Events" ]
+         , p [ class "settings-description" ]
+            [ text "Control which events on Git will trigger Vela pipelines."
+            , br [] []
+            , em [] [ text "Active repositories must have at least one event enabled." ]
+            ]
+         ]
+            ++ Components.Form.viewAllowEvents
+                shared
+                { msg = msg
+                , allowEvents = repo.allowEvents
+                , disabled_ = False
+                }
+        )
+
+
+{-| viewAccess : takes shared model and repo and renders the settings category for updating repo access
 -}
 viewAccess : Vela.Repository -> (String -> msg) -> Html msg
 viewAccess repo msg =

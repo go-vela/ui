@@ -7,6 +7,8 @@ module Pages.Account.Login exposing (..)
 
 import Api.Endpoint
 import Browser.Navigation
+import Components.Crumbs
+import Components.Nav
 import Effect exposing (Effect)
 import FeatherIcons
 import Html
@@ -15,6 +17,7 @@ import Html
         , button
         , div
         , h1
+        , main_
         , p
         , text
         )
@@ -38,7 +41,7 @@ page shared route =
         { init = init
         , update = update shared
         , subscriptions = subscriptions
-        , view = view shared
+        , view = view shared route
         }
         |> Page.withLayout toLayout
 
@@ -50,14 +53,7 @@ page shared route =
 toLayout : Model -> Layouts.Layout Msg
 toLayout model =
     Layouts.Default
-        { navButtons = []
-        , helpCommands = []
-        , utilButtons = []
-        , crumbs =
-            [ ( "Account", Nothing )
-            , ( "Login", Nothing )
-            ]
-        , repo = Nothing
+        { helpCommands = []
         }
 
 
@@ -114,21 +110,31 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Model -> View Msg
-view shared model =
+view : Shared.Model -> Route () -> Model -> View Msg
+view shared route model =
     let
-        body =
-            div [ Util.testAttribute "login_" ]
+        crumbs =
+            [ ( "Account", Nothing )
+            , ( "Login", Nothing )
+            ]
+    in
+    { title = "Login"
+    , body =
+        [ Components.Nav.view
+            shared
+            route
+            { buttons = []
+            , crumbs = Components.Crumbs.view route.path crumbs
+            }
+        , main_ [ class "content-wrap" ]
+            [ div [ Util.testAttribute "login_" ]
                 [ if String.length shared.velaRedirect /= 0 then
                     viewLogin
 
                   else
                     text ""
                 ]
-    in
-    { title = "Login"
-    , body =
-        [ body
+            ]
         ]
     }
 

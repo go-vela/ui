@@ -5,8 +5,11 @@ SPDX-License-Identifier: Apache-2.0
 
 module Pages.NotFound_ exposing (Model, Msg, page)
 
+import Components.Crumbs
+import Components.Nav
 import Effect exposing (Effect)
-import Html exposing (..)
+import Html exposing (main_, text)
+import Html.Attributes exposing (class)
 import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
@@ -21,7 +24,7 @@ page shared route =
         { init = init
         , update = update
         , subscriptions = subscriptions
-        , view = view shared
+        , view = view shared route
         }
         |> Page.withLayout toLayout
 
@@ -33,11 +36,7 @@ page shared route =
 toLayout : Model -> Layouts.Layout Msg
 toLayout model =
     Layouts.Default
-        { navButtons = []
-        , utilButtons = []
-        , helpCommands = []
-        , crumbs = [ ( "Overview", Just Route.Path.Home ), ( "Not Found", Nothing ) ]
-        , repo = Nothing
+        { helpCommands = []
         }
 
 
@@ -86,10 +85,22 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Model -> View Msg
-view shared model =
+view : Shared.Model -> Route () -> Model -> View Msg
+view shared route model =
+    let
+        crumbs =
+            [ ( "Overview", Just Route.Path.Home ), ( "Not Found", Nothing ) ]
+    in
     { title = "Not Found"
     , body =
-        [ text "page not found"
+        [ Components.Nav.view
+            shared
+            route
+            { buttons = []
+            , crumbs = Components.Crumbs.view route.path crumbs
+            }
+        , main_ [ class "content-wrap" ]
+            [ text "page not found"
+            ]
         ]
     }

@@ -6,12 +6,15 @@ SPDX-License-Identifier: Apache-2.0
 module Layouts.Default.Repo exposing (Model, Msg, Props, layout, map)
 
 import Components.Crumbs
+import Components.Favorites
 import Components.Help
+import Components.Nav
 import Components.Tabs
 import Components.Util
 import Dict exposing (Dict)
 import Effect exposing (Effect)
-import Html exposing (..)
+import Html exposing (Html, main_)
+import Html.Attributes exposing (class)
 import Layout exposing (Layout)
 import Layouts.Default
 import Route exposing (Route)
@@ -19,6 +22,7 @@ import Route.Path
 import Shared
 import Time
 import Url exposing (Url)
+import Utils.Favorites as Favorites
 import Utils.Interval as Interval
 import View exposing (View)
 
@@ -44,7 +48,7 @@ map fn props =
     }
 
 
-layout : Props contentMsg -> Shared.Model -> Route () -> Layout (Layouts.Default.Props contentMsg) Model Msg contentMsg
+layout : Props contentMsg -> Shared.Model -> Route () -> Layout Layouts.Default.Props Model Msg contentMsg
 layout props shared route =
     Layout.new
         { init = init props shared route
@@ -54,11 +58,7 @@ layout props shared route =
         }
         |> Layout.withOnUrlChanged OnUrlChanged
         |> Layout.withParentProps
-            { navButtons = props.navButtons
-            , utilButtons = []
-            , helpCommands = props.helpCommands
-            , crumbs = props.crumbs
-            , repo = Just ( props.org, props.repo )
+            { helpCommands = props.helpCommands
             }
 
 
@@ -99,8 +99,10 @@ init props shared route _ =
 
 
 type Msg
-    = --BROWSER
+    = -- BROWSER
       OnUrlChanged { from : Route (), to : Route () }
+      -- FAVORITES
+    | ToggleFavorite String (Maybe String)
       -- REFRESH
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
@@ -108,6 +110,7 @@ type Msg
 update : Props contentMsg -> Route () -> Msg -> Model -> ( Model, Effect Msg )
 update props route msg model =
     case msg of
+        -- BROWSER
         OnUrlChanged options ->
             ( { model
                 | tabHistory =
@@ -116,6 +119,17 @@ update props route msg model =
             , Effect.replaceRouteRemoveTabHistorySkipDomFocus route
             )
 
+        -- FAVORITES
+        ToggleFavorite org maybeRepo ->
+            ( model
+            , Effect.updateFavorites
+                { org = org
+                , maybeRepo = maybeRepo
+                , updateType = Favorites.Toggle
+                }
+            )
+
+        -- REFRESH
         Tick options ->
             ( model
             , Effect.batch
@@ -151,16 +165,33 @@ view : Props contentMsg -> Shared.Model -> Route () -> { toContentMsg : Msg -> c
 view props shared route { toContentMsg, model, content } =
     { title = props.org ++ "/" ++ props.repo ++ " " ++ content.title
     , body =
-        Components.Util.view shared
+        [ Components.Nav.view shared
             route
-            (Components.Tabs.viewRepoTabs
-                shared
-                { org = props.org
-                , repo = props.repo
-                , currentPath = route.path
-                , tabHistory = model.tabHistory
-                }
-                :: props.utilButtons
+            { buttons =
+                (Components.Favorites.viewStarToggle
+                    { org = props.org
+                    , repo = props.repo
+                    , user = shared.user
+                    , msg = ToggleFavorite
+                    }
+                    |> Html.map toContentMsg
+                )
+                    :: props.navButtons
+            , crumbs = Components.Crumbs.view route.path props.crumbs
+            }
+        , main_ [ class "content-wrap" ]
+            (Components.Util.view shared
+                route
+                (Components.Tabs.viewRepoTabs
+                    shared
+                    { org = props.org
+                    , repo = props.repo
+                    , currentPath = route.path
+                    , tabHistory = model.tabHistory
+                    }
+                    :: props.utilButtons
+                )
+                :: content.body
             )
-            :: content.body
+        ]
     }

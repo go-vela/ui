@@ -8,7 +8,9 @@ module Pages.Account.SourceRepos exposing (..)
 import Api.Api as Api
 import Api.Operations
 import Auth
+import Components.Crumbs
 import Components.Favorites
+import Components.Nav
 import Components.Search
 import Dict exposing (Dict)
 import Effect exposing (Effect)
@@ -20,6 +22,7 @@ import Html
         , button
         , details
         , div
+        , main_
         , span
         , summary
         , text
@@ -54,7 +57,7 @@ page user shared route =
         { init = init
         , update = update shared
         , subscriptions = subscriptions
-        , view = view shared
+        , view = view shared route
         }
         |> Page.withLayout (toLayout user shared)
 
@@ -66,32 +69,7 @@ page user shared route =
 toLayout : Auth.User -> Shared.Model -> Model -> Layouts.Layout Msg
 toLayout user shared model =
     Layouts.Default
-        { navButtons =
-            [ button
-                [ classList
-                    [ ( "button", True )
-                    , ( "-outline", True )
-                    ]
-                , onClick (GetUserSourceRepos True)
-                , disabled (model.sourceRepos == RemoteData.Loading)
-                , Util.testAttribute "refresh-source-repos"
-                ]
-                [ case model.sourceRepos of
-                    RemoteData.Loading ->
-                        text "Loading…"
-
-                    _ ->
-                        text "Refresh List"
-                ]
-            ]
-        , helpCommands = []
-        , utilButtons = []
-        , crumbs =
-            [ ( "Overview", Just Route.Path.Home )
-            , ( "Account", Nothing )
-            , ( "Source Repositories", Nothing )
-            ]
-        , repo = Nothing
+        { helpCommands = []
         }
 
 
@@ -263,18 +241,46 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Model -> View Msg
-view shared model =
+view : Shared.Model -> Route () -> Model -> View Msg
+view shared route model =
     let
-        body =
-            div [ Util.testAttribute "source-repos" ]
-                [ Components.Search.viewRepoSearchBarGlobal model.searchFilters UpdateSearchFilter
-                , viewSourceRepos shared model
-                ]
+        crumbs =
+            [ ( "Overview", Just Route.Path.Home )
+            , ( "Account", Nothing )
+            , ( "Source Repositories", Nothing )
+            ]
     in
     { title = "Source Repos"
     , body =
-        [ body
+        [ Components.Nav.view
+            shared
+            route
+            { buttons =
+                [ button
+                    [ classList
+                        [ ( "button", True )
+                        , ( "-outline", True )
+                        ]
+                    , onClick (GetUserSourceRepos True)
+                    , disabled (model.sourceRepos == RemoteData.Loading)
+                    , Util.testAttribute "refresh-source-repos"
+                    ]
+                    [ case model.sourceRepos of
+                        RemoteData.Loading ->
+                            text "Loading…"
+
+                        _ ->
+                            text "Refresh List"
+                    ]
+                ]
+            , crumbs = Components.Crumbs.view route.path crumbs
+            }
+        , main_ [ class "content-wrap" ]
+            [ div [ Util.testAttribute "source-repos" ]
+                [ Components.Search.viewRepoSearchBarGlobal model.searchFilters UpdateSearchFilter
+                , viewSourceRepos shared model
+                ]
+            ]
         ]
     }
 

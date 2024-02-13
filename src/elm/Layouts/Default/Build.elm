@@ -7,13 +7,15 @@ module Layouts.Default.Build exposing (Model, Msg, Props, layout, map)
 
 import Components.Build
 import Components.Crumbs
-import Components.Favorites
 import Components.Help
+import Components.Nav
 import Components.RecentBuilds
 import Components.Tabs
+import Components.Util
 import Dict exposing (Dict)
 import Effect exposing (Effect)
-import Html exposing (Html)
+import Html exposing (Html, main_, text)
+import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
 import Layout exposing (Layout)
@@ -56,7 +58,7 @@ map fn props =
     }
 
 
-layout : Props contentMsg -> Shared.Model -> Route () -> Layout (Layouts.Default.Props contentMsg) Model Msg contentMsg
+layout : Props contentMsg -> Shared.Model -> Route () -> Layout Layouts.Default.Props Model Msg contentMsg
 layout props shared route =
     Layout.new
         { init = init props shared route
@@ -66,11 +68,7 @@ layout props shared route =
         }
         |> Layout.withOnUrlChanged OnUrlChanged
         |> Layout.withParentProps
-            { navButtons = props.navButtons
-            , utilButtons = []
-            , helpCommands = props.helpCommands
-            , crumbs = props.crumbs
-            , repo = Just ( props.org, props.repo )
+            { helpCommands = props.helpCommands
             }
 
 
@@ -214,25 +212,38 @@ view : Props contentMsg -> Shared.Model -> Route () -> { toContentMsg : Msg -> c
 view props shared route { toContentMsg, model, content } =
     { title = props.org ++ "/" ++ props.repo ++ " #" ++ props.buildNumber ++ " " ++ content.title
     , body =
-        [ Components.RecentBuilds.view shared
-            { builds = shared.builds
-            , build = model.build
-            , num = 10
-            , toPath = props.toBuildPath
+        [ Components.Nav.view shared
+            route
+            { buttons =
+                [ Html.button [ class "button", class "-outline" ] [ text "restart build" ]
+                , Html.button [ class "button", class "-outline" ] [ text "cancel build" ]
+                ]
+                    ++ props.navButtons
+            , crumbs = Components.Crumbs.view route.path props.crumbs
             }
-        , Components.Build.view shared
-            { build = model.build
-            , showFullTimestamps = False
-            , actionsMenu = Html.div [] []
-            , showActionsMenuBool = True
-            }
-        , Components.Tabs.viewBuildTabs shared
-            { org = props.org
-            , repo = props.repo
-            , buildNumber = props.buildNumber
-            , currentPath = route.path
-            , tabHistory = model.tabHistory
-            }
+        , main_ [ class "content-wrap" ]
+            ([ Components.Util.view shared route props.utilButtons
+             , Components.RecentBuilds.view shared
+                { builds = shared.builds
+                , build = model.build
+                , num = 10
+                , toPath = props.toBuildPath
+                }
+             , Components.Build.view shared
+                { build = model.build
+                , showFullTimestamps = False
+                , actionsMenu = Html.div [] []
+                , showActionsMenuBool = True
+                }
+             , Components.Tabs.viewBuildTabs shared
+                { org = props.org
+                , repo = props.repo
+                , buildNumber = props.buildNumber
+                , currentPath = route.path
+                , tabHistory = model.tabHistory
+                }
+             ]
+                ++ content.body
+            )
         ]
-            ++ content.body
     }
