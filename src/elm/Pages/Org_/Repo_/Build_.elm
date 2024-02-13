@@ -210,7 +210,7 @@ update shared route msg model =
 
         CancelBuild options ->
             ( model
-            , Effect.restartBuild
+            , Effect.cancelBuild
                 { org = options.org
                 , repo = options.repo
                 , buildNumber = options.buildNumber
