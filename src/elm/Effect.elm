@@ -488,7 +488,7 @@ approveBuild :
 approveBuild options =
     Api.try
         options.onResponse
-        (Api.Operations.restartBuild options.baseUrl options.session options)
+        (Api.Operations.approveBuild options.baseUrl options.session options)
         |> sendCmd
 
 

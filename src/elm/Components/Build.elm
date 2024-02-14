@@ -593,29 +593,15 @@ viewRestartButton org repo buildNumber restartBuild =
 
 {-| viewApproveButton: takes org repo and build number and renders button to approve a build run
 -}
-viewApproveButton : Vela.Org -> Vela.Repo -> WebData Vela.Build -> (Vela.Org -> Vela.Repo -> Vela.BuildNumber -> msg) -> Html msg
-viewApproveButton org repo build approveBuild =
-    case build of
-        RemoteData.Success b ->
-            let
-                approveButton =
-                    button
-                        [ classList
-                            [ ( "button", True )
-                            , ( "-outline", True )
-                            ]
-                        , onClick <| approveBuild org repo <| String.fromInt b.number
-                        , Util.testAttribute "approve-build"
-                        ]
-                        [ text "Approve Build"
-                        ]
-            in
-            case b.status of
-                Vela.PendingApproval ->
-                    approveButton
-
-                _ ->
-                    text ""
-
-        _ ->
-            text ""
+viewApproveButton : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } -> msg) -> Html msg
+viewApproveButton org repo buildNumber approveBuild =
+    button
+        [ classList
+            [ ( "button", True )
+            , ( "-outline", True )
+            ]
+        , onClick <| approveBuild { org = org, repo = repo, buildNumber = buildNumber }
+        , Util.testAttribute "approve-build"
+        ]
+        [ text "Approve Build"
+        ]

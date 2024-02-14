@@ -7,7 +7,6 @@ module Pages.Org_.Repo_.Build_ exposing (..)
 
 import Auth
 import Browser.Dom exposing (focus)
-import Components.Build
 import Components.Loading
 import Components.Logs
 import Components.Svgs
@@ -57,10 +56,7 @@ page user shared route =
 toLayout : Auth.User -> Route { org : String, repo : String, buildNumber : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Build
-        { navButtons =
-            [ Components.Build.viewRestartButton route.params.org route.params.repo route.params.buildNumber RestartBuild
-            , Components.Build.viewCancelButton route.params.org route.params.repo route.params.buildNumber CancelBuild
-            ]
+        { navButtons = []
         , utilButtons = []
         , helpCommands = []
         , crumbs =
@@ -136,13 +132,6 @@ type Msg
       OnHashChanged { from : Maybe String, to : Maybe String }
     | PushUrlHash { hash : String }
     | FocusOn { target : String }
-      -- BUILD
-    | RestartBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
-    | RestartBuildResponse { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
-    | CancelBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
-    | CancelBuildResponse { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
-    | ApproveBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
-    | ApproveBuildResponse { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
       -- STEPS
     | GetBuildStepsResponse { applyDomFocus : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Step ))
     | GetBuildStepsRefreshResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Step ))
@@ -200,77 +189,6 @@ update shared route msg model =
             ( model
             , Effect.focusOn options
             )
-
-        -- BUILD
-        RestartBuild options ->
-            ( model
-            , Effect.restartBuild
-                { baseUrl = shared.velaAPIBaseURL
-                , session = shared.session
-                , onResponse = RestartBuildResponse options
-                , org = options.org
-                , repo = options.repo
-                , buildNumber = options.buildNumber
-                }
-            )
-
-        RestartBuildResponse options response ->
-            case response of
-                Ok ( _, build ) ->
-                    let
-                        restartedBuild =
-                            "Build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ]
-
-                        newBuildNumber =
-                            String.fromInt <| build.number
-
-                        newBuild =
-                            String.join "/" [ "", options.org, options.repo, newBuildNumber ]
-
-                        -- todo: create new build link, add to toastie, refresh builds
-                    in
-                    ( model
-                    , Effect.addAlertSuccess { content = restartedBuild ++ " restarted.", addToastIfUnique = True }
-                    )
-
-                Err error ->
-                    ( model
-                    , Effect.handleHttpError { httpError = error }
-                    )
-
-        CancelBuild options ->
-            ( model
-            , Effect.cancelBuild
-                { baseUrl = shared.velaAPIBaseURL
-                , session = shared.session
-                , onResponse = CancelBuildResponse options
-                , org = options.org
-                , repo = options.repo
-                , buildNumber = options.buildNumber
-                }
-            )
-
-        CancelBuildResponse options response ->
-            case response of
-                Ok ( _, build ) ->
-                    let
-                        canceledBuild =
-                            "Build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ]
-                    in
-                    ( model
-                    , Effect.addAlertSuccess { content = canceledBuild ++ " canceled.", addToastIfUnique = True }
-                    )
-
-                Err error ->
-                    ( model
-                    , Effect.handleHttpError { httpError = error }
-                    )
-
-        ApproveBuild options ->
-            ( model, Effect.none )
-
-        ApproveBuildResponse options response ->
-            ( model, Effect.none )
 
         -- STEPS
         GetBuildStepsResponse options response ->
