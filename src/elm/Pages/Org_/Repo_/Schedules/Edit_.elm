@@ -142,6 +142,7 @@ update shared route msg model =
                     , Effect.addAlertSuccess
                         { content = schedule.name ++ " updated in repo schedules."
                         , addToastIfUnique = True
+                        , link = Nothing
                         }
                     )
 
@@ -158,6 +159,7 @@ update shared route msg model =
                         [ Effect.addAlertSuccess
                             { content = result
                             , addToastIfUnique = True
+                            , link = Nothing
                             }
                         , Effect.pushPath <|
                             Route.Path.Org_Repo_Schedules

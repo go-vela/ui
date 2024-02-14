@@ -155,6 +155,7 @@ update shared route msg model =
                     , Effect.addAlertSuccess
                         { content = "Added deployment for commit " ++ deployment.commit ++ "."
                         , addToastIfUnique = True
+                        , link = Nothing
                         }
                     )
 

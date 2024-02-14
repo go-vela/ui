@@ -187,7 +187,10 @@ update shared msg model =
                       }
                     , Effect.batch
                         [ Effect.addAlertSuccess
-                            { content = "Repo " ++ repo.full_name ++ " enabled.", addToastIfUnique = True }
+                            { content = "Repo " ++ repo.full_name ++ " enabled."
+                            , addToastIfUnique = True
+                            , link = Nothing
+                            }
                         , Effect.updateFavorites { org = repo.org, maybeRepo = Just repo.name, updateType = Favorites.Add }
                         ]
                     )
@@ -201,6 +204,7 @@ update shared msg model =
                                     , Effect.addAlertSuccess
                                         { content = "Repo " ++ options.repo.full_name ++ " enabled."
                                         , addToastIfUnique = False
+                                        , link = Nothing
                                         }
                                     )
 

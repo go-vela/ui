@@ -200,13 +200,15 @@ update shared route msg model =
                         restartedBuild =
                             "Build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ]
 
-                        newBuildNumber =
-                            String.fromInt <| build.number
-
-                        newBuild =
-                            String.join "/" [ "", options.org, options.repo, newBuildNumber ]
-
-                        -- todo: create new build link, add to toastie, refresh builds
+                        newBuildLink =
+                            Just
+                                ( "View Build #" ++ String.fromInt build.number
+                                , Route.Path.Org_Repo_Build_
+                                    { org = options.org
+                                    , repo = options.repo
+                                    , buildNumber = String.fromInt build.number
+                                    }
+                                )
                     in
                     ( model
                     , Effect.batch
@@ -220,7 +222,11 @@ update shared route msg model =
                             , org = route.params.org
                             , repo = route.params.repo
                             }
-                        , Effect.addAlertSuccess { content = restartedBuild ++ " restarted.", addToastIfUnique = True }
+                        , Effect.addAlertSuccess
+                            { content = restartedBuild ++ " restarted."
+                            , addToastIfUnique = True
+                            , link = newBuildLink
+                            }
                         ]
                     )
 
@@ -260,7 +266,11 @@ update shared route msg model =
                             , org = route.params.org
                             , repo = route.params.repo
                             }
-                        , Effect.addAlertSuccess { content = canceledBuild ++ " canceled.", addToastIfUnique = True }
+                        , Effect.addAlertSuccess
+                            { content = canceledBuild ++ " canceled."
+                            , addToastIfUnique = True
+                            , link = Nothing
+                            }
                         ]
                     )
 
@@ -300,7 +310,11 @@ update shared route msg model =
                             , org = route.params.org
                             , repo = route.params.repo
                             }
-                        , Effect.addAlertSuccess { content = approvedBuild ++ " approved.", addToastIfUnique = True }
+                        , Effect.addAlertSuccess
+                            { content = approvedBuild ++ " approved."
+                            , addToastIfUnique = True
+                            , link = Nothing
+                            }
                         ]
                     )
 

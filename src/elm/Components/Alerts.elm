@@ -3,12 +3,13 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.Alerts exposing (Alert(..), errorConfig, successConfig, view)
+module Components.Alerts exposing (Alert(..), Link, errorConfig, successConfig, view)
 
 import FeatherIcons
 import Html exposing (Html, a, button, div, h1, p, text)
 import Html.Attributes exposing (attribute, class, href)
 import Html.Events
+import Route.Path
 import Toasty as Alerting
 import Toasty.Defaults as Alerts
 import Utils.Helpers as Util
@@ -27,7 +28,7 @@ type alias Label =
 
 
 type alias Destination =
-    String
+    Route.Path.Path
 
 
 type Alert
@@ -139,4 +140,4 @@ errorConfig =
 -}
 toHyperlink : Link -> Html msg
 toHyperlink ( label, destination ) =
-    a [ href destination, Util.testAttribute "alert-hyperlink" ] [ text label ]
+    a [ Route.Path.href destination, Util.testAttribute "alert-hyperlink" ] [ text label ]

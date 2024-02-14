@@ -159,7 +159,11 @@ update shared route msg model =
             case response of
                 Ok ( _, result ) ->
                     ( model
-                    , Effect.addAlertSuccess { content = result, addToastIfUnique = False }
+                    , Effect.addAlertSuccess
+                        { content = result
+                        , addToastIfUnique = False
+                        , link = Nothing
+                        }
                     )
 
                 Err error ->

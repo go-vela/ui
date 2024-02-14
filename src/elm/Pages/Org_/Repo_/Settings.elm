@@ -163,6 +163,7 @@ update shared route msg model =
                     , Effect.addAlertSuccess
                         { content = "Repo " ++ options.alertLabel ++ " updated."
                         , addToastIfUnique = False
+                        , link = Nothing
                         }
                     )
 
@@ -211,6 +212,7 @@ update shared route msg model =
                     , Effect.addAlertSuccess
                         { content = "Repo " ++ repo.full_name ++ " enabled."
                         , addToastIfUnique = False
+                        , link = Nothing
                         }
                     )
 
@@ -234,6 +236,7 @@ update shared route msg model =
                                     , Effect.addAlertSuccess
                                         { content = "Repo " ++ repo.full_name ++ " enabled."
                                         , addToastIfUnique = False
+                                        , link = Nothing
                                         }
                                     )
 
@@ -308,6 +311,7 @@ update shared route msg model =
                     , Effect.addAlertSuccess
                         { content = result
                         , addToastIfUnique = False
+                        , link = Nothing
                         }
                     )
 
@@ -342,6 +346,7 @@ update shared route msg model =
                         , Effect.addAlertSuccess
                             { content = result
                             , addToastIfUnique = False
+                            , link = Nothing
                             }
                         ]
                     )
@@ -377,6 +382,7 @@ update shared route msg model =
                         , Effect.addAlertSuccess
                             { content = result
                             , addToastIfUnique = False
+                            , link = Nothing
                             }
                         ]
                     )
@@ -584,7 +590,11 @@ update shared route msg model =
         -- ALERTS
         AddAlertCopiedToClipboard contentCopied ->
             ( model
-            , Effect.addAlertSuccess { content = "'" ++ contentCopied ++ "' copied to clipboard.", addToastIfUnique = False }
+            , Effect.addAlertSuccess
+                { content = "'" ++ contentCopied ++ "' copied to clipboard."
+                , addToastIfUnique = False
+                , link = Nothing
+                }
             )
 
         -- REFRESH

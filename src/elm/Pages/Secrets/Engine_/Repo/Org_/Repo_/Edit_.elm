@@ -143,6 +143,7 @@ update shared route msg model =
                     , Effect.addAlertSuccess
                         { content = "Repo secret " ++ secret.name ++ " updated."
                         , addToastIfUnique = True
+                        , link = Nothing
                         }
                     )
 
@@ -159,6 +160,7 @@ update shared route msg model =
                         [ Effect.addAlertSuccess
                             { content = result
                             , addToastIfUnique = True
+                            , link = Nothing
                             }
                         , Effect.pushPath <|
                             Route.Path.SecretsEngine_RepoOrg_Repo_

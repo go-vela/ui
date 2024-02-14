@@ -27,7 +27,7 @@ import Api.Api as Api
 import Api.Operations
 import Auth.Session
 import Browser.Navigation
-import Components.Alerts exposing (Alert)
+import Components.Alerts
 import Dict exposing (Dict)
 import Http
 import Http.Detailed
@@ -1202,17 +1202,17 @@ handleHttpError options =
     SendSharedMsg <| Shared.Msg.HandleHttpError options.httpError
 
 
-addAlertSuccess : { content : String, addToastIfUnique : Bool } -> Effect msg
+addAlertSuccess : { content : String, addToastIfUnique : Bool, link : Maybe Components.Alerts.Link } -> Effect msg
 addAlertSuccess options =
     SendSharedMsg <| Shared.Msg.AddAlertSuccess options
 
 
-addAlertError : { content : String, addToastIfUnique : Bool } -> Effect msg
+addAlertError : { content : String, addToastIfUnique : Bool, link : Maybe Components.Alerts.Link } -> Effect msg
 addAlertError options =
     SendSharedMsg <| Shared.Msg.AddAlertError options
 
 
-alertsUpdate : { alert : Alerting.Msg Alert } -> Effect msg
+alertsUpdate : { alert : Alerting.Msg Components.Alerts.Alert } -> Effect msg
 alertsUpdate options =
     SendSharedMsg <| Shared.Msg.AlertsUpdate options.alert
 

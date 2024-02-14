@@ -113,6 +113,7 @@ update shared route msg model =
                     , Effect.addAlertSuccess
                         { content = secret.name ++ " added to shared secrets."
                         , addToastIfUnique = True
+                        , link = Nothing
                         }
                     )
 

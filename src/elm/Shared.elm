@@ -11,7 +11,7 @@ import Auth.Jwt
 import Auth.Session
 import Browser.Dom
 import Browser.Events exposing (Visibility(..))
-import Components.Alerts as Alerts
+import Components.Alerts
 import Dict
 import Effect exposing (Effect)
 import File.Download
@@ -356,6 +356,7 @@ update route msg model =
                                                     , Effect.addAlertError
                                                         { content = "Your session has expired or you logged in somewhere else, please log in again."
                                                         , addToastIfUnique = True
+                                                        , link = Nothing
                                                         }
                                                     ]
                                     in
@@ -487,7 +488,7 @@ update route msg model =
                                 options.favorite ++ " removed from favorites."
                     in
                     ( { model | user = RemoteData.succeed user }
-                    , Effect.addAlertSuccess { content = alertMsg, addToastIfUnique = True }
+                    , Effect.addAlertSuccess { content = alertMsg, addToastIfUnique = True, link = Nothing }
                     )
 
                 Err error ->
@@ -549,7 +550,7 @@ update route msg model =
 
         -- ALERTS
         Shared.Msg.AlertsUpdate subMsg ->
-            Alerting.update Alerts.successConfig Shared.Msg.AlertsUpdate subMsg model
+            Alerting.update Components.Alerts.successConfig Shared.Msg.AlertsUpdate subMsg model
                 |> Tuple.mapSecond Effect.sendCmd
 
         Shared.Msg.AddAlertSuccess options ->
@@ -561,9 +562,9 @@ update route msg model =
                     else
                         Alerting.addToast
             in
-            addAlertFn Alerts.successConfig
+            addAlertFn Components.Alerts.successConfig
                 Shared.Msg.AlertsUpdate
-                (Alerts.Success "Success" options.content Nothing)
+                (Components.Alerts.Success "Success" options.content options.link)
                 ( model, Cmd.none )
                 |> Tuple.mapSecond Effect.sendCmd
 
@@ -576,9 +577,9 @@ update route msg model =
                     else
                         Alerting.addToast
             in
-            addAlertFn Alerts.errorConfig
+            addAlertFn Components.Alerts.errorConfig
                 Shared.Msg.AlertsUpdate
-                (Alerts.Error "Error" options.content)
+                (Components.Alerts.Error "Error" options.content)
                 ( model, Cmd.none )
                 |> Tuple.mapSecond Effect.sendCmd
 
@@ -604,7 +605,7 @@ update route msg model =
             in
             ( shared
             , Effect.batch
-                [ Effect.addAlertError { content = Utils.Errors.detailedErrorToString error, addToastIfUnique = True }
+                [ Effect.addAlertError { content = Utils.Errors.detailedErrorToString error, addToastIfUnique = True, link = Nothing }
                 , redirect
                 ]
             )

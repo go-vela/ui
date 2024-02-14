@@ -104,6 +104,7 @@ update shared route msg model =
                     , Effect.addAlertSuccess
                         { content = secret.name ++ " added to repo secrets."
                         , addToastIfUnique = True
+                        , link = Nothing
                         }
                     )
 

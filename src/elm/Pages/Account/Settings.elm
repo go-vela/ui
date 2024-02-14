@@ -106,7 +106,11 @@ update msg model =
         -- ALERTS
         AddAlertCopiedToClipboard contentCopied ->
             ( model
-            , Effect.addAlertSuccess { content = "'" ++ contentCopied ++ "' copied to clipboard.", addToastIfUnique = False }
+            , Effect.addAlertSuccess
+                { content = "'" ++ contentCopied ++ "' copied to clipboard."
+                , addToastIfUnique = False
+                , link = Nothing
+                }
             )
 
 

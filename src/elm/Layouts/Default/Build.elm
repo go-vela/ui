@@ -5,6 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 module Layouts.Default.Build exposing (Model, Msg, Props, layout, map)
 
+import Components.Alerts
 import Components.Build
 import Components.Crumbs
 import Components.Help
@@ -194,13 +195,15 @@ update props shared route msg model =
                         restartedBuild =
                             "Build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ]
 
-                        newBuildNumber =
-                            String.fromInt <| build.number
-
-                        newBuild =
-                            String.join "/" [ "", options.org, options.repo, newBuildNumber ]
-
-                        -- todo: create new build link, add to toastie, refresh builds
+                        newBuildLink =
+                            Just
+                                ( "View Build #" ++ String.fromInt build.number
+                                , Route.Path.Org_Repo_Build_
+                                    { org = options.org
+                                    , repo = options.repo
+                                    , buildNumber = String.fromInt build.number
+                                    }
+                                )
                     in
                     ( model
                     , Effect.batch
@@ -211,7 +214,11 @@ update props shared route msg model =
                             , org = props.org
                             , repo = props.repo
                             }
-                        , Effect.addAlertSuccess { content = restartedBuild ++ " restarted.", addToastIfUnique = True }
+                        , Effect.addAlertSuccess
+                            { content = restartedBuild ++ " restarted."
+                            , addToastIfUnique = True
+                            , link = newBuildLink
+                            }
                         ]
                     )
 
@@ -249,7 +256,11 @@ update props shared route msg model =
                             , repo = props.repo
                             , buildNumber = props.buildNumber
                             }
-                        , Effect.addAlertSuccess { content = canceledBuild ++ " canceled.", addToastIfUnique = True }
+                        , Effect.addAlertSuccess
+                            { content = canceledBuild ++ " canceled."
+                            , addToastIfUnique = True
+                            , link = Nothing
+                            }
                         ]
                     )
 
@@ -287,7 +298,11 @@ update props shared route msg model =
                             , repo = props.repo
                             , buildNumber = props.buildNumber
                             }
-                        , Effect.addAlertSuccess { content = approvedBuild ++ " approved.", addToastIfUnique = True }
+                        , Effect.addAlertSuccess
+                            { content = approvedBuild ++ " approved."
+                            , addToastIfUnique = True
+                            , link = Nothing
+                            }
                         ]
                     )
 

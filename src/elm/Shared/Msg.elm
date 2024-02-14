@@ -8,7 +8,7 @@ module Shared.Msg exposing (Msg(..))
 import Auth.Jwt
 import Browser.Dom
 import Browser.Events
-import Components.Alerts exposing (Alert)
+import Components.Alerts
 import Http
 import Http.Detailed
 import Time
@@ -55,9 +55,9 @@ type Msg
       -- THEME
     | SetTheme { theme : Theme.Theme }
       -- ALERTS
-    | AddAlertError { content : String, addToastIfUnique : Bool }
-    | AddAlertSuccess { content : String, addToastIfUnique : Bool }
-    | AlertsUpdate (Alerting.Msg Alert)
+    | AddAlertError { content : String, addToastIfUnique : Bool, link : Maybe Components.Alerts.Link }
+    | AddAlertSuccess { content : String, addToastIfUnique : Bool, link : Maybe Components.Alerts.Link }
+    | AlertsUpdate (Alerting.Msg Components.Alerts.Alert)
       -- ERRORS
     | HandleHttpError (Http.Detailed.Error String)
       -- REFRESH
