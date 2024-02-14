@@ -48,101 +48,101 @@ context('Builds', () => {
       cy.get('@builds').should('be.visible');
     });
 
-    // it('cancel build button should be present when running', () => {
-    //   cy.get('@firstBuild')
-    //     .should('exist')
-    //     .find('[data-test=cancel-build]')
-    //     .should('exist');
-    //   cy.get('@firstBuild')
-    //     .next()
-    //     .should('exist')
-    //     .find('[data-test=cancel-build]')
-    //     .should('not.exist');
-    //   cy.get('@firstBuild')
-    //     .next()
-    //     .next()
-    //     .should('exist')
-    //     .find('[data-test=cancel-build]')
-    //     .should('not.exist');
-    //   cy.get('@firstBuild')
-    //     .next()
-    //     .next()
-    //     .next()
-    //     .should('exist')
-    //     .find('[data-test=cancel-build]')
-    //     .should('not.exist');
-    //   cy.get('@firstBuild')
-    //     .next()
-    //     .next()
-    //     .next()
-    //     .next()
-    //     .should('exist')
-    //     .find('[data-test=cancel-build]')
-    //     .should('exist');
-    // });
+    it('cancel build button should be present when running', () => {
+      cy.get('@firstBuild')
+        .should('exist')
+        .find('[data-test=cancel-build]')
+        .should('exist');
+      cy.get('@firstBuild')
+        .next()
+        .should('exist')
+        .find('[data-test=cancel-build]')
+        .should('not.exist');
+      cy.get('@firstBuild')
+        .next()
+        .next()
+        .should('exist')
+        .find('[data-test=cancel-build]')
+        .should('not.exist');
+      cy.get('@firstBuild')
+        .next()
+        .next()
+        .next()
+        .should('exist')
+        .find('[data-test=cancel-build]')
+        .should('not.exist');
+      cy.get('@firstBuild')
+        .next()
+        .next()
+        .next()
+        .next()
+        .should('exist')
+        .find('[data-test=cancel-build]')
+        .should('exist');
+    });
 
-    // it('build menu should expand and close when action is fired', () => {
-    //   cy.get('@firstBuild')
-    //     .should('exist')
-    //     .find('[data-test=cancel-build]')
-    //     .should('not.be.visible');
-    //   cy.get('@firstBuild')
-    //     .should('exist')
-    //     .find('[data-test=restart-build]')
-    //     .should('not.be.visible');
-    //   cy.get('@firstBuild')
-    //     .should('exist')
-    //     .find('[data-test=build-menu]')
-    //     .click();
-    //   cy.get('@firstBuild')
-    //     .should('exist')
-    //     .find('[data-test=cancel-build]')
-    //     .should('be.visible');
-    //   cy.get('@firstBuild')
-    //     .should('exist')
-    //     .find('[data-test=restart-build]')
-    //     .should('be.visible');
-    //   cy.get('@firstBuild')
-    //     .should('exist')
-    //     .find('[data-test=cancel-build]')
-    //     .click();
-    //   cy.get('@firstBuild')
-    //     .should('exist')
-    //     .find('[data-test=cancel-build]')
-    //     .should('not.be.visible');
-    //   cy.get('@firstBuild')
-    //     .should('exist')
-    //     .find('[data-test=restart-build]')
-    //     .should('not.be.visible');
-    //   cy.get('@firstBuild')
-    //     .should('exist')
-    //     .find('[data-test=build-menu]')
-    //     .click();
-    //   cy.get('@firstBuild')
-    //     .should('exist')
-    //     .find('[data-test=cancel-build]')
-    //     .should('be.visible');
-    //   cy.get('@firstBuild')
-    //     .should('exist')
-    //     .find('[data-test=restart-build]')
-    //     .should('be.visible');
-    //   cy.get('@firstBuild')
-    //     .should('exist')
-    //     .find('[data-test=restart-build]')
-    //     .click();
-    //   cy.get('@firstBuild')
-    //     .should('exist')
-    //     .find('[data-test=cancel-build]')
-    //     .should('not.be.visible');
-    //   cy.get('@firstBuild')
-    //     .should('exist')
-    //     .find('[data-test=restart-build]')
-    //     .should('not.be.visible');
-    // });
+    it('build menu should expand and close when action is fired', () => {
+      cy.get('@firstBuild')
+        .should('exist')
+        .find('[data-test=cancel-build]')
+        .should('not.be.visible');
+      cy.get('@firstBuild')
+        .should('exist')
+        .find('[data-test=restart-build]')
+        .should('not.be.visible');
+      cy.get('@firstBuild')
+        .should('exist')
+        .find('[data-test=build-menu]')
+        .click();
+      cy.get('@firstBuild')
+        .should('exist')
+        .find('[data-test=cancel-build]')
+        .should('be.visible');
+      cy.get('@firstBuild')
+        .should('exist')
+        .find('[data-test=restart-build]')
+        .should('be.visible');
+      cy.get('@firstBuild')
+        .should('exist')
+        .find('[data-test=cancel-build]')
+        .click();
+      cy.get('@firstBuild')
+        .should('exist')
+        .find('[data-test=cancel-build]')
+        .should('not.be.visible');
+      cy.get('@firstBuild')
+        .should('exist')
+        .find('[data-test=restart-build]')
+        .should('not.be.visible');
+      cy.get('@firstBuild')
+        .should('exist')
+        .find('[data-test=build-menu]')
+        .click();
+      cy.get('@firstBuild')
+        .should('exist')
+        .find('[data-test=cancel-build]')
+        .should('be.visible');
+      cy.get('@firstBuild')
+        .should('exist')
+        .find('[data-test=restart-build]')
+        .should('be.visible');
+      cy.get('@firstBuild')
+        .should('exist')
+        .find('[data-test=restart-build]')
+        .click();
+      cy.get('@firstBuild')
+        .should('exist')
+        .find('[data-test=cancel-build]')
+        .should('not.be.visible');
+      cy.get('@firstBuild')
+        .should('exist')
+        .find('[data-test=restart-build]')
+        .should('not.be.visible');
+    });
 
-    // it('restart build button should be present', () => {
-    //   cy.get('[data-test=restart-build]').should('exist');
-    // });
+    it('restart build button should be present', () => {
+      cy.get('[data-test=restart-build]').should('exist');
+    });
 
     it('builds should display commit message', () => {
       cy.get('@builds').find('.commit-msg').should('be.visible');
@@ -153,10 +153,6 @@ context('Builds', () => {
         .find('.commit-msg')
         .should('have.css', 'text-overflow', 'ellipsis');
     });
-
-    // it('pagination controls should not show', () => {
-    //   cy.get('[data-test=pager-previous]').should('not.be.visible');
-    // });
 
     it('timestamp checkbox should be present', () => {
       cy.get('[data-test=time-toggle]').should('exist');
