@@ -14,7 +14,7 @@ import Components.Tabs
 import Components.Util
 import Dict exposing (Dict)
 import Effect exposing (Effect)
-import Html exposing (Html, main_, text)
+import Html exposing (Html, main_, p, text)
 import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
@@ -28,6 +28,7 @@ import Time
 import Url exposing (Url)
 import Utils.Errors
 import Utils.Favicons as Favicons
+import Utils.Helpers as Util
 import Utils.Interval as Interval
 import Vela
 import View exposing (View)
@@ -379,6 +380,19 @@ view props shared route { toContentMsg, model, content } =
 
                 _ ->
                     text ""
+
+        viewBanner =
+            case model.build of
+                RemoteData.Success build ->
+                    case build.status of
+                        Vela.PendingApproval ->
+                            p [ class "notice", Util.testAttribute "approve-build-notice" ] [ text "An admin of this repository must approve the build to run" ]
+
+                        _ ->
+                            text ""
+
+                _ ->
+                    text ""
     in
     { title = props.org ++ "/" ++ props.repo ++ " #" ++ props.buildNumber ++ " " ++ content.title
     , body =
@@ -405,6 +419,7 @@ view props shared route { toContentMsg, model, content } =
                 , showFullTimestamps = False
                 , actionsMenu = Html.div [] []
                 }
+             , viewBanner
              , Components.Tabs.viewBuildTabs shared
                 { org = props.org
                 , repo = props.repo

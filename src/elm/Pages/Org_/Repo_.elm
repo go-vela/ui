@@ -270,10 +270,44 @@ update shared route msg model =
                     )
 
         ApproveBuild options ->
-            ( model, Effect.none )
+            ( model
+            , Effect.approveBuild
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse = ApproveBuildResponse options
+                , org = options.org
+                , repo = options.repo
+                , buildNumber = options.buildNumber
+                }
+            )
 
         ApproveBuildResponse options response ->
-            ( model, Effect.none )
+            case response of
+                Ok ( _, build ) ->
+                    let
+                        approvedBuild =
+                            "Build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ]
+                    in
+                    ( model
+                    , Effect.batch
+                        [ Effect.getRepoBuilds
+                            { baseUrl = shared.velaAPIBaseURL
+                            , session = shared.session
+                            , onResponse = GetRepoBuildsResponse
+                            , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
+                            , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+                            , maybeEvent = Dict.get "event" route.query
+                            , org = route.params.org
+                            , repo = route.params.repo
+                            }
+                        , Effect.addAlertSuccess { content = approvedBuild ++ " approved.", addToastIfUnique = True }
+                        ]
+                    )
+
+                Err error ->
+                    ( model
+                    , Effect.handleHttpError { httpError = error }
+                    )
 
         ShowHideActionsMenus build show ->
             let
@@ -401,6 +435,7 @@ view shared route model =
                             { showHideActionsMenus = ShowHideActionsMenus
                             , restartBuild = RestartBuild
                             , cancelBuild = CancelBuild
+                            , approveBuild = ApproveBuild
                             }
                         , build = options.build
                         , showActionsMenus = model.showActionsMenus
