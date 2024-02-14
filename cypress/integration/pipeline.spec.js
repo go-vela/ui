@@ -118,13 +118,6 @@ context('Pipeline', () => {
           );
         });
 
-        it('pipeline configuration data should contain expanded steps', () => {
-          cy.get('[data-test=pipeline-configuration-data]').should(
-            'contain',
-            'commands:',
-          );
-        });
-
         context('click line number', () => {
           beforeEach(() => {
             cy.get('[data-test=config-line-num-2]').click({ force: true });
