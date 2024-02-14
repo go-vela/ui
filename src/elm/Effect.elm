@@ -492,16 +492,6 @@ approveBuild options =
         |> sendCmd
 
 
-cancelBuild :
-    { org : String
-    , repo : String
-    , buildNumber : String
-    }
-    -> Effect msg
-cancelBuild options =
-    SendSharedMsg <| Shared.Msg.CancelBuild options
-
-
 addDeployment :
     { baseUrl : String
     , session : Auth.Session.Session
