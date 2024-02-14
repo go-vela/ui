@@ -6,10 +6,12 @@ SPDX-License-Identifier: Apache-2.0
 module Pages.Org_.Repo_.Deployments.Add exposing (Model, Msg, page, view)
 
 import Auth
+import Components.Crumbs
 import Components.Form
+import Components.Nav
 import Dict
 import Effect exposing (Effect)
-import Html exposing (Html, button, code, div, em, h2, label, p, section, span, strong, text)
+import Html exposing (button, code, div, em, h2, label, main_, p, section, span, strong, text)
 import Html.Attributes exposing (class, disabled, for, id)
 import Html.Events exposing (onClick)
 import Http
@@ -46,17 +48,7 @@ page user shared route =
 toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
-        { navButtons = []
-        , utilButtons = []
-        , helpCommands = []
-        , crumbs =
-            [ ( "Overview", Just Route.Path.Home )
-            , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
-            , ( "Deployments", Just <| Route.Path.Org_Repo_Deployments { org = route.params.org, repo = route.params.repo } )
-            , ( "Add", Nothing )
-            ]
-        , repo = Nothing
+        { helpCommands = []
         }
 
 
@@ -273,95 +265,191 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
+    let
+        crumbs =
+            [ ( "Overview", Just Route.Path.Home )
+            , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
+            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
+            , ( "Deployments", Just <| Route.Path.Org_Repo_Deployments { org = route.params.org, repo = route.params.repo } )
+            , ( "Add", Nothing )
+            ]
+    in
     { title = "Add Deployment"
     , body =
-        [ div [ class "manage-deployment", Util.testAttribute "manage-deployment" ]
-            [ div []
-                [ h2 [] [ text <| String.Extra.toTitleCase <| "add deployment" ]
-                , div [ class "deployment-form" ]
-                    [ case model.repo of
-                        RemoteData.Success repo ->
-                            if not repo.allow_deploy then
-                                p [ class "notice" ]
-                                    [ strong []
-                                        [ text "Deploy webhook for this repo must be enabled in settings"
+        [ Components.Nav.view
+            shared
+            route
+            { buttons = []
+            , crumbs = Components.Crumbs.view route.path crumbs
+            }
+        , main_ [ class "content-wrap" ]
+            [ div [ class "manage-deployment", Util.testAttribute "manage-deployment" ]
+                [ div []
+                    [ h2 [] [ text <| String.Extra.toTitleCase <| "add deployment" ]
+                    , div [ class "deployment-form" ]
+                        [ case model.repo of
+                            RemoteData.Success repo ->
+                                if not repo.allow_deploy then
+                                    p [ class "notice" ]
+                                        [ strong []
+                                            [ text "Deploy webhook for this repo must be enabled in settings"
+                                            ]
+                                        ]
+
+                                else
+                                    text ""
+
+                            _ ->
+                                text ""
+                        , Components.Form.viewTextarea
+                            { title = Just "Target"
+                            , subtitle = Nothing
+                            , id_ = "target"
+                            , val = model.target
+                            , placeholder_ = "provide the name for the target deployment environment (default: \"production\")"
+                            , classList_ = [ ( "secret-value", True ) ]
+                            , disabled_ = False
+                            , rows_ = Just 2
+                            , wrap_ = Just "soft"
+                            , msg = TargetOnInput
+                            }
+                        , Components.Form.viewTextarea
+                            { title = Just "Ref"
+                            , subtitle = Nothing
+                            , id_ = "ref"
+                            , val = model.ref
+                            , placeholder_ =
+                                "provide the reference to deploy - this can be a branch, commit (SHA) or tag\n(default is your repo's default branch: "
+                                    ++ RemoteData.unwrap "main" .branch model.repo
+                                    ++ ")"
+                            , classList_ = [ ( "secret-value", True ) ]
+                            , disabled_ = False
+                            , rows_ = Just 3
+                            , wrap_ = Just "soft"
+                            , msg = RefOnInput
+                            }
+                        , Components.Form.viewTextarea
+                            { title = Just "Description"
+                            , subtitle = Nothing
+                            , id_ = "description"
+                            , val = model.description
+                            , placeholder_ = "provide the description for the deployment (default: \"Deployment request from Vela\")"
+                            , classList_ = [ ( "secret-value", True ) ]
+                            , disabled_ = False
+                            , rows_ = Just 5
+                            , wrap_ = Just "soft"
+                            , msg = DescriptionOnInput
+                            }
+                        , Components.Form.viewTextarea
+                            { title = Just "Task"
+                            , subtitle = Nothing
+                            , id_ = "task"
+                            , val = model.task
+                            , placeholder_ = "Provide the task for the deployment (default: \"deploy:vela\")"
+                            , classList_ = [ ( "secret-value", True ) ]
+                            , disabled_ = False
+                            , rows_ = Just 2
+                            , wrap_ = Just "soft"
+                            , msg = TaskOnInput
+                            }
+                        , section []
+                            [ div
+                                [ id "parameter-select"
+                                , class "form-control"
+                                , class "-stack"
+                                , class "parameters-container"
+                                ]
+                                [ label
+                                    [ for "parameter-select"
+                                    , class "form-label"
+                                    ]
+                                    [ strong [] [ text "Add Parameters" ]
+                                    , span
+                                        [ class "field-description" ]
+                                        [ em [] [ text "(Optional)" ]
                                         ]
                                     ]
-
-                            else
-                                text ""
-
-                        _ ->
-                            text ""
-                    , Components.Form.viewTextarea
-                        { title = Just "Target"
-                        , subtitle = Nothing
-                        , id_ = "target"
-                        , val = model.target
-                        , placeholder_ = "provide the name for the target deployment environment (default: \"production\")"
-                        , classList_ = [ ( "secret-value", True ) ]
-                        , disabled_ = False
-                        , rows_ = Just 2
-                        , wrap_ = Just "soft"
-                        , msg = TargetOnInput
-                        }
-                    , Components.Form.viewTextarea
-                        { title = Just "Ref"
-                        , subtitle = Nothing
-                        , id_ = "ref"
-                        , val = model.ref
-                        , placeholder_ =
-                            "provide the reference to deploy - this can be a branch, commit (SHA) or tag\n(default is your repo's default branch: "
-                                ++ RemoteData.unwrap "main" .branch model.repo
-                                ++ ")"
-                        , classList_ = [ ( "secret-value", True ) ]
-                        , disabled_ = False
-                        , rows_ = Just 3
-                        , wrap_ = Just "soft"
-                        , msg = RefOnInput
-                        }
-                    , Components.Form.viewTextarea
-                        { title = Just "Description"
-                        , subtitle = Nothing
-                        , id_ = "description"
-                        , val = model.description
-                        , placeholder_ = "provide the description for the deployment (default: \"Deployment request from Vela\")"
-                        , classList_ = [ ( "secret-value", True ) ]
-                        , disabled_ = False
-                        , rows_ = Just 5
-                        , wrap_ = Just "soft"
-                        , msg = DescriptionOnInput
-                        }
-                    , Components.Form.viewTextarea
-                        { title = Just "Task"
-                        , subtitle = Nothing
-                        , id_ = "task"
-                        , val = model.task
-                        , placeholder_ = "Provide the task for the deployment (default: \"deploy:vela\")"
-                        , classList_ = [ ( "secret-value", True ) ]
-                        , disabled_ = False
-                        , rows_ = Just 2
-                        , wrap_ = Just "soft"
-                        , msg = TaskOnInput
-                        }
-                    , viewParametersInput model
-                    , div [ class "help" ]
-                        [ text "Need help? Visit our "
-                        , Html.a
-                            [ Html.Attributes.href <| shared.velaDocsURL ++ "/usage/deployments/"
-                            , Html.Attributes.target "_blank"
-                            ]
-                            [ text "docs" ]
-                        , text "!"
-                        ]
-                    , div [ class "buttons" ]
-                        [ div [ class "form-action" ]
-                            [ button
-                                [ class "button"
-                                , class "-outline"
-                                , onClick SubmitForm
+                                , div [ class "parameters-inputs" ]
+                                    [ Components.Form.viewInput
+                                        { title = Nothing
+                                        , subtitle = Nothing
+                                        , id_ = "parameter-key"
+                                        , val = model.parameterKey
+                                        , placeholder_ = "key"
+                                        , classList_ = [ ( "parameter-input", True ) ]
+                                        , disabled_ = False
+                                        , rows_ = Just 2
+                                        , wrap_ = Just "soft"
+                                        , msg = ParameterKeyOnInput
+                                        }
+                                    , Components.Form.viewInput
+                                        { title = Nothing
+                                        , subtitle = Nothing
+                                        , id_ = "parameter-value"
+                                        , val = model.parameterValue
+                                        , placeholder_ = "value"
+                                        , classList_ = [ ( "parameter-input", True ) ]
+                                        , disabled_ = False
+                                        , rows_ = Just 2
+                                        , wrap_ = Just "soft"
+                                        , msg = ParameterValueOnInput
+                                        }
+                                    , button
+                                        [ class "button"
+                                        , class "-outline"
+                                        , class "add-parameter"
+                                        , onClick <| AddParameter
+                                        , Util.testAttribute "add-parameter-button"
+                                        , disabled <| String.length model.parameterKey == 0 || String.length model.parameterValue == 0
+                                        ]
+                                        [ text "Add"
+                                        ]
+                                    ]
                                 ]
-                                [ text "Submit" ]
+                            , div [ class "parameters", Util.testAttribute "parameters-list" ] <|
+                                if List.length model.parameters > 0 then
+                                    let
+                                        viewParameter parameter =
+                                            div [ class "parameter", class "chevron" ]
+                                                [ button
+                                                    [ class "button"
+                                                    , class "-outline"
+                                                    , onClick <| RemoveParameter parameter
+                                                    ]
+                                                    [ text "remove"
+                                                    ]
+                                                , div [ class "name" ] [ text (parameter.key ++ "=" ++ parameter.value) ]
+                                                ]
+                                    in
+                                    List.map viewParameter <| List.reverse model.parameters
+
+                                else
+                                    [ div [ class "no-parameters" ]
+                                        [ div
+                                            [ class "none"
+                                            ]
+                                            [ code [] [ text "no parameters defined" ] ]
+                                        ]
+                                    ]
+                            ]
+                        , div [ class "help" ]
+                            [ text "Need help? Visit our "
+                            , Html.a
+                                [ Html.Attributes.href <| shared.velaDocsURL ++ "/usage/deployments/"
+                                , Html.Attributes.target "_blank"
+                                ]
+                                [ text "docs" ]
+                            , text "!"
+                            ]
+                        , div [ class "buttons" ]
+                            [ div [ class "form-action" ]
+                                [ button
+                                    [ class "button"
+                                    , class "-outline"
+                                    , onClick SubmitForm
+                                    ]
+                                    [ text "Submit" ]
+                                ]
                             ]
                         ]
                     ]
@@ -369,88 +457,3 @@ view shared route model =
             ]
         ]
     }
-
-
-viewParametersInput : Model -> Html Msg
-viewParametersInput model =
-    section []
-        [ div
-            [ id "parameter-select"
-            , class "form-control"
-            , class "-stack"
-            , class "parameters-container"
-            ]
-            [ label
-                [ for "parameter-select"
-                , class "form-label"
-                ]
-                [ strong [] [ text "Add Parameters" ]
-                , span
-                    [ class "field-description" ]
-                    [ em [] [ text "(Optional)" ]
-                    ]
-                ]
-            , div [ class "parameters-inputs" ]
-                [ Components.Form.viewInput
-                    { title = Nothing
-                    , subtitle = Nothing
-                    , id_ = "parameter-key"
-                    , val = model.parameterKey
-                    , placeholder_ = "key"
-                    , classList_ = [ ( "parameter-input", True ) ]
-                    , disabled_ = False
-                    , rows_ = Just 2
-                    , wrap_ = Just "soft"
-                    , msg = ParameterKeyOnInput
-                    }
-                , Components.Form.viewInput
-                    { title = Nothing
-                    , subtitle = Nothing
-                    , id_ = "parameter-value"
-                    , val = model.parameterValue
-                    , placeholder_ = "value"
-                    , classList_ = [ ( "parameter-input", True ) ]
-                    , disabled_ = False
-                    , rows_ = Just 2
-                    , wrap_ = Just "soft"
-                    , msg = ParameterValueOnInput
-                    }
-                , button
-                    [ class "button"
-                    , class "-outline"
-                    , class "add-parameter"
-                    , onClick <| AddParameter
-                    , Util.testAttribute "add-parameter-button"
-                    , disabled <| String.length model.parameterKey == 0 || String.length model.parameterValue == 0
-                    ]
-                    [ text "Add"
-                    ]
-                ]
-            ]
-        , div [ class "parameters", Util.testAttribute "parameters-list" ] <|
-            if List.length model.parameters > 0 then
-                List.map viewParameter <| List.reverse model.parameters
-
-            else
-                [ div [ class "no-parameters" ]
-                    [ div
-                        [ class "none"
-                        ]
-                        [ code [] [ text "no parameters defined" ] ]
-                    ]
-                ]
-        ]
-
-
-viewParameter : Vela.KeyValuePair -> Html Msg
-viewParameter parameter =
-    div [ class "parameter", class "chevron" ]
-        [ button
-            [ class "button"
-            , class "-outline"
-            , onClick <| RemoveParameter parameter
-            ]
-            [ text "remove"
-            ]
-        , div [ class "name" ] [ text (parameter.key ++ "=" ++ parameter.value) ]
-        ]

@@ -7,13 +7,15 @@ module Layouts.Default.Build exposing (Model, Msg, Props, layout, map)
 
 import Components.Build
 import Components.Crumbs
-import Components.Favorites
 import Components.Help
+import Components.Nav
 import Components.RecentBuilds
 import Components.Tabs
+import Components.Util
 import Dict exposing (Dict)
 import Effect exposing (Effect)
-import Html exposing (Html)
+import Html exposing (Html, main_, text)
+import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
 import Layout exposing (Layout)
@@ -56,7 +58,7 @@ map fn props =
     }
 
 
-layout : Props contentMsg -> Shared.Model -> Route () -> Layout (Layouts.Default.Props contentMsg) Model Msg contentMsg
+layout : Props contentMsg -> Shared.Model -> Route () -> Layout Layouts.Default.Props Model Msg contentMsg
 layout props shared route =
     Layout.new
         { init = init props shared route
@@ -66,11 +68,7 @@ layout props shared route =
         }
         |> Layout.withOnUrlChanged OnUrlChanged
         |> Layout.withParentProps
-            { navButtons = props.navButtons
-            , utilButtons = []
-            , helpCommands = props.helpCommands
-            , crumbs = props.crumbs
-            , repo = Just ( props.org, props.repo )
+            { helpCommands = props.helpCommands
             }
 
 
@@ -115,11 +113,16 @@ init props shared route _ =
 
 
 type Msg
-    = Pls
-    | --BROWSER
+    = --BROWSER
       OnUrlChanged { from : Route (), to : Route () }
       -- BUILD
     | GetBuildResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
+    | RestartBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
+    | RestartBuildResponse { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
+    | CancelBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
+    | CancelBuildResponse { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
+    | ApproveBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
+    | ApproveBuildResponse { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
       -- REFRESH
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
@@ -127,13 +130,6 @@ type Msg
 update : Props contentMsg -> Shared.Model -> Route () -> Msg -> Model -> ( Model, Effect Msg )
 update props shared route msg model =
     case msg of
-        Pls ->
-            let
-                _ =
-                    Debug.log "Pls" "123"
-            in
-            ( model, Effect.none )
-
         -- BROWSER
         OnUrlChanged options ->
             ( { model
@@ -178,6 +174,127 @@ update props shared route msg model =
                         ]
                     )
 
+        RestartBuild options ->
+            ( model
+            , Effect.restartBuild
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse = RestartBuildResponse options
+                , org = options.org
+                , repo = options.repo
+                , buildNumber = options.buildNumber
+                }
+            )
+
+        RestartBuildResponse options response ->
+            case response of
+                Ok ( _, build ) ->
+                    let
+                        restartedBuild =
+                            "Build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ]
+
+                        newBuildNumber =
+                            String.fromInt <| build.number
+
+                        newBuild =
+                            String.join "/" [ "", options.org, options.repo, newBuildNumber ]
+
+                        -- todo: create new build link, add to toastie, refresh builds
+                    in
+                    ( model
+                    , Effect.batch
+                        [ Effect.getRepoBuildsShared
+                            { pageNumber = Nothing
+                            , perPage = Nothing
+                            , maybeEvent = Nothing
+                            , org = props.org
+                            , repo = props.repo
+                            }
+                        , Effect.addAlertSuccess { content = restartedBuild ++ " restarted.", addToastIfUnique = True }
+                        ]
+                    )
+
+                Err error ->
+                    ( model
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
+        CancelBuild options ->
+            ( model
+            , Effect.cancelBuild
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse = CancelBuildResponse options
+                , org = options.org
+                , repo = options.repo
+                , buildNumber = options.buildNumber
+                }
+            )
+
+        CancelBuildResponse options response ->
+            case response of
+                Ok ( _, build ) ->
+                    let
+                        canceledBuild =
+                            "Build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ]
+                    in
+                    ( model
+                    , Effect.batch
+                        [ Effect.getBuild
+                            { baseUrl = shared.velaAPIBaseURL
+                            , session = shared.session
+                            , onResponse = GetBuildResponse
+                            , org = props.org
+                            , repo = props.repo
+                            , buildNumber = props.buildNumber
+                            }
+                        , Effect.addAlertSuccess { content = canceledBuild ++ " canceled.", addToastIfUnique = True }
+                        ]
+                    )
+
+                Err error ->
+                    ( model
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
+        ApproveBuild options ->
+            ( model
+            , Effect.approveBuild
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse = ApproveBuildResponse options
+                , org = options.org
+                , repo = options.repo
+                , buildNumber = options.buildNumber
+                }
+            )
+
+        ApproveBuildResponse options response ->
+            case response of
+                Ok ( _, build ) ->
+                    let
+                        approvedBuild =
+                            "Build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ]
+                    in
+                    ( model
+                    , Effect.batch
+                        [ Effect.getBuild
+                            { baseUrl = shared.velaAPIBaseURL
+                            , session = shared.session
+                            , onResponse = GetBuildResponse
+                            , org = props.org
+                            , repo = props.repo
+                            , buildNumber = props.buildNumber
+                            }
+                        , Effect.addAlertSuccess { content = approvedBuild ++ " approved.", addToastIfUnique = True }
+                        ]
+                    )
+
+                Err error ->
+                    ( model
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
         -- REFRESH
         Tick options ->
             ( model
@@ -212,27 +329,91 @@ subscriptions model =
 
 view : Props contentMsg -> Shared.Model -> Route () -> { toContentMsg : Msg -> contentMsg, content : View contentMsg, model : Model } -> View contentMsg
 view props shared route { toContentMsg, model, content } =
+    let
+        viewRestartButton =
+            case model.build of
+                RemoteData.Success build ->
+                    case build.status of
+                        Vela.PendingApproval ->
+                            text ""
+
+                        _ ->
+                            Components.Build.viewRestartButton props.org props.repo props.buildNumber RestartBuild
+                                |> Html.map toContentMsg
+
+                _ ->
+                    text ""
+
+        viewCancelButton =
+            case model.build of
+                RemoteData.Success build ->
+                    case build.status of
+                        Vela.Pending ->
+                            Components.Build.viewCancelButton props.org props.repo props.buildNumber CancelBuild
+                                |> Html.map toContentMsg
+
+                        Vela.PendingApproval ->
+                            Components.Build.viewCancelButton props.org props.repo props.buildNumber CancelBuild
+                                |> Html.map toContentMsg
+
+                        Vela.Running ->
+                            Components.Build.viewCancelButton props.org props.repo props.buildNumber CancelBuild
+                                |> Html.map toContentMsg
+
+                        _ ->
+                            text ""
+
+                _ ->
+                    text ""
+
+        viewApproveButton =
+            case model.build of
+                RemoteData.Success build ->
+                    case build.status of
+                        Vela.PendingApproval ->
+                            Components.Build.viewApproveButton props.org props.repo props.buildNumber ApproveBuild
+                                |> Html.map toContentMsg
+
+                        _ ->
+                            text ""
+
+                _ ->
+                    text ""
+    in
     { title = props.org ++ "/" ++ props.repo ++ " #" ++ props.buildNumber ++ " " ++ content.title
     , body =
-        [ Components.RecentBuilds.view shared
-            { builds = shared.builds
-            , build = model.build
-            , num = 10
-            , toPath = props.toBuildPath
+        [ Components.Nav.view shared
+            route
+            { buttons =
+                [ viewRestartButton
+                , viewCancelButton
+                , viewApproveButton
+                ]
+                    ++ props.navButtons
+            , crumbs = Components.Crumbs.view route.path props.crumbs
             }
-        , Components.Build.view shared
-            { build = model.build
-            , showFullTimestamps = False
-            , actionsMenu = Html.div [] []
-            , showActionsMenuBool = True
-            }
-        , Components.Tabs.viewBuildTabs shared
-            { org = props.org
-            , repo = props.repo
-            , buildNumber = props.buildNumber
-            , currentPath = route.path
-            , tabHistory = model.tabHistory
-            }
+        , main_ [ class "content-wrap" ]
+            ([ Components.Util.view shared route props.utilButtons
+             , Components.RecentBuilds.view shared
+                { builds = shared.builds
+                , build = model.build
+                , num = 10
+                , toPath = props.toBuildPath
+                }
+             , Components.Build.view shared
+                { build = model.build
+                , showFullTimestamps = False
+                , actionsMenu = Html.div [] []
+                }
+             , Components.Tabs.viewBuildTabs shared
+                { org = props.org
+                , repo = props.repo
+                , buildNumber = props.buildNumber
+                , currentPath = route.path
+                , tabHistory = model.tabHistory
+                }
+             ]
+                ++ content.body
+            )
         ]
-            ++ content.body
     }

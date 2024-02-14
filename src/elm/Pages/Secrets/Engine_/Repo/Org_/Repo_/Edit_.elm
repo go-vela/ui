@@ -6,10 +6,12 @@ SPDX-License-Identifier: Apache-2.0
 module Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_ exposing (Model, Msg, page, view)
 
 import Auth
+import Components.Crumbs
 import Components.Form
+import Components.Nav
 import Components.SecretForm
 import Effect exposing (Effect)
-import Html exposing (div, h2, text)
+import Html exposing (div, h2, main_, text)
 import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
@@ -44,18 +46,7 @@ page user shared route =
 toLayout : Auth.User -> Route { engine : String, org : String, repo : String, name : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
-        { navButtons = []
-        , utilButtons = []
-        , helpCommands = []
-        , crumbs =
-            [ ( "Overview", Just Route.Path.Home )
-            , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
-            , ( "Secrets", Just <| Route.Path.SecretsEngine_RepoOrg_Repo_ { org = route.params.org, repo = route.params.repo, engine = route.params.engine } )
-            , ( "Edit", Nothing )
-            , ( route.params.name, Nothing )
-            ]
-        , repo = Nothing
+        { helpCommands = []
         }
 
 
@@ -294,88 +285,110 @@ subscriptions model =
 
 view : Shared.Model -> Route { engine : String, org : String, repo : String, name : String } -> Model -> View Msg
 view shared route model =
+    let
+        crumbs =
+            [ ( "Overview", Just Route.Path.Home )
+            , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
+            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
+            , ( "Repo Secrets", Just <| Route.Path.SecretsEngine_RepoOrg_Repo_ { org = route.params.org, repo = route.params.repo, engine = route.params.engine } )
+            , ( "Edit", Nothing )
+            , ( route.params.name, Nothing )
+            ]
+    in
     { title = "Edit Secret"
     , body =
-        [ div [ class "manage-secret", Util.testAttribute "manage-secret" ]
-            [ div []
-                [ h2 [] [ text <| String.Extra.toTitleCase "edit repo secret" ]
-                , div [ class "secret-form" ]
-                    [ Components.Form.viewInput
-                        { title = Just "Name"
-                        , subtitle = Nothing
-                        , id_ = "name"
-                        , val = RemoteData.unwrap "" .name model.secret
-                        , placeholder_ = "loading..."
-                        , classList_ = [ ( "secret-name", True ) ]
-                        , rows_ = Nothing
-                        , wrap_ = Nothing
-                        , msg = \_ -> NoOp
-                        , disabled_ = True
-                        }
-                    , Components.Form.viewTextarea
-                        { title = Just "Value"
-                        , subtitle = Nothing
-                        , id_ = "value"
-                        , val = model.value
-                        , placeholder_ = RemoteData.unwrap "loading..." (\_ -> "<leave blank to make no change to the value>") model.secret
-                        , classList_ = [ ( "secret-value", True ) ]
-                        , rows_ = Just 2
-                        , wrap_ = Just "soft"
-                        , msg = ValueOnInput
-                        , disabled_ = not <| RemoteData.isSuccess model.secret
-                        }
-                    , Components.SecretForm.viewAllowEventsSelect
-                        shared
-                        { msg = AllowEventsUpdate
-                        , allowEvents = model.allowEvents
-                        , disabled_ = False
-                        }
-                    , Components.SecretForm.viewImagesInput
-                        { onInput_ = ImageOnInput
-                        , addImage = AddImage
-                        , removeImage = RemoveImage
-                        , images = model.images
-                        , imageValue = model.image
-                        , disabled_ = not <| RemoteData.isSuccess model.secret
-                        }
-                    , Components.SecretForm.viewAllowCommandsInput
-                        { msg = AllowCommandsOnClick
-                        , value = model.allowCommand
-                        , disabled_ = not <| RemoteData.isSuccess model.secret
-                        }
-                    , Components.SecretForm.viewHelp shared.velaDocsURL
-                    , div [ class "buttons" ]
-                        [ Components.Form.viewButton
-                            { msg = SubmitForm
-                            , text_ = "Submit"
-                            , classList_ = []
+        [ Components.Nav.view
+            shared
+            route
+            { buttons = []
+            , crumbs = Components.Crumbs.view route.path crumbs
+            }
+        , main_ [ class "content-wrap" ]
+            [ div [ class "manage-secret", Util.testAttribute "manage-secret" ]
+                [ div []
+                    [ h2 [] [ text <| String.Extra.toTitleCase "edit repo secret" ]
+                    , div [ class "secret-form" ]
+                        [ Components.Form.viewInput
+                            { title = Just "Name"
+                            , subtitle = Nothing
+                            , id_ = "name"
+                            , val = RemoteData.unwrap "" .name model.secret
+                            , placeholder_ = "loading..."
+                            , classList_ = [ ( "secret-name", True ) ]
+                            , rows_ = Nothing
+                            , wrap_ = Nothing
+                            , msg = \_ -> NoOp
+                            , disabled_ = True
+                            }
+                        , Components.Form.viewTextarea
+                            { title = Just "Value"
+                            , subtitle = Nothing
+                            , id_ = "value"
+                            , val = model.value
+                            , placeholder_ = RemoteData.unwrap "loading..." (\_ -> "<leave blank to make no change to the value>") model.secret
+                            , classList_ = [ ( "secret-value", True ) ]
+                            , rows_ = Just 2
+                            , wrap_ = Just "soft"
+                            , msg = ValueOnInput
                             , disabled_ = not <| RemoteData.isSuccess model.secret
                             }
-                        , if not model.confirmingDelete then
-                            Components.Form.viewButton
-                                { msg = ClickDelete
-                                , text_ = "Delete"
+                        , Components.SecretForm.viewAllowEventsSelect
+                            shared
+                            { msg = AllowEventsUpdate
+                            , allowEvents = model.allowEvents
+                            , disabled_ = False
+                            }
+                        , Components.SecretForm.viewImagesInput
+                            { onInput_ = ImageOnInput
+                            , addImage = AddImage
+                            , removeImage = RemoveImage
+                            , images = model.images
+                            , imageValue = model.image
+                            , disabled_ = not <| RemoteData.isSuccess model.secret
+                            }
+                        , Components.SecretForm.viewAllowCommandsInput
+                            { msg = AllowCommandsOnClick
+                            , value = model.allowCommand
+                            , disabled_ = not <| RemoteData.isSuccess model.secret
+                            }
+                        , Components.SecretForm.viewHelp shared.velaDocsURL
+                        , div [ class "buttons" ]
+                            [ Components.Form.viewButton
+                                { msg = SubmitForm
+                                , text_ = "Submit"
                                 , classList_ = []
                                 , disabled_ = not <| RemoteData.isSuccess model.secret
+                                , id_ = "submit"
                                 }
+                            , if not model.confirmingDelete then
+                                Components.Form.viewButton
+                                    { msg = ClickDelete
+                                    , text_ = "Delete"
+                                    , classList_ = []
+                                    , disabled_ = not <| RemoteData.isSuccess model.secret
+                                    , id_ = "delete"
+                                    }
 
-                          else
-                            Components.Form.viewButton
-                                { msg = CancelDelete
-                                , text_ = "Cancel"
-                                , classList_ = []
-                                , disabled_ = not <| RemoteData.isSuccess model.secret
-                                }
-                        , if model.confirmingDelete then
-                            Components.Form.viewButton
-                                { msg = ConfirmDelete
-                                , text_ = "Confirm"
-                                , classList_ = [ ( "-secret-delete-confirm", True ) ]
-                                , disabled_ = not <| RemoteData.isSuccess model.secret
-                                }
+                              else
+                                Components.Form.viewButton
+                                    { msg = CancelDelete
+                                    , text_ = "Cancel"
+                                    , classList_ = []
+                                    , disabled_ = not <| RemoteData.isSuccess model.secret
+                                    , id_ = "delete-cancel"
+                                    }
+                            , if model.confirmingDelete then
+                                Components.Form.viewButton
+                                    { msg = ConfirmDelete
+                                    , text_ = "Confirm"
+                                    , classList_ = [ ( "-secret-delete-confirm", True ) ]
+                                    , disabled_ = not <| RemoteData.isSuccess model.secret
+                                    , id_ = "delete-confirm"
+                                    }
 
-                          else
-                            text ""
+                              else
+                                text ""
+                            ]
                         ]
                     ]
                 ]

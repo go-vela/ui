@@ -6,10 +6,12 @@ SPDX-License-Identifier: Apache-2.0
 module Pages.Org_.Repo_.Schedules.Edit_ exposing (Model, Msg, page, view)
 
 import Auth
+import Components.Crumbs
 import Components.Form
+import Components.Nav
 import Components.ScheduleForm
 import Effect exposing (Effect)
-import Html exposing (div, em, h2, span, text)
+import Html exposing (div, em, h2, main_, span, text)
 import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
@@ -43,25 +45,7 @@ page user shared route =
 toLayout : Auth.User -> Route { org : String, repo : String, name : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
-        { navButtons = []
-        , utilButtons = []
-        , helpCommands = []
-        , crumbs =
-            [ ( "Overview", Just Route.Path.Home )
-            , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
-            , ( "Schedules", Just <| Route.Path.Org_Repo_Schedules { org = route.params.org, repo = route.params.repo } )
-            , ( "Edit", Nothing )
-            , ( route.params.name
-              , Just <|
-                    Route.Path.Org_Repo_SchedulesEdit_
-                        { org = route.params.org
-                        , repo = route.params.repo
-                        , name = route.params.name
-                        }
-              )
-            ]
-        , repo = Nothing
+        { helpCommands = []
         }
 
 
@@ -76,6 +60,7 @@ type alias Model =
     , enabled : Bool
     , branch : String
     , confirmingDelete : Bool
+    , repoSchedulesAllowed : Bool
     }
 
 
@@ -87,15 +72,20 @@ init shared route () =
       , enabled = True
       , branch = ""
       , confirmingDelete = False
+      , repoSchedulesAllowed = Util.checkScheduleAllowlist route.params.org route.params.repo shared.velaScheduleAllowlist
       }
-    , Effect.getRepoSchedule
-        { baseUrl = shared.velaAPIBaseURL
-        , session = shared.session
-        , onResponse = GetRepoScheduleResponse
-        , org = route.params.org
-        , repo = route.params.repo
-        , name = route.params.name
-        }
+    , if Util.checkScheduleAllowlist route.params.org route.params.repo shared.velaScheduleAllowlist then
+        Effect.getRepoSchedule
+            { baseUrl = shared.velaAPIBaseURL
+            , session = shared.session
+            , onResponse = GetRepoScheduleResponse
+            , org = route.params.org
+            , repo = route.params.repo
+            , name = route.params.name
+            }
+
+      else
+        Effect.none
     )
 
 
@@ -263,91 +253,136 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String, repo : String, name : String } -> Model -> View Msg
 view shared route model =
+    let
+        schedulesAllowed =
+            Util.checkScheduleAllowlist route.params.org route.params.repo shared.velaScheduleAllowlist
+
+        formDisabled =
+            not schedulesAllowed || (not <| RemoteData.isSuccess model.schedule)
+
+        crumbs =
+            [ ( "Overview", Just Route.Path.Home )
+            , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
+            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
+            , ( "Schedules", Just <| Route.Path.Org_Repo_Schedules { org = route.params.org, repo = route.params.repo } )
+            , ( "Edit", Nothing )
+            , ( route.params.name
+              , Just <|
+                    Route.Path.Org_Repo_SchedulesEdit_
+                        { org = route.params.org
+                        , repo = route.params.repo
+                        , name = route.params.name
+                        }
+              )
+            ]
+    in
     { title = "Add Schedule"
     , body =
-        [ div [ class "manage-schedule", Util.testAttribute "manage-schedule" ]
-            [ div []
-                [ h2 [] [ text <| String.Extra.toTitleCase <| "update repo schedule" ]
-                , div [ class "schedule-form" ]
-                    [ Components.Form.viewInput
-                        { title = Just "Name"
-                        , subtitle = Nothing
-                        , id_ = "name"
-                        , val = RemoteData.unwrap "" .name model.schedule
-                        , placeholder_ = "loading..."
-                        , classList_ = [ ( "schedule-name", True ) ]
-                        , rows_ = Nothing
-                        , wrap_ = Nothing
-                        , msg = \_ -> NoOp
-                        , disabled_ = True
-                        }
-                    , Components.Form.viewTextarea
-                        { title = Just "Cron Expression"
-                        , subtitle = Just <| Components.ScheduleForm.viewCronHelp shared.time
-                        , id_ = "cron"
-                        , val = model.entry
-                        , placeholder_ = "0 0 * * * (runs at 12:00 AM in UTC)"
-                        , classList_ = [ ( "schedule-cron", True ) ]
-                        , rows_ = Just 2
-                        , wrap_ = Just "soft"
-                        , msg = EntryOnInput
-                        , disabled_ = not <| RemoteData.isSuccess model.schedule
-                        }
-                    , Components.ScheduleForm.viewEnabledInput
-                        { msg = EnabledOnClick
-                        , value = model.enabled
-                        , disabled_ = not <| RemoteData.isSuccess model.schedule
-                        }
-                    , Components.Form.viewInput
-                        { title = Just "Branch"
-                        , subtitle =
-                            Just <|
-                                span
-                                    [ class "field-description" ]
-                                    [ em [] [ text "(Leave blank to use default branch)" ]
-                                    ]
-                        , id_ = "branch"
-                        , val = model.branch
-                        , placeholder_ = "Branch Name"
-                        , classList_ = [ ( "branch-name", True ) ]
-                        , rows_ = Nothing
-                        , wrap_ = Nothing
-                        , msg = BranchOnInput
-                        , disabled_ = not <| RemoteData.isSuccess model.schedule
-                        }
-                    , Components.ScheduleForm.viewHelp shared.velaDocsURL
-                    , div [ class "buttons" ]
-                        [ Components.Form.viewButton
-                            { msg = SubmitForm
-                            , text_ = "Submit"
-                            , classList_ = []
-                            , disabled_ = not <| RemoteData.isSuccess model.schedule
+        [ Components.Nav.view
+            shared
+            route
+            { buttons = []
+            , crumbs = Components.Crumbs.view route.path crumbs
+            }
+        , main_ [ class "content-wrap" ]
+            [ div [ class "manage-schedule", Util.testAttribute "manage-schedule" ]
+                [ div []
+                    [ h2 [] [ text <| String.Extra.toTitleCase <| "update repo schedule" ]
+                    , if not model.repoSchedulesAllowed then
+                        Components.ScheduleForm.viewSchedulesNotAllowedWarning
+
+                      else
+                        text ""
+                    , div [ class "schedule-form" ]
+                        [ Components.Form.viewInput
+                            { title = Just "Name"
+                            , subtitle = Nothing
+                            , id_ = "name"
+                            , val = RemoteData.unwrap "" .name model.schedule
+                            , placeholder_ =
+                                if model.repoSchedulesAllowed then
+                                    "loading..."
+
+                                else
+                                    "Schedule Name"
+                            , classList_ = [ ( "schedule-name", True ) ]
+                            , rows_ = Nothing
+                            , wrap_ = Nothing
+                            , msg = \_ -> NoOp
+                            , disabled_ = True
                             }
-                        , if not model.confirmingDelete then
-                            Components.Form.viewButton
-                                { msg = ClickDelete
-                                , text_ = "Delete"
+                        , Components.Form.viewTextarea
+                            { title = Just "Cron Expression"
+                            , subtitle = Just <| Components.ScheduleForm.viewCronHelp shared.time
+                            , id_ = "entry"
+                            , val = model.entry
+                            , placeholder_ = "0 0 * * * (runs at 12:00 AM in UTC)"
+                            , classList_ = [ ( "schedule-cron", True ) ]
+                            , rows_ = Just 2
+                            , wrap_ = Just "soft"
+                            , msg = EntryOnInput
+                            , disabled_ = formDisabled
+                            }
+                        , Components.ScheduleForm.viewEnabledInput
+                            { msg = EnabledOnClick
+                            , value = model.enabled
+                            , disabled_ = formDisabled
+                            }
+                        , Components.Form.viewInput
+                            { title = Just "Branch"
+                            , subtitle =
+                                Just <|
+                                    span
+                                        [ class "field-description" ]
+                                        [ em [] [ text "(Leave blank to use default branch)" ]
+                                        ]
+                            , id_ = "branch-name"
+                            , val = model.branch
+                            , placeholder_ = "Branch Name"
+                            , classList_ = [ ( "branch-name", True ) ]
+                            , rows_ = Nothing
+                            , wrap_ = Nothing
+                            , msg = BranchOnInput
+                            , disabled_ = formDisabled
+                            }
+                        , Components.ScheduleForm.viewHelp shared.velaDocsURL
+                        , div [ class "buttons" ]
+                            [ Components.Form.viewButton
+                                { msg = SubmitForm
+                                , text_ = "Submit"
                                 , classList_ = []
-                                , disabled_ = not <| RemoteData.isSuccess model.schedule
+                                , disabled_ = formDisabled
+                                , id_ = "submit"
                                 }
+                            , if not model.confirmingDelete then
+                                Components.Form.viewButton
+                                    { msg = ClickDelete
+                                    , text_ = "Delete"
+                                    , classList_ = []
+                                    , disabled_ = formDisabled
+                                    , id_ = "delete"
+                                    }
 
-                          else
-                            Components.Form.viewButton
-                                { msg = CancelDelete
-                                , text_ = "Cancel"
-                                , classList_ = []
-                                , disabled_ = not <| RemoteData.isSuccess model.schedule
-                                }
-                        , if model.confirmingDelete then
-                            Components.Form.viewButton
-                                { msg = ConfirmDelete
-                                , text_ = "Confirm"
-                                , classList_ = [ ( "-secret-delete-confirm", True ) ]
-                                , disabled_ = not <| RemoteData.isSuccess model.schedule
-                                }
+                              else
+                                Components.Form.viewButton
+                                    { msg = CancelDelete
+                                    , text_ = "Cancel"
+                                    , classList_ = []
+                                    , disabled_ = formDisabled
+                                    , id_ = "delete-cancel"
+                                    }
+                            , if model.confirmingDelete then
+                                Components.Form.viewButton
+                                    { msg = ConfirmDelete
+                                    , text_ = "Confirm"
+                                    , classList_ = [ ( "-secret-delete-confirm", True ) ]
+                                    , disabled_ = formDisabled
+                                    , id_ = "delete-confirm"
+                                    }
 
-                          else
-                            text ""
+                              else
+                                text ""
+                            ]
                         ]
                     ]
                 ]

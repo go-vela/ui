@@ -6,10 +6,12 @@ SPDX-License-Identifier: Apache-2.0
 module Pages.Secrets.Engine_.Org.Org_.Add exposing (Model, Msg, page, view)
 
 import Auth
+import Components.Crumbs
 import Components.Form
+import Components.Nav
 import Components.SecretForm
 import Effect exposing (Effect)
-import Html exposing (div, h2, text)
+import Html exposing (div, h2, main_, text)
 import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
@@ -43,16 +45,7 @@ page user shared route =
 toLayout : Auth.User -> Route { engine : String, org : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
-        { navButtons = []
-        , utilButtons = []
-        , helpCommands = []
-        , crumbs =
-            [ ( "Overview", Just Route.Path.Home )
-            , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( "Secrets", Just <| Route.Path.SecretsEngine_OrgOrg_ { org = route.params.org, engine = route.params.engine } )
-            , ( "Add", Nothing )
-            ]
-        , repo = Nothing
+        { helpCommands = []
         }
 
 
@@ -210,62 +203,79 @@ subscriptions model =
 
 view : Shared.Model -> Route { engine : String, org : String } -> Model -> View Msg
 view shared route model =
+    let
+        crumbs =
+            [ ( "Overview", Just Route.Path.Home )
+            , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
+            , ( "Org Secrets", Just <| Route.Path.SecretsEngine_OrgOrg_ { org = route.params.org, engine = route.params.engine } )
+            , ( "Add", Nothing )
+            ]
+    in
     { title = "Add Secret"
     , body =
-        [ div [ class "manage-secret", Util.testAttribute "manage-secret" ]
-            [ div []
-                [ h2 [] [ text <| String.Extra.toTitleCase "add org secret" ]
-                , div [ class "secret-form" ]
-                    [ Components.Form.viewInput
-                        { title = Just "Name"
-                        , subtitle = Nothing
-                        , id_ = "name"
-                        , val = model.name
-                        , placeholder_ = "Secret Name"
-                        , classList_ = [ ( "secret-name", True ) ]
-                        , rows_ = Nothing
-                        , wrap_ = Nothing
-                        , msg = NameOnInput
-                        , disabled_ = False
-                        }
-                    , Components.Form.viewTextarea
-                        { title = Just "Value"
-                        , subtitle = Nothing
-                        , id_ = "value"
-                        , val = model.value
-                        , placeholder_ = "secret-value"
-                        , classList_ = [ ( "secret-value", True ) ]
-                        , rows_ = Just 2
-                        , wrap_ = Just "soft"
-                        , msg = ValueOnInput
-                        , disabled_ = False
-                        }
-                    , Components.SecretForm.viewAllowEventsSelect
-                        shared
-                        { msg = AllowEventsUpdate
-                        , allowEvents = model.allowEvents
-                        , disabled_ = False
-                        }
-                    , Components.SecretForm.viewImagesInput
-                        { onInput_ = ImageOnInput
-                        , addImage = AddImage
-                        , removeImage = RemoveImage
-                        , images = model.images
-                        , imageValue = model.image
-                        , disabled_ = False
-                        }
-                    , Components.SecretForm.viewAllowCommandsInput
-                        { msg = AllowCommandsOnClick
-                        , value = model.allowCommand
-                        , disabled_ = False
-                        }
-                    , Components.SecretForm.viewHelp shared.velaDocsURL
-                    , Components.Form.viewButton
-                        { msg = SubmitForm
-                        , text_ = "Submit"
-                        , classList_ = []
-                        , disabled_ = False
-                        }
+        [ Components.Nav.view
+            shared
+            route
+            { buttons = []
+            , crumbs = Components.Crumbs.view route.path crumbs
+            }
+        , main_ [ class "content-wrap" ]
+            [ div [ class "manage-secret", Util.testAttribute "manage-secret" ]
+                [ div []
+                    [ h2 [] [ text <| String.Extra.toTitleCase "add org secret" ]
+                    , div [ class "secret-form" ]
+                        [ Components.Form.viewInput
+                            { title = Just "Name"
+                            , subtitle = Nothing
+                            , id_ = "name"
+                            , val = model.name
+                            , placeholder_ = "Secret Name"
+                            , classList_ = [ ( "secret-name", True ) ]
+                            , rows_ = Nothing
+                            , wrap_ = Nothing
+                            , msg = NameOnInput
+                            , disabled_ = False
+                            }
+                        , Components.Form.viewTextarea
+                            { title = Just "Value"
+                            , subtitle = Nothing
+                            , id_ = "value"
+                            , val = model.value
+                            , placeholder_ = "secret-value"
+                            , classList_ = [ ( "secret-value", True ) ]
+                            , rows_ = Just 2
+                            , wrap_ = Just "soft"
+                            , msg = ValueOnInput
+                            , disabled_ = False
+                            }
+                        , Components.SecretForm.viewAllowEventsSelect
+                            shared
+                            { msg = AllowEventsUpdate
+                            , allowEvents = model.allowEvents
+                            , disabled_ = False
+                            }
+                        , Components.SecretForm.viewImagesInput
+                            { onInput_ = ImageOnInput
+                            , addImage = AddImage
+                            , removeImage = RemoveImage
+                            , images = model.images
+                            , imageValue = model.image
+                            , disabled_ = False
+                            }
+                        , Components.SecretForm.viewAllowCommandsInput
+                            { msg = AllowCommandsOnClick
+                            , value = model.allowCommand
+                            , disabled_ = False
+                            }
+                        , Components.SecretForm.viewHelp shared.velaDocsURL
+                        , Components.Form.viewButton
+                            { msg = SubmitForm
+                            , text_ = "Submit"
+                            , classList_ = []
+                            , disabled_ = False
+                            , id_ = "submit"
+                            }
+                        ]
                     ]
                 ]
             ]

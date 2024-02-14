@@ -6,10 +6,12 @@ SPDX-License-Identifier: Apache-2.0
 module Pages.Org_.Repo_.Schedules.Add exposing (Model, Msg, page, view)
 
 import Auth
+import Components.Crumbs
 import Components.Form
+import Components.Nav
 import Components.ScheduleForm
 import Effect exposing (Effect)
-import Html exposing (div, em, h2, span, text)
+import Html exposing (div, em, h2, main_, span, text)
 import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
@@ -27,7 +29,7 @@ import View exposing (View)
 page : Auth.User -> Shared.Model -> Route { org : String, repo : String } -> Page Model Msg
 page user shared route =
     Page.new
-        { init = init shared
+        { init = init shared route
         , update = update shared route
         , subscriptions = subscriptions
         , view = view shared route
@@ -42,17 +44,7 @@ page user shared route =
 toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
-        { navButtons = []
-        , utilButtons = []
-        , helpCommands = []
-        , crumbs =
-            [ ( "Overview", Just Route.Path.Home )
-            , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
-            , ( "Schedules", Just <| Route.Path.Org_Repo_Schedules { org = route.params.org, repo = route.params.repo } )
-            , ( "Add", Nothing )
-            ]
-        , repo = Nothing
+        { helpCommands = []
         }
 
 
@@ -65,15 +57,17 @@ type alias Model =
     , entry : String
     , enabled : Bool
     , branch : String
+    , repoSchedulesAllowed : Bool
     }
 
 
-init : Shared.Model -> () -> ( Model, Effect Msg )
-init shared () =
+init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
+init shared route () =
     ( { name = ""
       , entry = ""
       , enabled = True
       , branch = ""
+      , repoSchedulesAllowed = Util.checkScheduleAllowlist route.params.org route.params.repo shared.velaScheduleAllowlist
       }
     , Effect.none
     )
@@ -176,63 +170,91 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
+    let
+        formDisabled =
+            not model.repoSchedulesAllowed
+
+        crumbs =
+            [ ( "Overview", Just Route.Path.Home )
+            , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
+            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
+            , ( "Schedules", Just <| Route.Path.Org_Repo_Schedules { org = route.params.org, repo = route.params.repo } )
+            , ( "Add", Nothing )
+            ]
+    in
     { title = "Add Schedule"
     , body =
-        [ div [ class "manage-schedule", Util.testAttribute "manage-schedule" ]
-            [ div []
-                [ h2 [] [ text <| String.Extra.toTitleCase <| "add repo schedule" ]
-                , div [ class "schedule-form" ]
-                    [ Components.Form.viewInput
-                        { title = Just "Name"
-                        , subtitle = Nothing
-                        , id_ = "name"
-                        , val = model.name
-                        , placeholder_ = "Schedule Name"
-                        , classList_ = [ ( "schedule-name", True ) ]
-                        , rows_ = Nothing
-                        , wrap_ = Nothing
-                        , msg = NameOnInput
-                        , disabled_ = False
-                        }
-                    , Components.Form.viewTextarea
-                        { title = Just "Cron Expression"
-                        , subtitle = Just <| Components.ScheduleForm.viewCronHelp shared.time
-                        , id_ = "cron"
-                        , val = model.entry
-                        , placeholder_ = "0 0 * * * (runs at 12:00 AM in UTC)"
-                        , classList_ = [ ( "schedule-cron", True ) ]
-                        , rows_ = Just 2
-                        , wrap_ = Just "soft"
-                        , msg = EntryOnInput
-                        , disabled_ = False
-                        }
-                    , Components.ScheduleForm.viewEnabledInput
-                        { msg = EnabledOnClick
-                        , value = model.enabled
-                        , disabled_ = False
-                        }
-                    , Components.Form.viewInput
-                        { title = Just "Branch"
-                        , subtitle =
-                            Just <|
-                                span
-                                    [ class "field-description" ]
-                                    [ em [] [ text "(Leave blank to use default branch)" ]
-                                    ]
-                        , id_ = "branch"
-                        , val = model.branch
-                        , placeholder_ = "Branch Name"
-                        , classList_ = [ ( "branch-name", True ) ]
-                        , rows_ = Nothing
-                        , wrap_ = Nothing
-                        , msg = BranchOnInput
-                        , disabled_ = False
-                        }
-                    , Components.ScheduleForm.viewHelp shared.velaDocsURL
-                    , Components.ScheduleForm.viewSubmitButton
-                        { msg = SubmitForm
-                        , disabled_ = False
-                        }
+        [ Components.Nav.view
+            shared
+            route
+            { buttons = []
+            , crumbs = Components.Crumbs.view route.path crumbs
+            }
+        , main_ [ class "content-wrap" ]
+            [ div [ class "manage-schedule", Util.testAttribute "manage-schedule" ]
+                [ div []
+                    [ h2 [] [ text <| String.Extra.toTitleCase <| "add repo schedule" ]
+                    , if not model.repoSchedulesAllowed then
+                        Components.ScheduleForm.viewSchedulesNotAllowedWarning
+
+                      else
+                        text ""
+                    , div [ class "schedule-form" ]
+                        [ Components.Form.viewInput
+                            { title = Just "Name"
+                            , subtitle = Nothing
+                            , id_ = "name"
+                            , val = model.name
+                            , placeholder_ = "Schedule Name"
+                            , classList_ = [ ( "schedule-name", True ) ]
+                            , rows_ = Nothing
+                            , wrap_ = Nothing
+                            , msg = NameOnInput
+                            , disabled_ = formDisabled
+                            }
+                        , Components.Form.viewTextarea
+                            { title = Just "Cron Expression"
+                            , subtitle = Just <| Components.ScheduleForm.viewCronHelp shared.time
+                            , id_ = "entry"
+                            , val = model.entry
+                            , placeholder_ = "0 0 * * * (runs at 12:00 AM in UTC)"
+                            , classList_ = [ ( "schedule-cron", True ) ]
+                            , rows_ = Just 2
+                            , wrap_ = Just "soft"
+                            , msg = EntryOnInput
+                            , disabled_ = formDisabled
+                            }
+                        , Components.ScheduleForm.viewEnabledInput
+                            { msg = EnabledOnClick
+                            , value = model.enabled
+                            , disabled_ = formDisabled
+                            }
+                        , Components.Form.viewInput
+                            { title = Just "Branch"
+                            , subtitle =
+                                Just <|
+                                    span
+                                        [ class "field-description" ]
+                                        [ em [] [ text "(Leave blank to use default branch)" ]
+                                        ]
+                            , id_ = "branch-name"
+                            , val = model.branch
+                            , placeholder_ = "Branch Name"
+                            , classList_ = [ ( "branch-name", True ) ]
+                            , rows_ = Nothing
+                            , wrap_ = Nothing
+                            , msg = BranchOnInput
+                            , disabled_ = formDisabled
+                            }
+                        , Components.ScheduleForm.viewHelp shared.velaDocsURL
+                        , Components.Form.viewButton
+                            { msg = SubmitForm
+                            , id_ = "submit"
+                            , text_ = "Submit"
+                            , classList_ = []
+                            , disabled_ = formDisabled
+                            }
+                        ]
                     ]
                 ]
             ]

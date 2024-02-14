@@ -63,7 +63,7 @@ view shared { toggleFavoriteMsg, org, repo, favorites, filtered } =
                 [ class "button"
                 , class "-outline"
                 , Util.testAttribute "repo-hooks"
-                , Route.Path.href <| Route.Path.Org_Repo_Audit { org = org, repo = repo }
+                , Route.Path.href <| Route.Path.Org_Repo_Hooks { org = org, repo = repo }
                 ]
                 [ text "Audit" ]
             , a

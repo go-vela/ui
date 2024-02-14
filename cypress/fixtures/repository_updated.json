@@ -7,6 +7,7 @@
   "link": "",
   "clone": "",
   "branch": "main",
+  "topics": [],
   "build_limit": 15,
   "timeout": 80,
   "counter": 2000,
@@ -38,6 +39,9 @@
     "comment": {
       "created": false,
       "edited": false
+    },
+    "schedule": {
+      "run": false
     }
   },
   "pipeline_type": "yaml",

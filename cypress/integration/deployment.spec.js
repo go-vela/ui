@@ -7,32 +7,27 @@ context('Deployment', () => {
     beforeEach(() => {
       cy.server();
       cy.route(
-        'GET',
-        '*api/v1/secrets/native/repo/github/octocat/password*',
-        'fixture:secret_repo.json',
-      );
-      cy.route(
         'POST',
         '*api/v1/deployments/github/octocat',
         'fixture:deployment.json',
       );
-      cy.login('/github/octocat/add-deployment');
+      cy.login('/github/octocat/deployments/add');
     });
 
-    it('Add Parameter button should be disabled', () => {
+    it('add parameter button should be disabled', () => {
       cy.get('[data-test=add-parameter-button]')
         .should('exist')
         .should('not.be.enabled')
         .contains('Add');
     });
-    it('Add Parameter should work as intended', () => {
+    it('add parameter should work as intended', () => {
       cy.get('[data-test=parameters-list]')
         .should('exist')
         .children()
         .first()
-        .should('contain.text', 'No Parameters defined');
-      cy.get('[data-test=parameter-key-input]').should('exist').type('key1');
-      cy.get('[data-test=parameter-value-input]').should('exist').type('val1');
+        .should('contain.text', 'no parameters defined');
+      cy.get('[data-test=parameter-key]').should('exist').type('key1');
+      cy.get('[data-test=parameter-value]').should('exist').type('val1');
       cy.get('[data-test=add-parameter-button]')
         .should('exist')
         .should('be.enabled')
@@ -46,12 +41,12 @@ context('Deployment', () => {
         .children()
         .first()
         .children()
-        .first()
+        .last()
         .should('contain.text', 'key1=val1');
-      cy.get('[data-test=parameter-key-input]')
+      cy.get('[data-test=parameter-key]')
         .should('exist')
         .should('have.value', '');
-      cy.get('[data-test=parameter-value-input]')
+      cy.get('[data-test=parameter-value]')
         .should('exist')
         .should('have.value', '');
     });

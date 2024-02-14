@@ -78,7 +78,7 @@ toLayout user route model =
             ]
         , helpCommands =
             [ { name = "List Deployments"
-              , content = "vela view deployments --help"
+              , content = "vela get deployments --help"
               , docs = Just "deployment/get"
               }
             , { name = "Add Deployment"
@@ -228,7 +228,7 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
-    { title = "Deployments"
+    { title = "Deployments" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
         [ viewDeployments shared model route
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
@@ -261,6 +261,23 @@ viewDeployments shared model route =
                     ]
 
         ( noRowsView, rows ) =
+            let
+                viewHttpError e =
+                    span [ Util.testAttribute "repo-deployments-error" ]
+                        [ text <|
+                            case e of
+                                Http.BadStatus statusCode ->
+                                    case statusCode of
+                                        401 ->
+                                            "No deployments found for this repo, most likely due to not having access to the source control repo"
+
+                                        _ ->
+                                            "No deployments found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+
+                                _ ->
+                                    "No deployments found for this repo, there was an error with the server"
+                        ]
+            in
             case ( model.repo, model.deployments ) of
                 ( RemoteData.Success r, RemoteData.Success d ) ->
                     ( text "No deployments found for this repo"
@@ -268,10 +285,10 @@ viewDeployments shared model route =
                     )
 
                 ( RemoteData.Failure error, _ ) ->
-                    ( viewError error, [] )
+                    ( viewHttpError error, [] )
 
                 ( _, RemoteData.Failure error ) ->
-                    ( viewError error, [] )
+                    ( viewHttpError error, [] )
 
                 _ ->
                     ( Components.Loading.viewSmallLoader, [] )
@@ -305,7 +322,7 @@ deploymentsToRows shared repo deployments =
 -}
 tableHeaders : Components.Table.Columns
 tableHeaders =
-    [ ( Just "table-icon", "" )
+    [ ( Just "table-icon", "status" )
     , ( Nothing, "number" )
     , ( Nothing, "target" )
     , ( Nothing, "commit" )
@@ -314,7 +331,7 @@ tableHeaders =
     , ( Nothing, "builds" )
     , ( Nothing, "created by" )
     , ( Nothing, "created at" )
-    , ( Nothing, "" )
+    , ( Nothing, "redeploy" )
     ]
 
 
@@ -460,21 +477,3 @@ viewDeploymentBuildsLinks deployment =
             )
         |> List.intersperse (text ", ")
         |> div []
-
-
-viewError : Http.Error -> Html msg
-viewError error =
-    span [ Util.testAttribute "repo-deployments-error" ]
-        [ text <|
-            case error of
-                Http.BadStatus statusCode ->
-                    case statusCode of
-                        401 ->
-                            "No deployments found for this repo, most likely due to not having access to the source control repo"
-
-                        _ ->
-                            "No deployments found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
-
-                _ ->
-                    "No deployments found for this repo, there was an error with the server"
-        ]

@@ -22,12 +22,13 @@ type Path
     | Org_Builds { org : String }
     | Org_Repo_ { org : String, repo : String }
     | Org_Repo_Pulls { org : String, repo : String }
+    | Org_Repo_Tags { org : String, repo : String }
     | Org_Repo_Deployments { org : String, repo : String }
     | Org_Repo_DeploymentsAdd { org : String, repo : String }
     | Org_Repo_Schedules { org : String, repo : String }
     | Org_Repo_SchedulesAdd { org : String, repo : String }
     | Org_Repo_SchedulesEdit_ { org : String, repo : String, name : String }
-    | Org_Repo_Audit { org : String, repo : String }
+    | Org_Repo_Hooks { org : String, repo : String }
     | Org_Repo_Settings { org : String, repo : String }
     | Org_Repo_Build_ { org : String, repo : String, buildNumber : String }
     | Org_Repo_Build_Services { org : String, repo : String, buildNumber : String }
@@ -134,8 +135,8 @@ fromString urlPath =
                 }
                 |> Just
 
-        org :: repo :: "audit" :: [] ->
-            Org_Repo_Audit
+        org :: repo :: "hooks" :: [] ->
+            Org_Repo_Hooks
                 { org = org
                 , repo = repo
                 }
@@ -150,6 +151,13 @@ fromString urlPath =
 
         org :: repo :: "pulls" :: [] ->
             Org_Repo_Pulls
+                { org = org
+                , repo = repo
+                }
+                |> Just
+
+        org :: repo :: "tags" :: [] ->
+            Org_Repo_Tags
                 { org = org
                 , repo = repo
                 }
@@ -304,6 +312,9 @@ toString path =
                 Org_Repo_Pulls params ->
                     [ params.org, params.repo, "?event=pull_request" ]
 
+                Org_Repo_Tags params ->
+                    [ params.org, params.repo, "?event=tag" ]
+
                 Org_Repo_Deployments params ->
                     [ params.org, params.repo, "deployments" ]
 
@@ -319,8 +330,8 @@ toString path =
                 Org_Repo_SchedulesEdit_ params ->
                     [ params.org, params.repo, "schedules", params.name ]
 
-                Org_Repo_Audit params ->
-                    [ params.org, params.repo, "audit" ]
+                Org_Repo_Hooks params ->
+                    [ params.org, params.repo, "hooks" ]
 
                 Org_Repo_Settings params ->
                     [ params.org, params.repo, "settings" ]

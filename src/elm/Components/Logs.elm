@@ -163,7 +163,7 @@ viewLine pushUrlHashMsg resourceType resourceNumber shift focus logLine lineNumb
         ]
         [ div
             [ class "wrapper"
-            , Util.testAttribute <| String.join "-" [ "log", "line", resourceType, resourceNumber, String.fromInt lineNumber ]
+            , Util.testAttribute <| String.join "-" [ "log", "line", resourceNumber, String.fromInt lineNumber ]
             , class <| Focus.lineRangeStyles (String.toInt resourceNumber) lineNumber focus
             ]
             [ td []
@@ -173,7 +173,7 @@ viewLine pushUrlHashMsg resourceType resourceNumber shift focus logLine lineNumb
                             { hash =
                                 Focus.toString <| Focus.updateLineRange shift (String.toInt resourceNumber) lineNumber focus
                             }
-                    , Util.testAttribute <| String.join "-" [ "log", "line", "num", resourceType, resourceNumber, String.fromInt lineNumber ]
+                    , Util.testAttribute <| String.join "-" [ "log", "line", "num", resourceNumber, String.fromInt lineNumber ]
                     , Focus.toAttr
                         { group = String.toInt resourceNumber
                         , a = Just lineNumber
@@ -182,12 +182,12 @@ viewLine pushUrlHashMsg resourceType resourceNumber shift focus logLine lineNumb
                     , class "line-number"
                     , class "button"
                     , class "-link"
-                    , attribute "aria-label" <| "focus " ++ resourceType ++ " " ++ resourceNumber
+                    , attribute "aria-label" <| "focus log for resource " ++ resourceNumber
                     ]
                     [ span [] [ text <| String.fromInt lineNumber ] ]
                 ]
             , td [ class "break-text", class "overflow-auto" ]
-                [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resourceType, resourceNumber, String.fromInt lineNumber ] ]
+                [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resourceNumber, String.fromInt lineNumber ] ]
                     [ logLine.view
                     ]
                 ]
@@ -356,12 +356,12 @@ viewJumpToBottomButton props =
         , attribute "data-tooltip" "jump to bottom"
         , Util.testAttribute <| "jump-to-bottom-" ++ props.resourceNumber
         , onClick <| props.msgs.focusOn { target = Logs.bottomTrackerFocusId props.resourceNumber }
-        , attribute "aria-label" <| "jump to bottom of logs for " ++ props.resourceType ++ " " ++ props.resourceNumber
+        , attribute "aria-label" <| "jump to bottom of logs for resource " ++ props.resourceNumber
         ]
         [ FeatherIcons.arrowDown
             |> FeatherIcons.toHtml
                 [ attribute "role" "img"
-                , attribute "aria-label" <| "jump to the bottom of logs for " ++ props.resourceType ++ " " ++ props.resourceNumber
+                , attribute "aria-label" <| "jump to the bottom of logs for resource " ++ props.resourceNumber
                 ]
         ]
 
@@ -377,12 +377,12 @@ viewJumpToTopButton props =
         , attribute "data-tooltip" "jump to top"
         , Util.testAttribute <| "jump-to-top-" ++ props.resourceNumber
         , onClick <| props.msgs.focusOn { target = Logs.topTrackerFocusId props.resourceNumber }
-        , attribute "aria-label" <| "jump to top of logs for " ++ props.resourceType ++ " " ++ props.resourceNumber
+        , attribute "aria-label" <| "jump to top of logs for resource " ++ props.resourceNumber
         ]
         [ FeatherIcons.arrowUp
             |> FeatherIcons.toHtml
                 [ attribute "role" "img"
-                , attribute "aria-label" <| "jump to the top of logs for " ++ props.resourceType ++ " " ++ props.resourceNumber
+                , attribute "aria-label" <| "jump to the top of logs for resource " ++ props.resourceNumber
                 ]
         ]
 
@@ -407,9 +407,9 @@ viewDownloadButton props log =
         , Util.attrIf logEmpty <| Util.ariaHidden
         , Util.testAttribute <| "download-logs-" ++ props.resourceNumber
         , onClick <| props.msgs.download { filename = fileName, content = log.rawData, map = Util.base64Decode }
-        , attribute "aria-label" <| "download logs for " ++ props.resourceType ++ " " ++ props.resourceNumber
+        , attribute "aria-label" <| "download logs for resource " ++ props.resourceNumber
         ]
-        [ text <| "download " ++ props.resourceType ++ " logs" ]
+        [ text <| "download resource logs" ]
 
 
 {-| viewFollowButton : renders button for following logs
@@ -425,13 +425,13 @@ viewFollowButton props =
 
         ( tooltip, icon, toFollow ) =
             if following == 0 then
-                ( "start following " ++ props.resourceType ++ " logs", FeatherIcons.play, num )
+                ( "start following resource logs", FeatherIcons.play, num )
 
             else if following == num then
-                ( "stop following " ++ props.resourceType ++ " logs", FeatherIcons.pause, 0 )
+                ( "stop following resource logs", FeatherIcons.pause, 0 )
 
             else
-                ( "start following " ++ props.resourceType ++ " logs", FeatherIcons.play, num )
+                ( "start following resource logs", FeatherIcons.play, num )
     in
     button
         [ class "button"
@@ -440,11 +440,11 @@ viewFollowButton props =
         , attribute "data-tooltip" tooltip
         , Util.testAttribute <| "follow-logs-" ++ props.resourceNumber
         , onClick <| props.msgs.follow { number = toFollow }
-        , attribute "aria-label" <| tooltip ++ " for " ++ props.resourceType ++ " " ++ props.resourceNumber
+        , attribute "aria-label" <| tooltip ++ " for resource " ++ props.resourceNumber
         ]
         [ icon
             |> FeatherIcons.toHtml
                 [ attribute "role" "img"
-                , attribute "aria-label" <| "follow logs for " ++ props.resourceType ++ " " ++ props.resourceNumber
+                , attribute "aria-label" <| "follow logs for resource " ++ props.resourceNumber
                 ]
         ]

@@ -7,11 +7,13 @@ module Layouts.Default.Org exposing (Model, Msg, Props, layout, map)
 
 import Components.Crumbs
 import Components.Help
+import Components.Nav
 import Components.Tabs
 import Components.Util
 import Dict exposing (Dict)
 import Effect exposing (Effect)
-import Html exposing (..)
+import Html exposing (Html, main_)
+import Html.Attributes exposing (class)
 import Layout exposing (Layout)
 import Layouts.Default
 import Route exposing (Route)
@@ -40,7 +42,7 @@ map fn props =
     }
 
 
-layout : Props contentMsg -> Shared.Model -> Route () -> Layout (Layouts.Default.Props contentMsg) Model Msg contentMsg
+layout : Props contentMsg -> Shared.Model -> Route () -> Layout Layouts.Default.Props Model Msg contentMsg
 layout props shared route =
     Layout.new
         { init = init shared route
@@ -50,11 +52,7 @@ layout props shared route =
         }
         |> Layout.withOnUrlChanged OnUrlChanged
         |> Layout.withParentProps
-            { navButtons = props.navButtons
-            , utilButtons = []
-            , helpCommands = props.helpCommands
-            , crumbs = props.crumbs
-            , repo = Nothing
+            { helpCommands = props.helpCommands
             }
 
 
@@ -85,6 +83,7 @@ type Msg
 update : Shared.Model -> Route () -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
+        -- BROWSER
         OnUrlChanged options ->
             ( { model
                 | tabHistory =
@@ -107,15 +106,24 @@ view : Props contentMsg -> Shared.Model -> Route () -> { toContentMsg : Msg -> c
 view props shared route { toContentMsg, model, content } =
     { title = props.org ++ " " ++ content.title
     , body =
-        Components.Util.view shared
+        [ Components.Nav.view shared
             route
-            (Components.Tabs.viewOrgTabs
+            { buttons = props.navButtons
+            , crumbs = Components.Crumbs.view route.path props.crumbs
+            }
+        , main_ [ class "content-wrap" ]
+            (Components.Util.view
                 shared
-                { org = props.org
-                , currentPath = route.path
-                , tabHistory = model.tabHistory
-                }
-                :: props.utilButtons
+                route
+                (Components.Tabs.viewOrgTabs
+                    shared
+                    { org = props.org
+                    , currentPath = route.path
+                    , tabHistory = model.tabHistory
+                    }
+                    :: props.utilButtons
+                )
+                :: content.body
             )
-            :: content.body
+        ]
     }

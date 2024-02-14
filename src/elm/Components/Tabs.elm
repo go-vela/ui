@@ -228,7 +228,7 @@ viewRepoTabs shared props =
               , show = showSchedules
               }
             , { name = "Audit"
-              , toPath = Route.Path.Org_Repo_Audit { org = props.org, repo = props.repo }
+              , toPath = Route.Path.Org_Repo_Hooks { org = props.org, repo = props.repo }
               , isAlerting = auditAlerting
               , show = True
               }

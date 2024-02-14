@@ -9,6 +9,7 @@ import Api.Pagination
 import Auth
 import Components.Loading
 import Components.Pager
+import Components.ScheduleForm
 import Components.Table
 import Dict
 import Effect exposing (Effect)
@@ -71,6 +72,7 @@ toLayout user route model =
 type alias Model =
     { schedules : WebData (List Vela.Schedule)
     , pager : List WebLink
+    , repoSchedulesAllowed : Bool
     }
 
 
@@ -78,6 +80,7 @@ init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, E
 init shared route () =
     ( { schedules = RemoteData.Loading
       , pager = []
+      , repoSchedulesAllowed = Util.checkScheduleAllowlist route.params.org route.params.repo shared.velaScheduleAllowlist
       }
     , Effect.batch
         [ Effect.getRepoSchedules
@@ -175,7 +178,7 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
-    { title = "Schedules"
+    { title = "Schedules" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
         [ viewRepoSchedules shared model route.params.org route.params.repo
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
@@ -188,11 +191,8 @@ view shared route model =
 viewRepoSchedules : Shared.Model -> Model -> String -> String -> Html Msg
 viewRepoSchedules shared model org repo =
     let
-        schedulesAllowed =
-            Util.checkScheduleAllowlist org repo shared.velaScheduleAllowlist
-
         actions =
-            if schedulesAllowed then
+            if model.repoSchedulesAllowed then
                 Just <|
                     div [ class "buttons" ]
                         [ a
@@ -218,7 +218,7 @@ viewRepoSchedules shared model org repo =
                 Nothing
 
         ( noRowsView, rows ) =
-            if schedulesAllowed then
+            if model.repoSchedulesAllowed then
                 case model.schedules of
                     RemoteData.Success s ->
                         ( text "No schedules found for this repo"
@@ -247,7 +247,7 @@ viewRepoSchedules shared model org repo =
                         ( Components.Loading.viewSmallLoader, [] )
 
             else
-                ( viewSchedulesNotAllowedSpan
+                ( Components.ScheduleForm.viewSchedulesNotAllowedWarning
                 , []
                 )
 
@@ -359,12 +359,3 @@ viewSchedule zone org repo schedule =
 addKey : Vela.Schedule -> Vela.Schedule
 addKey schedule =
     { schedule | org = schedule.org ++ "/" ++ schedule.repo ++ "/" ++ schedule.name }
-
-
-{-| viewSchedulesNotAllowedSpan : renders a warning that schedules have not been enabled for the current repository.
--}
-viewSchedulesNotAllowedSpan : Html msg
-viewSchedulesNotAllowedSpan =
-    span [ class "not-allowed", Util.testAttribute "repo-schedule-not-allowed" ]
-        [ text "Sorry, Administrators have not enabled Schedules for this repository."
-        ]

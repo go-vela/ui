@@ -7,12 +7,14 @@ module Pages.Secrets.Engine_.Shared.Org_.Team_ exposing (Model, Msg, page, view)
 
 import Api.Pagination
 import Auth
+import Components.Crumbs
+import Components.Nav
 import Components.Pager
 import Components.Secrets
 import Dict
 import Effect exposing (Effect)
 import FeatherIcons
-import Html exposing (a, text)
+import Html exposing (a, main_, text)
 import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
@@ -50,16 +52,7 @@ page user shared route =
 toLayout : Auth.User -> Route { engine : String, org : String, team : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
-        { navButtons = []
-        , utilButtons = []
-        , helpCommands = []
-        , crumbs =
-            [ ( "Overview", Just Route.Path.Home )
-            , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( route.params.team, Nothing )
-            , ( "Secrets", Nothing )
-            ]
-        , repo = Nothing
+        { helpCommands = []
         }
 
 
@@ -149,7 +142,7 @@ update shared route msg model =
         -- ALERTS
         AddAlertCopiedToClipboard contentCopied ->
             ( model
-            , Effect.addAlertSuccess { content = contentCopied, addToastIfUnique = False }
+            , Effect.addAlertSuccess { content = "'" ++ contentCopied ++ "' copied to clipboard.", addToastIfUnique = False }
             )
 
         -- REFRESH
@@ -183,32 +176,48 @@ subscriptions model =
 
 view : Shared.Model -> Route { engine : String, org : String, team : String } -> Model -> View Msg
 view shared route model =
-    { title = "Secrets"
+    let
+        crumbs =
+            [ ( "Overview", Just Route.Path.Home )
+            , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
+            , ( route.params.team, Nothing )
+            , ( "Secrets", Nothing )
+            ]
+    in
+    { title = "Secrets" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
-        [ Components.Secrets.viewSharedSecrets shared
-            { msgs =
-                { showCopyAlert = AddAlertCopiedToClipboard
-                }
-            , engine = route.params.engine
-            , key = route.params.org ++ "/" ++ route.params.team
-            , secrets = model.sharedSecrets
-            , tableButtons =
-                Just
-                    [ a
-                        [ class "button"
-                        , class "-outline"
-                        , class "button-with-icon"
-                        , Util.testAttribute "add-shared-secret"
-                        , Route.Path.href <|
-                            Route.Path.SecretsEngine_SharedOrg_Team_Add { engine = route.params.engine, org = route.params.org, team = route.params.team }
-                        ]
-                        [ text "Add Shared Secret"
-                        , FeatherIcons.plus
-                            |> FeatherIcons.withSize 18
-                            |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
-                        ]
-                    , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
-                    ]
+        [ Components.Nav.view
+            shared
+            route
+            { buttons = []
+            , crumbs = Components.Crumbs.view route.path crumbs
             }
+        , main_ [ class "content-wrap" ]
+            [ Components.Secrets.viewSharedSecrets shared
+                { msgs =
+                    { showCopyAlert = AddAlertCopiedToClipboard
+                    }
+                , engine = route.params.engine
+                , key = route.params.org ++ "/" ++ route.params.team
+                , secrets = model.sharedSecrets
+                , tableButtons =
+                    Just
+                        [ a
+                            [ class "button"
+                            , class "-outline"
+                            , class "button-with-icon"
+                            , Util.testAttribute "add-shared-secret"
+                            , Route.Path.href <|
+                                Route.Path.SecretsEngine_SharedOrg_Team_Add { engine = route.params.engine, org = route.params.org, team = route.params.team }
+                            ]
+                            [ text "Add Shared Secret"
+                            , FeatherIcons.plus
+                                |> FeatherIcons.withSize 18
+                                |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
+                            ]
+                        , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
+                        ]
+                }
+            ]
         ]
     }

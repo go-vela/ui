@@ -47,7 +47,7 @@ import Vela
 
 
 type alias Msgs msg =
-    { approveBuild : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> msg
+    { approveBuild : { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } -> msg
     , restartBuild : { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } -> msg
     , cancelBuild : { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } -> msg
     , showHideActionsMenus : Maybe Int -> Maybe Bool -> msg
@@ -123,7 +123,6 @@ view shared props =
                                 { build = RemoteData.succeed build
                                 , showFullTimestamps = props.showFullTimestamps
                                 , actionsMenu = props.viewActionsMenu { build = build }
-                                , showActionsMenuBool = True
                                 }
                         )
                         builds

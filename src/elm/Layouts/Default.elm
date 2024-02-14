@@ -3,56 +3,34 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Layouts.Default exposing (Model, Msg, Props, layout, map)
+module Layouts.Default exposing (Model, Msg, Props, layout)
 
 import Api.Endpoint exposing (Endpoint(..))
 import Auth.Session exposing (Session(..))
 import Components.Alerts exposing (Alert)
-import Components.Crumbs
-import Components.Favorites
 import Components.Footer
 import Components.Header
 import Components.Help
-import Components.Nav
-import Components.Util
 import Effect exposing (Effect)
 import Html exposing (..)
-import Html.Attributes exposing (class)
 import Interop
 import Json.Decode
 import Layout exposing (Layout)
-import Maybe.Extra
-import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
 import Toasty as Alerting
 import Utils.Favicons as Favicons
-import Utils.Favorites as Favorites
 import Utils.Helpers as Util
 import Utils.Theme as Theme
 import View exposing (View)
 
 
-type alias Props contentMsg =
-    { navButtons : List (Html contentMsg)
-    , utilButtons : List (Html contentMsg)
-    , helpCommands : List Components.Help.Command
-    , crumbs : List Components.Crumbs.Crumb
-    , repo : Maybe ( String, String )
+type alias Props =
+    { helpCommands : List Components.Help.Command
     }
 
 
-map : (msg1 -> msg2) -> Props msg1 -> Props msg2
-map fn props =
-    { navButtons = List.map (Html.map fn) props.navButtons
-    , utilButtons = List.map (Html.map fn) props.utilButtons
-    , helpCommands = props.helpCommands
-    , crumbs = props.crumbs
-    , repo = props.repo
-    }
-
-
-layout : Props contentMsg -> Shared.Model -> Route () -> Layout () Model Msg contentMsg
+layout : Props -> Shared.Model -> Route () -> Layout () Model Msg contentMsg
 layout props shared route =
     Layout.new
         { init = init shared
@@ -90,8 +68,6 @@ type Msg
       -- HEADER
     | ShowHideIdentity (Maybe Bool)
     | ShowHideHelp (Maybe Bool)
-      -- FAVORITES
-    | ToggleFavorite String (Maybe String)
       -- THEME
     | SetTheme Theme.Theme
       -- ALERTS
@@ -105,15 +81,6 @@ update msg model =
         NoOp ->
             ( model
             , Effect.none
-            )
-
-        ToggleFavorite org maybeRepo ->
-            ( model
-            , Effect.updateFavorites
-                { org = org
-                , maybeRepo = maybeRepo
-                , updateType = Favorites.Toggle
-                }
             )
 
         -- HEADER
@@ -184,7 +151,7 @@ decodeOnThemeChange inTheme =
 -- VIEW
 
 
-view : Props contentMsg -> Shared.Model -> Route () -> { toContentMsg : Msg -> contentMsg, content : View contentMsg, model : Model } -> View contentMsg
+view : Props -> Shared.Model -> Route () -> { toContentMsg : Msg -> contentMsg, content : View contentMsg, model : Model } -> View contentMsg
 view props shared route { toContentMsg, model, content } =
     { title =
         if String.isEmpty content.title then
@@ -198,8 +165,6 @@ view props shared route { toContentMsg, model, content } =
             { from = Route.toString route
             , theme = shared.theme
             , setTheme = SetTheme
-
-            -- todo: use props for this
             , helpProps =
                 { show = model.showHelp
                 , showHide = ShowHideHelp
@@ -210,25 +175,7 @@ view props shared route { toContentMsg, model, content } =
             , showHideIdentity = ShowHideIdentity
             }
             |> Html.map toContentMsg
-        , Components.Nav.view shared
-            route
-            { buttons =
-                props.navButtons
-                    ++ [ props.repo
-                            |> Maybe.Extra.unwrap (text "")
-                                (\( org, repo ) ->
-                                    Components.Favorites.viewStarToggle
-                                        { msg = ToggleFavorite
-                                        , org = org
-                                        , repo = repo
-                                        , user = shared.user
-                                        }
-                                        |> Html.map toContentMsg
-                                )
-                       ]
-            , crumbs = Components.Crumbs.view route.path props.crumbs
-            }
-        , main_ [ class "content-wrap" ] (Components.Util.view shared route props.utilButtons :: content.body)
+        , span [] content.body
         , Components.Footer.view
             { toasties = shared.toasties
             , copyAlertMsg = AddAlertCopiedToClipboard

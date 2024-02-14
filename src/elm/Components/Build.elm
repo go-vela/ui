@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.Build exposing (view, viewActionsMenu, viewCancelBuildButton, viewRestartBuildButton)
+module Components.Build exposing (view, viewActionsMenu, viewApproveButton, viewCancelButton, viewRestartButton)
 
 import Components.Svgs
 import DateFormat.Relative
@@ -12,14 +12,10 @@ import Html exposing (Html, a, button, details, div, label, li, span, strong, su
 import Html.Attributes exposing (attribute, class, classList, href, id, title)
 import Html.Events exposing (onClick)
 import List.Extra
-import Maybe.Extra
 import RemoteData exposing (WebData)
-import Route
 import Route.Path
 import Shared
-import Svg exposing (path)
 import Time
-import Url
 import Utils.Helpers as Util
 import Vela
 
@@ -28,7 +24,6 @@ type alias Props msg =
     { build : WebData Vela.Build
     , showFullTimestamps : Bool
     , actionsMenu : Html msg
-    , showActionsMenuBool : Bool
     }
 
 
@@ -252,16 +247,12 @@ viewActionsMenu :
         }
     , build : Vela.Build
     , showActionsMenus : List Int
-    , showActionsMenuBool : Bool
     }
     -> Html msg
 viewActionsMenu props =
     let
         ( org, repo ) =
             Util.orgRepoFromBuildLink props.build.link
-
-        isMenuOpen =
-            List.member props.build.id props.showActionsMenus
 
         buildMenuBaseClassList =
             classList
@@ -274,25 +265,7 @@ viewActionsMenu props =
         buildMenuAttributeList =
             Util.open (List.member props.build.id props.showActionsMenus) ++ [ id "build-actions" ]
 
-        approveBuild =
-            case props.build.status of
-                Vela.PendingApproval ->
-                    li [ class "build-menu-item" ]
-                        [ a
-                            [ href "#"
-                            , class "menu-item"
-
-                            -- , Util.onClickPreventDefault <| props.msgs.approveBuild org repo <| String.fromInt build.number
-                            , Util.testAttribute "approve-build"
-                            ]
-                            [ text "Approve Build"
-                            ]
-                        ]
-
-                _ ->
-                    text ""
-
-        restartBuild =
+        viewRestartLink =
             case props.build.status of
                 Vela.PendingApproval ->
                     text ""
@@ -314,7 +287,7 @@ viewActionsMenu props =
                             ]
                         ]
 
-        cancelBuild =
+        viewCancelLink =
             case props.build.status of
                 Vela.Running ->
                     li [ class "build-menu-item" ]
@@ -361,6 +334,24 @@ viewActionsMenu props =
 
                 _ ->
                     text ""
+
+        viewApproveLink =
+            case props.build.status of
+                Vela.PendingApproval ->
+                    li [ class "build-menu-item" ]
+                        [ a
+                            [ href "#"
+                            , class "menu-item"
+
+                            -- , Util.onClickPreventDefault <| props.msgs.approveBuild org repo <| String.fromInt build.number
+                            , Util.testAttribute "approve-build"
+                            ]
+                            [ text "Approve Build"
+                            ]
+                        ]
+
+                _ ->
+                    text ""
     in
     details (buildMenuBaseClassList :: buildMenuAttributeList)
         [ summary
@@ -376,9 +367,9 @@ viewActionsMenu props =
             , attribute "aria-hidden" "true"
             , attribute "role" "menu"
             ]
-            [ approveBuild
-            , restartBuild
-            , cancelBuild
+            [ viewApproveLink
+            , viewRestartLink
+            , viewCancelLink
             ]
         ]
 
@@ -633,3 +624,55 @@ bottomBuildNumberDashes buildNumber =
 
         _ ->
             "-animation-dashes-2"
+
+
+
+-- BUILD
+
+
+{-| viewCancelButton : takes org repo and build number and renders button to cancel a build
+-}
+viewCancelButton : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } -> msg) -> Html msg
+viewCancelButton org repo buildNumber cancelBuild =
+    button
+        [ classList
+            [ ( "button", True )
+            , ( "-outline", True )
+            ]
+        , onClick <| cancelBuild { org = org, repo = repo, buildNumber = buildNumber }
+        , Util.testAttribute "cancel-build"
+        ]
+        [ text "Cancel Build"
+        ]
+
+
+{-| viewRestartButton : takes org repo and build number and renders button to restart a build
+-}
+viewRestartButton : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } -> msg) -> Html msg
+viewRestartButton org repo buildNumber restartBuild =
+    button
+        [ classList
+            [ ( "button", True )
+            , ( "-outline", True )
+            ]
+        , onClick <| restartBuild { org = org, repo = repo, buildNumber = buildNumber }
+        , Util.testAttribute "restart-build"
+        ]
+        [ text "Restart Build"
+        ]
+
+
+{-| viewApproveButton: takes org repo and build number and renders button to approve a build run
+-}
+viewApproveButton : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } -> msg) -> Html msg
+viewApproveButton org repo buildNumber approveBuild =
+    button
+        [ classList
+            [ ( "button", True )
+            , ( "-outline", True )
+            ]
+        , onClick <| approveBuild { org = org, repo = repo, buildNumber = buildNumber }
+        , Util.testAttribute "approve-build"
+        ]
+        [ text "Approve Build"
+        ]

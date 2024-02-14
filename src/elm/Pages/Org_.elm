@@ -175,7 +175,7 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String } -> Model -> View Msg
 view shared route model =
-    { title = "Repos"
+    { title = "Repos" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
         [ Html.caption
             [ class "builds-caption"
@@ -199,7 +199,19 @@ view shared route model =
                         ]
 
                 else
-                    div [] (List.map (\repository -> viewRepo shared (RemoteData.unwrap [] .favorites shared.user) False repository.org repository.name) repos)
+                    div [] <|
+                        List.map
+                            (\repository ->
+                                Components.Repo.view
+                                    shared
+                                    { toggleFavoriteMsg = ToggleFavorite
+                                    , org = repository.org
+                                    , repo = repository.name
+                                    , favorites = RemoteData.unwrap [] .favorites shared.user
+                                    , filtered = False
+                                    }
+                            )
+                            repos
 
             RemoteData.Loading ->
                 Components.Loading.viewSmallLoader
@@ -216,17 +228,3 @@ view shared route model =
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
         ]
     }
-
-
-{-| viewRepo : renders row of repos with action buttons
--}
-viewRepo : Shared.Model -> List String -> Bool -> String -> String -> Html Msg
-viewRepo shared favorites filtered org repo =
-    Components.Repo.view
-        shared
-        { toggleFavoriteMsg = ToggleFavorite
-        , org = org
-        , repo = repo
-        , favorites = favorites
-        , filtered = False
-        }

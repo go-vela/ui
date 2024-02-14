@@ -35,13 +35,13 @@ import Pages.NotFound_
 import Pages.Org_
 import Pages.Org_.Builds
 import Pages.Org_.Repo_
-import Pages.Org_.Repo_.Audit
 import Pages.Org_.Repo_.Build_
 import Pages.Org_.Repo_.Build_.Graph
 import Pages.Org_.Repo_.Build_.Pipeline
 import Pages.Org_.Repo_.Build_.Services
 import Pages.Org_.Repo_.Deployments
 import Pages.Org_.Repo_.Deployments.Add
+import Pages.Org_.Repo_.Hooks
 import Pages.Org_.Repo_.Schedules
 import Pages.Org_.Repo_.Schedules.Add
 import Pages.Org_.Repo_.Schedules.Edit_
@@ -522,6 +522,30 @@ initPageAndLayout model =
                     }
                 )
 
+        Route.Path.Org_Repo_Tags params ->
+            runWhenAuthenticatedWithLayout
+                model
+                (\user ->
+                    let
+                        page : Page.Page Pages.Org_.Repo_.Model Pages.Org_.Repo_.Msg
+                        page =
+                            Pages.Org_.Repo_.page user model.shared (Route.fromUrl params model.url)
+
+                        ( pageModel, pageEffect ) =
+                            Page.init page ()
+                    in
+                    { page =
+                        Tuple.mapBoth
+                            (Main.Pages.Model.Org_Repo_ params)
+                            (Effect.map Main.Pages.Msg.Org_Repo_ >> fromPageEffect model)
+                            ( pageModel, pageEffect )
+                    , layout =
+                        Page.layout pageModel page
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_ >> Page))
+                            |> Maybe.map (initLayout model)
+                    }
+                )
+
         Route.Path.Org_Repo_Deployments params ->
             runWhenAuthenticatedWithLayout
                 model
@@ -642,26 +666,26 @@ initPageAndLayout model =
                     }
                 )
 
-        Route.Path.Org_Repo_Audit params ->
+        Route.Path.Org_Repo_Hooks params ->
             runWhenAuthenticatedWithLayout
                 model
                 (\user ->
                     let
-                        page : Page.Page Pages.Org_.Repo_.Audit.Model Pages.Org_.Repo_.Audit.Msg
+                        page : Page.Page Pages.Org_.Repo_.Hooks.Model Pages.Org_.Repo_.Hooks.Msg
                         page =
-                            Pages.Org_.Repo_.Audit.page user model.shared (Route.fromUrl params model.url)
+                            Pages.Org_.Repo_.Hooks.page user model.shared (Route.fromUrl params model.url)
 
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
                     { page =
                         Tuple.mapBoth
-                            (Main.Pages.Model.Org_Repo_Audit params)
-                            (Effect.map Main.Pages.Msg.Org_Repo_Audit >> fromPageEffect model)
+                            (Main.Pages.Model.Org_Repo_Hooks params)
+                            (Effect.map Main.Pages.Msg.Org_Repo_Hooks >> fromPageEffect model)
                             ( pageModel, pageEffect )
                     , layout =
                         Page.layout pageModel page
-                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_Audit >> Page))
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_Hooks >> Page))
                             |> Maybe.map (initLayout model)
                     }
                 )
@@ -1360,14 +1384,14 @@ updateFromPage msg model =
                         (Page.update (Pages.Org_.Repo_.Schedules.Edit_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
-        ( Main.Pages.Msg.Org_Repo_Audit pageMsg, Main.Pages.Model.Org_Repo_Audit params pageModel ) ->
+        ( Main.Pages.Msg.Org_Repo_Hooks pageMsg, Main.Pages.Model.Org_Repo_Hooks params pageModel ) ->
             runWhenAuthenticated
                 model
                 (\user ->
                     Tuple.mapBoth
-                        (Main.Pages.Model.Org_Repo_Audit params)
-                        (Effect.map Main.Pages.Msg.Org_Repo_Audit >> fromPageEffect model)
-                        (Page.update (Pages.Org_.Repo_.Audit.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
+                        (Main.Pages.Model.Org_Repo_Hooks params)
+                        (Effect.map Main.Pages.Msg.Org_Repo_Hooks >> fromPageEffect model)
+                        (Page.update (Pages.Org_.Repo_.Hooks.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
         ( Main.Pages.Msg.Org_Repo_Settings pageMsg, Main.Pages.Model.Org_Repo_Settings params pageModel ) ->
@@ -1669,11 +1693,11 @@ toLayoutFromPage model =
                 |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_SchedulesEdit_ >> Page))
 
-        Main.Pages.Model.Org_Repo_Audit params pageModel ->
+        Main.Pages.Model.Org_Repo_Hooks params pageModel ->
             Route.fromUrl params model.url
-                |> toAuthProtectedPage model Pages.Org_.Repo_.Audit.page
+                |> toAuthProtectedPage model Pages.Org_.Repo_.Hooks.page
                 |> Maybe.andThen (Page.layout pageModel)
-                |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_Audit >> Page))
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_Hooks >> Page))
 
         Main.Pages.Model.Org_Repo_Settings params pageModel ->
             Route.fromUrl params model.url
@@ -1896,11 +1920,11 @@ subscriptions model =
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-                Main.Pages.Model.Org_Repo_Audit params pageModel ->
+                Main.Pages.Model.Org_Repo_Hooks params pageModel ->
                     Auth.Action.subscriptions
                         (\user ->
-                            Page.subscriptions (Pages.Org_.Repo_.Audit.page user model.shared (Route.fromUrl params model.url)) pageModel
-                                |> Sub.map Main.Pages.Msg.Org_Repo_Audit
+                            Page.subscriptions (Pages.Org_.Repo_.Hooks.page user model.shared (Route.fromUrl params model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.Org_Repo_Hooks
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -2316,11 +2340,11 @@ viewPage model =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.Org_Repo_Audit params pageModel ->
+        Main.Pages.Model.Org_Repo_Hooks params pageModel ->
             Auth.Action.view
                 (\user ->
-                    Page.view (Pages.Org_.Repo_.Audit.page user model.shared (Route.fromUrl params model.url)) pageModel
-                        |> View.map Main.Pages.Msg.Org_Repo_Audit
+                    Page.view (Pages.Org_.Repo_.Hooks.page user model.shared (Route.fromUrl params model.url)) pageModel
+                        |> View.map Main.Pages.Msg.Org_Repo_Hooks
                         |> View.map Page
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -2636,11 +2660,11 @@ toPageUrlHookCmd model routes =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.Org_Repo_Audit params pageModel ->
+        Main.Pages.Model.Org_Repo_Hooks params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Org_.Repo_.Audit.page user model.shared (Route.fromUrl params model.url))
-                        |> List.map Main.Pages.Msg.Org_Repo_Audit
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.Hooks.page user model.shared (Route.fromUrl params model.url))
+                        |> List.map Main.Pages.Msg.Org_Repo_Hooks
                         |> List.map Page
                         |> toCommands
                 )
@@ -2950,6 +2974,9 @@ isAuthProtected routePath =
         Route.Path.Org_Repo_Pulls _ ->
             True
 
+        Route.Path.Org_Repo_Tags _ ->
+            True
+
         Route.Path.Org_Repo_Deployments _ ->
             True
 
@@ -2965,7 +2992,7 @@ isAuthProtected routePath =
         Route.Path.Org_Repo_SchedulesEdit_ _ ->
             True
 
-        Route.Path.Org_Repo_Audit _ ->
+        Route.Path.Org_Repo_Hooks _ ->
             True
 
         Route.Path.Org_Repo_Settings _ ->

@@ -6,13 +6,15 @@ SPDX-License-Identifier: Apache-2.0
 module Pages.Home exposing (Model, Msg, page, view)
 
 import Auth
+import Components.Crumbs
+import Components.Nav
 import Components.Repo
 import Components.Search
     exposing
         ( toLowerContains
         , viewHomeSearchBar
         )
-import Components.Svgs as SvgBuilder
+import Components.Svgs
 import Dict exposing (Dict)
 import Effect exposing (Effect)
 import FeatherIcons
@@ -23,6 +25,7 @@ import Html
         , details
         , div
         , h1
+        , main_
         , p
         , summary
         , text
@@ -54,7 +57,7 @@ page user shared route =
         { init = init shared
         , update = update
         , subscriptions = subscriptions
-        , view = view shared
+        , view = view shared route
         }
         |> Page.withLayout (toLayout user)
 
@@ -66,19 +69,7 @@ page user shared route =
 toLayout : Auth.User -> Model -> Layouts.Layout Msg
 toLayout user model =
     Layouts.Default
-        { navButtons =
-            [ a
-                [ class "button"
-                , class "-outline"
-                , Util.testAttribute "source-repos"
-                , Route.Path.href Route.Path.AccountSourceRepos
-                ]
-                [ text "Source Repositories" ]
-            ]
-        , utilButtons = []
-        , helpCommands = []
-        , crumbs = [ ( "Overview", Nothing ) ]
-        , repo = Nothing
+        { helpCommands = []
         }
 
 
@@ -151,35 +142,55 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Model -> View Msg
-view shared model =
+view : Shared.Model -> Route () -> Model -> View Msg
+view shared route model =
+    let
+        crumbs =
+            [ ( "Overview", Nothing ) ]
+    in
     { title = "Home"
     , body =
-        [ div [ Util.testAttribute "overview" ] <|
-            case shared.user of
-                RemoteData.Success u ->
-                    if List.length u.favorites > 0 then
-                        [ viewHomeSearchBar model.favoritesFilter SearchFavorites
-                        , viewFavorites shared u.favorites model.favoritesFilter
-                        ]
-
-                    else
-                        [ div [ class "overview" ]
-                            [ h1 [] [ text "Let's get Started!" ]
-                            , p [] [ text "To have Vela start building your projects we need to get them enabled." ]
-                            , p []
-                                [ text "To display a repository here, click the "
-                                , SvgBuilder.star False
-                                ]
-                            , p [] [ text "Enable repositories from your GitHub account on Vela now!" ]
-                            , a [ class "button", Route.Path.href Route.Path.AccountSourceRepos ] [ text "Source Repositories" ]
-                            ]
-                        ]
-
-                _ ->
-                    [ viewHomeSearchBar model.favoritesFilter SearchFavorites
-                    , viewFavorites shared [] model.favoritesFilter
+        [ Components.Nav.view
+            shared
+            route
+            { buttons =
+                [ a
+                    [ class "button"
+                    , class "-outline"
+                    , Util.testAttribute "source-repos"
+                    , Route.Path.href Route.Path.AccountSourceRepos
                     ]
+                    [ text "Source Repositories" ]
+                ]
+            , crumbs = Components.Crumbs.view route.path crumbs
+            }
+        , main_ [ class "content-wrap" ]
+            [ div [ Util.testAttribute "overview" ] <|
+                case shared.user of
+                    RemoteData.Success u ->
+                        if List.length u.favorites > 0 then
+                            [ viewHomeSearchBar model.favoritesFilter SearchFavorites
+                            , viewFavorites shared u.favorites model.favoritesFilter
+                            ]
+
+                        else
+                            [ div [ class "overview" ]
+                                [ h1 [] [ text "Let's get Started!" ]
+                                , p [] [ text "To have Vela start building your projects we need to get them enabled." ]
+                                , p []
+                                    [ text "To display a repository here, click the "
+                                    , Components.Svgs.star False
+                                    ]
+                                , p [] [ text "Enable repositories from your GitHub account on Vela now!" ]
+                                , a [ class "button", Route.Path.href Route.Path.AccountSourceRepos ] [ text "Source Repositories" ]
+                                ]
+                            ]
+
+                    _ ->
+                        [ viewHomeSearchBar model.favoritesFilter SearchFavorites
+                        , viewFavorites shared [] model.favoritesFilter
+                        ]
+            ]
         ]
     }
 
