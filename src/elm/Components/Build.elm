@@ -5,6 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 module Components.Build exposing (view, viewActionsMenu, viewApproveButton, viewCancelButton, viewRestartButton)
 
+
 import Components.Svgs
 import DateFormat.Relative
 import FeatherIcons
@@ -243,6 +244,7 @@ viewActionsMenu :
     { msgs :
         { showHideActionsMenus : Maybe Int -> Maybe Bool -> msg
         , restartBuild : { org : String, repo : String, buildNumber : String } -> msg
+        , cancelBuild : { org : String, repo : String, buildNumber : String } -> msg
         }
     , build : Vela.Build
     , showActionsMenus : List Int
@@ -293,8 +295,12 @@ viewActionsMenu props =
                         [ a
                             [ href "#"
                             , class "menu-item"
-
-                            -- , Util.onClickPreventDefault <| props.msgs.cancelBuild org repo <| String.fromInt build.number
+                            , Util.onClickPreventDefault <|
+                                props.msgs.cancelBuild
+                                    { org = org
+                                    , repo = repo
+                                    , buildNumber = String.fromInt props.build.number
+                                    }
                             , Util.testAttribute "cancel-build"
                             ]
                             [ text "Cancel Build"
@@ -367,6 +373,72 @@ viewActionsMenu props =
             , viewCancelLink
             ]
         ]
+
+
+
+-- BUILD
+
+
+{-| viewCancelBuildButton : takes org repo and build number and renders button to cancel a build
+-}
+viewCancelBuildButton : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } -> msg) -> Html msg
+viewCancelBuildButton org repo buildNumber cancelBuild =
+    button
+        [ classList
+            [ ( "button", True )
+            , ( "-outline", True )
+            ]
+        , onClick <| cancelBuild { org = org, repo = repo, buildNumber = buildNumber }
+        , Util.testAttribute "cancel-build"
+        ]
+        [ text "Cancel Build"
+        ]
+
+
+{-| viewRestartBuildButton : takes org repo and build number and renders button to restart a build
+-}
+viewRestartBuildButton : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } -> msg) -> Html msg
+viewRestartBuildButton org repo buildNumber restartBuild =
+    button
+        [ classList
+            [ ( "button", True )
+            , ( "-outline", True )
+            ]
+        , onClick <| restartBuild { org = org, repo = repo, buildNumber = buildNumber }
+        , Util.testAttribute "restart-build"
+        ]
+        [ text "Restart Build"
+        ]
+
+
+{-| viewApproveBuildButton: takes org repo and build number and renders button to approve a build run
+-}
+viewApproveBuildButton : Vela.Org -> Vela.Repo -> WebData Vela.Build -> (Vela.Org -> Vela.Repo -> Vela.BuildNumber -> msg) -> Html msg
+viewApproveBuildButton org repo build approveBuild =
+    case build of
+        RemoteData.Success b ->
+            let
+                approveButton =
+                    button
+                        [ classList
+                            [ ( "button", True )
+                            , ( "-outline", True )
+                            ]
+                        , onClick <| approveBuild org repo <| String.fromInt b.number
+                        , Util.testAttribute "approve-build"
+                        ]
+                        [ text "Approve Build"
+                        ]
+            in
+            case b.status of
+                Vela.PendingApproval ->
+                    approveButton
+
+                _ ->
+                    text ""
+
+        _ ->
+            text ""
 
 
 {-| viewError : checks for build error and renders message

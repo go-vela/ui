@@ -5,8 +5,10 @@ SPDX-License-Identifier: Apache-2.0
 
 module Pages.Org_.Repo_.Build_ exposing (..)
 
+import Api.Operations exposing (cancelBuild, restartBuild)
 import Auth
 import Browser.Dom exposing (focus)
+import Components.Build
 import Components.Loading
 import Components.Logs
 import Components.Svgs
@@ -56,7 +58,10 @@ page user shared route =
 toLayout : Auth.User -> Route { org : String, repo : String, buildNumber : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Build
-        { navButtons = []
+        { navButtons =
+            [ Components.Build.viewRestartBuildButton route.params.org route.params.repo route.params.buildNumber RestartBuild
+            , Components.Build.viewCancelBuildButton route.params.org route.params.repo route.params.buildNumber CancelBuild
+            ]
         , utilButtons = []
         , helpCommands = []
         , crumbs =
@@ -128,10 +133,13 @@ init shared route () =
 
 type Msg
     = NoOp
-    | -- BROWSER
-      OnHashChanged { from : Maybe String, to : Maybe String }
+      -- BROWSER
+    | OnHashChanged { from : Maybe String, to : Maybe String }
     | PushUrlHash { hash : String }
     | FocusOn { target : String }
+      -- BUILD
+    | RestartBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
+    | CancelBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
       -- STEPS
     | GetBuildStepsResponse { applyDomFocus : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Step ))
     | GetBuildStepsRefreshResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Step ))
@@ -188,6 +196,25 @@ update shared route msg model =
         FocusOn options ->
             ( model
             , Effect.focusOn options
+            )
+
+        -- BUILD
+        RestartBuild options ->
+            ( model
+            , Effect.restartBuild
+                { org = options.org
+                , repo = options.repo
+                , buildNumber = options.buildNumber
+                }
+            )
+
+        CancelBuild options ->
+            ( model
+            , Effect.cancelBuild
+                { org = options.org
+                , repo = options.repo
+                , buildNumber = options.buildNumber
+                }
             )
 
         -- STEPS

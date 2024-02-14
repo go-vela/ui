@@ -386,6 +386,7 @@ view shared route model =
                         { msgs =
                             { showHideActionsMenus = ShowHideActionsMenus
                             , restartBuild = RestartBuild
+                            , cancelBuild = CancelBuild
                             }
                         , build = options.build
                         , showActionsMenus = model.showActionsMenus

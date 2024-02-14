@@ -357,7 +357,6 @@ approveBuild baseUrl session options =
         Vela.decodeBuild
         |> withAuth session
 
-
 {-| getRepoDeployments : retrieves deployments for a repo
 -}
 getRepoDeployments :
