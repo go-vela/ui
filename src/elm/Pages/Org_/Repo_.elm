@@ -182,7 +182,7 @@ update shared route msg model =
             )
 
         RestartBuild options ->
-            ( model
+            ( { model | showActionsMenus = [] }
             , Effect.restartBuild
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
@@ -236,7 +236,7 @@ update shared route msg model =
                     )
 
         CancelBuild options ->
-            ( model
+            ( { model | showActionsMenus = [] }
             , Effect.cancelBuild
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
@@ -280,7 +280,7 @@ update shared route msg model =
                     )
 
         ApproveBuild options ->
-            ( model
+            ( { model | showActionsMenus = [] }
             , Effect.approveBuild
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
