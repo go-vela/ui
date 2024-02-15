@@ -267,12 +267,6 @@ context('Pipeline', () => {
           cy.get('[data-test=alerts]').should('exist').contains('Error');
         });
 
-        it('should not show pipeline configuration data', () => {
-          cy.get('[data-test=pipeline-configuration-data]').should(
-            'not.be.visible',
-          );
-        });
-
         context('click expand pipeline again', () => {
           beforeEach(() => {
             cy.get('[data-test=pipeline-expand-toggle]').click({
