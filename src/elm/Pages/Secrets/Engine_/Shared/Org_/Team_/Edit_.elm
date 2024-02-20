@@ -56,7 +56,7 @@ toLayout user route model =
               , content = "vela view secret --secret.engine native --secret.type shared " ++ sharedArgs route ++ "--team octokitties --name foo"
               , docs = Just "secret/view"
               }
-            , { name = "Update Shared Secret Help"
+            , { name = "Update Secrets Help"
               , content = "vela update secret -h"
               , docs = Just "secret/update"
               }
