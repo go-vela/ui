@@ -49,6 +49,11 @@ page user shared route =
 -- LAYOUT
 
 
+repoArgs : Route { org : String, repo : String } -> String
+repoArgs route =
+    "--org " ++ route.params.org ++ " --repo " ++ route.params.repo
+
+
 toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Repo
@@ -56,8 +61,8 @@ toLayout user route model =
         , utilButtons = []
         , helpCommands =
             [ { name = "List Builds"
-              , content = "vela get builds --help"
-              , docs = Just "builds/get"
+              , content = "vela get builds " ++ repoArgs route
+              , docs = Just "build/get"
               }
             ]
         , crumbs =

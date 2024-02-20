@@ -43,12 +43,34 @@ page user shared route =
 -- LAYOUT
 
 
+repoArgs : Route { org : String, repo : String } -> String
+repoArgs route =
+    "--org " ++ route.params.org ++ " --repo " ++ route.params.repo
+
+
 toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Repo
         { navButtons = []
         , utilButtons = []
-        , helpCommands = []
+        , helpCommands =
+            [ { name = "View Repo"
+              , content = "vela view repo" ++ repoArgs route
+              , docs = Just "repo/view"
+              }
+            , { name = "Update Repo Help"
+              , content = "vela update repo -h"
+              , docs = Just "repo/update"
+              }
+            , { name = "Repair Repo"
+              , content = "vela repair repo" ++ repoArgs route
+              , docs = Just "repo/repair"
+              }
+            , { name = "Chown Repo"
+              , content = "vela chown repo " ++ repoArgs route
+              , docs = Just "repo/chown"
+              }
+            ]
         , crumbs =
             [ ( "Overview", Just Route.Path.Home )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )

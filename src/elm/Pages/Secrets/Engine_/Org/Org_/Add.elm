@@ -42,10 +42,24 @@ page user shared route =
 -- LAYOUT
 
 
+orgArgs : Route { engine : String, org : String } -> String
+orgArgs route =
+    "--org " ++ route.params.org
+
+
 toLayout : Auth.User -> Route { engine : String, org : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
-        { helpCommands = []
+        { helpCommands =
+            [ { name = "Add Org Secret Help"
+              , content = "vela add secret -h"
+              , docs = Just "secret/add"
+              }
+            , { name = "Add Org Secret Example"
+              , content = "vela add secrets --secret.engine native --secret.type org " ++ orgArgs route ++ " --name password --value vela --event push"
+              , docs = Just "secret/add"
+              }
+            ]
         }
 
 

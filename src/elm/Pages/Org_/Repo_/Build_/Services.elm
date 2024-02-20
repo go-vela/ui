@@ -53,12 +53,38 @@ page user shared route =
 -- LAYOUT
 
 
+buildArgs : Route { org : String, repo : String, buildNumber : String } -> String
+buildArgs route =
+    "--org " ++ route.params.org ++ " --repo " ++ route.params.repo ++ " --build " ++ route.params.buildNumber
+
+
 toLayout : Auth.User -> Route { org : String, repo : String, buildNumber : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Build
         { navButtons = []
         , utilButtons = []
-        , helpCommands = []
+        , helpCommands =
+            [ { name = "View Build"
+              , content = "vela view build" ++ buildArgs route
+              , docs = Just "cli/pipeline/validate"
+              }
+            , { name = "Restart Build"
+              , content = "vela restart build" ++ buildArgs route
+              , docs = Just "build/restart"
+              }
+            , { name = "Cancel Build"
+              , content = "vela cancel build " ++ buildArgs route
+              , docs = Just "build/cancel"
+              }
+            , { name = "List Services"
+              , content = "vela get services " ++ buildArgs route
+              , docs = Just "service/get"
+              }
+            , { name = "View Service"
+              , content = "vela view service  " ++ buildArgs route ++ " --service 1"
+              , docs = Just "service/view"
+              }
+            ]
         , crumbs =
             [ ( "Overview", Just Route.Path.Home )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )

@@ -41,10 +41,24 @@ page user shared route =
 -- LAYOUT
 
 
+repoArgs : Route { org : String, repo : String } -> String
+repoArgs route =
+    "--org " ++ route.params.org ++ " --repo " ++ route.params.repo
+
+
 toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
-        { helpCommands = []
+        { helpCommands =
+            [ { name = "Add Schedule Help"
+              , content = "vela add schedule --help"
+              , docs = Just "schedule/add"
+              }
+            , { name = "Add Schedule Example"
+              , content = "vela add schedule " ++ repoArgs route ++ " --schedule nightly --entry '0 0 * * *'"
+              , docs = Just "schedule/add"
+              }
+            ]
         }
 
 
