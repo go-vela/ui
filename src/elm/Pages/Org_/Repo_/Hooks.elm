@@ -67,12 +67,30 @@ page user shared route =
 -- LAYOUT
 
 
+repoArgs : Route { org : String, repo : String } -> String
+repoArgs route =
+    "--org " ++ route.params.org ++ " --repo " ++ route.params.repo
+
+
 toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Repo
         { navButtons = []
         , utilButtons = []
-        , helpCommands = []
+        , helpCommands =
+            [ { name = "Validate Pipeline"
+              , content = "vela validate pipeline"
+              , docs = Just "cli/pipeline/validate"
+              }
+            , { name = "List Hooks"
+              , content = "vela get hooks" ++ repoArgs route
+              , docs = Just "hook/get"
+              }
+            , { name = "View Hook"
+              , content = "vela view hook " ++ repoArgs route ++ " --hook 1"
+              , docs = Just "hook/view"
+              }
+            ]
         , crumbs =
             [ ( "Overview", Just Route.Path.Home )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )

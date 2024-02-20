@@ -54,12 +54,50 @@ page user shared route =
 -- LAYOUT
 
 
+buildArgs : Route { org : String, repo : String, buildNumber : String } -> String
+buildArgs route =
+    "--org " ++ route.params.org ++ " --repo " ++ route.params.repo ++ " --build " ++ route.params.buildNumber
+
+
 toLayout : Auth.User -> Route { org : String, repo : String, buildNumber : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Build
         { navButtons = []
         , utilButtons = []
-        , helpCommands = []
+        , helpCommands =
+            [ { name = "View Build"
+              , content = "vela view build" ++ buildArgs route
+              , docs = Just "build/view"
+              }
+            , { name = "Restart Build"
+              , content = "vela restart build" ++ buildArgs route
+              , docs = Just "build/restart"
+              }
+            , { name = "Cancel Build"
+              , content = "vela cancel build " ++ buildArgs route
+              , docs = Just "build/cancel"
+              }
+            , { name = "List Steps"
+              , content = "vela get steps " ++ buildArgs route
+              , docs = Just "step/get"
+              }
+            , { name = "View Step"
+              , content = "vela view step  " ++ buildArgs route ++ " --step 1"
+              , docs = Just "step/view"
+              }
+            , { name = "List Logs"
+              , content = "vela get logs " ++ buildArgs route
+              , docs = Just "log/get"
+              }
+            , { name = "View Log Help"
+              , content = "vela view log -h"
+              , docs = Just "log/view"
+              }
+            , { name = "View Log Example"
+              , content = "vela view log  " ++ buildArgs route ++ " --step 1"
+              , docs = Just "log/view"
+              }
+            ]
         , crumbs =
             [ ( "Overview", Just Route.Path.Home )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )

@@ -66,25 +66,30 @@ page user shared route =
 -- LAYOUT
 
 
+repoArgs : Route { org : String, repo : String } -> String
+repoArgs route =
+    "--org " ++ route.params.org ++ " --repo " ++ route.params.repo
+
+
 toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Repo
         { navButtons = []
         , utilButtons = []
+        , helpCommands =
+            [ { name = "List Deployments"
+              , content = "vela get deployments " ++ repoArgs route
+              , docs = Just "deployment/get"
+              }
+            , { name = "View Deployment"
+              , content = "vela view deployment " ++ repoArgs route ++ "--deployment 1"
+              , docs = Just "deployment/get"
+              }
+            ]
         , crumbs =
             [ ( "Overview", Just Route.Path.Home )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
             , ( route.params.repo, Nothing )
-            ]
-        , helpCommands =
-            [ { name = "List Deployments"
-              , content = "vela get deployments --help"
-              , docs = Just "deployment/get"
-              }
-            , { name = "Add Deployment"
-              , content = "vela add deployment --help"
-              , docs = Just "deployment/add"
-              }
             ]
         , org = route.params.org
         , repo = route.params.repo

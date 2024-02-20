@@ -54,7 +54,12 @@ toLayout user route model =
     Layouts.Default_Org
         { navButtons = []
         , utilButtons = []
-        , helpCommands = []
+        , helpCommands =
+            [ { name = ""
+              , content = "resources on this page not yet supported via the CLI"
+              , docs = Nothing
+              }
+            ]
         , crumbs =
             [ ( "Overview", Just Route.Path.Home )
             , ( route.params.org, Nothing )

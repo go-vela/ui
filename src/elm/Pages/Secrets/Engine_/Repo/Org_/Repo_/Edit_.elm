@@ -43,10 +43,32 @@ page user shared route =
 -- LAYOUT
 
 
+repoArgs : Route { engine : String, org : String, repo : String, name : String } -> String
+repoArgs route =
+    "--org " ++ route.params.org ++ " --repo " ++ route.params.repo ++ " --name " ++ route.params.name
+
+
 toLayout : Auth.User -> Route { engine : String, org : String, repo : String, name : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
-        { helpCommands = []
+        { helpCommands =
+            [ { name = "View Repo Secret"
+              , content = "vela view secret --secret.engine native --secret.type repo " ++ repoArgs route
+              , docs = Just "secret/view"
+              }
+            , { name = "Update Secrets Help"
+              , content = "vela update secrets -h"
+              , docs = Just "secret/update"
+              }
+            , { name = "Update Repo Secret Example"
+              , content = "vela update secret --secret.engine native --secret.type repo " ++ repoArgs route ++ " --value vela"
+              , docs = Just "secret/update"
+              }
+            , { name = "Delete Repo Secret"
+              , content = "vela remove secret --secret.engine native --secret.type repo " ++ repoArgs route
+              , docs = Just "secret/remove"
+              }
+            ]
         }
 
 

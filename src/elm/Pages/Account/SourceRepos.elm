@@ -69,7 +69,12 @@ page user shared route =
 toLayout : Auth.User -> Shared.Model -> Model -> Layouts.Layout Msg
 toLayout user shared model =
     Layouts.Default
-        { helpCommands = []
+        { helpCommands =
+            [ { name = ""
+              , content = "resources on this page not yet supported via the CLI"
+              , docs = Nothing
+              }
+            ]
         }
 
 

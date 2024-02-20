@@ -47,12 +47,37 @@ page user shared route =
 -- LAYOUT
 
 
+orgArgs : Route { engine : String, org : String } -> String
+orgArgs route =
+    "--org " ++ route.params.org
+
+
+sharedArgs : Route { engine : String, org : String, team : String } -> String
+sharedArgs route =
+    "--org " ++ route.params.org ++ " --team " ++ route.params.team
+
+
 toLayout : Auth.User -> Route { engine : String, org : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Org
         { navButtons = []
         , utilButtons = []
-        , helpCommands = []
+        , helpCommands =
+            [ { name = "List Org Secrets"
+              , content = "vela get secrets --secret.engine native --secret.type org " ++ orgArgs route
+              , docs = Just "secret/get"
+              }
+            , { name = "List Shared Secrets Help"
+              , content = "vela get secrets -h"
+              , docs = Just "secret/get"
+              }
+
+            -- TODO: get this to work
+            -- , { name = "List Shared Secrets Example"
+            --   , content = "vela get secrets --secret.engine native --secret.type shared " ++ sharedArgs route
+            --   , docs = Just "secret/get"
+            --   }
+            ]
         , crumbs =
             [ ( "Overview", Just Route.Path.Home )
             , ( route.params.org, Nothing )

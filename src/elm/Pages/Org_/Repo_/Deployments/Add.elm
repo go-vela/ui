@@ -45,10 +45,20 @@ page user shared route =
 -- LAYOUT
 
 
+repoArgs : Route { org : String, repo : String } -> String
+repoArgs route =
+    "--org " ++ route.params.org ++ " --repo " ++ route.params.repo
+
+
 toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
-        { helpCommands = []
+        { helpCommands =
+            [ { name = "Add Deployment"
+              , content = "vela add deployment " ++ repoArgs route
+              , docs = Just "deployment/add"
+              }
+            ]
         }
 
 

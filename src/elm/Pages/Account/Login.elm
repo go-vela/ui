@@ -53,7 +53,12 @@ page shared route =
 toLayout : Model -> Layouts.Layout Msg
 toLayout model =
     Layouts.Default
-        { helpCommands = []
+        { helpCommands =
+            [ { name = "Authenticate"
+              , content = "vela login"
+              , docs = Just "authentication"
+              }
+            ]
         }
 
 
