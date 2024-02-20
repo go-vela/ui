@@ -66,11 +66,11 @@ toLayout user route model =
         , utilButtons = []
         , helpCommands =
             [ { name = "View Build"
-              , content = "vela view build" ++ buildArgs route
+              , content = "vela view build " ++ buildArgs route
               , docs = Just "build/view"
               }
             , { name = "Restart Build"
-              , content = "vela restart build" ++ buildArgs route
+              , content = "vela restart build " ++ buildArgs route
               , docs = Just "build/restart"
               }
             , { name = "Cancel Build"
@@ -82,7 +82,7 @@ toLayout user route model =
               , docs = Just "step/get"
               }
             , { name = "View Step"
-              , content = "vela view step  " ++ buildArgs route ++ " --step 1"
+              , content = "vela view step " ++ buildArgs route ++ " --step 1"
               , docs = Just "step/view"
               }
             , { name = "List Logs"
@@ -94,7 +94,7 @@ toLayout user route model =
               , docs = Just "log/view"
               }
             , { name = "View Log Example"
-              , content = "vela view log  " ++ buildArgs route ++ " --step 1"
+              , content = "vela view log " ++ buildArgs route ++ " --step 1"
               , docs = Just "log/view"
               }
             ]

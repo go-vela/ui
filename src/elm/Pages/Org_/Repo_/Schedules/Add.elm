@@ -51,7 +51,7 @@ toLayout user route model =
     Layouts.Default
         { helpCommands =
             [ { name = "Add Schedule Help"
-              , content = "vela add schedule --help"
+              , content = "vela add schedule -h"
               , docs = Just "schedule/add"
               }
             , { name = "Add Schedule Example"

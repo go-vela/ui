@@ -65,11 +65,11 @@ toLayout user route model =
         , utilButtons = []
         , helpCommands =
             [ { name = "View Build"
-              , content = "vela view build" ++ buildArgs route
+              , content = "vela view build " ++ buildArgs route
               , docs = Just "cli/pipeline/validate"
               }
             , { name = "Restart Build"
-              , content = "vela restart build" ++ buildArgs route
+              , content = "vela restart build " ++ buildArgs route
               , docs = Just "build/restart"
               }
             , { name = "Cancel Build"
@@ -81,7 +81,7 @@ toLayout user route model =
               , docs = Just "service/get"
               }
             , { name = "View Service"
-              , content = "vela view service  " ++ buildArgs route ++ " --service 1"
+              , content = "vela view service " ++ buildArgs route ++ " --service 1"
               , docs = Just "service/view"
               }
             ]

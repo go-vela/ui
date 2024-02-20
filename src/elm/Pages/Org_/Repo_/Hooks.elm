@@ -83,7 +83,7 @@ toLayout user route model =
               , docs = Just "cli/pipeline/validate"
               }
             , { name = "List Hooks"
-              , content = "vela get hooks" ++ repoArgs route
+              , content = "vela get hooks " ++ repoArgs route
               , docs = Just "hook/get"
               }
             , { name = "View Hook"

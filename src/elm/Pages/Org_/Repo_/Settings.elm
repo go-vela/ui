@@ -55,15 +55,19 @@ toLayout user route model =
         , utilButtons = []
         , helpCommands =
             [ { name = "View Repo"
-              , content = "vela view repo" ++ repoArgs route
+              , content = "vela view repo " ++ repoArgs route
               , docs = Just "repo/view"
               }
             , { name = "Update Repo Help"
               , content = "vela update repo -h"
               , docs = Just "repo/update"
               }
+            , { name = "Update Repo Example"
+              , content = "vela update repo " ++ repoArgs route
+              , docs = Just "repo/repair"
+              }
             , { name = "Repair Repo"
-              , content = "vela repair repo" ++ repoArgs route
+              , content = "vela repair repo " ++ repoArgs route
               , docs = Just "repo/repair"
               }
             , { name = "Chown Repo"
