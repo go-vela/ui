@@ -43,11 +43,6 @@ page user shared route =
 -- LAYOUT
 
 
-sharedArgs : Route { engine : String, org : String, team : String } -> String
-sharedArgs route =
-    "--org " ++ route.params.org
-
-
 toLayout : Auth.User -> Route { engine : String, org : String, team : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
@@ -57,7 +52,10 @@ toLayout user route model =
               , docs = Just "secret/add"
               }
             , { name = "Add Shared Secret Example"
-              , content = "vela add secret --secret.engine native --secret.type shared " ++ sharedArgs route ++ " --team octokitties --name foo --value bar --event push"
+              , content =
+                    "vela add secret --secret.engine native --secret.type shared --org "
+                        ++ route.params.org
+                        ++ " --team octokitties --name foo --value bar --event push"
               , docs = Just "secret/add"
               }
             ]

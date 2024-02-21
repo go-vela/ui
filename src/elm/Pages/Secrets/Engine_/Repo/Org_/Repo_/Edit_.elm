@@ -43,17 +43,18 @@ page user shared route =
 -- LAYOUT
 
 
-repoArgs : Route { engine : String, org : String, repo : String, name : String } -> String
-repoArgs route =
-    "--org " ++ route.params.org ++ " --repo " ++ route.params.repo ++ " --name " ++ route.params.name
-
-
 toLayout : Auth.User -> Route { engine : String, org : String, repo : String, name : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
         { helpCommands =
             [ { name = "View Repo Secret"
-              , content = "vela view secret --secret.engine native --secret.type repo " ++ repoArgs route
+              , content =
+                    "vela view secret --secret.engine native --secret.type repo --org "
+                        ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
+                        ++ " --name "
+                        ++ route.params.name
               , docs = Just "secret/view"
               }
             , { name = "Update Secrets Help"
@@ -61,11 +62,24 @@ toLayout user route model =
               , docs = Just "secret/update"
               }
             , { name = "Update Repo Secret Example"
-              , content = "vela update secret --secret.engine native --secret.type repo " ++ repoArgs route ++ " --value vela"
+              , content =
+                    "vela update secret --secret.engine native --secret.type repo --org "
+                        ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
+                        ++ " --name "
+                        ++ route.params.name
+                        ++ " --value vela"
               , docs = Just "secret/update"
               }
             , { name = "Delete Repo Secret"
-              , content = "vela remove secret --secret.engine native --secret.type repo " ++ repoArgs route
+              , content =
+                    "vela remove secret --secret.engine native --secret.type repo --org "
+                        ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
+                        ++ " --name "
+                        ++ route.params.name
               , docs = Just "secret/remove"
               }
             ]

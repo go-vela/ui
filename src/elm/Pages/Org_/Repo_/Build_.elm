@@ -54,11 +54,6 @@ page user shared route =
 -- LAYOUT
 
 
-buildArgs : Route { org : String, repo : String, buildNumber : String } -> String
-buildArgs route =
-    "--org " ++ route.params.org ++ " --repo " ++ route.params.repo ++ " --build " ++ route.params.buildNumber
-
-
 toLayout : Auth.User -> Route { org : String, repo : String, buildNumber : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Build
@@ -66,27 +61,64 @@ toLayout user route model =
         , utilButtons = []
         , helpCommands =
             [ { name = "View Build"
-              , content = "vela view build " ++ buildArgs route
+              , content =
+                    "vela view build --org "
+                        ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
+                        ++ " --build "
+                        ++ route.params.buildNumber
               , docs = Just "build/view"
               }
             , { name = "Restart Build"
-              , content = "vela restart build " ++ buildArgs route
+              , content =
+                    "vela restart build --org "
+                        ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
+                        ++ " --build "
+                        ++ route.params.buildNumber
               , docs = Just "build/restart"
               }
             , { name = "Cancel Build"
-              , content = "vela cancel build " ++ buildArgs route
+              , content =
+                    "vela cancel build --org "
+                        ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
+                        ++ " --build "
+                        ++ route.params.buildNumber
               , docs = Just "build/cancel"
               }
             , { name = "List Steps"
-              , content = "vela get steps " ++ buildArgs route
+              , content =
+                    "vela get steps --org "
+                        ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
+                        ++ " --build "
+                        ++ route.params.buildNumber
               , docs = Just "step/get"
               }
             , { name = "View Step"
-              , content = "vela view step " ++ buildArgs route ++ " --step 1"
+              , content =
+                    "vela view step --org "
+                        ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
+                        ++ " --build "
+                        ++ route.params.buildNumber
+                        ++ " --step 1"
               , docs = Just "step/view"
               }
             , { name = "List Logs"
-              , content = "vela get logs " ++ buildArgs route
+              , content =
+                    "vela get logs --org "
+                        ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
+                        ++ " --build "
+                        ++ route.params.buildNumber
               , docs = Just "log/get"
               }
             , { name = "View Log Help"
@@ -94,7 +126,14 @@ toLayout user route model =
               , docs = Just "log/view"
               }
             , { name = "View Log Example"
-              , content = "vela view log " ++ buildArgs route ++ " --step 1"
+              , content =
+                    "vela view log --org "
+                        ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
+                        ++ " --build "
+                        ++ route.params.buildNumber
+                        ++ " --step 1"
               , docs = Just "log/view"
               }
             ]

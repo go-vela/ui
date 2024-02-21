@@ -49,11 +49,6 @@ page user shared route =
 -- LAYOUT
 
 
-sharedArgs : Route { engine : String, org : String, team : String } -> String
-sharedArgs route =
-    "--org " ++ route.params.org
-
-
 toLayout : Auth.User -> Route { engine : String, org : String, team : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
@@ -63,7 +58,10 @@ toLayout user route model =
               , docs = Just "secret/get"
               }
             , { name = "List Shared Secrets"
-              , content = "vela get secrets --secret.engine native --secret.type shared " ++ sharedArgs route ++ " --team '*'"
+              , content =
+                    "vela get secrets --secret.engine native --secret.type shared --org "
+                        ++ route.params.org
+                        ++ " --team '*'"
               , docs = Just "secret/get"
               }
             ]

@@ -43,11 +43,6 @@ page user shared route =
 -- LAYOUT
 
 
-repoArgs : Route { org : String, repo : String } -> String
-repoArgs route =
-    "--org " ++ route.params.org ++ " --repo " ++ route.params.repo
-
-
 toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Repo
@@ -55,7 +50,11 @@ toLayout user route model =
         , utilButtons = []
         , helpCommands =
             [ { name = "View Repo"
-              , content = "vela view repo " ++ repoArgs route
+              , content =
+                    "vela view repo --org "
+                        ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
               , docs = Just "repo/view"
               }
             , { name = "Update Repo Help"
@@ -63,15 +62,27 @@ toLayout user route model =
               , docs = Just "repo/update"
               }
             , { name = "Update Repo Example"
-              , content = "vela update repo " ++ repoArgs route
-              , docs = Just "repo/repair"
+              , content =
+                    "vela update repo --org "
+                        ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
+              , docs = Just "repo/update"
               }
             , { name = "Repair Repo"
-              , content = "vela repair repo " ++ repoArgs route
+              , content =
+                    "vela repair repo --org "
+                        ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
               , docs = Just "repo/repair"
               }
             , { name = "Chown Repo"
-              , content = "vela chown repo " ++ repoArgs route
+              , content =
+                    "vela chown repo--org "
+                        ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
               , docs = Just "repo/chown"
               }
             ]

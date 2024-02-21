@@ -49,11 +49,6 @@ page user shared route =
 -- LAYOUT
 
 
-buildArgs : Route { org : String, repo : String, buildNumber : String } -> String
-buildArgs route =
-    "--org " ++ route.params.org ++ " --repo " ++ route.params.repo ++ " --build " ++ route.params.buildNumber
-
-
 toLayout : Auth.User -> Route { org : String, repo : String, buildNumber : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Build
@@ -61,15 +56,33 @@ toLayout user route model =
         , utilButtons = []
         , helpCommands =
             [ { name = "View Build"
-              , content = "vela view build " ++ buildArgs route
+              , content =
+                    "vela view build --org "
+                        ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
+                        ++ " --build "
+                        ++ route.params.buildNumber
               , docs = Just "cli/pipeline/validate"
               }
             , { name = "Restart Build"
-              , content = "vela restart build " ++ buildArgs route
+              , content =
+                    "vela restart build --org "
+                        ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
+                        ++ " --build "
+                        ++ route.params.buildNumber
               , docs = Just "build/restart"
               }
             , { name = "Cancel Build"
-              , content = "vela cancel build " ++ buildArgs route
+              , content =
+                    "vela cancel build --org "
+                        ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
+                        ++ " --build "
+                        ++ route.params.buildNumber
               , docs = Just "build/cancel"
               }
             ]

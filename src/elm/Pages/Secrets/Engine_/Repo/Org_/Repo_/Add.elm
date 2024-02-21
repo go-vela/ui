@@ -42,11 +42,6 @@ page user shared route =
 -- LAYOUT
 
 
-repoArgs : Route { engine : String, org : String, repo : String } -> String
-repoArgs route =
-    "--org " ++ route.params.org ++ " --repo " ++ route.params.repo
-
-
 toLayout : Auth.User -> Route { engine : String, org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
@@ -56,7 +51,12 @@ toLayout user route model =
               , docs = Just "secret/add"
               }
             , { name = "Add Repo Secret Example"
-              , content = "vela add secret --secret.engine native --secret.type repo " ++ repoArgs route ++ " --name foo --value bar --event push"
+              , content =
+                    "vela add secret --secret.engine native --secret.type repo --org "
+                        ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
+                        ++ " --name foo --value bar --event push"
               , docs = Just "secret/add"
               }
             ]

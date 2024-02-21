@@ -67,11 +67,6 @@ page user shared route =
 -- LAYOUT
 
 
-repoArgs : Route { org : String, repo : String } -> String
-repoArgs route =
-    "--org " ++ route.params.org ++ " --repo " ++ route.params.repo
-
-
 toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Repo
@@ -83,11 +78,20 @@ toLayout user route model =
               , docs = Just "cli/pipeline/validate"
               }
             , { name = "List Hooks"
-              , content = "vela get hooks " ++ repoArgs route
+              , content =
+                    "vela get hooks --org "
+                        ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
               , docs = Just "hook/get"
               }
             , { name = "View Hook"
-              , content = "vela view hook " ++ repoArgs route ++ " --hook 1"
+              , content =
+                    "vela view hook --org "
+                        ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
+                        ++ " --hook 1"
               , docs = Just "hook/view"
               }
             ]
