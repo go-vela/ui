@@ -73,8 +73,8 @@ toLayout user route model =
         { navButtons = []
         , utilButtons = []
         , helpCommands =
-            [ { name = "Validate Pipeline"
-              , content = "vela validate pipeline"
+            [ { name = "Validate Pipeline Help"
+              , content = "vela validate pipeline -h"
               , docs = Just "cli/pipeline/validate"
               }
             , { name = "List Hooks"
