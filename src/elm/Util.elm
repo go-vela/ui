@@ -10,6 +10,7 @@ module Util exposing
     , base64Decode
     , boolToString
     , boolToYesNo
+    , buildPRCommitURL
     , buildRefURL
     , checkScheduleAllowlist
     , dispatch
@@ -512,6 +513,13 @@ pageToString maybePage =
 buildRefURL : String -> String -> String
 buildRefURL clone ref =
     String.dropRight 4 clone ++ "/tree/" ++ ref
+
+
+{-| buildPRCommitURL : creates a direct link to a commit in a PR
+-}
+buildPRCommitURL : String -> String -> String
+buildPRCommitURL source commit =
+    source ++ "/commits/" ++ commit
 
 
 {-| trimCommitHash : takes the first 7 characters of the full commit hash

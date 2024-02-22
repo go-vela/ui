@@ -302,7 +302,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                         , text (getNameFromRef build.ref)
                         ]
                     , text " ("
-                    , a [ href build.source ] [ text <| Util.trimCommitHash build.commit ]
+                    , a [ href (Util.buildPRCommitURL build.source build.commit) ] [ text <| Util.trimCommitHash build.commit ]
                     , text <| ")"
                     ]
 
