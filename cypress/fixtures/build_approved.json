@@ -1,10 +1,10 @@
 {
   "id": 15,
   "repo_id": 1,
-  "number": 8,
+  "number": 9,
   "parent": 1,
   "event": "pull_request",
-  "status": "pending approval",
+  "status": "success",
   "error": "",
   "enqueued": 1572980376,
   "created": 1572980376,
@@ -24,6 +24,6 @@
   "host": "",
   "runtime": "docker",
   "distribution": "linux",
-  "approved_by": "",
-  "approved_at": 0
+  "approved_by": "gh0st",
+  "approved_at": 1572980375
 }

@@ -302,7 +302,11 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                         , text (getNameFromRef build.ref)
                         ]
                     , text " ("
-                    , a [ href build.source ] [ text <| Util.trimCommitHash build.commit ]
+                    , a
+                        [ href (Util.buildPRCommitURL build.source build.commit)
+                        , Util.testAttribute "commit-link"
+                        ]
+                        [ text <| Util.trimCommitHash build.commit ]
                     , text <| ")"
                     ]
 
@@ -391,6 +395,13 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
 
         statusClass =
             statusToClass build.status
+
+        approvedBy =
+            if build.approved_at /= 0 && build.event == "pull_request" then
+                [ text <| " (approved by " ++ build.approved_by ++ ")" ]
+
+            else
+                []
     in
     div [ class "build-container", Util.testAttribute "build" ]
         [ div [ class "build", statusClass ]
@@ -401,12 +412,12 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                     , div [ class "commit-msg" ] [ strong [] message ]
                     ]
                 , div [ class "row" ]
-                    [ div [ class "git-info" ]
+                    [ div [ class "git-info", Util.testAttribute "git-info" ]
                         [ div [ class "commit" ] commit
                         , text "on"
                         , div [ class "branch" ] branch
                         , text "by"
-                        , div [ class "sender" ] sender
+                        , div [ class "sender" ] (sender ++ approvedBy)
                         ]
                     , div [ class "time-info" ]
                         [ div [ class "time-completed" ]
