@@ -212,7 +212,7 @@ context('Build', () => {
           method: 'POST',
           url: 'api/v1/repos/*/*/builds/*/approve',
           status: 200,
-          response: 'approved build github/octocat/8',
+          response: 'Successfully approved build github/octocat/8'
         });
         cy.get('[data-test=approve-build]').as('approvedBuild');
       });
@@ -227,6 +227,17 @@ context('Build', () => {
           'contain',
           'approved build github/octocat/8',
         );
+      });
+    });
+
+    context('server stubbed Approved Build', () => {
+      beforeEach(() => {
+        cy.visit('/github/octocat/9');
+        cy.server();
+      });
+
+      it('should show who approved the build', () => {
+        cy.get('[data-test=git-info').contains('approved by gh0st');
       });
     });
 
