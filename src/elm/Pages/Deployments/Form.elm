@@ -21,6 +21,7 @@ import Html
         , em
         , input
         , label
+        , p
         , section
         , span
         , strong
@@ -116,13 +117,11 @@ viewDeployEnabled repo_settings =
     case repo_settings of
         RemoteData.Success repo ->
             if repo.allow_deploy then
-                section []
+                p []
                     []
 
             else
-                section [ class "notice" ]
-                    [ strong [] [ text "Deploy webhook for this repo must be enabled in settings" ]
-                    ]
+                p [ class "notice" ] [ text "Deploy webhook for this repo must be enabled in settings" ]
 
         _ ->
             section [] []

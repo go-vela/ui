@@ -205,6 +205,7 @@ forkPolicy repo msg =
         , div [ class "form-controls", class "-stack" ]
             [ radio repo.approve_build "fork-always" "Always Require Admin Approval" <| msg repo.org repo.name "approve_build" "fork-always"
             , radio repo.approve_build "fork-no-write" "Require Admin Approval When Contributor Is Read Only" <| msg repo.org repo.name "approve_build" "fork-no-write"
+            , radio repo.approve_build "first-time" "Require Admin Approval for First Time Contributors" <| msg repo.org repo.name "approve_build" "first-time"
             , radio repo.approve_build "never" "Never Require Admin Approval" <| msg repo.org repo.name "approve_build" "never"
             ]
         ]
@@ -920,6 +921,9 @@ updateForkPolicyTip field =
 
         "fork-no-write" ->
             text " (repository admin must approve all builds from outside contributors with read-only access to the repo)"
+
+        "first-time" ->
+            text " (repository admin must approve all builds from outside contributors who have not contributed to the repo before)"
 
         "never" ->
             text " (any outside contributor can run a PR build)"

@@ -443,6 +443,9 @@ viewRepoTabs rm org repo currentPage scheduleAllowlist =
                         "success" ->
                             False
 
+                        "skipped" ->
+                            False
+
                         _ ->
                             hook.created > build.created
 
