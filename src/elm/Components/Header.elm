@@ -73,6 +73,7 @@ view shared props =
                                     [ Util.testAttribute "settings-link"
                                     , Route.Path.href Route.Path.AccountSettings
                                     , attribute "role" "menuitem"
+                                    , onClick (props.showHideIdentity (Just False))
                                     ]
                                     [ text "Settings" ]
                                 ]
@@ -87,6 +88,7 @@ view shared props =
                                         , hash = Nothing
                                         }
                                     , attribute "role" "menuitem"
+                                    , onClick (props.showHideIdentity (Just False))
                                     ]
                                     [ text "Logout" ]
                                 ]

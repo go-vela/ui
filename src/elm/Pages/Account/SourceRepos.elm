@@ -119,7 +119,7 @@ type Msg
 
 update : Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
 update shared msg model =
-    -- persistent source repos in shared
+    -- persist any source repos updates to the shared model
     (\( m, e ) ->
         ( m, Effect.batch [ e, Effect.updateSourceReposShared { sourceRepos = m.sourceRepos } ] )
     )
