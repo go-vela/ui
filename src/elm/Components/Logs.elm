@@ -409,7 +409,7 @@ viewDownloadButton props log =
         , onClick <| props.msgs.download { filename = fileName, content = log.rawData, map = Util.base64Decode }
         , attribute "aria-label" <| "download logs for resource " ++ props.resourceNumber
         ]
-        [ text <| "download resource logs" ]
+        [ text <| "download logs" ]
 
 
 {-| viewFollowButton : renders button for following logs

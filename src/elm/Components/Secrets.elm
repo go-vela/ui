@@ -189,7 +189,7 @@ viewSharedSecrets shared props =
                 rows
                 actions
     in
-    div [] [ Components.Table.view cfg ]
+    div [ class "shared-secrets-container" ] [ Components.Table.view cfg ]
 
 
 {-| tableHeaders : returns table headers for secrets table

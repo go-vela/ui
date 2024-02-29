@@ -41,7 +41,6 @@ viewCronHelp time =
         [ a
             [ class "field-help-link"
             , href "https://crontab.guru/"
-            , target "_blank"
             ]
             [ text "help" ]
         , span [ class "field-description" ]
@@ -96,7 +95,6 @@ viewHelp docsUrl =
         [ text "Need help? Visit our "
         , a
             [ href <| docsUrl ++ "/usage/schedule_build/"
-            , target "_blank"
             ]
             [ text "docs" ]
         , text "!"

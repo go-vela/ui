@@ -609,11 +609,7 @@ viewTemplate ( _, t ) =
         , div []
             [ span [] [ text t.name ]
             , span [] [ text t.source ]
-            , a
-                [ target "_blank"
-                , href t.link
-                ]
-                [ text t.link ]
+            , a [ href t.link ] [ text t.link ]
             ]
         ]
 

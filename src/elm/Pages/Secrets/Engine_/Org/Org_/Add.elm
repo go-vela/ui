@@ -79,7 +79,7 @@ init : Shared.Model -> () -> ( Model, Effect Msg )
 init shared () =
     ( { name = ""
       , value = ""
-      , allowEvents = Vela.defaultAllowEvents
+      , allowEvents = Vela.defaultEnabledAllowEvents
       , images = []
       , image = ""
       , allowCommand = True

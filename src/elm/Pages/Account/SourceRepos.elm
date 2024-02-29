@@ -96,6 +96,7 @@ init shared () =
     , Effect.batch
         [ Effect.getCurrentUser {}
         , Effect.sendMsg (GetUserSourceRepos False)
+        , Effect.focusOn { target = "global-search-input" }
         ]
     )
 
@@ -152,7 +153,7 @@ update shared msg model =
                         ( { model
                             | sourceRepos = RemoteData.succeed repositories
                           }
-                        , Effect.focusOn { target = "global-search-input" }
+                        , Effect.none
                         )
 
                     Err error ->

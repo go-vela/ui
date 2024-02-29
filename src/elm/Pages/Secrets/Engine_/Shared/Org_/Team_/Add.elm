@@ -90,7 +90,7 @@ init shared route () =
       , images = []
       , image = ""
       , allowCommand = True
-      , allowEvents = Vela.defaultAllowEvents
+      , allowEvents = Vela.defaultEnabledAllowEvents
       }
     , Effect.none
     )

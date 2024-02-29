@@ -715,7 +715,7 @@ viewAccess repo msg =
         , div [ class "form-controls", class "-stack" ]
             [ Components.Form.viewRadio
                 { title = "Private"
-                , subtitle = Just (text "(anyone with access to this Vela instance)")
+                , subtitle = Just (text "(restricted to those with repository access)")
                 , value = repo.visibility
                 , field = "private"
                 , msg = msg "private"

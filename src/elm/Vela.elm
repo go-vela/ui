@@ -71,6 +71,7 @@ module Vela exposing
     , decodeSteps
     , defaultAllowEvents
     , defaultDeploymentPayload
+    , defaultEnabledAllowEvents
     , defaultRepoPayload
     , defaultSchedulePayload
     , defaultSecretPayload
@@ -521,6 +522,33 @@ defaultAllowEvents =
         }
     , deploy =
         { created = False
+        }
+    , comment =
+        { created = False
+        , edited = False
+        }
+    , schedule =
+        { run = False
+        }
+    }
+
+
+defaultEnabledAllowEvents : AllowEvents
+defaultEnabledAllowEvents =
+    { push =
+        { branch = True
+        , tag = True
+        , deleteBranch = False
+        , deleteTag = False
+        }
+    , pull =
+        { opened = False
+        , synchronize = False
+        , edited = False
+        , reopened = False
+        }
+    , deploy =
+        { created = True
         }
     , comment =
         { created = False

@@ -446,7 +446,6 @@ view shared route model =
                             [ text "Need help? Visit our "
                             , Html.a
                                 [ Html.Attributes.href <| shared.velaDocsURL ++ "/usage/deployments/"
-                                , Html.Attributes.target "_blank"
                                 ]
                                 [ text "docs" ]
                             , text "!"

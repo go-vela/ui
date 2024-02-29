@@ -168,7 +168,6 @@ viewHelp docsUrl =
         [ text "Need help? Visit our "
         , a
             [ href <| docsUrl ++ "/usage/secrets/"
-            , target "_blank"
             ]
             [ text "docs" ]
         , text "!"
