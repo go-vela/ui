@@ -174,7 +174,7 @@ update shared msg model =
             EnableRepo repo ->
                 let
                     payload =
-                        Vela.buildEnableRepoPayload repo
+                        Vela.buildRepoPayload { repo | active = True }
 
                     body =
                         Http.jsonBody <| Vela.encodeEnableRepository payload

@@ -421,14 +421,14 @@ view shared route model =
                                     let
                                         viewParameter parameter =
                                             div [ class "parameter", class "chevron" ]
-                                                [ button
+                                                [ div [ class "name" ] [ text (parameter.key ++ "=" ++ parameter.value) ]
+                                                , button
                                                     [ class "button"
                                                     , class "-outline"
                                                     , onClick <| RemoveParameter parameter
                                                     ]
                                                     [ text "remove"
                                                     ]
-                                                , div [ class "name" ] [ text (parameter.key ++ "=" ++ parameter.value) ]
                                                 ]
                                     in
                                     List.map viewParameter <| List.reverse model.parameters

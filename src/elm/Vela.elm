@@ -46,7 +46,7 @@ module Vela exposing
     , Type
     , allowEventsFilterQueryKeys
     , allowEventsToList
-    , buildEnableRepoPayload
+    , buildRepoPayload
     , decodeBuild
     , decodeBuildGraph
     , decodeBuilds
@@ -204,8 +204,8 @@ type alias SourceRepositories =
     Dict String (List Repository)
 
 
-buildEnableRepoPayload : Repository -> EnableRepoPayload
-buildEnableRepoPayload repo =
+buildRepoPayload : Repository -> EnableRepoPayload
+buildRepoPayload repo =
     EnableRepoPayload
         repo.org
         repo.name

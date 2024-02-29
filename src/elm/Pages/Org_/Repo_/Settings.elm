@@ -212,7 +212,7 @@ update shared route msg model =
         EnableRepo options ->
             let
                 payload =
-                    Vela.buildEnableRepoPayload options.repo
+                    Vela.buildRepoPayload options.repo
 
                 body =
                     Http.jsonBody <| Vela.encodeEnableRepository payload
