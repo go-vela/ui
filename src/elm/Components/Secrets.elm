@@ -243,8 +243,8 @@ viewSecret engine type_ copyMsg secret =
             }
         , Components.Table.viewItemCell
             { dataLabel = "name"
-            , parentClassList = []
-            , itemClassList = []
+            , parentClassList = [ ( "name", True ) ]
+            , itemClassList = [ ( "-block", True ) ]
             , children = [ a [ editSecretHref engine type_ secret ] [ text secret.name ] ]
             }
         , Components.Table.viewListItemCell
