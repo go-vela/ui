@@ -334,7 +334,7 @@ view shared route model =
                             , val = RemoteData.unwrap "" .name model.schedule
                             , placeholder_ =
                                 if model.repoSchedulesAllowed then
-                                    "loading..."
+                                    "Loading..."
 
                                 else
                                     "Schedule Name"

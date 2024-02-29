@@ -316,7 +316,7 @@ view shared route model =
                             , subtitle = Nothing
                             , id_ = "target"
                             , val = model.target
-                            , placeholder_ = "provide the name for the target deployment environment (default: \"production\")"
+                            , placeholder_ = "Provide the name for the target deployment environment (default: \"production\")"
                             , classList_ = [ ( "secret-value", True ) ]
                             , disabled_ = False
                             , rows_ = Just 2
@@ -329,7 +329,7 @@ view shared route model =
                             , id_ = "ref"
                             , val = model.ref
                             , placeholder_ =
-                                "provide the reference to deploy - this can be a branch, commit (SHA) or tag\n(default is your repo's default branch: "
+                                "Provide the reference to deploy - this can be a branch, commit (SHA) or tag\n(default is your repo's default branch: "
                                     ++ RemoteData.unwrap "main" .branch model.repo
                                     ++ ")"
                             , classList_ = [ ( "secret-value", True ) ]
@@ -343,7 +343,7 @@ view shared route model =
                             , subtitle = Nothing
                             , id_ = "description"
                             , val = model.description
-                            , placeholder_ = "provide the description for the deployment (default: \"Deployment request from Vela\")"
+                            , placeholder_ = "Provide the description for the deployment (default: \"Deployment request from Vela\")"
                             , classList_ = [ ( "secret-value", True ) ]
                             , disabled_ = False
                             , rows_ = Just 5

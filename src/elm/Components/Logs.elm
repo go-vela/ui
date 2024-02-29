@@ -70,7 +70,7 @@ view shared props =
 
         _ ->
             div [ class "message" ]
-                [ Components.Loading.viewSmallLoaderWithText "loading..." ]
+                [ Components.Loading.viewSmallLoaderWithText "Loading..." ]
 
 
 {-| viewLogLines : takes number linefocus log and clickAction shiftDown and renders logs for a build resource
