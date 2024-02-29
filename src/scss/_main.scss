@@ -1295,6 +1295,12 @@ details.build-toggle {
   border: 1px solid var(--color-red);
 }
 
+.vert-icon-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
 .-icon {
   fill: none;
   stroke: var(--color-primary);

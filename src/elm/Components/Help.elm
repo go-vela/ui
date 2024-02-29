@@ -96,18 +96,20 @@ viewCommand shared props command =
                 ]
                 []
             , if not <| String.isEmpty command.content then
-                button
-                    [ Util.testAttribute "help-copy"
-                    , attribute "aria-label" <| "copy " ++ command.content ++ " to clipboard"
-                    , class "button"
-                    , class "-icon"
-                    , Html.Events.onClick <| props.showCopyAlert command.content
-                    , class "copy-button"
-                    , attribute "data-clipboard-text" command.content
-                    ]
-                    [ FeatherIcons.copy
-                        |> FeatherIcons.withSize 18
-                        |> FeatherIcons.toHtml []
+                div [ class "vert-icon-container" ]
+                    [ button
+                        [ Util.testAttribute "help-copy"
+                        , attribute "aria-label" <| "copy " ++ command.content ++ " to clipboard"
+                        , class "button"
+                        , class "-icon"
+                        , Html.Events.onClick <| props.showCopyAlert command.content
+                        , class "copy-button"
+                        , attribute "data-clipboard-text" command.content
+                        ]
+                        [ FeatherIcons.copy
+                            |> FeatherIcons.withSize 18
+                            |> FeatherIcons.toHtml []
+                        ]
                     ]
 
               else
