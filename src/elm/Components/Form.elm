@@ -199,27 +199,6 @@ viewAllowEvents shared { msg, allowEvents } =
             , id_ = "allow-events-push-tag"
             }
         ]
-    , h3 [ class "settings-subtitle" ] [ text "Delete" ]
-    , div [ class "form-controls", class "-two-col" ]
-        [ viewCheckbox
-            { title = "Branch"
-            , subtitle = Nothing
-            , field = "allow_push_delete_branch"
-            , state = allowEvents.push.deleteBranch
-            , msg = msg { allowEvents = allowEvents, event = "allow_push_delete_branch" }
-            , disabled_ = False
-            , id_ = "allow-events-push-delete-branch"
-            }
-        , viewCheckbox
-            { title = "Tag"
-            , subtitle = Nothing
-            , field = "allow_push_delete_tag"
-            , state = allowEvents.push.deleteTag
-            , msg = msg { allowEvents = allowEvents, event = "allow_push_delete_tag" }
-            , disabled_ = False
-            , id_ = "allow-events-push-delete-tag"
-            }
-        ]
     , h3 [ class "settings-subtitle" ] [ text "Pull Request" ]
     , div [ class "form-controls", class "-two-col" ]
         [ viewCheckbox
@@ -290,6 +269,27 @@ viewAllowEvents shared { msg, allowEvents } =
             , msg = msg { allowEvents = allowEvents, event = "allow_comment_edited" }
             , disabled_ = False
             , id_ = "allow-events-comment-edited"
+            }
+        ]
+    , h3 [ class "settings-subtitle" ] [ text "Delete" ]
+    , div [ class "form-controls", class "-two-col" ]
+        [ viewCheckbox
+            { title = "Branch"
+            , subtitle = Nothing
+            , field = "allow_push_delete_branch"
+            , state = allowEvents.push.deleteBranch
+            , msg = msg { allowEvents = allowEvents, event = "allow_push_delete_branch" }
+            , disabled_ = False
+            , id_ = "allow-events-push-delete-branch"
+            }
+        , viewCheckbox
+            { title = "Tag"
+            , subtitle = Nothing
+            , field = "allow_push_delete_tag"
+            , state = allowEvents.push.deleteTag
+            , msg = msg { allowEvents = allowEvents, event = "allow_push_delete_tag" }
+            , disabled_ = False
+            , id_ = "allow-events-push-delete-tag"
             }
         ]
     ]
