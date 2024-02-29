@@ -238,7 +238,6 @@ renderDeployment zone repo_ deployment =
             [ attribute "data-label" "builds"
             , scope "row"
             , class "break-word"
-            , class "build"
             ]
             [ linksView (pullBuildLinks deployment) ]
         , td
