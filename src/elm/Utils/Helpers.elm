@@ -576,6 +576,13 @@ orgRepoFromBuildLink link =
             )
 
 
+{-| buildPRCommitURL : creates a direct link to a commit in a PR
+-}
+buildPRCommitURL : String -> String -> String
+buildPRCommitURL source commit =
+    source ++ "/commits/" ++ commit
+
+
 {-| trimCommitHash : takes the first 7 characters of the full commit hash
 -}
 trimCommitHash : String -> String
@@ -600,13 +607,6 @@ getNameFromRef s =
 
         _ ->
             ""
-
-
-{-| buildPRCommitURL : creates a direct link to a commit in a PR
--}
-buildPRCommitURL : String -> String -> String
-buildPRCommitURL source commit =
-    source ++ "/commits/" ++ commit
 
 
 {-| formatFilesize : returns a file size in bytes as a human readable string.
