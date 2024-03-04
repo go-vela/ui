@@ -83,6 +83,7 @@ type alias Model =
     , pager : List WebLink
     , showFullTimestamps : Bool
     , showActionsMenus : List Int
+    , showFilter : Bool
     }
 
 
@@ -92,6 +93,7 @@ init shared route () =
       , pager = []
       , showFullTimestamps = False
       , showActionsMenus = []
+      , showFilter = False
       }
     , Effect.getRepoBuilds
         { baseUrl = shared.velaAPIBaseURL
@@ -154,6 +156,7 @@ update shared route msg model =
                     ( { model
                         | builds = RemoteData.succeed builds
                         , pager = Api.Pagination.get meta.headers
+                        , showFilter = List.length builds > 0 || Dict.get "event" route.query /= Nothing
                       }
                     , Effect.none
                     )
@@ -429,7 +432,14 @@ view shared route model =
     in
     { title = "Builds" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
-        [ caption
+        [ Components.Builds.viewHeader
+            { show = model.showFilter
+            , maybeEvent = Dict.get "event" route.query
+            , showFullTimestamps = model.showFullTimestamps
+            , filterByEvent = FilterByEvent
+            , showHideFullTimestamps = ShowHideFullTimestamps
+            }
+        , caption
             [ class "builds-caption"
             ]
             [ span [] []
@@ -440,19 +450,10 @@ view shared route model =
                 , msg = GotoPage
                 }
             ]
-        , Components.Builds.viewHeader
-            { show =
-                RemoteData.unwrap False
-                    (\builds -> List.length builds > 0)
-                    model.builds
-            , maybeEvent = Dict.get "event" route.query
-            , showFullTimestamps = model.showFullTimestamps
-            , filterByEvent = FilterByEvent
-            , showHideFullTimestamps = ShowHideFullTimestamps
-            }
         , Components.Builds.view shared
             { msgs = msgs
             , builds = model.builds
+            , orgRepo = ( route.params.org, Just route.params.repo )
             , maybeEvent = Dict.get "event" route.query
             , showFullTimestamps = model.showFullTimestamps
             , viewActionsMenu =
@@ -467,7 +468,7 @@ view shared route model =
                         , build = options.build
                         , showActionsMenus = model.showActionsMenus
                         }
-            , linkRepoName = False
+            , showRepoLink = False
             , linkBuildNumber = True
             }
         , Components.Pager.view

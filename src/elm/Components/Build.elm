@@ -24,7 +24,7 @@ type alias Props msg =
     { build : WebData Vela.Build
     , showFullTimestamps : Bool
     , actionsMenu : Html msg
-    , linkRepoName : Bool
+    , showRepoLink : Bool
     , linkBuildNumber : Bool
     }
 
@@ -56,9 +56,9 @@ view shared props =
                     [ text <| "- " ++ build.message ]
 
                 repoLink =
-                    span []
-                        [ if props.linkRepoName then
-                            a
+                    if props.showRepoLink then
+                        span []
+                            [ a
                                 [ Route.Path.href <|
                                     Route.Path.Org_Repo_
                                         { org = org
@@ -66,11 +66,11 @@ view shared props =
                                         }
                                 ]
                                 [ text repo ]
+                            , text ": "
+                            ]
 
-                          else
-                            text repo
-                        , text ": "
-                        ]
+                    else
+                        text ""
 
                 commit =
                     case build.event of

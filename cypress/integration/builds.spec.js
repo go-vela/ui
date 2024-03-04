@@ -333,7 +333,7 @@ context('Builds', () => {
     it('should show no results', () => {
       cy.get('[data-test=build-filter-deployment]').click({ force: true });
       cy.get('[data-test=build]').should('not.be.visible');
-      cy.get('h1').should('contain', 'No builds for "deployment" event found.');
+      cy.get('h3').should('contain', 'No builds for "deployment" event found.');
       cy.url().should('contain', '?event=deployment');
     });
 

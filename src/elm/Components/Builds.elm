@@ -15,7 +15,8 @@ import Html
         , code
         , div
         , em
-        , h1
+        , h2
+        , h3
         , input
         , label
         , li
@@ -57,10 +58,11 @@ type alias Msgs msg =
 type alias Props msg =
     { msgs : Msgs msg
     , builds : WebData (List Vela.Build)
+    , orgRepo : ( String, Maybe String )
     , maybeEvent : Maybe String
     , showFullTimestamps : Bool
     , viewActionsMenu : { build : Vela.Build } -> Html msg
-    , linkRepoName : Bool
+    , showRepoLink : Bool
     , linkBuildNumber : Bool
     }
 
@@ -73,19 +75,20 @@ view : Shared.Model -> Props msg -> Html msg
 view shared props =
     let
         webhooks =
-            text "configured webhook events"
+            case props.orgRepo of
+                ( org, Just repo ) ->
+                    a [ href <| "/" ++ String.join "/" [ org, repo ] ++ "/settings" ] [ text "configured webhook events" ]
 
-        -- case props.maybeRepo of
-        --     Just repo ->
-        --         a [ href <| "/" ++ String.join "/" [ props.org, repo ] ++ "/settings" ] [ text "configured webhook events" ]
-        --     Nothing ->
-        --         text "configured webhook events"
+                _ ->
+                    text "configured webhook events"
+
         none : Html msg
         none =
             case props.maybeEvent of
                 Nothing ->
                     div []
-                        [ p [] [ text "Builds will show up here once you have:" ]
+                        [ h2 [] [ text "Your repository has been enabled!" ]
+                        , p [] [ text "Builds will show up here once you have:" ]
                         , ol [ class "list" ]
                             [ li []
                                 [ text "A "
@@ -110,7 +113,7 @@ view shared props =
 
                 Just event ->
                     div []
-                        [ h1 [] [ text <| "No builds for \"" ++ event ++ "\" event found." ] ]
+                        [ h3 [] [ text <| "No builds for \"" ++ event ++ "\" event found." ] ]
     in
     case props.builds of
         RemoteData.Success builds ->
@@ -125,7 +128,7 @@ view shared props =
                                 { build = RemoteData.succeed build
                                 , showFullTimestamps = props.showFullTimestamps
                                 , actionsMenu = props.viewActionsMenu { build = build }
-                                , linkRepoName = props.linkRepoName
+                                , showRepoLink = props.showRepoLink
                                 , linkBuildNumber = props.linkBuildNumber
                                 }
                         )

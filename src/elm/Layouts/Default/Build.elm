@@ -433,7 +433,7 @@ view props shared route { toContentMsg, model, content } =
                 { build = model.build
                 , showFullTimestamps = False
                 , actionsMenu = Html.div [] []
-                , linkRepoName = False
+                , showRepoLink = False
                 , linkBuildNumber = False
                 }
              , viewBanner

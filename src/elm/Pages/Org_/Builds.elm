@@ -12,7 +12,7 @@ import Components.Builds
 import Components.Pager
 import Dict
 import Effect exposing (Effect)
-import Html exposing (caption, span, text)
+import Html exposing (caption, span)
 import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
@@ -77,6 +77,7 @@ type alias Model =
     , pager : List WebLink
     , showFullTimestamps : Bool
     , showActionsMenus : List Int
+    , showFilter : Bool
     }
 
 
@@ -86,6 +87,7 @@ init shared route () =
       , pager = []
       , showFullTimestamps = False
       , showActionsMenus = []
+      , showFilter = False
       }
     , Effect.getOrgBuilds
         { baseUrl = shared.velaAPIBaseURL
@@ -146,6 +148,7 @@ update shared route msg model =
                     ( { model
                         | builds = RemoteData.Success builds
                         , pager = Api.Pagination.get meta.headers
+                        , showFilter = List.length builds > 0 || Dict.get "event" route.query /= Nothing
                       }
                     , Effect.none
                     )
@@ -415,7 +418,14 @@ view shared route model =
     in
     { title = "Builds" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
-        [ caption
+        [ Components.Builds.viewHeader
+            { show = model.showFilter
+            , maybeEvent = Dict.get "event" route.query
+            , showFullTimestamps = model.showFullTimestamps
+            , filterByEvent = FilterByEvent
+            , showHideFullTimestamps = ShowHideFullTimestamps
+            }
+        , caption
             [ class "builds-caption"
             ]
             [ span [] []
@@ -428,19 +438,10 @@ view shared route model =
                     }
                 ]
             ]
-        , Components.Builds.viewHeader
-            { show =
-                RemoteData.unwrap False
-                    (\builds -> List.length builds > 0)
-                    model.builds
-            , maybeEvent = Dict.get "event" route.query
-            , showFullTimestamps = model.showFullTimestamps
-            , filterByEvent = FilterByEvent
-            , showHideFullTimestamps = ShowHideFullTimestamps
-            }
         , Components.Builds.view shared
             { msgs = msgs
             , builds = model.builds
+            , orgRepo = ( route.params.org, Nothing )
             , maybeEvent = Dict.get "event" route.query
             , showFullTimestamps = model.showFullTimestamps
             , viewActionsMenu =
@@ -455,7 +456,7 @@ view shared route model =
                         , build = options.build
                         , showActionsMenus = model.showActionsMenus
                         }
-            , linkRepoName = True
+            , showRepoLink = True
             , linkBuildNumber = True
             }
         , Components.Pager.view
