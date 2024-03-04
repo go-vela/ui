@@ -3,14 +3,13 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.ScheduleForm exposing (viewCronHelp, viewEnabledInput, viewHelp, viewSchedulesNotAllowedWarning, viewSubmitButton)
+module Components.ScheduleForm exposing (viewCronHelp, viewEnabledInput, viewHelp, viewSchedulesNotAllowedWarning)
 
 import Components.Form
 import Html
     exposing
         ( Html
         , a
-        , button
         , div
         , em
         , section
@@ -21,12 +20,9 @@ import Html
 import Html.Attributes
     exposing
         ( class
-        , disabled
         , href
-        , target
         , value
         )
-import Html.Events exposing (onClick)
 import Time
 import Utils.Helpers as Util
 
@@ -98,19 +94,6 @@ viewHelp docsUrl =
             ]
             [ text "docs" ]
         , text "!"
-        ]
-
-
-viewSubmitButton : { msg : msg, disabled_ : Bool } -> Html msg
-viewSubmitButton { msg, disabled_ } =
-    div [ class "form-action" ]
-        [ button
-            [ class "button"
-            , class "-outline"
-            , onClick msg
-            , disabled disabled_
-            ]
-            [ text "Submit" ]
         ]
 
 

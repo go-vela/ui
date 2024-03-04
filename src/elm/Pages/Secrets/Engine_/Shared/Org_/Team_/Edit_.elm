@@ -375,36 +375,40 @@ view shared route model =
                         , Components.SecretForm.viewHelp shared.velaDocsURL
                         , div [ class "buttons" ]
                             [ Components.Form.viewButton
-                                { msg = SubmitForm
-                                , text_ = "Submit"
+                                { id_ = "submit"
+                                , msg = SubmitForm
+                                , text_ = "Update Secret"
                                 , classList_ = []
                                 , disabled_ = not <| RemoteData.isSuccess model.secret
-                                , id_ = "submit"
                                 }
                             , if not model.confirmingDelete then
                                 Components.Form.viewButton
-                                    { msg = ClickDelete
-                                    , text_ = "Delete"
-                                    , classList_ = []
+                                    { id_ = "delete"
+                                    , msg = ClickDelete
+                                    , text_ = "Delete Secret"
+                                    , classList_ =
+                                        [ ( "-outline", True )
+                                        ]
                                     , disabled_ = not <| RemoteData.isSuccess model.secret
-                                    , id_ = "delete"
                                     }
 
                               else
                                 Components.Form.viewButton
-                                    { msg = CancelDelete
+                                    { id_ = "delete-cancel"
+                                    , msg = CancelDelete
                                     , text_ = "Cancel"
-                                    , classList_ = []
+                                    , classList_ =
+                                        [ ( "-outline", True )
+                                        ]
                                     , disabled_ = not <| RemoteData.isSuccess model.secret
-                                    , id_ = "delete-cancel"
                                     }
                             , if model.confirmingDelete then
                                 Components.Form.viewButton
-                                    { msg = ConfirmDelete
-                                    , text_ = "Confirm"
+                                    { id_ = "delete-confirm"
+                                    , msg = ConfirmDelete
+                                    , text_ = "Confirm Delete"
                                     , classList_ = [ ( "-secret-delete-confirm", True ) ]
                                     , disabled_ = not <| RemoteData.isSuccess model.secret
-                                    , id_ = "delete-confirm"
                                     }
 
                               else

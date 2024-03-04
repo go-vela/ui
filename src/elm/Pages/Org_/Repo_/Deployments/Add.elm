@@ -161,11 +161,15 @@ update shared route msg model =
             case response of
                 Ok ( _, deployment ) ->
                     ( model
-                    , Effect.addAlertSuccess
-                        { content = "Added deployment for commit " ++ deployment.commit ++ "."
-                        , addToastIfUnique = True
-                        , link = Nothing
-                        }
+                    , Effect.batch
+                        [ Effect.addAlertSuccess
+                            { content = "Added deployment for commit " ++ deployment.commit ++ "."
+                            , addToastIfUnique = True
+                            , link = Nothing
+                            }
+                        , Effect.replacePath <|
+                            Route.Path.Org_Repo_Deployments { org = route.params.org, repo = route.params.repo }
+                        ]
                     )
 
                 Err error ->
@@ -457,7 +461,7 @@ view shared route model =
                                     , class "-outline"
                                     , onClick SubmitForm
                                     ]
-                                    [ text "Submit" ]
+                                    [ text "Add Deployment" ]
                                 ]
                             ]
                         ]

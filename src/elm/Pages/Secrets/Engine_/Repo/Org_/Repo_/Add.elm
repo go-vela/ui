@@ -114,7 +114,13 @@ update shared route msg model =
         AddSecretResponse response ->
             case response of
                 Ok ( _, secret ) ->
-                    ( model
+                    ( { name = ""
+                      , value = ""
+                      , allowEvents = Vela.defaultEnabledAllowEvents
+                      , images = []
+                      , image = ""
+                      , allowCommand = True
+                      }
                     , Effect.addAlertSuccess
                         { content = secret.name ++ " added to repo secrets."
                         , addToastIfUnique = True
@@ -286,11 +292,11 @@ view shared route model =
                             }
                         , Components.SecretForm.viewHelp shared.velaDocsURL
                         , Components.Form.viewButton
-                            { msg = SubmitForm
-                            , text_ = "Submit"
+                            { id_ = "submit"
+                            , msg = SubmitForm
+                            , text_ = "Add Secret"
                             , classList_ = []
                             , disabled_ = False
-                            , id_ = "submit"
                             }
                         ]
                     ]

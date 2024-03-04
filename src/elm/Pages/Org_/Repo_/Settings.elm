@@ -1157,10 +1157,10 @@ viewEnableButton disableRepoMsg enableRepoMsg repo =
             button
                 [ baseClasses
                 , baseTestAttribute
-                , class "repo-disable-confirm"
+                , class "-repo-disable-confirm"
                 , onClick disableRepoMsg
                 ]
-                [ text "Really Disable?" ]
+                [ text "Confirm Disable" ]
 
         Vela.Disabling ->
             button

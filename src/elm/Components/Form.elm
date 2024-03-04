@@ -155,7 +155,6 @@ viewButton : { id_ : String, msg : msg, text_ : String, classList_ : List ( Stri
 viewButton { id_, msg, text_, classList_, disabled_ } =
     button
         [ class "button"
-        , class "-outline"
         , onClick msg
         , disabled disabled_
         , classList classList_

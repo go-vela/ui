@@ -24,6 +24,8 @@ type alias Props msg =
     { build : WebData Vela.Build
     , showFullTimestamps : Bool
     , actionsMenu : Html msg
+    , linkRepoName : Bool
+    , linkBuildNumber : Bool
     }
 
 
@@ -35,16 +37,38 @@ view shared props =
                 ( org, repo ) =
                     Util.orgRepoFromBuildLink build.link
 
+                buildNumberLink =
+                    ("#" ++ String.fromInt build.number)
+                        |> (\t ->
+                                [ if props.linkBuildNumber then
+                                    a
+                                        [ Util.testAttribute "build-number"
+                                        , href build.link
+                                        ]
+                                        [ text t ]
+
+                                  else
+                                    text t
+                                ]
+                           )
+
+                message =
+                    [ text <| "- " ++ build.message ]
+
                 repoLink =
                     span []
-                        [ a
-                            [ Route.Path.href <|
-                                Route.Path.Org_Repo_
-                                    { org = org
-                                    , repo = repo
-                                    }
-                            ]
-                            [ text repo ]
+                        [ if props.linkRepoName then
+                            a
+                                [ Route.Path.href <|
+                                    Route.Path.Org_Repo_
+                                        { org = org
+                                        , repo = repo
+                                        }
+                                ]
+                                [ text repo ]
+
+                          else
+                            text repo
                         , text ": "
                         ]
 
@@ -94,17 +118,6 @@ view shared props =
 
                 sender =
                     [ text build.sender ]
-
-                message =
-                    [ text <| "- " ++ build.message ]
-
-                buildNumberLink =
-                    [ a
-                        [ Util.testAttribute "build-number"
-                        , href build.link
-                        ]
-                        [ text <| "#" ++ String.fromInt build.number ]
-                    ]
 
                 buildCreatedPosix =
                     Time.millisToPosix <| Util.secondsToMillis build.created
