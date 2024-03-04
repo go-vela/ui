@@ -83,7 +83,11 @@ view shared props =
                                 , text (Util.getNameFromRef build.ref)
                                 ]
                             , text " ("
-                            , a [ href build.source ] [ text <| Util.trimCommitHash build.commit ]
+                            , a
+                                [ href (Util.buildPRCommitURL build.source build.commit)
+                                , Util.testAttribute "commit-link"
+                                ]
+                                [ text <| Util.trimCommitHash build.commit ]
                             , text <| ")"
                             ]
 
@@ -160,6 +164,13 @@ view shared props =
 
                                     else
                                         "--:--"
+
+                approvedBy =
+                    if build.approved_at /= 0 && build.event == "pull_request" then
+                        [ text <| " (approved by " ++ build.approved_by ++ ")" ]
+
+                    else
+                        []
             in
             viewBuildPreview
                 { statusIcon = [ Components.Svgs.buildStatusToIcon build.status ]
@@ -171,7 +182,7 @@ view shared props =
                     , text "on"
                     , div [ class "branch" ] branch
                     , text "by"
-                    , div [ class "sender" ] sender
+                    , div [ class "sender" ] (sender ++ approvedBy)
                     ]
                 , displayTime = displayTime
                 , duration = duration
@@ -229,7 +240,7 @@ viewBuildPreview props =
                     , div [ class "commit-msg" ] props.commitMessage
                     ]
                 , div [ class "row" ]
-                    [ div [ class "git-info" ]
+                    [ div [ class "git-info", Util.testAttribute "git-info" ]
                         props.gitInfo
                     , div [ class "time-info" ]
                         [ div [ class "time-completed" ]
