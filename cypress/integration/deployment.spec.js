@@ -42,7 +42,7 @@ context('Deployment', () => {
         .first()
         .children()
         .last()
-        .should('contain.text', 'key1=val1');
+        .should('contain.text', 'remove');
       cy.get('[data-test=parameter-key]')
         .should('exist')
         .should('have.value', '');

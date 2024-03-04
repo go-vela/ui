@@ -11,17 +11,16 @@
 // This function is called when a project is opened or re-opened (e.g. due to
 // the project's config changing)
 
-// see: https://github.com/component-driven/cypress-axe#using-the-violationcallback-argument
 module.exports = (on, config) => {
+  // use task callbacks to log violations
+  // see: https://github.com/component-driven/cypress-axe#using-the-violationcallback-argument
   on('task', {
     log(message) {
       console.log(message);
-
       return null;
     },
     table(message) {
       console.table(message);
-
       return null;
     },
   });

@@ -49,7 +49,7 @@ context('Contextual Help', () => {
       it('cmd should contain cli command', () => {
         cy.get('[data-test=help-row] input')
           .invoke('val')
-          .should('eq', 'vela get builds --help');
+          .should('eq', 'vela get builds --org github --repo octocat');
       });
       it('dropdown footer should contain installation and authentication docs', () => {
         cy.get('[data-test=help-footer]').contains('CLI Installation Docs');
