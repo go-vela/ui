@@ -614,12 +614,35 @@ Cypress.Commands.add('redeliverHookError', () => {
   });
 });
 
+
+
+// Define at the top of the spec file or just import it
+function terminalLog(violations) {
+  cy.task(
+    'log',
+    `${violations.length} accessibility violation${
+      violations.length === 1 ? '' : 's'
+    } ${violations.length === 1 ? 'was' : 'were'} detected`
+  )
+  // pluck specific keys to keep the table readable
+  const violationData = violations.map(
+    ({ id, impact, description, nodes }) => ({
+      id,
+      impact,
+      description,
+      nodes: nodes.length
+    })
+  )
+
+  cy.task('table', violationData)
+}
+
 Cypress.Commands.add('checkA11yForPage', (path = '/', opts = {}) => {
   cy.login(path);
   cy.injectAxe();
   cy.wait(1000);
   // excludes accessibility testing for Elm pop-up that only appears in Cypress and not on the actual UI
-  cy.checkA11y({ exclude: ['[style*="padding-left: calc(1ch + 6px)"]'] }, opts);
+  cy.checkA11y({ exclude: ['[style*="padding-left: calc(1ch + 6px)"]'] }, opts, terminalLog);
 });
 
 Cypress.Commands.add('setTheme', theme => {
