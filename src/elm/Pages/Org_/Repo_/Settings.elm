@@ -762,6 +762,15 @@ viewForkPolicy repo msg =
                 , id_ = "fork-no-write"
                 }
             , Components.Form.viewRadio
+                { title = "Require Admin Approval for First Time Contributors"
+                , subtitle = Just (text "(repository admin must approve all builds from outside contributors who have not contributed to the repo before)")
+                , value = repo.approve_build
+                , field = "first-time"
+                , msg = msg "first-time"
+                , disabled_ = False
+                , id_ = "first-time"
+                }
+            , Components.Form.viewRadio
                 { title = "Never Require Admin Approval"
                 , subtitle = Just (text "(any outside contributor can run a PR build)")
                 , value = repo.approve_build

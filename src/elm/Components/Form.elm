@@ -5,7 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 module Components.Form exposing (viewAllowEvents, viewButton, viewCheckbox, viewInput, viewRadio, viewSubtitle, viewTextarea)
 
-import Html exposing (Html, button, div, h3, input, label, p, section, span, strong, text, textarea)
+import Html exposing (Html, button, div, input, label, section, span, strong, text, textarea)
 import Html.Attributes exposing (checked, class, classList, disabled, for, id, placeholder, rows, type_, value, wrap)
 import Html.Events exposing (onCheck, onClick, onInput)
 import Maybe.Extra
@@ -177,7 +177,7 @@ viewAllowEvents :
         }
     -> List (Html msg)
 viewAllowEvents shared { msg, allowEvents } =
-    [ h3 [ class "settings-subtitle" ] [ text "Push" ]
+    [ strong [ class "settings-subtitle" ] [ text "Push" ]
     , div [ class "form-controls", class "-two-col" ]
         [ viewCheckbox
             { title = "Push"
@@ -198,7 +198,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , id_ = "allow-events-push-tag"
             }
         ]
-    , h3 [ class "settings-subtitle" ] [ text "Pull Request" ]
+    , strong [ class "settings-subtitle" ] [ text "Pull Request" ]
     , div [ class "form-controls", class "-two-col" ]
         [ viewCheckbox
             { title = "Opened"
@@ -237,7 +237,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , id_ = "allow-events-pull-reopened"
             }
         ]
-    , h3 [ class "settings-subtitle" ] [ text "Deployments" ]
+    , strong [ class "settings-subtitle" ] [ text "Deployments" ]
     , div [ class "form-controls", class "-two-col" ]
         [ viewCheckbox
             { title = "Created"
@@ -249,7 +249,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , id_ = "allow-events-deploy-created"
             }
         ]
-    , h3 [ class "settings-subtitle" ] [ text "Comment" ]
+    , strong [ class "settings-subtitle" ] [ text "Comment" ]
     , div [ class "form-controls", class "-two-col" ]
         [ viewCheckbox
             { title = "Created"
@@ -270,7 +270,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , id_ = "allow-events-comment-edited"
             }
         ]
-    , h3 [ class "settings-subtitle" ] [ text "Delete" ]
+    , strong [ class "settings-subtitle" ] [ text "Delete" ]
     , div [ class "form-controls", class "-two-col" ]
         [ viewCheckbox
             { title = "Branch"
@@ -289,6 +289,18 @@ viewAllowEvents shared { msg, allowEvents } =
             , msg = msg { allowEvents = allowEvents, event = "allow_push_delete_tag" }
             , disabled_ = False
             , id_ = "allow-events-push-delete-tag"
+            }
+        ]
+    , strong [ class "settings-subtitle" ] [ text "Schedule" ]
+    , div [ class "form-controls", class "-two-col" ]
+        [ viewCheckbox
+            { title = "Schedule"
+            , subtitle = Nothing
+            , field = "allow_schedule_run"
+            , state = allowEvents.schedule.run
+            , msg = msg { allowEvents = allowEvents, event = "allow_schedule_run" }
+            , disabled_ = False
+            , id_ = "allow-events-schedule-run"
             }
         ]
     ]

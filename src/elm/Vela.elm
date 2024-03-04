@@ -670,7 +670,7 @@ setAllowEvents payload field val =
         events =
             payload.allowEvents
 
-        { push, pull, deploy, comment } =
+        { push, pull, deploy, comment, schedule } =
             events
     in
     case field of
@@ -727,6 +727,11 @@ setAllowEvents payload field val =
         "allow_comment_edited" ->
             { payload
                 | allowEvents = { events | comment = { comment | edited = val } }
+            }
+
+        "allow_schedule_run" ->
+            { payload
+                | allowEvents = { events | schedule = { schedule | run = val } }
             }
 
         _ ->
