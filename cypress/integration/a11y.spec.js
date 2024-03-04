@@ -29,7 +29,7 @@ context('Accessibility (a11y)', () => {
     it('overview', () => {
       cy.visit('/account/login');
       cy.injectAxe();
-      cy.wait(1000);
+      cy.wait(2000);
       // excludes accessibility testing for Elm pop-up that only appears in Cypress and not on the actual UI
       cy.checkA11y({ exclude: [elmExclude] }, A11Y_OPTS);
     });
@@ -109,7 +109,7 @@ context('Accessibility (a11y)', () => {
     it('build page', () => {
       cy.login('/github/octocat/1');
       cy.injectAxe();
-      cy.wait(1000);
+      cy.wait(2000);
       cy.clickSteps();
       // excludes accessibility testing for Elm pop-up that only appears in Cypress and not on the actual UI
       cy.checkA11y({ exclude: [elmExclude] }, A11Y_OPTS);
