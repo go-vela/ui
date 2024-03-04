@@ -60,6 +60,8 @@ type alias Props msg =
     , maybeEvent : Maybe String
     , showFullTimestamps : Bool
     , viewActionsMenu : { build : Vela.Build } -> Html msg
+    , linkRepoName : Bool
+    , linkBuildNumber : Bool
     }
 
 
@@ -123,6 +125,8 @@ view shared props =
                                 { build = RemoteData.succeed build
                                 , showFullTimestamps = props.showFullTimestamps
                                 , actionsMenu = props.viewActionsMenu { build = build }
+                                , linkRepoName = props.linkRepoName
+                                , linkBuildNumber = props.linkBuildNumber
                                 }
                         )
                         builds

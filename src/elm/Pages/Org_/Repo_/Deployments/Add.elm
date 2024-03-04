@@ -161,11 +161,15 @@ update shared route msg model =
             case response of
                 Ok ( _, deployment ) ->
                     ( model
-                    , Effect.addAlertSuccess
-                        { content = "Added deployment for commit " ++ deployment.commit ++ "."
-                        , addToastIfUnique = True
-                        , link = Nothing
-                        }
+                    , Effect.batch
+                        [ Effect.addAlertSuccess
+                            { content = "Added deployment for commit " ++ deployment.commit ++ "."
+                            , addToastIfUnique = True
+                            , link = Nothing
+                            }
+                        , Effect.replacePath <|
+                            Route.Path.Org_Repo_Deployments { org = route.params.org, repo = route.params.repo }
+                        ]
                     )
 
                 Err error ->
@@ -316,7 +320,7 @@ view shared route model =
                             , subtitle = Nothing
                             , id_ = "target"
                             , val = model.target
-                            , placeholder_ = "provide the name for the target deployment environment (default: \"production\")"
+                            , placeholder_ = "Provide the name for the target deployment environment (default: \"production\")"
                             , classList_ = [ ( "secret-value", True ) ]
                             , disabled_ = False
                             , rows_ = Just 2
@@ -329,7 +333,7 @@ view shared route model =
                             , id_ = "ref"
                             , val = model.ref
                             , placeholder_ =
-                                "provide the reference to deploy - this can be a branch, commit (SHA) or tag\n(default is your repo's default branch: "
+                                "Provide the reference to deploy - this can be a branch, commit (SHA) or tag\n(default is your repo's default branch: "
                                     ++ RemoteData.unwrap "main" .branch model.repo
                                     ++ ")"
                             , classList_ = [ ( "secret-value", True ) ]
@@ -343,7 +347,7 @@ view shared route model =
                             , subtitle = Nothing
                             , id_ = "description"
                             , val = model.description
-                            , placeholder_ = "provide the description for the deployment (default: \"Deployment request from Vela\")"
+                            , placeholder_ = "Provide the description for the deployment (default: \"Deployment request from Vela\")"
                             , classList_ = [ ( "secret-value", True ) ]
                             , disabled_ = False
                             , rows_ = Just 5
@@ -421,14 +425,14 @@ view shared route model =
                                     let
                                         viewParameter parameter =
                                             div [ class "parameter", class "chevron" ]
-                                                [ button
+                                                [ div [ class "name" ] [ text (parameter.key ++ "=" ++ parameter.value) ]
+                                                , button
                                                     [ class "button"
                                                     , class "-outline"
                                                     , onClick <| RemoveParameter parameter
                                                     ]
                                                     [ text "remove"
                                                     ]
-                                                , div [ class "name" ] [ text (parameter.key ++ "=" ++ parameter.value) ]
                                                 ]
                                     in
                                     List.map viewParameter <| List.reverse model.parameters
@@ -446,7 +450,6 @@ view shared route model =
                             [ text "Need help? Visit our "
                             , Html.a
                                 [ Html.Attributes.href <| shared.velaDocsURL ++ "/usage/deployments/"
-                                , Html.Attributes.target "_blank"
                                 ]
                                 [ text "docs" ]
                             , text "!"
@@ -458,7 +461,7 @@ view shared route model =
                                     , class "-outline"
                                     , onClick SubmitForm
                                     ]
-                                    [ text "Submit" ]
+                                    [ text "Add Deployment" ]
                                 ]
                             ]
                         ]

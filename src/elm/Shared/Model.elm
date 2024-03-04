@@ -54,6 +54,9 @@ type alias Model =
     -- ALERTS
     , toasties : Stack Alert
 
+    -- SOURCE REPOS
+    , sourceRepos : WebData Vela.SourceRepositories
+
     -- BUILDS
     , builds : WebData (List Vela.Build)
 

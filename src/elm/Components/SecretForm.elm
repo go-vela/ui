@@ -113,14 +113,14 @@ viewImagesInput { onInput_, addImage, removeImage, images, imageValue, disabled_
 viewImage : { msg : String -> msg, image : String } -> Html msg
 viewImage { msg, image } =
     div [ class "image", class "chevron" ]
-        [ button
+        [ div [ class "name" ] [ text image ]
+        , button
             [ class "button"
             , class "-outline"
             , onClick <| msg image
             ]
             [ text "remove"
             ]
-        , div [ class "name" ] [ text image ]
         ]
 
 
@@ -168,7 +168,6 @@ viewHelp docsUrl =
         [ text "Need help? Visit our "
         , a
             [ href <| docsUrl ++ "/usage/secrets/"
-            , target "_blank"
             ]
             [ text "docs" ]
         , text "!"

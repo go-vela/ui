@@ -11,6 +11,7 @@ module Utils.Helpers exposing
     , base64Decode
     , boolToString
     , boolToYesNo
+    , buildPRCommitURL
     , buildRefURL
     , checkScheduleAllowlist
     , dispatch
@@ -599,6 +600,13 @@ getNameFromRef s =
 
         _ ->
             ""
+
+
+{-| buildPRCommitURL : creates a direct link to a commit in a PR
+-}
+buildPRCommitURL : String -> String -> String
+buildPRCommitURL source commit =
+    source ++ "/commits/" ++ commit
 
 
 {-| formatFilesize : returns a file size in bytes as a human readable string.

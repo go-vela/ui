@@ -300,8 +300,8 @@ viewSchedule zone org repo schedule =
     tr [ Util.testAttribute <| "schedules-row" ]
         [ Components.Table.viewItemCell
             { dataLabel = "name"
-            , parentClassList = []
-            , itemClassList = []
+            , parentClassList = [ ( "name", True ) ]
+            , itemClassList = [ ( "-block", True ) ]
             , children =
                 [ a
                     [ Route.Path.href <|

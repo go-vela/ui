@@ -212,7 +212,7 @@ update shared route msg model =
         EnableRepo options ->
             let
                 payload =
-                    Vela.buildEnableRepoPayload options.repo
+                    Vela.buildRepoPayload options.repo
 
                 body =
                     Http.jsonBody <| Vela.encodeEnableRepository payload
@@ -715,7 +715,7 @@ viewAccess repo msg =
         , div [ class "form-controls", class "-stack" ]
             [ Components.Form.viewRadio
                 { title = "Private"
-                , subtitle = Just (text "(anyone with access to this Vela instance)")
+                , subtitle = Just (text "(restricted to those with repository access)")
                 , value = repo.visibility
                 , field = "private"
                 , msg = msg "private"
@@ -760,6 +760,15 @@ viewForkPolicy repo msg =
                 , msg = msg "fork-no-write"
                 , disabled_ = False
                 , id_ = "fork-no-write"
+                }
+            , Components.Form.viewRadio
+                { title = "Require Admin Approval for First Time Contributors"
+                , subtitle = Just (text "(repository admin must approve all builds from outside contributors who have not contributed to the repo before)")
+                , value = repo.approve_build
+                , field = "first-time"
+                , msg = msg "first-time"
+                , disabled_ = False
+                , id_ = "first-time"
                 }
             , Components.Form.viewRadio
                 { title = "Never Require Admin Approval"
@@ -1157,10 +1166,10 @@ viewEnableButton disableRepoMsg enableRepoMsg repo =
             button
                 [ baseClasses
                 , baseTestAttribute
-                , class "repo-disable-confirm"
+                , class "-repo-disable-confirm"
                 , onClick disableRepoMsg
                 ]
-                [ text "Really Disable?" ]
+                [ text "Confirm Disable" ]
 
         Vela.Disabling ->
             button

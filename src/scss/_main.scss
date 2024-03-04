@@ -1295,6 +1295,12 @@ details.build-toggle {
   border: 1px solid var(--color-red);
 }
 
+.vert-icon-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
 .-icon {
   fill: none;
   stroke: var(--color-primary);
@@ -1679,7 +1685,7 @@ details.build-toggle {
 }
 
 .button.-secret-delete-confirm,
-.button .-repo-disable-confirm {
+.button.-repo-disable-confirm {
   color: var(--color-red);
 
   background-color: var(--color-bg);
@@ -1693,6 +1699,10 @@ details.build-toggle {
     background-color: var(--color-red-dark);
     border-color: var(--color-offwhite);
   }
+}
+
+.shared-secrets-container {
+  margin-top: 1.2rem;
 }
 
 // Secrets Section end

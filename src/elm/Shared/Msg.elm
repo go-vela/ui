@@ -11,6 +11,7 @@ import Browser.Events
 import Components.Alerts
 import Http
 import Http.Detailed
+import RemoteData exposing (WebData)
 import Time
 import Toasty as Alerting
 import Utils.Favicons as Favicons
@@ -43,6 +44,8 @@ type Msg
       -- USER
     | GetCurrentUser
     | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.CurrentUser ))
+      -- SOURCE REPOS
+    | UpdateSourceRepos { sourceRepos : WebData Vela.SourceRepositories }
       -- FAVORITES
     | UpdateFavorites { org : String, maybeRepo : Maybe String, updateType : Favorites.UpdateType }
     | RepoFavoriteResponse { favorite : String, favorited : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.CurrentUser ))

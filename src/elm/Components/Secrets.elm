@@ -189,7 +189,7 @@ viewSharedSecrets shared props =
                 rows
                 actions
     in
-    div [] [ Components.Table.view cfg ]
+    div [ class "shared-secrets-container" ] [ Components.Table.view cfg ]
 
 
 {-| tableHeaders : returns table headers for secrets table
@@ -243,8 +243,8 @@ viewSecret engine type_ copyMsg secret =
             }
         , Components.Table.viewItemCell
             { dataLabel = "name"
-            , parentClassList = []
-            , itemClassList = []
+            , parentClassList = [ ( "name", True ) ]
+            , itemClassList = [ ( "-block", True ) ]
             , children = [ a [ editSecretHref engine type_ secret ] [ text secret.name ] ]
             }
         , Components.Table.viewListItemCell

@@ -177,7 +177,7 @@ context('Repo Settings', () => {
         response: `"Repo CookieCat/applications deleted"`,
       });
       cy.get('[data-test=repo-disable]').first().click({ force: true });
-      cy.get('[data-test=repo-disable]').should('contain', 'Really Disable?');
+      cy.get('[data-test=repo-disable]').should('contain', 'Confirm Disable');
     });
 
     it('clicking button twice should disable the repo', () => {

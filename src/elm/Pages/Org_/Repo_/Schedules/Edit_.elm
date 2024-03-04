@@ -334,7 +334,7 @@ view shared route model =
                             , val = RemoteData.unwrap "" .name model.schedule
                             , placeholder_ =
                                 if model.repoSchedulesAllowed then
-                                    "loading..."
+                                    "Loading..."
 
                                 else
                                     "Schedule Name"
@@ -381,34 +381,40 @@ view shared route model =
                         , Components.ScheduleForm.viewHelp shared.velaDocsURL
                         , div [ class "buttons" ]
                             [ Components.Form.viewButton
-                                { msg = SubmitForm
-                                , text_ = "Submit"
+                                { id_ = "submit"
+                                , msg = SubmitForm
+                                , text_ = "Update Schedule"
                                 , classList_ = []
                                 , disabled_ = formDisabled
-                                , id_ = "submit"
                                 }
                             , if not model.confirmingDelete then
                                 Components.Form.viewButton
-                                    { msg = ClickDelete
-                                    , text_ = "Delete"
-                                    , classList_ = []
+                                    { id_ = "delete"
+                                    , msg = ClickDelete
+                                    , text_ = "Delete Schedule"
+                                    , classList_ =
+                                        [ ( "-outline", True )
+                                        ]
                                     , disabled_ = formDisabled
-                                    , id_ = "delete"
                                     }
 
                               else
                                 Components.Form.viewButton
                                     { msg = CancelDelete
                                     , text_ = "Cancel"
-                                    , classList_ = []
+                                    , classList_ =
+                                        [ ( "-outline", True )
+                                        ]
                                     , disabled_ = formDisabled
                                     , id_ = "delete-cancel"
                                     }
                             , if model.confirmingDelete then
                                 Components.Form.viewButton
                                     { msg = ConfirmDelete
-                                    , text_ = "Confirm"
-                                    , classList_ = [ ( "-secret-delete-confirm", True ) ]
+                                    , text_ = "Confirm Delete"
+                                    , classList_ =
+                                        [ ( "-secret-delete-confirm", True )
+                                        ]
                                     , disabled_ = formDisabled
                                     , id_ = "delete-confirm"
                                     }

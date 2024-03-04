@@ -90,7 +90,7 @@ init shared route () =
       , images = []
       , image = ""
       , allowCommand = True
-      , allowEvents = Vela.defaultAllowEvents
+      , allowEvents = Vela.defaultEnabledAllowEvents
       }
     , Effect.none
     )
@@ -121,7 +121,14 @@ update shared route msg model =
         AddSecretResponse response ->
             case response of
                 Ok ( _, secret ) ->
-                    ( model
+                    ( { model
+                        | name = ""
+                        , value = ""
+                        , images = []
+                        , image = ""
+                        , allowCommand = True
+                        , allowEvents = Vela.defaultEnabledAllowEvents
+                      }
                     , Effect.addAlertSuccess
                         { content = secret.name ++ " added to shared secrets."
                         , addToastIfUnique = True
@@ -282,7 +289,7 @@ view shared route model =
                             , subtitle = Nothing
                             , id_ = "value"
                             , val = model.value
-                            , placeholder_ = "secret-value"
+                            , placeholder_ = "Secret Value"
                             , classList_ = [ ( "secret-value", True ) ]
                             , rows_ = Just 2
                             , wrap_ = Just "soft"
@@ -310,11 +317,11 @@ view shared route model =
                             }
                         , Components.SecretForm.viewHelp shared.velaDocsURL
                         , Components.Form.viewButton
-                            { msg = SubmitForm
-                            , text_ = "Submit"
+                            { id_ = "submit"
+                            , msg = SubmitForm
+                            , text_ = "Add Secret"
                             , classList_ = []
                             , disabled_ = False
-                            , id_ = "submit"
                             }
                         ]
                     ]

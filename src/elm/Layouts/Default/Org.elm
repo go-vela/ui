@@ -12,7 +12,7 @@ import Components.Tabs
 import Components.Util
 import Dict exposing (Dict)
 import Effect exposing (Effect)
-import Html exposing (Html, main_)
+import Html exposing (Html, a, main_, text)
 import Html.Attributes exposing (class)
 import Layout exposing (Layout)
 import Layouts.Default
@@ -20,6 +20,7 @@ import Route exposing (Route)
 import Route.Path
 import Shared
 import Url exposing (Url)
+import Utils.Helpers as Util
 import View exposing (View)
 
 
@@ -108,7 +109,16 @@ view props shared route { toContentMsg, model, content } =
     , body =
         [ Components.Nav.view shared
             route
-            { buttons = props.navButtons
+            { buttons =
+                props.navButtons
+                    ++ [ a
+                            [ class "button"
+                            , class "-outline"
+                            , Util.testAttribute "source-repos"
+                            , Route.Path.href Route.Path.AccountSourceRepos
+                            ]
+                            [ text "Source Repositories" ]
+                       ]
             , crumbs = Components.Crumbs.view route.path props.crumbs
             }
         , main_ [ class "content-wrap" ]

@@ -108,7 +108,12 @@ update shared route msg model =
         AddRepoScheduleResponse response ->
             case response of
                 Ok ( _, schedule ) ->
-                    ( model
+                    ( { model
+                        | name = ""
+                        , entry = ""
+                        , enabled = True
+                        , branch = ""
+                      }
                     , Effect.addAlertSuccess
                         { content = schedule.name ++ " added to repo schedules."
                         , addToastIfUnique = True
@@ -137,8 +142,7 @@ update shared route msg model =
             )
 
         EnabledOnClick val ->
-            ( model
-                |> (\m -> { m | enabled = Util.yesNoToBool val })
+            ( model |> (\m -> { m | enabled = Util.yesNoToBool val })
             , Effect.none
             )
 
@@ -263,9 +267,9 @@ view shared route model =
                             }
                         , Components.ScheduleForm.viewHelp shared.velaDocsURL
                         , Components.Form.viewButton
-                            { msg = SubmitForm
-                            , id_ = "submit"
-                            , text_ = "Submit"
+                            { id_ = "submit"
+                            , msg = SubmitForm
+                            , text_ = "Add Schedule"
                             , classList_ = []
                             , disabled_ = formDisabled
                             }

@@ -185,19 +185,21 @@ viewAccountSettings shared model =
                             , wrap "soft"
                             ]
                             [ text auth.token ]
-                        , button
-                            [ class "copy-button"
-                            , class "button"
-                            , class "-icon"
-                            , class "-white"
-                            , attribute "data-clipboard-text" auth.token
-                            , attribute "aria-label" "copy token"
-                            , Util.testAttribute "copy-token"
-                            , onClick <| AddAlertCopiedToClipboard auth.token
-                            ]
-                            [ FeatherIcons.copy
-                                |> FeatherIcons.withSize 18
-                                |> FeatherIcons.toHtml []
+                        , div [ class "vert-icon-container" ]
+                            [ button
+                                [ class "copy-button"
+                                , class "button"
+                                , class "-icon"
+                                , class "-white"
+                                , attribute "data-clipboard-text" auth.token
+                                , attribute "aria-label" "copy token"
+                                , Util.testAttribute "copy-token"
+                                , onClick <| AddAlertCopiedToClipboard auth.token
+                                ]
+                                [ FeatherIcons.copy
+                                    |> FeatherIcons.withSize 18
+                                    |> FeatherIcons.toHtml []
+                                ]
                             ]
                         ]
                     ]

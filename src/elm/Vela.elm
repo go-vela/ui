@@ -46,7 +46,7 @@ module Vela exposing
     , Type
     , allowEventsFilterQueryKeys
     , allowEventsToList
-    , buildEnableRepoPayload
+    , buildRepoPayload
     , decodeBuild
     , decodeBuildGraph
     , decodeBuilds
@@ -71,6 +71,7 @@ module Vela exposing
     , decodeSteps
     , defaultAllowEvents
     , defaultDeploymentPayload
+    , defaultEnabledAllowEvents
     , defaultRepoPayload
     , defaultSchedulePayload
     , defaultSecretPayload
@@ -203,8 +204,8 @@ type alias SourceRepositories =
     Dict String (List Repository)
 
 
-buildEnableRepoPayload : Repository -> EnableRepoPayload
-buildEnableRepoPayload repo =
+buildRepoPayload : Repository -> EnableRepoPayload
+buildRepoPayload repo =
     EnableRepoPayload
         repo.org
         repo.name
@@ -532,6 +533,33 @@ defaultAllowEvents =
     }
 
 
+defaultEnabledAllowEvents : AllowEvents
+defaultEnabledAllowEvents =
+    { push =
+        { branch = True
+        , tag = True
+        , deleteBranch = False
+        , deleteTag = False
+        }
+    , pull =
+        { opened = False
+        , synchronize = False
+        , edited = False
+        , reopened = False
+        }
+    , deploy =
+        { created = True
+        }
+    , comment =
+        { created = False
+        , edited = False
+        }
+    , schedule =
+        { run = False
+        }
+    }
+
+
 decodePushActions : Decoder PushActions
 decodePushActions =
     Json.Decode.succeed PushActions
@@ -642,7 +670,7 @@ setAllowEvents payload field val =
         events =
             payload.allowEvents
 
-        { push, pull, deploy, comment } =
+        { push, pull, deploy, comment, schedule } =
             events
     in
     case field of
@@ -699,6 +727,11 @@ setAllowEvents payload field val =
         "allow_comment_edited" ->
             { payload
                 | allowEvents = { events | comment = { comment | edited = val } }
+            }
+
+        "allow_schedule_run" ->
+            { payload
+                | allowEvents = { events | schedule = { schedule | run = val } }
             }
 
         _ ->

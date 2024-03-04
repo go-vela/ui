@@ -54,7 +54,7 @@ import View exposing (View)
 page : Auth.User -> Shared.Model -> Route () -> Page Model Msg
 page user shared route =
     Page.new
-        { init = init
+        { init = init shared
         , update = update shared
         , subscriptions = subscriptions
         , view = view shared route
@@ -88,14 +88,15 @@ type alias Model =
     }
 
 
-init : () -> ( Model, Effect Msg )
-init () =
+init : Shared.Model -> () -> ( Model, Effect Msg )
+init shared () =
     ( { searchFilters = Dict.empty
-      , sourceRepos = RemoteData.NotAsked
+      , sourceRepos = shared.sourceRepos
       }
     , Effect.batch
         [ Effect.getCurrentUser {}
         , Effect.sendMsg (GetUserSourceRepos False)
+        , Effect.focusOn { target = "global-search-input" }
         ]
     )
 
@@ -119,122 +120,127 @@ type Msg
 
 update : Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
 update shared msg model =
-    case msg of
-        NoOp ->
-            ( model
-            , Effect.none
-            )
+    -- persist any source repos updates to the shared model
+    (\( m, e ) ->
+        ( m, Effect.batch [ e, Effect.updateSourceReposShared { sourceRepos = m.sourceRepos } ] )
+    )
+    <|
+        case msg of
+            NoOp ->
+                ( model
+                , Effect.none
+                )
 
-        -- SOURCE REPOS
-        GetUserSourceRepos isReload ->
-            ( { model
-                | sourceRepos =
-                    if isReload || model.sourceRepos == RemoteData.NotAsked then
-                        RemoteData.Loading
+            -- SOURCE REPOS
+            GetUserSourceRepos isReload ->
+                ( { model
+                    | sourceRepos =
+                        if isReload || model.sourceRepos == RemoteData.NotAsked then
+                            RemoteData.Loading
 
-                    else
-                        model.sourceRepos
-              }
-            , Api.try
-                GetUserSourceReposResponse
-                (Api.Operations.getUserSourceRepos shared.velaAPIBaseURL shared.session)
-                |> Effect.sendCmd
-            )
+                        else
+                            model.sourceRepos
+                  }
+                , Api.try
+                    GetUserSourceReposResponse
+                    (Api.Operations.getUserSourceRepos shared.velaAPIBaseURL shared.session)
+                    |> Effect.sendCmd
+                )
 
-        GetUserSourceReposResponse response ->
-            case response of
-                Ok ( _, repositories ) ->
-                    ( { model
-                        | sourceRepos = RemoteData.succeed repositories
-                      }
-                    , Effect.focusOn { target = "global-search-input" }
-                    )
+            GetUserSourceReposResponse response ->
+                case response of
+                    Ok ( _, repositories ) ->
+                        ( { model
+                            | sourceRepos = RemoteData.succeed repositories
+                          }
+                        , Effect.none
+                        )
 
-                Err error ->
-                    ( { model
-                        | sourceRepos = Utils.Errors.toFailure error
-                      }
-                    , Effect.handleHttpError { httpError = error }
-                    )
+                    Err error ->
+                        ( { model
+                            | sourceRepos = Utils.Errors.toFailure error
+                          }
+                        , Effect.handleHttpError { httpError = error }
+                        )
 
-        EnableRepos repos ->
-            ( model
-            , repos
-                |> List.map EnableRepo
-                |> List.map Effect.sendMsg
-                |> Effect.batch
-            )
+            EnableRepos repos ->
+                ( model
+                , repos
+                    |> List.map EnableRepo
+                    |> List.map Effect.sendMsg
+                    |> Effect.batch
+                )
 
-        EnableRepo repo ->
-            let
-                payload =
-                    Vela.buildEnableRepoPayload repo
+            EnableRepo repo ->
+                let
+                    payload =
+                        Vela.buildRepoPayload { repo | active = True }
 
-                body =
-                    Http.jsonBody <| Vela.encodeEnableRepository payload
-            in
-            ( { model
-                | sourceRepos = Vela.enableUpdate repo Vela.Enabling model.sourceRepos
-              }
-            , Effect.enableRepo
-                { baseUrl = shared.velaAPIBaseURL
-                , session = shared.session
-                , onResponse = EnableRepoResponse { repo = repo }
-                , body = body
-                }
-            )
+                    body =
+                        Http.jsonBody <| Vela.encodeEnableRepository payload
+                in
+                ( { model
+                    | sourceRepos = Vela.enableUpdate repo Vela.Enabling model.sourceRepos
+                  }
+                , Effect.enableRepo
+                    { baseUrl = shared.velaAPIBaseURL
+                    , session = shared.session
+                    , onResponse = EnableRepoResponse { repo = repo }
+                    , body = body
+                    }
+                )
 
-        EnableRepoResponse options response ->
-            case response of
-                Ok ( _, repo ) ->
-                    ( { model
-                        | sourceRepos = Vela.enableUpdate repo Vela.Enabled model.sourceRepos
-                      }
-                    , Effect.batch
-                        [ Effect.addAlertSuccess
-                            { content = "Repo " ++ repo.full_name ++ " enabled."
-                            , addToastIfUnique = True
-                            , link = Nothing
-                            }
-                        , Effect.updateFavorites { org = repo.org, maybeRepo = Just repo.name, updateType = Favorites.Add }
-                        ]
-                    )
+            EnableRepoResponse options response ->
+                case response of
+                    Ok ( _, repo ) ->
+                        ( { model
+                            | sourceRepos = Vela.enableUpdate repo Vela.Enabled model.sourceRepos
+                          }
+                        , Effect.batch
+                            [ Effect.addAlertSuccess
+                                { content = "Repo " ++ repo.full_name ++ " enabled."
+                                , addToastIfUnique = True
+                                , link = Nothing
+                                }
+                            , Effect.updateFavorites { org = repo.org, maybeRepo = Just repo.name, updateType = Favorites.Add }
+                            ]
+                        )
 
-                Err error ->
-                    (case error of
-                        Http.Detailed.BadStatus metadata _ ->
-                            case metadata.statusCode of
-                                409 ->
-                                    ( Vela.Enabled
-                                    , Effect.addAlertSuccess
-                                        { content = "Repo " ++ options.repo.full_name ++ " enabled."
-                                        , addToastIfUnique = False
-                                        , link = Nothing
-                                        }
-                                    )
+                    Err error ->
+                        (case error of
+                            Http.Detailed.BadStatus metadata _ ->
+                                case metadata.statusCode of
+                                    409 ->
+                                        ( Vela.Enabled
+                                        , Effect.addAlertSuccess
+                                            { content = "Repo " ++ options.repo.full_name ++ " enabled."
+                                            , addToastIfUnique = False
+                                            , link = Nothing
+                                            }
+                                        )
 
-                                _ ->
-                                    ( Vela.Failed, Effect.handleHttpError { httpError = error } )
+                                    _ ->
+                                        ( Vela.Failed, Effect.handleHttpError { httpError = error } )
 
-                        _ ->
-                            ( Vela.Failed, Effect.handleHttpError { httpError = error } )
-                    )
-                        |> Tuple.mapFirst (\enabled -> Vela.enableUpdate options.repo enabled model.sourceRepos)
-                        |> Tuple.mapFirst (\_ -> { model | sourceRepos = Utils.Errors.toFailure error })
+                            _ ->
+                                ( Vela.Failed, Effect.handleHttpError { httpError = error } )
+                        )
+                            |> Tuple.mapFirst (\enabled -> Vela.enableUpdate options.repo enabled model.sourceRepos)
+                            |> Tuple.mapFirst (\_ -> { model | sourceRepos = Utils.Errors.toFailure error })
 
-        UpdateSearchFilter org searchBy ->
-            ( { model
-                | searchFilters =
-                    Dict.update org (\_ -> Just searchBy) model.searchFilters
-              }
-            , Effect.none
-            )
+            UpdateSearchFilter org searchBy ->
+                ( { model
+                    | searchFilters =
+                        Dict.update org (\_ -> Just searchBy) model.searchFilters
+                  }
+                , Effect.none
+                )
 
-        -- FAVORITES
-        ToggleFavorite org maybeRepo ->
-            ( model
-            , Effect.updateFavorites { org = org, maybeRepo = maybeRepo, updateType = Favorites.Toggle }
-            )
+            -- FAVORITES
+            ToggleFavorite org maybeRepo ->
+                ( model
+                , Effect.updateFavorites { org = org, maybeRepo = maybeRepo, updateType = Favorites.Toggle }
+                )
 
 
 
@@ -546,7 +552,7 @@ enableRepoButton repo enableRepo toggleFavorite user =
                     , attribute "tabindex" "-1" -- in this scenario we are merely showing state, this is not interactive
                     , Util.testAttribute <| String.join "-" [ "enabled", repo.org, repo.name ]
                     ]
-                    [ FeatherIcons.check |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Really Disable?" ]
+                    [ FeatherIcons.check |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Confirm Disable" ]
                 , a
                     [ class "button"
                     , Util.testAttribute <| String.join "-" [ "view", repo.org, repo.name ]

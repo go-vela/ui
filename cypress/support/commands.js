@@ -62,6 +62,7 @@ Cypress.Commands.add('stubBuild', () => {
   cy.fixture('build_error.json').as('errorBuild');
   cy.fixture('build_canceled.json').as('cancelBuild');
   cy.fixture('build_pending_approval.json').as('pendingApprovalBuild');
+  cy.fixture('build_approved.json').as('approvedBuild');
   cy.route({
     method: 'GET',
     url: 'api/v1/repos/*/*/builds/1',
@@ -109,6 +110,12 @@ Cypress.Commands.add('stubBuild', () => {
     url: 'api/v1/repos/*/*/builds/8',
     status: 200,
     response: `@pendingApprovalBuild`,
+  });
+  cy.route({
+    method: 'GET',
+    url: 'api/v1/repos/*/*/builds/9',
+    status: 200,
+    response: `@approvedBuild`,
   });
 });
 
@@ -617,9 +624,13 @@ Cypress.Commands.add('redeliverHookError', () => {
 Cypress.Commands.add('checkA11yForPage', (path = '/', opts = {}) => {
   cy.login(path);
   cy.injectAxe();
-  cy.wait(1000);
+  cy.wait(2000);
   // excludes accessibility testing for Elm pop-up that only appears in Cypress and not on the actual UI
-  cy.checkA11y({ exclude: ['[style*="padding-left: calc(1ch + 6px)"]'] }, opts);
+  cy.checkA11y(
+    { exclude: ['[style*="padding-left: calc(1ch + 6px)"]'] },
+    opts,
+    terminalLog,
+  );
 });
 
 Cypress.Commands.add('setTheme', theme => {
@@ -643,3 +654,23 @@ Cypress.Commands.add('clickServices', theme => {
   cy.get('[data-test=service-header-4]').click({ force: true });
   cy.get('[data-test=service-header-5]').click({ force: true });
 });
+
+function terminalLog(violations) {
+  cy.task(
+    'log',
+    `${violations.length} accessibility violation${
+      violations.length === 1 ? '' : 's'
+    } ${violations.length === 1 ? 'was' : 'were'} detected`,
+  );
+  // pluck specific keys to keep the table readable
+  const violationData = violations.map(
+    ({ id, impact, description, nodes }) => ({
+      id,
+      impact,
+      description,
+      nodes: nodes.length,
+    }),
+  );
+
+  cy.task('table', violationData);
+}

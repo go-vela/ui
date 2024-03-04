@@ -163,6 +163,9 @@ init flagsResult route =
       -- ALERTS
       , toasties = Alerting.initialState
 
+      -- SOURCE REPOS
+      , sourceRepos = RemoteData.NotAsked
+
       -- BUILDS
       , builds = RemoteData.NotAsked
 
@@ -445,6 +448,12 @@ update route msg model =
                     ( { model | user = Utils.Errors.toFailure error }
                     , Effect.handleHttpError { httpError = error }
                     )
+
+        -- SOURCE REPOS
+        Shared.Msg.UpdateSourceRepos options ->
+            ( { model | sourceRepos = options.sourceRepos }
+            , Effect.none
+            )
 
         -- FAVORITES
         Shared.Msg.UpdateFavorites options ->

@@ -444,6 +444,8 @@ view shared route model =
                         , build = options.build
                         , showActionsMenus = model.showActionsMenus
                         }
+            , linkRepoName = True
+            , linkBuildNumber = True
             }
         , Components.Pager.viewIfNeeded model.pager Components.Pager.defaultLabels GotoPage model.builds
         ]

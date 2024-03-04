@@ -70,7 +70,7 @@ view shared props =
 
         _ ->
             div [ class "message" ]
-                [ Components.Loading.viewSmallLoaderWithText "loading..." ]
+                [ Components.Loading.viewSmallLoaderWithText "Loading..." ]
 
 
 {-| viewLogLines : takes number linefocus log and clickAction shiftDown and renders logs for a build resource
@@ -409,7 +409,7 @@ viewDownloadButton props log =
         , onClick <| props.msgs.download { filename = fileName, content = log.rawData, map = Util.base64Decode }
         , attribute "aria-label" <| "download logs for resource " ++ props.resourceNumber
         ]
-        [ text <| "download resource logs" ]
+        [ text <| "download logs" ]
 
 
 {-| viewFollowButton : renders button for following logs

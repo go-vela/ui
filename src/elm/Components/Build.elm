@@ -24,6 +24,8 @@ type alias Props msg =
     { build : WebData Vela.Build
     , showFullTimestamps : Bool
     , actionsMenu : Html msg
+    , linkRepoName : Bool
+    , linkBuildNumber : Bool
     }
 
 
@@ -35,16 +37,38 @@ view shared props =
                 ( org, repo ) =
                     Util.orgRepoFromBuildLink build.link
 
+                buildNumberLink =
+                    ("#" ++ String.fromInt build.number)
+                        |> (\t ->
+                                [ if props.linkBuildNumber then
+                                    a
+                                        [ Util.testAttribute "build-number"
+                                        , href build.link
+                                        ]
+                                        [ text t ]
+
+                                  else
+                                    text t
+                                ]
+                           )
+
+                message =
+                    [ text <| "- " ++ build.message ]
+
                 repoLink =
                     span []
-                        [ a
-                            [ Route.Path.href <|
-                                Route.Path.Org_Repo_
-                                    { org = org
-                                    , repo = repo
-                                    }
-                            ]
-                            [ text repo ]
+                        [ if props.linkRepoName then
+                            a
+                                [ Route.Path.href <|
+                                    Route.Path.Org_Repo_
+                                        { org = org
+                                        , repo = repo
+                                        }
+                                ]
+                                [ text repo ]
+
+                          else
+                            text repo
                         , text ": "
                         ]
 
@@ -59,7 +83,11 @@ view shared props =
                                 , text (Util.getNameFromRef build.ref)
                                 ]
                             , text " ("
-                            , a [ href build.source ] [ text <| Util.trimCommitHash build.commit ]
+                            , a
+                                [ href (Util.buildPRCommitURL build.source build.commit)
+                                , Util.testAttribute "commit-link"
+                                ]
+                                [ text <| Util.trimCommitHash build.commit ]
                             , text <| ")"
                             ]
 
@@ -94,17 +122,6 @@ view shared props =
 
                 sender =
                     [ text build.sender ]
-
-                message =
-                    [ text <| "- " ++ build.message ]
-
-                buildNumberLink =
-                    [ a
-                        [ Util.testAttribute "build-number"
-                        , href build.link
-                        ]
-                        [ text <| "#" ++ String.fromInt build.number ]
-                    ]
 
                 buildCreatedPosix =
                     Time.millisToPosix <| Util.secondsToMillis build.created
@@ -147,6 +164,13 @@ view shared props =
 
                                     else
                                         "--:--"
+
+                approvedBy =
+                    if build.approved_at /= 0 && build.event == "pull_request" then
+                        [ text <| " (approved by " ++ build.approved_by ++ ")" ]
+
+                    else
+                        []
             in
             viewBuildPreview
                 { statusIcon = [ Components.Svgs.buildStatusToIcon build.status ]
@@ -158,7 +182,7 @@ view shared props =
                     , text "on"
                     , div [ class "branch" ] branch
                     , text "by"
-                    , div [ class "sender" ] sender
+                    , div [ class "sender" ] (sender ++ approvedBy)
                     ]
                 , displayTime = displayTime
                 , duration = duration
@@ -216,7 +240,7 @@ viewBuildPreview props =
                     , div [ class "commit-msg" ] props.commitMessage
                     ]
                 , div [ class "row" ]
-                    [ div [ class "git-info" ]
+                    [ div [ class "git-info", Util.testAttribute "git-info" ]
                         props.gitInfo
                     , div [ class "time-info" ]
                         [ div [ class "time-completed" ]
