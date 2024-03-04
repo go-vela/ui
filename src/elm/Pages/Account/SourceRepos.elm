@@ -552,7 +552,7 @@ enableRepoButton repo enableRepo toggleFavorite user =
                     , attribute "tabindex" "-1" -- in this scenario we are merely showing state, this is not interactive
                     , Util.testAttribute <| String.join "-" [ "enabled", repo.org, repo.name ]
                     ]
-                    [ FeatherIcons.check |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Really Disable?" ]
+                    [ FeatherIcons.check |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Confirm Disable" ]
                 , a
                     [ class "button"
                     , Util.testAttribute <| String.join "-" [ "view", repo.org, repo.name ]
