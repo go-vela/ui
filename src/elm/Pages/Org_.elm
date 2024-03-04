@@ -186,7 +186,7 @@ view shared route model =
             [ class "builds-caption"
             ]
             [ Html.span [] []
-            , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
+            , Components.Pager.view model.pager Components.Pager.prevNextLabels GotoPage
             ]
         , case model.repos of
             RemoteData.Success repos ->
@@ -230,6 +230,6 @@ view shared route model =
                         [ text "There was an error fetching repos, please refresh or try again later!"
                         ]
                     ]
-        , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
+        , Components.Pager.view model.pager Components.Pager.prevNextLabels GotoPage
         ]
     }
