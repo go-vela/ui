@@ -433,10 +433,19 @@ view shared route model =
             [ class "builds-caption"
             ]
             [ span [] []
-            , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
+            , Components.Pager.view
+                { show = RemoteData.unwrap False (\builds -> List.length builds > 0) model.builds
+                , links = model.pager
+                , labels = Components.Pager.defaultLabels
+                , msg = GotoPage
+                }
             ]
         , Components.Builds.viewHeader
-            { maybeEvent = Dict.get "event" route.query
+            { show =
+                RemoteData.unwrap False
+                    (\builds -> List.length builds > 0)
+                    model.builds
+            , maybeEvent = Dict.get "event" route.query
             , showFullTimestamps = model.showFullTimestamps
             , filterByEvent = FilterByEvent
             , showHideFullTimestamps = ShowHideFullTimestamps
@@ -461,6 +470,11 @@ view shared route model =
             , linkRepoName = False
             , linkBuildNumber = True
             }
-        , Components.Pager.viewIfNeeded model.pager Components.Pager.defaultLabels GotoPage model.builds
+        , Components.Pager.view
+            { show = RemoteData.unwrap False (\builds -> List.length builds > 0) model.builds
+            , links = model.pager
+            , labels = Components.Pager.defaultLabels
+            , msg = GotoPage
+            }
         ]
     }

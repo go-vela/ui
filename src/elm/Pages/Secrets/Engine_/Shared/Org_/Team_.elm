@@ -231,7 +231,12 @@ view shared route model =
                                 |> FeatherIcons.withSize 18
                                 |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
                             ]
-                        , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
+                        , Components.Pager.view
+                            { show = True
+                            , links = model.pager
+                            , labels = Components.Pager.defaultLabels
+                            , msg = GotoPage
+                            }
                         ]
                 }
             ]

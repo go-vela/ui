@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.Pager exposing (defaultLabels, prevNextLabels, view, viewIfNeeded)
+module Components.Pager exposing (defaultLabels, prevNextLabels, view)
 
 import Api.Pagination as Pagination
 import FeatherIcons
@@ -39,16 +39,24 @@ prevNextLabels =
     }
 
 
+type alias Props msg =
+    { show : Bool
+    , links : List WebLink
+    , labels : Labels
+    , msg : Pagination.Page -> msg
+    }
+
+
 
 -- VIEW
 
 
-view : List WebLink -> Labels -> (Pagination.Page -> msg) -> Html msg
-view links labels toMsg =
+view : Props msg -> Html msg
+view props =
     let
         linkRels : List LinkHeader.LinkRel
         linkRels =
-            List.map .rel links
+            List.map .rel props.links
 
         -- note: list is empty if there's only one page
         isFirst : Bool
@@ -110,44 +118,35 @@ view links labels toMsg =
                 _ ->
                     1
     in
-    div [ class "pager-actions", class "buttons" ]
-        [ button
-            [ disabled <| isFirst || (List.length links == 0)
-            , Util.testAttribute "pager-previous"
-            , class "button"
-            , class "-outline"
-            , class "pager-icon-prev"
-            , onClick (toMsg prevPage)
+    if props.show then
+        div [ class "pager-actions", class "buttons" ]
+            [ button
+                [ disabled <| isFirst || (List.length props.links == 0)
+                , Util.testAttribute "pager-previous"
+                , class "button"
+                , class "-outline"
+                , class "pager-icon-prev"
+                , onClick (props.msg prevPage)
+                ]
+                [ FeatherIcons.chevronLeft
+                    |> FeatherIcons.withSize 18
+                    |> FeatherIcons.toHtml [ attribute "aria-hidden" "true" ]
+                , text props.labels.previousLabel
+                ]
+            , button
+                [ disabled <| isLast || (List.length props.links == 0)
+                , Util.testAttribute "pager-next"
+                , class "button"
+                , class "-outline"
+                , class "pager-icon-next"
+                , onClick (props.msg nextPage)
+                ]
+                [ text props.labels.nextLabel
+                , FeatherIcons.chevronRight
+                    |> FeatherIcons.withSize 18
+                    |> FeatherIcons.toHtml [ attribute "aria-hidden" "true" ]
+                ]
             ]
-            [ FeatherIcons.chevronLeft
-                |> FeatherIcons.withSize 18
-                |> FeatherIcons.toHtml [ attribute "aria-hidden" "true" ]
-            , text labels.previousLabel
-            ]
-        , button
-            [ disabled <| isLast || (List.length links == 0)
-            , Util.testAttribute "pager-next"
-            , class "button"
-            , class "-outline"
-            , class "pager-icon-next"
-            , onClick (toMsg nextPage)
-            ]
-            [ text labels.nextLabel
-            , FeatherIcons.chevronRight
-                |> FeatherIcons.withSize 18
-                |> FeatherIcons.toHtml [ attribute "aria-hidden" "true" ]
-            ]
-        ]
 
-
-viewIfNeeded : List WebLink -> Labels -> (Pagination.Page -> msg) -> WebData (List a) -> Html msg
-viewIfNeeded links labels gotoPageMsg resources =
-    RemoteData.unwrap (text "")
-        (\builds ->
-            if List.length builds > 0 then
-                view links labels gotoPageMsg
-
-            else
-                text ""
-        )
-        resources
+    else
+        text ""

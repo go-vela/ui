@@ -240,7 +240,12 @@ view shared route model =
     { title = "Deployments" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
         [ viewDeployments shared model route
-        , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
+        , Components.Pager.view
+            { show = True
+            , links = model.pager
+            , labels = Components.Pager.defaultLabels
+            , msg = GotoPage
+            }
         ]
     }
 
@@ -266,7 +271,12 @@ viewDeployments shared model route =
                             |> FeatherIcons.withSize 18
                             |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
                         ]
-                    , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
+                    , Components.Pager.view
+                        { show = True
+                        , links = model.pager
+                        , labels = Components.Pager.defaultLabels
+                        , msg = GotoPage
+                        }
                     ]
 
         ( noRowsView, rows ) =

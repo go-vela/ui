@@ -190,7 +190,12 @@ view shared route model =
     { title = "Schedules" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
         [ viewRepoSchedules shared model route.params.org route.params.repo
-        , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
+        , Components.Pager.view
+            { show = True
+            , links = model.pager
+            , labels = Components.Pager.defaultLabels
+            , msg = GotoPage
+            }
         ]
     }
 
@@ -220,7 +225,12 @@ viewRepoSchedules shared model org repo =
                                 |> FeatherIcons.withSize 18
                                 |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
                             ]
-                        , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
+                        , Components.Pager.view
+                            { show = True
+                            , links = model.pager
+                            , labels = Components.Pager.defaultLabels
+                            , msg = GotoPage
+                            }
                         ]
 
             else

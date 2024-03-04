@@ -247,7 +247,12 @@ view shared route model =
     { title = "Audit" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
         [ viewHooks shared model model.hooks
-        , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
+        , Components.Pager.view
+            { show = True
+            , links = model.pager
+            , labels = Components.Pager.defaultLabels
+            , msg = GotoPage
+            }
         ]
     }
 
@@ -259,7 +264,12 @@ viewHooks shared model hooks =
     let
         actions =
             Just <|
-                Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
+                Components.Pager.view
+                    { show = True
+                    , links = model.pager
+                    , labels = Components.Pager.defaultLabels
+                    , msg = GotoPage
+                    }
 
         ( noRowsView, rows ) =
             case hooks of

@@ -146,17 +146,22 @@ view shared props =
 
 
 viewHeader :
-    { maybeEvent : Maybe String
+    { show : Bool
+    , maybeEvent : Maybe String
     , showFullTimestamps : Bool
     , filterByEvent : Maybe String -> msg
     , showHideFullTimestamps : msg
     }
     -> Html msg
 viewHeader props =
-    div [ class "builds-header" ]
-        [ viewFilter props.maybeEvent props.filterByEvent
-        , viewTimeToggle props.showFullTimestamps props.showHideFullTimestamps
-        ]
+    if props.show then
+        div [ class "builds-header" ]
+            [ viewFilter props.maybeEvent props.filterByEvent
+            , viewTimeToggle props.showFullTimestamps props.showHideFullTimestamps
+            ]
+
+    else
+        text ""
 
 
 viewFilter : Maybe String -> (Maybe String -> msg) -> Html msg
