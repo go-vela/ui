@@ -28,6 +28,8 @@ import Vela
 -- TYPES
 
 
+{-| Msgs : alias for an object containing multiple msg.
+-}
 type alias Msgs msg =
     { pushUrlHash : { hash : String } -> msg
     , focusOn : { target : String } -> msg
@@ -36,6 +38,8 @@ type alias Msgs msg =
     }
 
 
+{-| Props : alias for an object containing properties and msg.
+-}
 type alias Props msg =
     { msgs : Msgs msg
     , shift : Bool
@@ -50,6 +54,8 @@ type alias Props msg =
     }
 
 
+{-| LogLine : alias for an object containing a msg.
+-}
 type alias LogLine msg =
     { view : Html msg
     }
@@ -59,6 +65,8 @@ type alias LogLine msg =
 -- VIEW
 
 
+{-| view : renders logs component, with appropriate log loading message, error, or logs.
+-}
 view : Shared.Model -> Props msg -> Html msg
 view shared props =
     case props.log of
@@ -73,7 +81,7 @@ view shared props =
                 [ Components.Loading.viewSmallLoaderWithText "Loading..." ]
 
 
-{-| viewLogLines : takes number linefocus log and clickAction shiftDown and renders logs for a build resource
+{-| viewLogLines : takes number linefocus log and clickAction shiftDown and renders logs for a build resource.
 -}
 viewLogLines : Props msg -> Vela.Log -> Html msg
 viewLogLines props log =
@@ -99,7 +107,7 @@ viewLogLines props log =
         ]
 
 
-{-| viewLines : takes number, line focus information and click action and renders logs
+{-| viewLines : takes number, line focus information and click action and renders logs.
 -}
 viewLines : ({ hash : String } -> msg) -> String -> String -> Bool -> Focus.Focus -> String -> Html msg
 viewLines pushUrlHashMsg resourceType resourceNumber shift focus log =
@@ -150,7 +158,7 @@ viewLines pushUrlHashMsg resourceType resourceNumber shift focus log =
             ++ [ bottomTracker ]
 
 
-{-| viewLine : takes log line and focus information and renders line number button and log
+{-| viewLine : takes log line and focus information and renders line number button and log.
 -}
 viewLine : ({ hash : String } -> msg) -> String -> String -> Bool -> Focus.Focus -> LogLine msg -> Int -> Html msg
 viewLine pushUrlHashMsg resourceType resourceNumber shift focus logLine lineNumber =
@@ -195,7 +203,7 @@ viewLine pushUrlHashMsg resourceType resourceNumber shift focus logLine lineNumb
         ]
 
 
-{-| processLogLines : takes a log as string, splits it by newline, and processes it into a model that can render custom elements like timestamps and links
+{-| processLogLines : takes a log as string, splits it by newline, and processes it into a model that can render custom elements like timestamps and links.
 -}
 processLogLines : String -> List (LogLine msg)
 processLogLines log =
@@ -225,7 +233,7 @@ processLogLines log =
             )
 
 
-{-| processLogLine : takes Ansi.Log.Line and renders it into Html after parsing and processing custom rendering rules
+{-| processLogLine : takes Ansi.Log.Line and renders it into Html after parsing and processing custom rendering rules.
 -}
 processLogLine : Ansi.Log.Line -> LogLine msg
 processLogLine ansiLogLine =
@@ -248,7 +256,7 @@ processLogLine ansiLogLine =
     LogLine view_
 
 
-{-| viewChunk : takes Ansi.Log.Chunk and renders it into Html with ANSI styling
+{-| viewChunk : takes Ansi.Log.Chunk and renders it into Html with ANSI styling.
 see: <https://package.elm-lang.org/packages/vito/elm-ansi>
 this function has been modified to allow custom processing
 -}
@@ -267,7 +275,7 @@ viewAnsi chunk children =
     span (Utils.Ansi.styleAttributesAnsi chunk.style) children
 
 
-{-| viewLogLinks : takes Ansi.Log.Chunk and performs additional processing to parse links
+{-| viewLogLinks : takes Ansi.Log.Chunk and performs additional processing to parse links.
 -}
 viewLogLinks : Ansi.Log.Chunk -> List (Html msg)
 viewLogLinks chunk =
@@ -314,7 +322,7 @@ viewLogLink link txt =
     a [ Util.testAttribute "log-line-link", href <| Url.toString link ] [ text txt ]
 
 
-{-| viewLogsHeader : takes number, filename and decoded log and renders logs header
+{-| viewLogsHeader : takes number, filename and decoded log and renders logs header.
 -}
 viewLogsHeader : Props msg -> Vela.Log -> Html msg
 viewLogsHeader props log =
@@ -327,7 +335,7 @@ viewLogsHeader props log =
         ]
 
 
-{-| viewLogsSidebar : takes number/following and renders the logs sidebar
+{-| viewLogsSidebar : takes number/following and renders the logs sidebar.
 -}
 viewLogsSidebar : Props msg -> Html msg
 viewLogsSidebar props =
@@ -345,7 +353,7 @@ viewLogsSidebar props =
         ]
 
 
-{-| viewJumpToBottomButton : renders action button for jumping to the bottom of a log
+{-| viewJumpToBottomButton : renders action button for jumping to the bottom of a log.
 -}
 viewJumpToBottomButton : Props msg -> Html msg
 viewJumpToBottomButton props =
@@ -366,7 +374,7 @@ viewJumpToBottomButton props =
         ]
 
 
-{-| viewJumpToTopButton : renders action button for jumping to the top of a log
+{-| viewJumpToTopButton : renders action button for jumping to the top of a log.
 -}
 viewJumpToTopButton : Props msg -> Html msg
 viewJumpToTopButton props =
@@ -387,7 +395,7 @@ viewJumpToTopButton props =
         ]
 
 
-{-| viewDownloadButton : renders action button for downloading a log
+{-| viewDownloadButton : renders action button for downloading a log.
 -}
 viewDownloadButton : Props msg -> Vela.Log -> Html msg
 viewDownloadButton props log =
@@ -412,7 +420,7 @@ viewDownloadButton props log =
         [ text <| "download logs" ]
 
 
-{-| viewFollowButton : renders button for following logs
+{-| viewFollowButton : renders button for following logs.
 -}
 viewFollowButton : Props msg -> Html msg
 viewFollowButton props =

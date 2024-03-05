@@ -47,7 +47,7 @@ import Vela
 -- VIEW
 
 
-{-| velaLogo: produces the svg for the Vela logo
+{-| velaLogo: produces the svg for the Vela logo.
 -}
 velaLogo : Int -> Html msg
 velaLogo size =
@@ -63,7 +63,7 @@ velaLogo size =
         ]
 
 
-{-| buildPending : produces svg icon for build status - pending
+{-| buildPending : produces svg icon for build status - pending.
 -}
 buildPending : Html msg
 buildPending =
@@ -79,7 +79,7 @@ buildPending =
         ]
 
 
-{-| buildRunning : produces svg icon for build status - running
+{-| buildRunning : produces svg icon for build status - running.
 -}
 buildRunning : Html msg
 buildRunning =
@@ -96,7 +96,7 @@ buildRunning =
         ]
 
 
-{-| buildSuccess : produces svg icon for build status - success
+{-| buildSuccess : produces svg icon for build status - success.
 -}
 buildSuccess : Html msg
 buildSuccess =
@@ -113,7 +113,7 @@ buildSuccess =
         ]
 
 
-{-| buildFailure : produces svg icon for build status - failure
+{-| buildFailure : produces svg icon for build status - failure.
 -}
 buildFailure : Html msg
 buildFailure =
@@ -130,7 +130,7 @@ buildFailure =
         ]
 
 
-{-| buildCanceled : produces svg icon for build status - canceled
+{-| buildCanceled : produces svg icon for build status - canceled.
 -}
 buildCanceled : Html msg
 buildCanceled =
@@ -147,7 +147,7 @@ buildCanceled =
         ]
 
 
-{-| buildError : produces svg icon for build status - error
+{-| buildError : produces svg icon for build status - error.
 -}
 buildError : Html msg
 buildError =
@@ -165,7 +165,7 @@ buildError =
         ]
 
 
-{-| buildStatusAnimation : takes dashes as particles an svg meant to parallax scroll on a running build
+{-| buildStatusAnimation : takes dashes as particles an svg meant to parallax scroll on a running build.
 -}
 buildStatusAnimation : String -> String -> List String -> Html msg
 buildStatusAnimation dashes y classNames =
@@ -194,7 +194,7 @@ buildStatusAnimation dashes y classNames =
         ]
 
 
-{-| stepPending : produces svg icon for step status - pending
+{-| stepPending : produces svg icon for step status - pending.
 -}
 stepPending : Html msg
 stepPending =
@@ -213,7 +213,7 @@ stepPending =
         ]
 
 
-{-| stepRunning : produces svg icon for step status - running
+{-| stepRunning : produces svg icon for step status - running.
 -}
 stepRunning : Html msg
 stepRunning =
@@ -238,7 +238,7 @@ stepRunning =
         ]
 
 
-{-| stepSuccess : produces svg icon for step status - success
+{-| stepSuccess : produces svg icon for step status - success.
 -}
 stepSuccess : Html msg
 stepSuccess =
@@ -263,7 +263,7 @@ stepSuccess =
         ]
 
 
-{-| stepFailure : produces svg icon for step status - failure
+{-| stepFailure : produces svg icon for step status - failure.
 -}
 stepFailure : Html msg
 stepFailure =
@@ -288,7 +288,7 @@ stepFailure =
         ]
 
 
-{-| stepError : produces svg icon for step status - error
+{-| stepError : produces svg icon for step status - error.
 -}
 stepError : Html msg
 stepError =
@@ -318,7 +318,7 @@ stepError =
         ]
 
 
-{-| stepCanceled : produces svg icon for step status - canceled
+{-| stepCanceled : produces svg icon for step status - canceled.
 -}
 stepCanceled : Html msg
 stepCanceled =
@@ -403,7 +403,7 @@ stepSkipped =
         ]
 
 
-{-| hookSuccess: produces the svg for the hook status success
+{-| hookSuccess: produces the svg for the hook status success.
 -}
 hookSuccess : Html msg
 hookSuccess =
@@ -421,7 +421,7 @@ hookSuccess =
         ]
 
 
-{-| hookSkipped: produces the svg for the hook status skipped
+{-| hookSkipped: produces the svg for the hook status skipped.
 -}
 hookSkipped : Html msg
 hookSkipped =
@@ -481,7 +481,7 @@ hookSkipped =
         ]
 
 
-{-| hookFailure: produces the svg for the hook status failure
+{-| hookFailure: produces the svg for the hook status failure.
 -}
 hookFailure : Html msg
 hookFailure =
@@ -498,7 +498,7 @@ hookFailure =
         ]
 
 
-{-| buildHistoryPending : produces svg icon for build history status - pending
+{-| buildHistoryPending : produces svg icon for build history status - pending.
 -}
 buildHistoryPending : Int -> Html msg
 buildHistoryPending _ =
@@ -511,7 +511,7 @@ buildHistoryPending _ =
         [ Svg.circle [ class "pending-circle", cx "14", cy "14", r "2" ] [] ]
 
 
-{-| buildHistoryRunning : produces svg icon for build history status - running
+{-| buildHistoryRunning : produces svg icon for build history status - running.
 -}
 buildHistoryRunning : Int -> Html msg
 buildHistoryRunning _ =
@@ -525,7 +525,7 @@ buildHistoryRunning _ =
         [ Svg.path [ d "M14 7v7.5l5 2.5" ] [] ]
 
 
-{-| buildHistorySuccess : produces svg icon for build history status - running
+{-| buildHistorySuccess : produces svg icon for build history status - running.
 -}
 buildHistorySuccess : Int -> Html msg
 buildHistorySuccess _ =
@@ -539,7 +539,7 @@ buildHistorySuccess _ =
         [ Svg.path [ d "M6 15.9227L10.1026 20 22 7" ] [] ]
 
 
-{-| buildHistoryFailure : produces svg icon for build history status - failure
+{-| buildHistoryFailure : produces svg icon for build history status - failure.
 -}
 buildHistoryFailure : Int -> Html msg
 buildHistoryFailure _ =
@@ -553,7 +553,7 @@ buildHistoryFailure _ =
         [ Svg.path [ d "M8 8l12 12M20 8L8 20" ] [] ]
 
 
-{-| buildHistoryError : produces svg icon for build history status - error
+{-| buildHistoryError : produces svg icon for build history status - error.
 -}
 buildHistoryError : Int -> Html msg
 buildHistoryError _ =
@@ -569,7 +569,7 @@ buildHistoryError _ =
         ]
 
 
-{-| buildHistoryError : produces svg icon for build history status - error
+{-| buildHistoryError : produces svg icon for build history status - canceled.
 -}
 buildHistoryCanceled : Int -> Html msg
 buildHistoryCanceled _ =
@@ -583,7 +583,7 @@ buildHistoryCanceled _ =
         [ Svg.path [ d "M8 8l12 12" ] [] ]
 
 
-{-| buildStatusToIcon : takes build status and returns Icon from SvgBuilder
+{-| buildStatusToIcon : takes build status and returns Icon from SvgBuilder.
 -}
 buildStatusToIcon : Vela.Status -> Html msg
 buildStatusToIcon status =
@@ -613,7 +613,7 @@ buildStatusToIcon status =
             buildError
 
 
-{-| recentBuildStatusToIcon : takes build status string and returns Icon from SvgBuilder
+{-| recentBuildStatusToIcon : takes build status string and returns Icon from SvgBuilder.
 -}
 recentBuildStatusToIcon : Vela.Status -> Int -> Html msg
 recentBuildStatusToIcon status index =
@@ -643,7 +643,7 @@ recentBuildStatusToIcon status index =
             buildHistoryError index
 
 
-{-| statusToIcon : takes build status and returns Icon from SvgBuilder
+{-| statusToIcon : takes build status and returns Icon from SvgBuilder.
 -}
 statusToIcon : Vela.Status -> Html msg
 statusToIcon status =
@@ -673,7 +673,7 @@ statusToIcon status =
             stepError
 
 
-{-| hookStatusToIcon : takes hook status string and returns Icon from SvgBuilder
+{-| hookStatusToIcon : takes hook status string and returns Icon from SvgBuilder.
 -}
 hookStatusToIcon : String -> Html msg
 hookStatusToIcon status =
@@ -688,7 +688,7 @@ hookStatusToIcon status =
             hookFailure
 
 
-{-| star: produces the svg for the favorites star
+{-| star: produces the svg for the favorites star.
 -}
 star : Bool -> Html msg
 star favorited =
@@ -714,7 +714,7 @@ star favorited =
         ]
 
 
-{-| terminal: produces the svg for the contextual help terminal icon
+{-| terminal: produces the svg for the contextual help terminal icon.
 -}
 terminal : Html msg
 terminal =
@@ -733,7 +733,7 @@ terminal =
         ]
 
 
-{-| buildVizLegendNode : produces svg for a build graph legend node
+{-| buildVizLegendNode : produces svg for a build graph legend node.
 -}
 buildVizLegendNode : List (Svg.Attribute msg) -> Html msg
 buildVizLegendNode attrs =
@@ -761,7 +761,7 @@ buildVizLegendNode attrs =
         ]
 
 
-{-| buildVizLegendEdge : produces line svg for a build graph legend edge
+{-| buildVizLegendEdge : produces line svg for a build graph legend edge.
 -}
 buildVizLegendEdge : List (Svg.Attribute msg) -> Html msg
 buildVizLegendEdge attrs =
