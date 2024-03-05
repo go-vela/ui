@@ -19,18 +19,26 @@ import Utils.Helpers as Util
 -- TYPES
 
 
+{-| Link : alias to represent a record for label and destination.
+-}
 type alias Link =
     ( Label, Destination )
 
 
+{-| Label : alias for label string.
+-}
 type alias Label =
     String
 
 
+{-| Destination : alias to represent route path.
+-}
 type alias Destination =
     Route.Path.Path
 
 
+{-| Alert : alert status.
+-}
 type Alert
     = Success String String (Maybe Link)
     | Error String String
@@ -76,6 +84,8 @@ wrapAlert variantClass title message link copy =
         ]
 
 
+{-| copyButton : renders a copy button.
+-}
 copyButton : String -> Maybe (String -> msg) -> Html msg
 copyButton copyContent copy =
     case copy of

@@ -24,6 +24,8 @@ import Utils.Theme as Theme
 -- TYPES
 
 
+{-| Props : alias for an object containing properties and msg.
+-}
 type alias Props msg =
     { from : String
     , theme : Theme.Theme
@@ -38,6 +40,8 @@ type alias Props msg =
 -- VIEW
 
 
+{-| view : renders the header component.
+-}
 view : Shared.Model -> Props msg -> Html msg
 view shared props =
     let
@@ -123,6 +127,8 @@ view shared props =
         ]
 
 
+{-| viewThemeToggle : renders a theme toggle button.
+-}
 viewThemeToggle : Theme.Theme -> (Theme.Theme -> msg) -> Html msg
 viewThemeToggle theme setTheme =
     let

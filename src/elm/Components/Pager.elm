@@ -19,6 +19,8 @@ import Utils.Helpers as Util
 -- TYPES
 
 
+{-| Label : alias for an object containing label strings.
+-}
 type alias Labels =
     { previousLabel : String
     , nextLabel : String
@@ -43,6 +45,8 @@ prevNextLabels =
 -- VIEW
 
 
+{-| view : renders pager buttons with correct state based on number of pages.
+-}
 view : List WebLink -> Labels -> (Pagination.Page -> msg) -> Html msg
 view links labels toMsg =
     let
@@ -140,6 +144,8 @@ view links labels toMsg =
         ]
 
 
+{-| viewIfNeeded : enables rendering of pagers.
+-}
 viewIfNeeded : List WebLink -> Labels -> (Pagination.Page -> msg) -> WebData (List a) -> Html msg
 viewIfNeeded links labels gotoPageMsg resources =
     RemoteData.unwrap (text "")
