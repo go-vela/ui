@@ -100,7 +100,7 @@ context('Secrets', () => {
           cy.get('[data-test=alerts]')
             .should('exist')
             .contains('password')
-            .contains('deleted')
+            .contains('Deleted')
             .contains('repo');
         });
       });

@@ -134,7 +134,7 @@ context('Build', () => {
         cy.get('@restartBuild').click();
         cy.get('[data-test=alert]').should(
           'contain',
-          'github/octocat/1 restarted',
+          'Restarted build github/octocat/1',
         );
       });
 
