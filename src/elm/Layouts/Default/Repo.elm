@@ -122,7 +122,7 @@ update props route msg model =
         -- FAVORITES
         ToggleFavorite org maybeRepo ->
             ( model
-            , Effect.updateFavorites
+            , Effect.updateFavorite
                 { org = org
                 , maybeRepo = maybeRepo
                 , updateType = Favorites.Toggle

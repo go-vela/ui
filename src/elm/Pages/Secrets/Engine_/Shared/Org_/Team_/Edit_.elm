@@ -160,7 +160,7 @@ update shared route msg model =
                 Ok ( _, secret ) ->
                     ( model
                     , Effect.addAlertSuccess
-                        { content = "Shared secret " ++ secret.name ++ " updated."
+                        { content = "Updated shared secret '" ++ route.params.name ++ "'."
                         , addToastIfUnique = True
                         , link = Nothing
                         }
@@ -177,7 +177,7 @@ update shared route msg model =
                     ( model
                     , Effect.batch
                         [ Effect.addAlertSuccess
-                            { content = result
+                            { content = "Deleted shared secret '" ++ route.params.name ++ "'."
                             , addToastIfUnique = True
                             , link = Nothing
                             }

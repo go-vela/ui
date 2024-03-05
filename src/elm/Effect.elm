@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, addDeployment, addOrgSecret, addRepoSchedule, addRepoSecret, addSharedSecret, alertsUpdate, approveBuild, cancelBuild, chownRepo, clearRedirect, deleteOrgSecret, deleteRepoSchedule, deleteRepoSecret, deleteSharedSecret, disableRepo, downloadFile, enableRepo, expandPipelineConfig, finishAuthentication, focusOn, getBuild, getBuildGraph, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoBuildsShared, getRepoDeployments, getRepoHooks, getRepoHooksShared, getRepoSchedule, getRepoSchedules, getRepoSecret, getRepoSecrets, getSharedSecret, getSharedSecrets, handleHttpError, logout, pushPath, redeliverHook, repairRepo, replacePath, replaceRouteRemoveTabHistorySkipDomFocus, restartBuild, setRedirect, setTheme, updateFavicon, updateFavorites, updateOrgSecret, updateRepo, updateRepoSchedule, updateRepoSecret, updateSharedSecret, updateSourceReposShared
+    , addAlertError, addAlertSuccess, addDeployment, addFavorites, addOrgSecret, addRepoSchedule, addRepoSecret, addSharedSecret, alertsUpdate, approveBuild, cancelBuild, chownRepo, clearRedirect, deleteOrgSecret, deleteRepoSchedule, deleteRepoSecret, deleteSharedSecret, disableRepo, downloadFile, enableRepo, expandPipelineConfig, finishAuthentication, focusOn, getBuild, getBuildGraph, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoBuildsShared, getRepoDeployments, getRepoHooks, getRepoHooksShared, getRepoSchedule, getRepoSchedules, getRepoSecret, getRepoSecrets, getSharedSecret, getSharedSecrets, handleHttpError, logout, pushPath, redeliverHook, repairRepo, replacePath, replaceRouteRemoveTabHistorySkipDomFocus, restartBuild, setRedirect, setTheme, updateFavicon, updateFavorite, updateOrgSecret, updateRepo, updateRepoSchedule, updateRepoSecret, updateSharedSecret, updateSourceReposShared
     )
 
 {-|
@@ -252,9 +252,14 @@ getCurrentUser _ =
     SendSharedMsg <| Shared.Msg.GetCurrentUser
 
 
-updateFavorites : { org : String, maybeRepo : Maybe String, updateType : Favorites.UpdateType } -> Effect msg
-updateFavorites options =
-    SendSharedMsg <| Shared.Msg.UpdateFavorites options
+addFavorites : { favorites : List { org : String, maybeRepo : Maybe String } } -> Effect msg
+addFavorites options =
+    SendSharedMsg <| Shared.Msg.AddFavorites options
+
+
+updateFavorite : { org : String, maybeRepo : Maybe String, updateType : Favorites.UpdateType } -> Effect msg
+updateFavorite options =
+    SendSharedMsg <| Shared.Msg.UpdateFavorite options
 
 
 getRepo :

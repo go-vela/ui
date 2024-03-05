@@ -119,7 +119,7 @@ update msg model =
         -- FAVORITES
         ToggleFavorite org maybeRepo ->
             ( model
-            , Effect.updateFavorites { org = org, maybeRepo = maybeRepo, updateType = Favorites.Toggle }
+            , Effect.updateFavorite { org = org, maybeRepo = maybeRepo, updateType = Favorites.Toggle }
             )
 
         SearchFavorites searchBy ->

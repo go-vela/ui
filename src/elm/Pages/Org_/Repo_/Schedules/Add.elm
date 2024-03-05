@@ -115,7 +115,7 @@ update shared route msg model =
                         , branch = ""
                       }
                     , Effect.addAlertSuccess
-                        { content = schedule.name ++ " added to repo schedules."
+                        { content = "Added repo schedule '" ++ schedule.name ++ "'."
                         , addToastIfUnique = True
                         , link = Nothing
                         }

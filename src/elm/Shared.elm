@@ -456,7 +456,7 @@ update route msg model =
             )
 
         -- FAVORITES
-        Shared.Msg.UpdateFavorites options ->
+        Shared.Msg.UpdateFavorite options ->
             let
                 favorite =
                     Favorites.toFavorite options.org options.maybeRepo
@@ -480,12 +480,12 @@ update route msg model =
             in
             ( model
             , Api.try
-                (Shared.Msg.RepoFavoriteResponse { favorite = favorite, favorited = favorited })
+                (Shared.Msg.UpdateFavoriteResponse { favorite = favorite, favorited = favorited })
                 (Api.Operations.updateCurrentUser model.velaAPIBaseURL model.session body)
                 |> Effect.sendCmd
             )
 
-        Shared.Msg.RepoFavoriteResponse options response ->
+        Shared.Msg.UpdateFavoriteResponse options response ->
             case response of
                 Ok ( _, user ) ->
                     let
@@ -495,6 +495,40 @@ update route msg model =
 
                             else
                                 options.favorite ++ " removed from favorites."
+                    in
+                    ( { model | user = RemoteData.succeed user }
+                    , Effect.addAlertSuccess { content = alertMsg, addToastIfUnique = True, link = Nothing }
+                    )
+
+                Err error ->
+                    ( { model | user = Utils.Errors.toFailure error }
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
+        Shared.Msg.AddFavorites options ->
+            let
+                favorites =
+                    Favorites.addFavorites model.user options.favorites
+
+                payload =
+                    { defaultUpdateUserPayload | favorites = Just favorites }
+
+                body =
+                    Http.jsonBody <| Vela.encodeUpdateUser payload
+            in
+            ( model
+            , Api.try
+                (Shared.Msg.AddFavoritesResponse { favorites = options.favorites })
+                (Api.Operations.updateCurrentUser model.velaAPIBaseURL model.session body)
+                |> Effect.sendCmd
+            )
+
+        Shared.Msg.AddFavoritesResponse options response ->
+            case response of
+                Ok ( _, user ) ->
+                    let
+                        alertMsg =
+                            (String.fromInt <| List.length options.favorites) ++ " repo(s) added to favorites."
                     in
                     ( { model | user = RemoteData.succeed user }
                     , Effect.addAlertSuccess { content = alertMsg, addToastIfUnique = True, link = Nothing }
@@ -614,7 +648,11 @@ update route msg model =
             in
             ( shared
             , Effect.batch
-                [ Effect.addAlertError { content = Utils.Errors.detailedErrorToString error, addToastIfUnique = True, link = Nothing }
+                [ Effect.addAlertError
+                    { content = Utils.Errors.detailedErrorToString error
+                    , addToastIfUnique = True
+                    , link = Nothing
+                    }
                 , redirect
                 ]
             )

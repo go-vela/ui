@@ -122,7 +122,7 @@ update shared route msg model =
                       , allowCommand = True
                       }
                     , Effect.addAlertSuccess
-                        { content = secret.name ++ " added to repo secrets."
+                        { content = "Added repo secret '" ++ secret.name ++ "'."
                         , addToastIfUnique = True
                         , link = Nothing
                         }

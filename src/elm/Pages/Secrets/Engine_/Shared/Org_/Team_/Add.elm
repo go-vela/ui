@@ -130,7 +130,7 @@ update shared route msg model =
                         , allowEvents = Vela.defaultEnabledAllowEvents
                       }
                     , Effect.addAlertSuccess
-                        { content = secret.name ++ " added to shared secrets."
+                        { content = "Added shared secret '" ++ secret.name ++ "'."
                         , addToastIfUnique = True
                         , link = Nothing
                         }

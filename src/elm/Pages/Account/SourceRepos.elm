@@ -8,6 +8,7 @@ module Pages.Account.SourceRepos exposing (..)
 import Api.Api as Api
 import Api.Operations
 import Auth
+import Cmd.Extra exposing (add)
 import Components.Crumbs
 import Components.Favorites
 import Components.Nav
@@ -111,8 +112,8 @@ type Msg
     | GetUserSourceRepos Bool
     | GetUserSourceReposResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.SourceRepositories ))
     | EnableRepos (List Vela.Repository)
-    | EnableRepo Vela.Repository
-    | EnableRepoResponse { repo : Vela.Repository } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
+    | EnableRepo { repo : Vela.Repository, showAlertOnResponse : Bool, addFavoriteOnResponse : Bool }
+    | EnableRepoResponse { repo : Vela.Repository, showAlertOnResponse : Bool, addFavoriteOnResponse : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
     | UpdateSearchFilter Vela.Org String
       -- FAVORITES
     | ToggleFavorite Vela.Org (Maybe String)
@@ -164,14 +165,60 @@ update shared msg model =
                         )
 
             EnableRepos repos ->
+                let
+                    reposToEnable =
+                        repos
+                            |> List.filter (\repo -> not repo.active)
+
+                    enableBatchEffect =
+                        reposToEnable
+                            |> List.map
+                                (\repo ->
+                                    EnableRepo
+                                        { repo = repo
+                                        , showAlertOnResponse = False
+                                        , addFavoriteOnResponse = False
+                                        }
+                                )
+                            |> List.map Effect.sendMsg
+                            |> Effect.batch
+
+                    enableAlertContent =
+                        if List.length reposToEnable > 0 then
+                            "Enabling " ++ String.fromInt (List.length reposToEnable) ++ " repo(s)."
+
+                        else
+                            "All repos in the org have already been enabled."
+
+                    addFavoritesEffect =
+                        repos
+                            |> List.filter (\repo -> not (Favorites.isFavorited repo.org repo.name shared.user))
+                            |> List.map
+                                (\repo ->
+                                    Just { org = repo.org, maybeRepo = Just repo.name }
+                                )
+                            |> List.filterMap identity
+                            |> (\favorites ->
+                                    if List.length favorites > 0 then
+                                        Effect.addFavorites { favorites = favorites }
+
+                                    else
+                                        Effect.none
+                               )
+                in
                 ( model
-                , repos
-                    |> List.map EnableRepo
-                    |> List.map Effect.sendMsg
-                    |> Effect.batch
+                , Effect.batch
+                    [ enableBatchEffect
+                    , addFavoritesEffect
+                    , Effect.addAlertSuccess
+                        { content = enableAlertContent
+                        , addToastIfUnique = True
+                        , link = Nothing
+                        }
+                    ]
                 )
 
-            EnableRepo repo ->
+            EnableRepo { repo, showAlertOnResponse, addFavoriteOnResponse } ->
                 let
                     payload =
                         Vela.buildRepoPayload { repo | active = True }
@@ -185,7 +232,7 @@ update shared msg model =
                 , Effect.enableRepo
                     { baseUrl = shared.velaAPIBaseURL
                     , session = shared.session
-                    , onResponse = EnableRepoResponse { repo = repo }
+                    , onResponse = EnableRepoResponse { repo = repo, showAlertOnResponse = showAlertOnResponse, addFavoriteOnResponse = addFavoriteOnResponse }
                     , body = body
                     }
                 )
@@ -197,12 +244,20 @@ update shared msg model =
                             | sourceRepos = Vela.enableUpdate repo Vela.Enabled model.sourceRepos
                           }
                         , Effect.batch
-                            [ Effect.addAlertSuccess
-                                { content = "Repo " ++ repo.full_name ++ " enabled."
-                                , addToastIfUnique = True
-                                , link = Nothing
-                                }
-                            , Effect.updateFavorites { org = repo.org, maybeRepo = Just repo.name, updateType = Favorites.Add }
+                            [ if options.showAlertOnResponse then
+                                Effect.addAlertSuccess
+                                    { content = options.repo.org ++ "/" ++ options.repo.name ++ " has been enabled."
+                                    , addToastIfUnique = True
+                                    , link = Nothing
+                                    }
+
+                              else
+                                Effect.none
+                            , if options.addFavoriteOnResponse then
+                                Effect.updateFavorite { org = options.repo.org, maybeRepo = Just options.repo.name, updateType = Favorites.Add }
+
+                              else
+                                Effect.none
                             ]
                         )
 
@@ -213,8 +268,8 @@ update shared msg model =
                                     409 ->
                                         ( Vela.Enabled
                                         , Effect.addAlertSuccess
-                                            { content = "Repo " ++ options.repo.full_name ++ " enabled."
-                                            , addToastIfUnique = False
+                                            { content = "Webhook already exists for " ++ options.repo.org ++ "/" ++ options.repo.name ++ ", repo is enabled."
+                                            , addToastIfUnique = True
                                             , link = Nothing
                                             }
                                         )
@@ -225,8 +280,10 @@ update shared msg model =
                             _ ->
                                 ( Vela.Failed, Effect.handleHttpError { httpError = error } )
                         )
-                            |> Tuple.mapFirst (\enabled -> Vela.enableUpdate options.repo enabled model.sourceRepos)
-                            |> Tuple.mapFirst (\_ -> { model | sourceRepos = Utils.Errors.toFailure error })
+                            |> Tuple.mapFirst
+                                (\enabled ->
+                                    { model | sourceRepos = Vela.enableUpdate options.repo enabled model.sourceRepos }
+                                )
 
             UpdateSearchFilter org searchBy ->
                 ( { model
@@ -239,7 +296,7 @@ update shared msg model =
             -- FAVORITES
             ToggleFavorite org maybeRepo ->
                 ( model
-                , Effect.updateFavorites { org = org, maybeRepo = maybeRepo, updateType = Favorites.Toggle }
+                , Effect.updateFavorite { org = org, maybeRepo = maybeRepo, updateType = Favorites.Toggle }
                 )
 
 
@@ -448,7 +505,7 @@ viewSourceRepo uses model.sourceRepos and enableRepoButton to determine the stat
 -}
 viewSourceRepo :
     WebData Vela.CurrentUser
-    -> (Vela.Repository -> msg)
+    -> ({ repo : Vela.Repository, showAlertOnResponse : Bool, addFavoriteOnResponse : Bool } -> msg)
     -> Favorites.UpdateFavorites msg
     -> Vela.Repository
     -> Html msg
@@ -461,7 +518,7 @@ viewSourceRepo user enableRepo toggleFavorite repo =
 
 {-| viewSearchedSourceRepo : renders single repo when searching across all repos
 -}
-viewSearchedSourceRepo : (Vela.Repository -> msg) -> Favorites.UpdateFavorites msg -> Vela.Repository -> WebData Vela.CurrentUser -> Html msg
+viewSearchedSourceRepo : ({ repo : Vela.Repository, showAlertOnResponse : Bool, addFavoriteOnResponse : Bool } -> msg) -> Favorites.UpdateFavorites msg -> Vela.Repository -> WebData Vela.CurrentUser -> Html msg
 viewSearchedSourceRepo enableRepo toggleFavorite repo user =
     div [ class "item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div []
@@ -493,14 +550,14 @@ enableReposButton org repos filtered enableRepos =
 
 {-| enableRepoButton : builds action button for enabling single repos
 -}
-enableRepoButton : Vela.Repository -> (Vela.Repository -> msg) -> Favorites.UpdateFavorites msg -> WebData Vela.CurrentUser -> Html msg
+enableRepoButton : Vela.Repository -> ({ repo : Vela.Repository, showAlertOnResponse : Bool, addFavoriteOnResponse : Bool } -> msg) -> Favorites.UpdateFavorites msg -> WebData Vela.CurrentUser -> Html msg
 enableRepoButton repo enableRepo toggleFavorite user =
     case repo.enabled of
         Vela.Disabled ->
             button
                 [ class "button"
                 , Util.testAttribute <| String.join "-" [ "enable", repo.org, repo.name ]
-                , onClick (enableRepo repo)
+                , onClick (enableRepo { repo = repo, showAlertOnResponse = True, addFavoriteOnResponse = True })
                 ]
                 [ text "Enable" ]
 
@@ -577,14 +634,14 @@ enableRepoButton repo enableRepo toggleFavorite user =
                 , class "-failure"
                 , class "-animate-rotate"
                 , Util.testAttribute <| String.join "-" [ "failed", repo.org, repo.name ]
-                , onClick (enableRepo repo)
+                , onClick (enableRepo { repo = repo, showAlertOnResponse = True, addFavoriteOnResponse = True })
                 ]
                 [ FeatherIcons.refreshCw |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
 
 
 {-| searchReposGlobal : takes source repositories and search filters and renders filtered repos
 -}
-searchReposGlobal : Shared.Model -> Model -> Vela.SourceRepositories -> (Vela.Repository -> msg) -> Favorites.UpdateFavorites msg -> Html msg
+searchReposGlobal : Shared.Model -> Model -> Vela.SourceRepositories -> ({ repo : Vela.Repository, showAlertOnResponse : Bool, addFavoriteOnResponse : Bool } -> msg) -> Favorites.UpdateFavorites msg -> Html msg
 searchReposGlobal shared model repos enableRepo toggleFavorite =
     let
         ( user, filters ) =
@@ -612,7 +669,7 @@ searchReposLocal :
     -> Vela.Org
     -> Dict Vela.Org String
     -> List Vela.Repository
-    -> (Vela.Repository -> msg)
+    -> ({ repo : Vela.Repository, showAlertOnResponse : Bool, addFavoriteOnResponse : Bool } -> msg)
     -> Favorites.UpdateFavorites msg
     -> ( List Vela.Repository, Bool, List (Html msg) )
 searchReposLocal user org filters repos enableRepo toggleFavorite =

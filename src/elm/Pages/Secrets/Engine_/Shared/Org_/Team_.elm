@@ -155,6 +155,7 @@ update shared route msg model =
         AddAlertCopiedToClipboard contentCopied ->
             ( model
             , Effect.addAlertSuccess
+                -- todo: this gets crazy when you copy things that dont render
                 { content = "'" ++ contentCopied ++ "' copied to clipboard."
                 , addToastIfUnique = False
                 , link = Nothing

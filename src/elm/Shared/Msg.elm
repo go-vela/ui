@@ -47,8 +47,10 @@ type Msg
       -- SOURCE REPOS
     | UpdateSourceRepos { sourceRepos : WebData Vela.SourceRepositories }
       -- FAVORITES
-    | UpdateFavorites { org : String, maybeRepo : Maybe String, updateType : Favorites.UpdateType }
-    | RepoFavoriteResponse { favorite : String, favorited : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.CurrentUser ))
+    | UpdateFavorite { org : String, maybeRepo : Maybe String, updateType : Favorites.UpdateType }
+    | UpdateFavoriteResponse { favorite : String, favorited : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.CurrentUser ))
+    | AddFavorites { favorites : List { org : String, maybeRepo : Maybe String } }
+    | AddFavoritesResponse { favorites : List { org : String, maybeRepo : Maybe String } } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.CurrentUser ))
       -- BUILDS
     | GetRepoBuilds { org : String, repo : String, pageNumber : Maybe Int, perPage : Maybe Int, maybeEvent : Maybe String }
     | GetRepoBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))

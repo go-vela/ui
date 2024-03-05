@@ -140,7 +140,7 @@ type Msg
     = -- HOOKS
       GetRepoHooksResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Hook ))
     | RedeliverRepoHook { hook : Vela.Hook }
-    | RedeliverRepoHookResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | RedeliverRepoHookResponse { hook : Vela.Hook } (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | GotoPage Int
       -- REFRESH
     | Tick { time : Time.Posix, interval : Interval.Interval }
@@ -170,19 +170,19 @@ update shared route msg model =
             , Effect.redeliverHook
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
-                , onResponse = RedeliverRepoHookResponse
+                , onResponse = RedeliverRepoHookResponse options
                 , org = route.params.org
                 , repo = route.params.repo
                 , hookNumber = String.fromInt <| options.hook.number
                 }
             )
 
-        RedeliverRepoHookResponse response ->
+        RedeliverRepoHookResponse options response ->
             case response of
                 Ok ( _, result ) ->
                     ( model
                     , Effect.addAlertSuccess
-                        { content = result
+                        { content = "Hook #" ++ (String.fromInt <| options.hook.number) ++ " redelivered successfully."
                         , addToastIfUnique = False
                         , link = Nothing
                         }

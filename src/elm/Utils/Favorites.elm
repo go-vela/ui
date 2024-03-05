@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Utils.Favorites exposing (UpdateFavorites, UpdateType(..), addFavorite, isFavorited, toFavorite, toggleFavorite)
+module Utils.Favorites exposing (UpdateFavorites, UpdateType(..), addFavorite, addFavorites, isFavorited, toFavorite, toggleFavorite)
 
 import List.Extra
 import RemoteData exposing (WebData)
@@ -72,6 +72,20 @@ addFavorite user favorite =
 
         _ ->
             ( [], False )
+
+
+{-| addFavorites : takes current user and adds favorites to the current list of favorites
+-}
+addFavorites : WebData Vela.CurrentUser -> List { org : String, maybeRepo : Maybe String } -> List String
+addFavorites user favorites =
+    case user of
+        RemoteData.Success u ->
+            favorites
+                |> List.map (\f -> toFavorite f.org f.maybeRepo)
+                |> (\favs -> List.Extra.unique <| favs ++ u.favorites)
+
+        _ ->
+            []
 
 
 {-| toFavorite : takes org and maybe repo and builds the appropriate favorites key

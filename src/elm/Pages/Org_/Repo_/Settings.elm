@@ -133,7 +133,7 @@ type Msg
     = --REPO
       GetRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
     | GetRepoRefreshResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
-    | UpdateRepoResponse { alertLabel : String } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
+    | UpdateRepoResponse { successAlertContent : String } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
     | EnableRepo { repo : Vela.Repository }
     | EnableRepoResponse { repo : Vela.Repository } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
     | DisableRepo { repo : Vela.Repository }
@@ -141,7 +141,7 @@ type Msg
     | RepairRepo { repo : Vela.Repository }
     | RepairRepoResponse { repo : Vela.Repository } (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | ChownRepo { repo : Vela.Repository }
-    | ChownRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | ChownRepoResponse { repo : Vela.Repository } (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | AllowEventsUpdate { allowEvents : Vela.AllowEvents, event : String } Bool
     | AccessUpdate String
     | ForkPolicyUpdate String
@@ -198,7 +198,7 @@ update shared route msg model =
                 Ok ( _, repo ) ->
                     ( { model | repo = RemoteData.succeed repo }
                     , Effect.addAlertSuccess
-                        { content = "Repo " ++ options.alertLabel ++ " updated."
+                        { content = options.successAlertContent
                         , addToastIfUnique = False
                         , link = Nothing
                         }
@@ -346,29 +346,54 @@ update shared route msg model =
                                 }
                       }
                     , Effect.addAlertSuccess
-                        { content = result
+                        { content = "Repo " ++ repo.full_name ++ " disabled."
                         , addToastIfUnique = False
                         , link = Nothing
                         }
                     )
 
                 Err error ->
-                    ( model
+                    ( { model
+                        | repo =
+                            RemoteData.succeed
+                                { repo
+                                    | enabled = Vela.Failed
+                                }
+                      }
                     , Effect.handleHttpError { httpError = error }
                     )
 
         ChownRepo options ->
+            let
+                currentUser =
+                    RemoteData.unwrap ""
+                        (\user -> " (" ++ user.name ++ ")")
+                        shared.user
+            in
             ( model
-            , Effect.chownRepo
-                { baseUrl = shared.velaAPIBaseURL
-                , session = shared.session
-                , onResponse = ChownRepoResponse
-                , org = route.params.org
-                , repo = route.params.repo
-                }
+            , Effect.batch
+                [ Effect.chownRepo
+                    { baseUrl = shared.velaAPIBaseURL
+                    , session = shared.session
+                    , onResponse = ChownRepoResponse options
+                    , org = route.params.org
+                    , repo = route.params.repo
+                    }
+                , Effect.addAlertSuccess
+                    { content = "Transferring ownership of " ++ options.repo.full_name ++ " to the current user" ++ currentUser ++ "."
+                    , addToastIfUnique = False
+                    , link = Nothing
+                    }
+                ]
             )
 
-        ChownRepoResponse response ->
+        ChownRepoResponse options response ->
+            let
+                currentUser =
+                    RemoteData.unwrap ""
+                        (\user -> " (" ++ user.name ++ ")")
+                        shared.user
+            in
             case response of
                 Ok ( _, result ) ->
                     ( model
@@ -381,7 +406,7 @@ update shared route msg model =
                             , repo = route.params.repo
                             }
                         , Effect.addAlertSuccess
-                            { content = result
+                            { content = "Ownership of " ++ options.repo.full_name ++ " transferred to the current user" ++ currentUser ++ "."
                             , addToastIfUnique = False
                             , link = Nothing
                             }
@@ -395,13 +420,20 @@ update shared route msg model =
 
         RepairRepo options ->
             ( model
-            , Effect.repairRepo
-                { baseUrl = shared.velaAPIBaseURL
-                , session = shared.session
-                , onResponse = RepairRepoResponse options
-                , org = route.params.org
-                , repo = route.params.repo
-                }
+            , Effect.batch
+                [ Effect.repairRepo
+                    { baseUrl = shared.velaAPIBaseURL
+                    , session = shared.session
+                    , onResponse = RepairRepoResponse options
+                    , org = route.params.org
+                    , repo = route.params.repo
+                    }
+                , Effect.addAlertSuccess
+                    { content = "Repairing " ++ options.repo.full_name ++ " by recreating the webhook."
+                    , addToastIfUnique = False
+                    , link = Nothing
+                    }
+                ]
             )
 
         RepairRepoResponse options response ->
@@ -417,7 +449,7 @@ update shared route msg model =
                             , repo = route.params.repo
                             }
                         , Effect.addAlertSuccess
-                            { content = result
+                            { content = "Repo " ++ options.repo.full_name ++ " repaired."
                             , addToastIfUnique = False
                             , link = Nothing
                             }
@@ -446,7 +478,7 @@ update shared route msg model =
                 , session = shared.session
                 , onResponse =
                     UpdateRepoResponse
-                        { alertLabel = "'allowed events'"
+                        { successAlertContent = "'allowed events'"
                         }
                 , org = route.params.org
                 , repo = route.params.repo
@@ -470,7 +502,7 @@ update shared route msg model =
                 , session = shared.session
                 , onResponse =
                     UpdateRepoResponse
-                        { alertLabel = "'visibility'"
+                        { successAlertContent = "'visibility'"
                         }
                 , org = route.params.org
                 , repo = route.params.repo
@@ -494,7 +526,7 @@ update shared route msg model =
                 , session = shared.session
                 , onResponse =
                     UpdateRepoResponse
-                        { alertLabel = "'build approval policy'"
+                        { successAlertContent = "'build approval policy'"
                         }
                 , org = route.params.org
                 , repo = route.params.repo
@@ -525,7 +557,7 @@ update shared route msg model =
                 , session = shared.session
                 , onResponse =
                     UpdateRepoResponse
-                        { alertLabel = "'max build limit'"
+                        { successAlertContent = "'max build limit'"
                         }
                 , org = route.params.org
                 , repo = route.params.repo
@@ -561,7 +593,7 @@ update shared route msg model =
             , Effect.updateRepo
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
-                , onResponse = UpdateRepoResponse { alertLabel = "'build timeout'" }
+                , onResponse = UpdateRepoResponse { successAlertContent = "'build timeout'" }
                 , org = route.params.org
                 , repo = route.params.repo
                 , body = body
@@ -596,7 +628,7 @@ update shared route msg model =
             , Effect.updateRepo
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
-                , onResponse = UpdateRepoResponse { alertLabel = "'build counter'" }
+                , onResponse = UpdateRepoResponse { successAlertContent = "'build counter'" }
                 , org = route.params.org
                 , repo = route.params.repo
                 , body = body
@@ -617,7 +649,7 @@ update shared route msg model =
             , Effect.updateRepo
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
-                , onResponse = UpdateRepoResponse { alertLabel = "'pipeline type'" }
+                , onResponse = UpdateRepoResponse { successAlertContent = "'pipeline type'" }
                 , org = route.params.org
                 , repo = route.params.repo
                 , body = body

@@ -192,9 +192,6 @@ update props shared route msg model =
             case response of
                 Ok ( _, build ) ->
                     let
-                        restartedBuild =
-                            "Build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ]
-
                         newBuildLink =
                             Just
                                 ( "View Build #" ++ String.fromInt build.number
@@ -215,7 +212,7 @@ update props shared route msg model =
                             , repo = props.repo
                             }
                         , Effect.addAlertSuccess
-                            { content = restartedBuild ++ " restarted."
+                            { content = "Restarted build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ] ++ "."
                             , addToastIfUnique = True
                             , link = newBuildLink
                             }
@@ -242,10 +239,6 @@ update props shared route msg model =
         CancelBuildResponse options response ->
             case response of
                 Ok ( _, build ) ->
-                    let
-                        canceledBuild =
-                            "Build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ]
-                    in
                     ( model
                     , Effect.batch
                         [ Effect.getBuild
@@ -257,7 +250,7 @@ update props shared route msg model =
                             , buildNumber = props.buildNumber
                             }
                         , Effect.addAlertSuccess
-                            { content = canceledBuild ++ " canceled."
+                            { content = "Canceled build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ] ++ "."
                             , addToastIfUnique = True
                             , link = Nothing
                             }
@@ -284,10 +277,6 @@ update props shared route msg model =
         ApproveBuildResponse options response ->
             case response of
                 Ok ( _, build ) ->
-                    let
-                        approvedBuild =
-                            "Build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ]
-                    in
                     ( model
                     , Effect.batch
                         [ Effect.getBuild
@@ -299,7 +288,7 @@ update props shared route msg model =
                             , buildNumber = props.buildNumber
                             }
                         , Effect.addAlertSuccess
-                            { content = approvedBuild ++ " approved."
+                            { content = "Approved build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ] ++ "."
                             , addToastIfUnique = True
                             , link = Nothing
                             }
