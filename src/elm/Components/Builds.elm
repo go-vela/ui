@@ -47,6 +47,8 @@ import Vela
 -- TYPES
 
 
+{-| Msgs : alias for an object containing multiple msg.
+-}
 type alias Msgs msg =
     { approveBuild : { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } -> msg
     , restartBuild : { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } -> msg
@@ -55,6 +57,8 @@ type alias Msgs msg =
     }
 
 
+{-| Props : alias for an object containing properties and msg.
+-}
 type alias Props msg =
     { msgs : Msgs msg
     , builds : WebData (List Vela.Build)
@@ -71,6 +75,8 @@ type alias Props msg =
 -- VIEW
 
 
+{-| view : renders repo builds list, or instructions if no builds.
+-}
 view : Shared.Model -> Props msg -> Html msg
 view shared props =
     let
@@ -148,6 +154,8 @@ view shared props =
                 ]
 
 
+{-| viewHeader: renders builds header including filter and timestamp toggle.
+-}
 viewHeader :
     { show : Bool
     , maybeEvent : Maybe String
@@ -167,6 +175,8 @@ viewHeader props =
         text ""
 
 
+{-| viewFilter: renders filter values to filter build list.
+-}
 viewFilter : Maybe String -> (Maybe String -> msg) -> Html msg
 viewFilter maybeEvent filterByEventMsg =
     let
@@ -203,6 +213,8 @@ viewFilter maybeEvent filterByEventMsg =
                 Vela.allowEventsFilterQueryKeys
 
 
+{-| viewTimeToggle: renders checkbox to toggle between relative time and absolute time.
+-}
 viewTimeToggle : Bool -> msg -> Html msg
 viewTimeToggle showTimestamp showHideFullTimestampMsg =
     div [ class "form-controls", class "-stack", class "time-toggle" ]

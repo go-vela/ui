@@ -37,13 +37,13 @@ import Vela
 -- TYPES
 
 
-{-| Search : takes org and repo and searches/filters based on user input
+{-| Search : takes org and repo and searches/filters based on user input.
 -}
 type alias Search msg =
     Vela.Org -> String -> msg
 
 
-{-| Search : takes input and searches/filters favorites displayed on the home page
+{-| Search : takes input and searches/filters favorites displayed on the home page.
 -}
 type alias SimpleSearch msg =
     String -> msg
@@ -53,6 +53,8 @@ type alias SimpleSearch msg =
 -- VIEW
 
 
+{-| viewHomeSearchBar : renders an input bar for searching across all favorited repos.
+-}
 viewHomeSearchBar : String -> SimpleSearch msg -> Html msg
 viewHomeSearchBar filter search =
     div [ class "form-control", class "-with-icon", class "-is-expanded", Util.testAttribute "home-search-bar" ]
@@ -68,7 +70,7 @@ viewHomeSearchBar filter search =
         ]
 
 
-{-| viewRepoSearchBarGlobal : renders a input bar for searching across all repos
+{-| viewRepoSearchBarGlobal : renders an input bar for searching across all repos.
 -}
 viewRepoSearchBarGlobal : Dict Vela.Org String -> Search msg -> Html msg
 viewRepoSearchBarGlobal searchFilters search =
@@ -85,7 +87,7 @@ viewRepoSearchBarGlobal searchFilters search =
         ]
 
 
-{-| viewRepoSearchBarLocal : takes an org and placeholder text and renders a search bar for local repo filtering
+{-| viewRepoSearchBarLocal : takes an org and placeholder text and renders a search bar for local repo filtering.
 -}
 viewRepoSearchBarLocal : Dict Vela.Org String -> Vela.Org -> Search msg -> Html msg
 viewRepoSearchBarLocal searchFilters org search =
@@ -108,7 +110,7 @@ viewRepoSearchBarLocal searchFilters org search =
 -- HELPERS
 
 
-{-| toLowerContains : takes user input and
+{-| toLowerContains : lowercases user input to use for filter.
 -}
 toLowerContains : String -> String -> Bool
 toLowerContains filterBy filterOn =
@@ -122,7 +124,7 @@ toLowerContains filterBy filterOn =
     String.contains by on
 
 
-{-| filterRepo : takes org/repo display filters, the org and filters a single repo based on user-entered text
+{-| filterRepo : takes org/repo display filters, the org and filters a single repo based on user-entered text.
 -}
 filterRepo : Dict Vela.Org String -> Maybe Vela.Org -> String -> Bool
 filterRepo filters org filterOn =
@@ -136,21 +138,21 @@ filterRepo filters org filterOn =
     toLowerContains filterBy filterOn
 
 
-{-| searchFilterGlobal : takes repo search filters and returns the global filter (org == "")
+{-| searchFilterGlobal : takes repo search filters and returns the global filter (org == "").
 -}
 searchFilterGlobal : Dict Vela.Org String -> String
 searchFilterGlobal filters =
     Maybe.withDefault "" <| Dict.get "" filters
 
 
-{-| searchFilterLocal : takes repo search filters and org and returns the local filter
+{-| searchFilterLocal : takes repo search filters and org and returns the local filter.
 -}
 searchFilterLocal : Vela.Org -> Dict Vela.Org String -> String
 searchFilterLocal org filters =
     Maybe.withDefault "" <| Dict.get org filters
 
 
-{-| shouldSearch : takes repo search filter and returns if results should be filtered
+{-| shouldSearch : takes repo search filter and returns if results should be filtered.
 -}
 shouldSearch : String -> Bool
 shouldSearch filter =
