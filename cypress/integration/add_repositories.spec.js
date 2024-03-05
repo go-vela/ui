@@ -51,16 +51,17 @@ context('Source Repositories', () => {
         url: '*api/v1/repos*',
         status: 500,
         response: `{"error":"unable to create webhook for : something went wrong"}`,
-      });
+      }).as('enableRepoError');
 
       cy.get('[data-test=source-org-cat]').click();
       cy.get('[data-test=enable-cat-purr').click();
+      cy.wait('@enableRepoError');
 
       cy.get('[data-test=enabled-cat-purr').should('not.be.visible');
 
-      cy.get('[data-test=source-repos-failed')
+      cy.get('[data-test=failed-cat-purr')
         .should('be.visible')
-        .and('contain', 'error');
+        .and('contain', 'Fail');
 
       cy.get('[data-test=alerts]').should('exist').contains('Error');
     });
