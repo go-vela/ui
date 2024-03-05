@@ -7,16 +7,14 @@ module Pages.Org_.Repo_.Settings exposing (Model, Msg, page, view)
 
 import Auth
 import Components.Form
-import Dict
 import Effect exposing (Effect)
 import FeatherIcons
-import Html exposing (Html, a, br, button, div, em, h2, h3, img, input, label, p, section, small, span, text, textarea)
+import Html exposing (Html, a, br, button, div, em, h2, img, input, label, p, section, small, span, text, textarea)
 import Html.Attributes exposing (alt, attribute, class, classList, disabled, for, href, id, readonly, rows, src, type_, value, wrap)
 import Html.Events exposing (onClick, onInput)
 import Http
 import Http.Detailed
 import Layouts
-import Maybe.Extra
 import Page exposing (Page)
 import Pages.Account.SourceRepos exposing (Msg(..))
 import RemoteData exposing (WebData)
@@ -832,26 +830,36 @@ viewLimitInput shared repo inLimit inputMsg =
 -}
 viewUpdateLimit : Shared.Model -> Vela.Repository -> Maybe Int -> msg -> Html msg
 viewUpdateLimit shared repo inLimit msg =
-    button
-        [ classList
-            [ ( "button", True )
-            , ( "-outline", True )
-            ]
-        , onClick msg
-        , disabled <| not <| validLimit shared.velaMaxBuildLimit inLimit repo <| Just repo.limit
-        ]
-        [ text "update" ]
+    case inLimit of
+        Just _ ->
+            button
+                [ classList
+                    [ ( "button", True )
+                    , ( "-outline", True )
+                    ]
+                , onClick msg
+                , disabled <| not <| validLimit shared.velaMaxBuildLimit inLimit repo <| Just repo.limit
+                ]
+                [ text "update" ]
+
+        _ ->
+            text ""
 
 
 {-| viewLimitWarning : takes maybe string of user entered limit and renders a disclaimer on updating the build limit.
 -}
 viewLimitWarning : Int -> Maybe Int -> Html msg
 viewLimitWarning maxLimit inLimit =
-    p [ class "notice" ]
-        [ text "Disclaimer: it is highly recommended to optimize your pipeline before increasing this value. Limits must also lie between 1 and "
-        , text <| String.fromInt maxLimit
-        , text "."
-        ]
+    case inLimit of
+        Just _ ->
+            p [ class "notice" ]
+                [ text "Disclaimer: it is highly recommended to optimize your pipeline before increasing this value. Limits must also lie between 1 and "
+                , text <| String.fromInt maxLimit
+                , text "."
+                ]
+
+        _ ->
+            text ""
 
 
 {-| validLimit : takes maybe string of user entered limit and returns whether or not it is a valid update.
@@ -884,15 +892,20 @@ viewTimeout repo inTimeout clickMsg inputMsg =
         , p [ class "settings-description" ] [ text "Builds that reach this timeout setting will be stopped." ]
         , div [ class "form-controls" ]
             [ viewTimeoutInput repo inTimeout inputMsg
-            , button
-                [ classList
-                    [ ( "button", True )
-                    , ( "-outline", True )
-                    ]
-                , onClick <| clickMsg <| Maybe.withDefault 0 inTimeout
-                , disabled <| not <| validTimeout inTimeout <| Just repo.timeout
-                ]
-                [ text "update" ]
+            , case inTimeout of
+                Just _ ->
+                    button
+                        [ classList
+                            [ ( "button", True )
+                            , ( "-outline", True )
+                            ]
+                        , onClick <| clickMsg <| Maybe.withDefault 0 inTimeout
+                        , disabled <| not <| validTimeout inTimeout <| Just repo.timeout
+                        ]
+                        [ text "update" ]
+
+                _ ->
+                    text ""
             ]
         , case inTimeout of
             Just _ ->
@@ -980,15 +993,20 @@ viewCounterInput repo inCounter inputMsg =
 -}
 viewUpdateCounter : Maybe Int -> Vela.Repository -> Int -> msg -> Html msg
 viewUpdateCounter inCounter repo repoCounter msg =
-    button
-        [ classList
-            [ ( "button", True )
-            , ( "-outline", True )
-            ]
-        , onClick msg
-        , disabled <| not <| validCounter inCounter repo <| Just repoCounter
-        ]
-        [ text "update" ]
+    case inCounter of
+        Just _ ->
+            button
+                [ classList
+                    [ ( "button", True )
+                    , ( "-outline", True )
+                    ]
+                , onClick msg
+                , disabled <| not <| validCounter inCounter repo <| Just repoCounter
+                ]
+                [ text "update" ]
+
+        _ ->
+            text ""
 
 
 {-| validCounter : takes maybe string of user entered counter and returns whether or not it is a valid update.
