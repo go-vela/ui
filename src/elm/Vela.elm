@@ -5,6 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 module Vela exposing
     ( AllowEvents
+    , AllowEventsField(..)
     , Build
     , BuildGraph
     , BuildGraphEdge
@@ -28,6 +29,8 @@ module Vela exposing
     , PipelineConfig
     , Ref
     , Repo
+    , RepoFieldUpdate(..)
+    , RepoFieldUpdateResponseConfig
     , RepoPayload
     , Repository
     , Schedule
@@ -84,6 +87,8 @@ module Vela exposing
     , encodeSchedulePayload
     , encodeSecretPayload
     , encodeUpdateUser
+    , getAllowEventField
+    , repoFieldUpdateToResponseConfig
     , secretToKey
     , secretTypeToString
     , setAllowEvents
@@ -93,7 +98,7 @@ module Vela exposing
 import Bytes.Encode
 import Dict exposing (Dict)
 import Json.Decode exposing (Decoder, andThen, bool, int, string, succeed)
-import Json.Decode.Extra exposing (dict2)
+import Json.Decode.Extra exposing (dict2, optionalField)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode
 import RemoteData exposing (WebData)
@@ -400,6 +405,7 @@ decodeRepositories : Decoder (List Repository)
 decodeRepositories =
     Json.Decode.list decodeRepository
 
+-- REPO UPDATES
 
 type alias RepoPayload =
     { private : Maybe Bool
@@ -459,6 +465,149 @@ defaultRepoPayload =
     , counter = Nothing
     , pipeline_type = Nothing
     }
+
+
+type RepoFieldUpdate
+    = Private
+    | Trusted
+    | AllowEvents_ AllowEventsField
+    | Visibility
+    | ApproveBuild
+    | Limit
+    | Timeout
+    | Counter
+    | PipelineType
+
+
+type alias RepoFieldUpdateResponseConfig =
+    { successAlert : Repository -> String
+    }
+
+
+repoFieldUpdateToResponseConfig : RepoFieldUpdate -> RepoFieldUpdateResponseConfig
+repoFieldUpdateToResponseConfig field =
+    -- apply generic transformations to the repo update
+    (\update ->
+        { update
+          -- replace $ with repo.full_name
+            | successAlert = \repo -> update.successAlert repo |> String.replace "$" repo.full_name
+        }
+    )
+    <|
+        case field of
+            Private ->
+                { successAlert =
+                    \repo ->
+                        "$ privacy set to '"
+                            ++ (if repo.private then
+                                    "private"
+
+                                else
+                                    "any"
+                               )
+                            ++ "'."
+                }
+
+            Trusted ->
+                { successAlert =
+                    \repo ->
+                        "$ set to '"
+                            ++ (if repo.trusted then
+                                    "trusted"
+
+                                else
+                                    "untrusted"
+                               )
+                            ++ "'."
+                }
+
+            AllowEvents_ event ->
+                { successAlert =
+                    \repo ->
+                        let
+                            prefix =
+                                case event of
+                                    PullOpened ->
+                                        "Pull opened events for $ "
+
+                                    PullSynchronize ->
+                                        "Pull synchronize events for $ "
+
+                                    PullEdited ->
+                                        "Pull edited events for $ "
+
+                                    PullReopened ->
+                                        "Pull reopened events for $ "
+
+                                    PushBranch ->
+                                        "Push branch events for $ "
+
+                                    PushTag ->
+                                        "Push tag events for $ "
+
+                                    PushDeleteBranch ->
+                                        "Push delete branch events for $ "
+
+                                    PushDeleteTag ->
+                                        "Push delete tag events for $ "
+
+                                    DeployCreated ->
+                                        "Deploy events for $ "
+
+                                    CommentCreated ->
+                                        "Comment created events for $ "
+
+                                    CommentEdited ->
+                                        "Comment edited events for $ "
+
+                                    ScheduleRun ->
+                                        "Schedule run event for $ "
+                        in
+                        prefix
+                            ++ (if getAllowEventField event repo.allowEvents then
+                                    "enabled"
+
+                                else
+                                    "disabled"
+                               )
+                            ++ "."
+                }
+
+            Visibility ->
+                { successAlert =
+                    \repo ->
+                        "$ visibility set to '" ++ repo.visibility ++ "'."
+                }
+
+            ApproveBuild ->
+                { successAlert =
+                    \repo ->
+                        "$ build approval policy set to '" ++ repo.approve_build ++ "'."
+                }
+
+            Limit ->
+                { successAlert =
+                    \repo ->
+                        "$ maximum concurrent build limit set to '" ++ String.fromInt repo.limit ++ "'."
+                }
+
+            Timeout ->
+                { successAlert =
+                    \repo ->
+                        "$ maximum build runtime set to " ++ String.fromInt repo.limit ++ " minute(s)."
+                }
+
+            Counter ->
+                { successAlert =
+                    \repo ->
+                        "$ build counter set to " ++ String.fromInt repo.counter ++ "."
+                }
+
+            PipelineType ->
+                { successAlert =
+                    \repo ->
+                        "$ pipeline syntax type set to '" ++ repo.pipeline_type ++ "'."
+                }
 
 
 
@@ -660,9 +809,24 @@ encodeScheduleActions schedule =
         ]
 
 
+type AllowEventsField
+    = PullOpened
+    | PullSynchronize
+    | PullEdited
+    | PullReopened
+    | PushBranch
+    | PushTag
+    | PushDeleteBranch
+    | PushDeleteTag
+    | DeployCreated
+    | CommentCreated
+    | CommentEdited
+    | ScheduleRun
+
+
 setAllowEvents :
     { a | allowEvents : AllowEvents }
-    -> String
+    -> AllowEventsField
     -> Bool
     -> { a | allowEvents : AllowEvents }
 setAllowEvents payload field val =
@@ -674,68 +838,108 @@ setAllowEvents payload field val =
             events
     in
     case field of
-        "allow_push_branch" ->
+        PushBranch ->
             { payload
                 | allowEvents = { events | push = { push | branch = val } }
             }
 
-        "allow_push_tag" ->
+        PushTag ->
             { payload
                 | allowEvents = { events | push = { push | tag = val } }
             }
 
-        "allow_push_delete_branch" ->
+        PushDeleteBranch ->
             { payload
                 | allowEvents = { events | push = { push | deleteBranch = val } }
             }
 
-        "allow_push_delete_tag" ->
+        PushDeleteTag ->
             { payload
                 | allowEvents = { events | push = { push | deleteTag = val } }
             }
 
-        "allow_pull_opened" ->
+        PullOpened ->
             { payload
                 | allowEvents = { events | pull = { pull | opened = val } }
             }
 
-        "allow_pull_synchronize" ->
+        PullSynchronize ->
             { payload
                 | allowEvents = { events | pull = { pull | synchronize = val } }
             }
 
-        "allow_pull_edited" ->
+        PullEdited ->
             { payload
                 | allowEvents = { events | pull = { pull | edited = val } }
             }
 
-        "allow_pull_reopened" ->
+        PullReopened ->
             { payload
                 | allowEvents = { events | pull = { pull | reopened = val } }
             }
 
-        "allow_deploy_created" ->
+        DeployCreated ->
             { payload
                 | allowEvents = { events | deploy = { deploy | created = val } }
             }
 
-        "allow_comment_created" ->
+        CommentCreated ->
             { payload
                 | allowEvents = { events | comment = { comment | created = val } }
             }
 
-        "allow_comment_edited" ->
+        CommentEdited ->
             { payload
                 | allowEvents = { events | comment = { comment | edited = val } }
             }
 
-        "allow_schedule_run" ->
+        ScheduleRun ->
             { payload
                 | allowEvents = { events | schedule = { schedule | run = val } }
             }
 
-        _ ->
-            payload
+
+getAllowEventField :
+    AllowEventsField
+    -> AllowEvents
+    -> Bool
+getAllowEventField field events =
+    case field of
+        PushBranch ->
+            events.push.branch
+
+        PushTag ->
+            events.push.tag
+
+        PushDeleteBranch ->
+            events.push.deleteBranch
+
+        PushDeleteTag ->
+            events.push.deleteTag
+
+        PullOpened ->
+            events.pull.opened
+
+        PullSynchronize ->
+            events.pull.synchronize
+
+        PullEdited ->
+            events.pull.edited
+
+        PullReopened ->
+            events.pull.reopened
+
+        DeployCreated ->
+            events.deploy.created
+
+        CommentCreated ->
+            events.comment.created
+
+        CommentEdited ->
+            events.comment.edited
+
+        ScheduleRun ->
+            events.schedule.run
 
 
 allowEventsToList : AllowEvents -> List ( Bool, String )

@@ -171,7 +171,7 @@ viewSubtitle subtitle =
 viewAllowEvents :
     Shared.Model
     ->
-        { msg : { allowEvents : Vela.AllowEvents, event : String } -> Bool -> msg
+        { msg : { allowEvents : Vela.AllowEvents, event : Vela.AllowEventsField } -> Bool -> msg
         , allowEvents : Vela.AllowEvents
         , disabled_ : Bool
         }
@@ -184,7 +184,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_push_branch"
             , state = allowEvents.push.branch
-            , msg = msg { allowEvents = allowEvents, event = "allow_push_branch" }
+            , msg = msg { allowEvents = allowEvents, event = Vela.PushBranch }
             , disabled_ = False
             , id_ = "allow-events-push-branch"
             }
@@ -193,7 +193,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_push_tag"
             , state = allowEvents.push.tag
-            , msg = msg { allowEvents = allowEvents, event = "allow_push_tag" }
+            , msg = msg { allowEvents = allowEvents, event = Vela.PushTag }
             , disabled_ = False
             , id_ = "allow-events-push-tag"
             }
@@ -205,7 +205,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_pull_opened"
             , state = allowEvents.pull.opened
-            , msg = msg { allowEvents = allowEvents, event = "allow_pull_opened" }
+            , msg = msg { allowEvents = allowEvents, event = Vela.PullOpened }
             , disabled_ = False
             , id_ = "allow-events-pull-opened"
             }
@@ -214,7 +214,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_pull_synchronize"
             , state = allowEvents.pull.synchronize
-            , msg = msg { allowEvents = allowEvents, event = "allow_pull_synchronize" }
+            , msg = msg { allowEvents = allowEvents, event = Vela.PullSynchronize }
             , disabled_ = False
             , id_ = "allow-events-pull-synchronize"
             }
@@ -223,7 +223,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_pull_edited"
             , state = allowEvents.pull.edited
-            , msg = msg { allowEvents = allowEvents, event = "allow_pull_edited" }
+            , msg = msg { allowEvents = allowEvents, event = Vela.PullEdited }
             , disabled_ = False
             , id_ = "allow-events-pull-edited"
             }
@@ -232,7 +232,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_pull_reopened"
             , state = allowEvents.pull.reopened
-            , msg = msg { allowEvents = allowEvents, event = "allow_pull_reopened" }
+            , msg = msg { allowEvents = allowEvents, event = Vela.PullReopened }
             , disabled_ = False
             , id_ = "allow-events-pull-reopened"
             }
@@ -244,7 +244,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_deploy_created"
             , state = allowEvents.deploy.created
-            , msg = msg { allowEvents = allowEvents, event = "allow_deploy_created" }
+            , msg = msg { allowEvents = allowEvents, event = Vela.DeployCreated }
             , disabled_ = False
             , id_ = "allow-events-deploy-created"
             }
@@ -256,7 +256,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_comment_created"
             , state = allowEvents.comment.created
-            , msg = msg { allowEvents = allowEvents, event = "allow_comment_created" }
+            , msg = msg { allowEvents = allowEvents, event = Vela.CommentCreated }
             , disabled_ = False
             , id_ = "allow-events-comment-created"
             }
@@ -265,7 +265,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_comment_edited"
             , state = allowEvents.comment.edited
-            , msg = msg { allowEvents = allowEvents, event = "allow_comment_edited" }
+            , msg = msg { allowEvents = allowEvents, event = Vela.CommentEdited }
             , disabled_ = False
             , id_ = "allow-events-comment-edited"
             }
@@ -277,7 +277,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_push_delete_branch"
             , state = allowEvents.push.deleteBranch
-            , msg = msg { allowEvents = allowEvents, event = "allow_push_delete_branch" }
+            , msg = msg { allowEvents = allowEvents, event = Vela.PushDeleteBranch }
             , disabled_ = False
             , id_ = "allow-events-push-delete-branch"
             }
@@ -286,7 +286,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_push_delete_tag"
             , state = allowEvents.push.deleteTag
-            , msg = msg { allowEvents = allowEvents, event = "allow_push_delete_tag" }
+            , msg = msg { allowEvents = allowEvents, event = Vela.PushDeleteTag }
             , disabled_ = False
             , id_ = "allow-events-push-delete-tag"
             }
@@ -298,7 +298,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_schedule_run"
             , state = allowEvents.schedule.run
-            , msg = msg { allowEvents = allowEvents, event = "allow_schedule_run" }
+            , msg = msg { allowEvents = allowEvents, event = Vela.ScheduleRun }
             , disabled_ = False
             , id_ = "allow-events-schedule-run"
             }

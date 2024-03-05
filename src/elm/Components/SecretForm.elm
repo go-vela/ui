@@ -177,7 +177,7 @@ viewHelp docsUrl =
 viewAllowEventsSelect :
     Shared.Model
     ->
-        { msg : { allowEvents : Vela.AllowEvents, event : String } -> Bool -> msg
+        { msg : { allowEvents : Vela.AllowEvents, event : Vela.AllowEventsField } -> Bool -> msg
         , allowEvents : Vela.AllowEvents
         , disabled_ : Bool
         }

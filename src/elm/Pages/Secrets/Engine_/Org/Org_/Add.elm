@@ -101,7 +101,7 @@ type Msg
     | AddImage String
     | RemoveImage String
     | AllowCommandsOnClick String
-    | AllowEventsUpdate { allowEvents : Vela.AllowEvents, event : String } Bool
+    | AllowEventsUpdate { allowEvents : Vela.AllowEvents, event : Vela.AllowEventsField } Bool
     | SubmitForm
 
 
