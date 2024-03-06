@@ -80,6 +80,14 @@ type alias Props msg =
 view : Shared.Model -> Props msg -> Html msg
 view shared props =
     let
+        noBuildsHeaderText =
+            case props.orgRepo of
+                ( _, Just _ ) ->
+                    text "Your repository has been enabled!"
+
+                _ ->
+                    text "No builds were found for this organization!"
+
         webhooks =
             case props.orgRepo of
                 ( org, Just repo ) ->
@@ -93,7 +101,7 @@ view shared props =
             case props.maybeEvent of
                 Nothing ->
                     div []
-                        [ h2 [] [ text "Your repository has been enabled!" ]
+                        [ h2 [] [ noBuildsHeaderText ]
                         , p [] [ text "Builds will show up here once you have:" ]
                         , ol [ class "list" ]
                             [ li []
