@@ -235,7 +235,7 @@ view shared route model =
                         , Components.Pager.view
                             { show = True
                             , links = model.pager
-                            , labels = Components.Pager.defaultLabels
+                            , labels = Components.Pager.prevNextLabels
                             , msg = GotoPage
                             }
                         ]
