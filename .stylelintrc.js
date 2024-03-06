@@ -6,11 +6,9 @@
 
 module.exports = {
   ignoreFiles: ['src/scss/_reset.scss'],
-  extends: [
-    'stylelint-config-recommended-scss',
-    '@double-great/stylelint-a11y/recommended.cjs',
-  ],
+  extends: ['stylelint-config-recommended-scss'],
   plugins: [
+    '@double-great/stylelint-a11y',
     'stylelint-color-format',
     'stylelint-high-performance-animation',
     'stylelint-declaration-block-no-ignored-properties',
@@ -369,6 +367,8 @@ module.exports = {
     // we handle prefers-reduced-motion this globally so it's ok
     // if affected css makes its way in
     'a11y/media-prefers-reduced-motion': null,
+    'a11y/no-outline-none': true,
+    'a11y/selector-pseudo-class-focus': true,
     'scale-unlimited/declaration-strict-value': [
       ['color', 'fill', 'stroke', '/-color/'],
       {
