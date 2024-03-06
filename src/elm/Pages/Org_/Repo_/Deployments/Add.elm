@@ -25,6 +25,7 @@ import Route.Path
 import Shared
 import String.Extra
 import Url
+import Utils.Errors
 import Utils.Helpers as Util
 import Vela exposing (defaultDeploymentPayload)
 import View exposing (View)
@@ -153,7 +154,10 @@ update shared route msg model =
 
                 Err error ->
                     ( model
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         -- DEPLOYMENTS
@@ -174,7 +178,10 @@ update shared route msg model =
 
                 Err error ->
                     ( model
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         TargetOnInput val ->

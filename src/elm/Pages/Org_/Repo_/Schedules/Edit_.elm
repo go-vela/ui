@@ -22,6 +22,7 @@ import Route exposing (Route)
 import Route.Path
 import Shared
 import String.Extra
+import Utils.Errors
 import Utils.Helpers as Util
 import Vela exposing (defaultSchedulePayload)
 import View exposing (View)
@@ -163,7 +164,10 @@ update shared route msg model =
 
                 Err error ->
                     ( model
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         UpdateRepoScheduleResponse response ->
@@ -179,7 +183,10 @@ update shared route msg model =
 
                 Err error ->
                     ( model
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         DeleteScheduleResponse response ->
@@ -202,7 +209,10 @@ update shared route msg model =
 
                 Err error ->
                     ( model
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         EntryOnInput val ->

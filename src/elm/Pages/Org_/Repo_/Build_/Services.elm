@@ -254,7 +254,10 @@ update shared route msg model =
 
                 Err error ->
                     ( { model | services = Utils.Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         GetBuildServicesRefreshResponse response ->
@@ -280,7 +283,10 @@ update shared route msg model =
 
                 Err error ->
                     ( { model | services = Utils.Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         GetBuildServiceLogResponse options response ->
@@ -325,7 +331,10 @@ update shared route msg model =
 
                 Err error ->
                     ( { model | services = Utils.Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         GetBuildServiceLogRefreshResponse options response ->
@@ -353,7 +362,10 @@ update shared route msg model =
 
                 Err error ->
                     ( { model | services = Utils.Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         ClickService options ->

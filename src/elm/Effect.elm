@@ -1208,9 +1208,9 @@ updateFavicon options =
     SendSharedMsg <| Shared.Msg.UpdateFavicon options
 
 
-handleHttpError : { httpError : Http.Detailed.Error String } -> Effect msg
+handleHttpError : { error : Http.Detailed.Error String, shouldShowAlertFn : Http.Detailed.Error String -> Bool } -> Effect msg
 handleHttpError options =
-    SendSharedMsg <| Shared.Msg.HandleHttpError options.httpError
+    SendSharedMsg <| Shared.Msg.HandleHttpError options
 
 
 addAlertSuccess : { content : String, addToastIfUnique : Bool, link : Maybe Components.Alerts.Link } -> Effect msg

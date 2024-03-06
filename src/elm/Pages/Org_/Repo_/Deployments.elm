@@ -168,7 +168,10 @@ update shared route msg model =
 
                 Err error ->
                     ( { model | deployments = Utils.Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         GotoPage pageNumber ->
@@ -204,7 +207,10 @@ update shared route msg model =
 
                 Err error ->
                     ( { model | repo = Utils.Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         -- REFRESH

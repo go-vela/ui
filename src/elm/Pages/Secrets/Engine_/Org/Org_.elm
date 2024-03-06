@@ -151,7 +151,10 @@ update shared route msg model =
 
                 Err error ->
                     ( { model | orgSecrets = Utils.Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertNon401
+                        }
                     )
 
         GetSharedSecretsResponse response ->

@@ -330,7 +330,10 @@ update shared route msg model =
 
                 Err error ->
                     ( { model | build = Utils.Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         -- PIPELINE
@@ -355,7 +358,10 @@ update shared route msg model =
 
                 Err error ->
                     ( { model | pipeline = Utils.Errors.toFailure error, expanding = False }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         GetExpandBuildPipelineConfigResponse options response ->
@@ -379,7 +385,10 @@ update shared route msg model =
 
                 Err error ->
                     ( { model | pipeline = Utils.Errors.toFailure error, expanding = False }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         ToggleExpand ->
@@ -410,7 +419,10 @@ update shared route msg model =
 
                 Err error ->
                     ( { model | templates = Utils.Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         ShowHideTemplates ->

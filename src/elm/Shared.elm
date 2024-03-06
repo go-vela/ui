@@ -379,7 +379,10 @@ update route msg model =
                                     , Effect.batch
                                         [ redirectToLogin
                                         , Effect.setRedirect { redirect = velaRedirect }
-                                        , Effect.handleHttpError { httpError = error }
+                                        , Effect.handleHttpError
+                                            { error = error
+                                            , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                                            }
                                         ]
                                     )
 
@@ -391,7 +394,10 @@ update route msg model =
                             , Effect.batch
                                 [ redirectToLogin
                                 , Effect.setRedirect { redirect = velaRedirect }
-                                , Effect.handleHttpError { httpError = error }
+                                , Effect.handleHttpError
+                                    { error = error
+                                    , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                                    }
                                 ]
                             )
 
@@ -446,7 +452,10 @@ update route msg model =
 
                 Err error ->
                     ( { model | user = Utils.Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         -- SOURCE REPOS
@@ -502,7 +511,10 @@ update route msg model =
 
                 Err error ->
                     ( { model | user = Utils.Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         Shared.Msg.AddFavorites options ->
@@ -536,7 +548,10 @@ update route msg model =
 
                 Err error ->
                     ( { model | user = Utils.Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         -- BUILDS
@@ -557,7 +572,10 @@ update route msg model =
 
                 Err error ->
                     ( { model | builds = Utils.Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         -- HOOKS
@@ -578,7 +596,10 @@ update route msg model =
 
                 Err error ->
                     ( { model | hooks = Utils.Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         -- THEME
@@ -627,10 +648,13 @@ update route msg model =
                 |> Tuple.mapSecond Effect.sendCmd
 
         -- ERRORS
-        Shared.Msg.HandleHttpError error ->
+        Shared.Msg.HandleHttpError options ->
             let
                 ( shared, redirect ) =
-                    case error of
+                    case options.error of
+                        -- todo: maybe we pass in a status code we want to ignore
+                        --   so secrets can skip this alert for 401s
+                        --
                         -- Http.Detailed.BadStatus meta _ ->
                         --     case meta.statusCode of
                         --         -- todo: FIX THIS! secrets can easily return a 401 for normal reasons
@@ -639,7 +663,7 @@ update route msg model =
                         --                 | session = Auth.Session.Unauthenticated
                         --                 , velaRedirect = "/"
                         --               }
-                        --             , Effect.replacePath <| Route.Path.AccountLogin
+                        --                      , Effect.replacePath <| Route.Path.AccountLogin
                         --             )
                         --         _ ->
                         --             ( model, Effect.none )
@@ -648,11 +672,15 @@ update route msg model =
             in
             ( shared
             , Effect.batch
-                [ Effect.addAlertError
-                    { content = Utils.Errors.detailedErrorToString error
-                    , addToastIfUnique = True
-                    , link = Nothing
-                    }
+                [ if options.shouldShowAlertFn options.error then
+                    Effect.addAlertError
+                        { content = Utils.Errors.detailedErrorToString options.error
+                        , addToastIfUnique = True
+                        , link = Nothing
+                        }
+
+                  else
+                    Effect.none
                 , redirect
                 ]
             )

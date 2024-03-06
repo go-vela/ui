@@ -161,7 +161,10 @@ update shared msg model =
                         ( { model
                             | sourceRepos = Utils.Errors.toFailure error
                           }
-                        , Effect.handleHttpError { httpError = error }
+                        , Effect.handleHttpError
+                            { error = error
+                            , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                            }
                         )
 
             EnableRepos repos ->
@@ -275,10 +278,20 @@ update shared msg model =
                                         )
 
                                     _ ->
-                                        ( Vela.Failed, Effect.handleHttpError { httpError = error } )
+                                        ( Vela.Failed
+                                        , Effect.handleHttpError
+                                            { error = error
+                                            , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                                            }
+                                        )
 
                             _ ->
-                                ( Vela.Failed, Effect.handleHttpError { httpError = error } )
+                                ( Vela.Failed
+                                , Effect.handleHttpError
+                                    { error = error
+                                    , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                                    }
+                                )
                         )
                             |> Tuple.mapFirst
                                 (\enabled ->

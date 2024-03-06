@@ -22,6 +22,7 @@ import Route exposing (Route)
 import Route.Path
 import Shared
 import Time
+import Utils.Errors
 import Utils.Helpers as Util
 import Utils.Interval as Interval
 import Vela exposing (defaultRepoPayload)
@@ -171,7 +172,10 @@ update shared route msg model =
 
                 Err error ->
                     ( model
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         GetRepoRefreshResponse response ->
@@ -190,7 +194,10 @@ update shared route msg model =
 
                 Err error ->
                     ( model
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         UpdateRepoResponse options response ->
@@ -210,7 +217,10 @@ update shared route msg model =
 
                 Err error ->
                     ( model
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         EnableRepo options ->
@@ -285,14 +295,20 @@ update shared route msg model =
                                     ( { model
                                         | repo = RemoteData.succeed { repo | enabled = Vela.Failed }
                                       }
-                                    , Effect.handleHttpError { httpError = error }
+                                    , Effect.handleHttpError
+                                        { error = error
+                                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                                        }
                                     )
 
                         _ ->
                             ( { model
                                 | repo = RemoteData.succeed { repo | enabled = Vela.Failed }
                               }
-                            , Effect.handleHttpError { httpError = error }
+                            , Effect.handleHttpError
+                                { error = error
+                                , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                                }
                             )
 
         DisableRepo options ->
@@ -364,7 +380,10 @@ update shared route msg model =
                                     | enabled = Vela.Failed
                                 }
                       }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         ChownRepo options ->
@@ -412,7 +431,10 @@ update shared route msg model =
 
                 Err error ->
                     ( model
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         RepairRepo options ->
@@ -448,7 +470,10 @@ update shared route msg model =
 
                 Err error ->
                     ( model
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         AllowEventsUpdate options val ->

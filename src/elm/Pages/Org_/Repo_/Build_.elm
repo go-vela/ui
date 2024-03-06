@@ -290,7 +290,10 @@ update shared route msg model =
 
                 Err error ->
                     ( { model | steps = Utils.Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         GetBuildStepsRefreshResponse response ->
@@ -316,7 +319,10 @@ update shared route msg model =
 
                 Err error ->
                     ( { model | steps = Utils.Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         GetBuildStepLogResponse options response ->
@@ -361,7 +367,10 @@ update shared route msg model =
 
                 Err error ->
                     ( { model | steps = Utils.Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         GetBuildStepLogRefreshResponse options response ->
@@ -389,7 +398,10 @@ update shared route msg model =
 
                 Err error ->
                     ( { model | steps = Utils.Errors.toFailure error }
-                    , Effect.handleHttpError { httpError = error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        }
                     )
 
         ClickStep options ->

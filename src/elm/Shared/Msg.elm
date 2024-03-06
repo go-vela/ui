@@ -64,6 +64,6 @@ type Msg
     | AddAlertSuccess { content : String, addToastIfUnique : Bool, link : Maybe Components.Alerts.Link }
     | AlertsUpdate (Alerting.Msg Components.Alerts.Alert)
       -- ERRORS
-    | HandleHttpError (Http.Detailed.Error String)
+    | HandleHttpError { error : Http.Detailed.Error String, shouldShowAlertFn : Http.Detailed.Error String -> Bool }
       -- REFRESH
     | Tick { interval : Interval.Interval, time : Time.Posix }

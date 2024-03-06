@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Utils.Errors exposing (Error, addError, addErrorString, detailedErrorToString, toFailure)
+module Utils.Errors exposing (Error, addError, addErrorString, detailedErrorToString, showAlertAlways, showAlertNon401, toFailure)
 
 import Http
 import Http.Detailed
@@ -127,3 +127,27 @@ addErrorString error m =
     succeed
         (m <| error)
         |> perform identity
+
+
+{-| showAlertAlways : returns an http error predicate that always returns true
+-}
+showAlertAlways : Http.Detailed.Error String -> Bool
+showAlertAlways error =
+    True
+
+
+{-| showAlertNon401 : returns an http error predicate that returns true when the error status code anything but 401
+-}
+showAlertNon401 : Http.Detailed.Error String -> Bool
+showAlertNon401 error =
+    case error of
+        Http.Detailed.BadStatus meta _ ->
+            case meta.statusCode of
+                401 ->
+                    False
+
+                _ ->
+                    True
+
+        _ ->
+            True
