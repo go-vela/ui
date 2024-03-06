@@ -597,7 +597,7 @@ repoFieldUpdateToResponseConfig field =
             Timeout ->
                 { successAlert =
                     \repo ->
-                        "$ maximum build runtime set to " ++ String.fromInt repo.limit ++ " minute(s)."
+                        "$ maximum build runtime set to " ++ String.fromInt repo.timeout ++ " minute(s)."
                 }
 
             Counter ->
