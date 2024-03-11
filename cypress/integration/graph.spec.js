@@ -168,7 +168,7 @@ context('Build Graph', () => {
         cy.location('pathname').should('eq', '/github/octocat/4/graph');
         cy.get('.d3-build-graph-node-step-a').first().click({ force: true });
         cy.location('pathname').should('eq', '/github/octocat/4');
-        cy.hash().should('eq', '#step:5');
+        cy.hash().should('eq', '#5');
       });
       it('step should reflect build information', () => {
         cy.get('.d3-build-graph-node-step-a svg')

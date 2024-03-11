@@ -39,11 +39,11 @@ context('Org', () => {
         cy.get('@repos').should('have.length', 5);
       });
 
-      it('should show 4 action buttons for each item', () => {
+      it('should show 5 action buttons for each item', () => {
         cy.get('@repos').each(($repo, i, $list) => {
           cy.wrap($repo)
             .find('.button')
-            .should('have.length', 4)
+            .should('have.length', 5)
             .should('be.visible');
         });
       });

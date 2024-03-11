@@ -139,6 +139,10 @@ var opts = {
 };
 
 app.ports.renderBuildGraph.subscribe(function (graphData) {
+  if (!graphData) {
+    return;
+  }
+
   const graphviz = Graphviz.load().then(res => {
     var content = res.layout(graphData.dot, 'svg', 'dot');
 

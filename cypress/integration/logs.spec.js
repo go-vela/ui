@@ -10,36 +10,36 @@ context(
       cy.stubStepsWithANSILogs();
       cy.login('/github/octocat/1');
       cy.get('[data-test=step-header-2]').click({ force: true });
-      cy.get('[data-test=logs-1]').as('logs');
+      cy.get('[data-test=logs-2]').as('logs');
       cy.get('[data-test=step-header-2]').click({ force: true });
-      cy.visit('/github/octocat/1#step:2:31');
+      cy.visit('/github/octocat/1#2:31');
       cy.reload();
       cy.wait('@getLogs-2');
     });
 
     it('line should not contain ansi characters', () => {
-      cy.get('[data-test=log-line-step-2-1]').within(() => {
+      cy.get('[data-test=log-line-2-1]').within(() => {
         cy.get('[class=ansi-red-fg]').should('not.exist');
       });
     });
 
     it('line should contain ansi color css', () => {
-      cy.get('[data-test=log-line-step-2-2]').within(() => {
+      cy.get('[data-test=log-line-2-2]').within(() => {
         cy.get('[class=ansi-green-fg]').should('exist');
         cy.get('[class=ansi-red-fg]').should('exist');
       });
-      cy.get('[data-test=log-line-step-2-2]').within(() => {
+      cy.get('[data-test=log-line-2-2]').within(() => {
         cy.get('[class=ansi-bright-black-fg]').should('exist');
       });
     });
 
     it('ansi fg classes should change css color', () => {
-      cy.get('[data-test=log-line-step-2-2]').within(() => {
+      cy.get('[data-test=log-line-2-2]').within(() => {
         cy.get('[class=ansi-green-fg]')
           .should('have.css', 'color')
           .should('eq', 'rgb(125, 209, 35)');
       });
-      cy.get('[data-test=log-line-step-2-2]').within(() => {
+      cy.get('[data-test=log-line-2-2]').within(() => {
         cy.get('[class=ansi-red-fg]')
           .should('have.css', 'color')
           .should('eq', 'rgb(235, 102, 117)');
@@ -47,7 +47,7 @@ context(
     });
 
     it('line should respect ansi font style', () => {
-      cy.get('[data-test=log-line-step-2-3]').within(() => {
+      cy.get('[data-test=log-line-2-3]').within(() => {
         cy.get('.ansi-bold').should('exist');
       });
     });
@@ -178,6 +178,14 @@ context(
       });
 
       it('click follow logs should focus follow new logs', () => {
+        // stub short logs
+        cy.route({
+          method: 'GET',
+          url: 'api/v1/repos/*/*/builds/*/steps/2/logs',
+          status: 200,
+          response: 'fixture:log_step_short.json',
+        }).as('getLogs-2');
+
         // verify no prior focus
         cy.focused().should(
           'not.have.attr',
@@ -185,11 +193,22 @@ context(
           'bottom-log-tracker-2',
         );
 
+        cy.wait('@getLogs-2');
+
         // follow logs
         cy.get('[data-test=follow-logs-2]').first().click({ force: true });
 
+        // stub long logs to trigger follow
+        cy.route({
+          method: 'GET',
+          url: 'api/v1/repos/*/*/builds/*/steps/2/logs',
+          status: 200,
+          response: 'fixture:log_step_long.json',
+        }).as('getLogs-2');
+
         // wait for refresh and check for bottom focus
         cy.wait('@getLogs-2');
+
         cy.focused().should('have.attr', 'data-test', 'bottom-log-tracker-2');
       });
     });
@@ -222,9 +241,9 @@ context(
       });
 
       it('logs data should contain helpful message', () => {
-        cy.get('[data-test=log-line-step-1-1]').should(
+        cy.get('[data-test=log-line-1-1]').should(
           'contain',
-          'The build has not written logs to this step yet.',
+          'The build has not written anything to this log yet.',
         );
       });
 
@@ -244,36 +263,36 @@ context(
       cy.stubServicesWithANSILogs();
       cy.login('/github/octocat/1/services');
       cy.get('[data-test=service-header-2]').click({ force: true });
-      cy.get('[data-test=logs-1]').as('logs');
+      cy.get('[data-test=logs-2]').as('logs');
       cy.get('[data-test=service-header-2]').click({ force: true });
-      cy.visit('/github/octocat/1/services#service:2:31');
+      cy.visit('/github/octocat/1/services#2:31');
       cy.reload();
       cy.wait('@getLogs-2');
     });
 
     it('line should not contain ansi characters', () => {
-      cy.get('[data-test=log-line-service-2-1]').within(() => {
+      cy.get('[data-test=log-line-2-1]').within(() => {
         cy.get('[class=ansi-red-fg]').should('not.exist');
       });
     });
 
     it('line should contain ansi color css', () => {
-      cy.get('[data-test=log-line-service-2-2]').within(() => {
+      cy.get('[data-test=log-line-2-2]').within(() => {
         cy.get('[class=ansi-green-fg]').should('exist');
         cy.get('[class=ansi-red-fg]').should('exist');
       });
-      cy.get('[data-test=log-line-service-2-2]').within(() => {
+      cy.get('[data-test=log-line-2-2]').within(() => {
         cy.get('[class=ansi-bright-black-fg]').should('exist');
       });
     });
 
     it('ansi fg classes should change css color', () => {
-      cy.get('[data-test=log-line-service-2-2]').within(() => {
+      cy.get('[data-test=log-line-2-2]').within(() => {
         cy.get('[class=ansi-green-fg]')
           .should('have.css', 'color')
           .should('eq', 'rgb(125, 209, 35)');
       });
-      cy.get('[data-test=log-line-service-2-2]').within(() => {
+      cy.get('[data-test=log-line-2-2]').within(() => {
         cy.get('[class=ansi-red-fg]')
           .should('have.css', 'color')
           .should('eq', 'rgb(235, 102, 117)');
@@ -281,7 +300,7 @@ context(
     });
 
     it('line should respect ansi font style', () => {
-      cy.get('[data-test=log-line-service-2-3]').within(() => {
+      cy.get('[data-test=log-line-2-3]').within(() => {
         cy.get('.ansi-bold').should('exist');
       });
     });
@@ -428,6 +447,14 @@ context(
       });
 
       it('click follow logs should focus follow new logs', () => {
+        // stub short logs
+        cy.route({
+          method: 'GET',
+          url: 'api/v1/repos/*/*/builds/*/services/2/logs',
+          status: 200,
+          response: 'fixture:log_service_short.json',
+        }).as('getLogs-2');
+
         // verify no prior focus
         cy.focused().should(
           'not.have.attr',
@@ -435,11 +462,22 @@ context(
           'bottom-log-tracker-2',
         );
 
+        cy.wait('@getLogs-2');
+
         // follow logs
         cy.get('[data-test=follow-logs-2]').first().click({ force: true });
 
+        // stub long logs to trigger follow
+        cy.route({
+          method: 'GET',
+          url: 'api/v1/repos/*/*/builds/*/services/2/logs',
+          status: 200,
+          response: 'fixture:log_service_long.json',
+        }).as('getLogs-2');
+
         // wait for refresh and check for bottom focus
         cy.wait('@getLogs-2');
+
         cy.focused().should('have.attr', 'data-test', 'bottom-log-tracker-2');
       });
     });
@@ -472,9 +510,9 @@ context(
       });
 
       it('logs data should contain helpful message', () => {
-        cy.get('[data-test=log-line-service-1-1]').should(
+        cy.get('[data-test=log-line-1-1]').should(
           'contain',
-          'The build has not written logs to this step yet.',
+          'The build has not written anything to this log yet.',
         );
       });
 
@@ -495,14 +533,14 @@ context('visit Build with steps and large logs', () => {
   });
 
   it('line should contain size exceeded message', () => {
-    cy.get('[data-test=log-line-step-1-1]').should(
+    cy.get('[data-test=log-line-1-1]').should(
       'contain',
       'exceeds the size limit',
     );
   });
 
   it('second line should contain download tip', () => {
-    cy.get('[data-test=log-line-step-1-2]').should('contain', 'download');
+    cy.get('[data-test=log-line-1-2]').should('contain', 'download');
   });
 
   it('download button should show', () => {
@@ -518,57 +556,57 @@ context(
       cy.stubStepsWithLinkedLogs();
       cy.login('/github/octocat/1');
       cy.get('[data-test=step-header-2]').click({ force: true });
-      cy.get('[data-test=logs-1]').as('logs');
+      cy.get('[data-test=logs-2]').as('logs');
       cy.get('[data-test=step-header-2]').click({ force: true });
-      cy.visit('/github/octocat/1#step:2:31');
+      cy.visit('/github/octocat/1#2:31');
       cy.reload();
       cy.wait('@getLogs-2');
     });
 
     it('lines should not contain link', () => {
-      cy.get('[data-test=log-line-step-2-1]').within(() => {
+      cy.get('[data-test=log-line-2-1]').within(() => {
         cy.get('[data-test=log-line-link]').should('not.exist');
       });
-      cy.get('[data-test=log-line-step-2-2]').within(() => {
+      cy.get('[data-test=log-line-2-2]').within(() => {
         cy.get('[data-test=log-line-link]').should('not.exist');
       });
-      cy.get('[data-test=log-line-step-2-3]').within(() => {
+      cy.get('[data-test=log-line-2-3]').within(() => {
         cy.get('[data-test=log-line-link]').should('not.exist');
       });
     });
 
     it('lines should contain https link', () => {
-      cy.get('[data-test=log-line-step-2-4]').within(() => {
+      cy.get('[data-test=log-line-2-4]').within(() => {
         cy.get('[data-test=log-line-link]').should('exist');
       });
-      cy.get('[data-test=log-line-step-2-5]').within(() => {
+      cy.get('[data-test=log-line-2-5]').within(() => {
         cy.get('[data-test=log-line-link]').should('exist');
       });
-      cy.get('[data-test=log-line-step-2-6]').within(() => {
+      cy.get('[data-test=log-line-2-6]').within(() => {
         cy.get('[data-test=log-line-link]').should('exist');
       });
-      cy.get('[data-test=log-line-step-2-7]').within(() => {
+      cy.get('[data-test=log-line-2-7]').within(() => {
         cy.get('[data-test=log-line-link]').should('exist');
       });
-      cy.get('[data-test=log-line-step-2-8]').within(() => {
+      cy.get('[data-test=log-line-2-8]').within(() => {
         cy.get('[data-test=log-line-link]').should('exist');
       });
-      cy.get('[data-test=log-line-step-2-9]').within(() => {
+      cy.get('[data-test=log-line-2-9]').within(() => {
         cy.get('[data-test=log-line-link]').should('exist');
       });
-      cy.get('[data-test=log-line-step-2-10]').within(() => {
+      cy.get('[data-test=log-line-2-10]').within(() => {
         cy.get('[data-test=log-line-link]').should('exist');
       });
-      cy.get('[data-test=log-line-step-2-11]').within(() => {
+      cy.get('[data-test=log-line-2-11]').within(() => {
         cy.get('[data-test=log-line-link]').should('exist');
       });
-      cy.get('[data-test=log-line-step-2-12]').within(() => {
+      cy.get('[data-test=log-line-2-12]').within(() => {
         cy.get('[data-test=log-line-link]').should('exist');
       });
     });
 
     it('line should contain ansi color and link', () => {
-      cy.get('[data-test=log-line-step-2-13]').within(() => {
+      cy.get('[data-test=log-line-2-13]').within(() => {
         cy.get('[data-test=log-line-link]').should('exist');
         cy.get('[class=ansi-magenta-bg]').should('exist');
         cy.get('[class=ansi-magenta-bg]').should(

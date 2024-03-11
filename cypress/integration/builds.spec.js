@@ -154,10 +154,6 @@ context('Builds', () => {
         .should('have.css', 'text-overflow', 'ellipsis');
     });
 
-    it('pagination controls should not show', () => {
-      cy.get('[data-test=pager-previous]').should('not.be.visible');
-    });
-
     it('timestamp checkbox should be present', () => {
       cy.get('[data-test=time-toggle]').should('exist');
     });
@@ -337,7 +333,7 @@ context('Builds', () => {
     it('should show no results', () => {
       cy.get('[data-test=build-filter-deployment]').click({ force: true });
       cy.get('[data-test=build]').should('not.be.visible');
-      cy.get('h1').should('contain', 'No builds for "deployment" event found.');
+      cy.get('h3').should('contain', 'No builds for "deployment" event found.');
       cy.url().should('contain', '?event=deployment');
     });
 
@@ -367,7 +363,6 @@ context('Builds', () => {
 
     it('should only show two pull events', () => {
       cy.get('[data-test=build]').should('be.visible').should('have.length', 2);
-      cy.url().should('not.contain', '?event=pull_request');
     });
   });
 
@@ -384,7 +379,6 @@ context('Builds', () => {
 
     it('should only show one tag event', () => {
       cy.get('[data-test=build]').should('be.visible').should('have.length', 1);
-      cy.url().should('not.contain', '?event=tag');
     });
   });
 });

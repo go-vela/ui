@@ -12,6 +12,16 @@
 // the project's config changing)
 
 module.exports = (on, config) => {
-  // `on` is used to hook into various events Cypress emits
-  // `config` is the resolved Cypress config
+  // use task callbacks to log violations
+  // see: https://github.com/component-driven/cypress-axe#using-the-violationcallback-argument
+  on('task', {
+    log(message) {
+      console.log(message);
+      return null;
+    },
+    table(message) {
+      console.table(message);
+      return null;
+    },
+  });
 };

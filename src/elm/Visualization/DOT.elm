@@ -1,3 +1,8 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module Visualization.DOT exposing
     ( Attribute(..)
     , AttributeValue(..)

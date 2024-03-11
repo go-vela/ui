@@ -203,7 +203,7 @@ function drawNodes(opts, buildGraphElement, nodeSelector, edges) {
 
     node.selectAll('a').filter(function () {
       var step = d3.select(this);
-      if (step.attr('xlink:href').includes('#step:')) {
+      if (step.attr('xlink:href').includes('#href:')) {
         // restore base class and build modifiers
         step.classed('d3-build-graph-node-step-a', true);
 

@@ -11,7 +11,7 @@ context('Add Schedule', () => {
         '*api/v1/schedules/github/octocat/Daily',
         'fixture:schedule.json',
       );
-      cy.login('/github/octocat/add-schedule');
+      cy.login('/github/octocat/schedules/add');
     });
     context(
       'allowlist contains github/octocat',
@@ -22,7 +22,7 @@ context('Add Schedule', () => {
       },
       () => {
         it('default name placeholder should show', () => {
-          cy.get('[data-test=schedule-name]')
+          cy.get('[data-test=name]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
@@ -30,7 +30,7 @@ context('Add Schedule', () => {
             });
         });
         it('default entry value should show', () => {
-          cy.get('[data-test=schedule-entry]')
+          cy.get('[data-test=entry]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
@@ -38,15 +38,15 @@ context('Add Schedule', () => {
             });
         });
         it('default branch placeholder should show', () => {
-          cy.get('[data-test=schedule-branch-name]')
+          cy.get('[data-test=branch-name]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
               expect(placeholder).to.include('Branch Name');
             });
         });
-        it('add button should show', () => {
-          cy.get('[data-test=schedule-add-button]').should('exist');
+        it('submit button should show', () => {
+          cy.get('[data-test=submit]').should('exist');
         });
       },
     );
@@ -59,8 +59,8 @@ context('Add Schedule', () => {
         },
       },
       () => {
-        it('default name placeholder should show', () => {
-          cy.get('[data-test=schedule-name]')
+        it('default entry value should show', () => {
+          cy.get('[data-test=name]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
@@ -68,7 +68,7 @@ context('Add Schedule', () => {
             });
         });
         it('default entry value should show', () => {
-          cy.get('[data-test=schedule-entry]')
+          cy.get('[data-test=entry]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
@@ -76,15 +76,15 @@ context('Add Schedule', () => {
             });
         });
         it('default branch placeholder should show', () => {
-          cy.get('[data-test=schedule-branch-name]')
+          cy.get('[data-test=branch-name]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
               expect(placeholder).to.include('Branch Name');
             });
         });
-        it('add button should show', () => {
-          cy.get('[data-test=schedule-add-button]').should('exist');
+        it('submit button should show', () => {
+          cy.get('[data-test=submit]').should('exist');
         });
       },
     );
@@ -96,17 +96,43 @@ context('Add Schedule', () => {
         },
       },
       () => {
-        it('default name value should not show', () => {
-          cy.get('[data-test=schedule-name]').should('not.exist');
+        it('default entry value should show and be disabled', () => {
+          cy.get('[data-test=name]')
+            .should('exist')
+            .and('have.attr', 'placeholder')
+            .then(placeholder => {
+              expect(placeholder).to.include('Schedule Name');
+            });
+          cy.get('[data-test=name]')
+            .should('exist')
+            .and('have.attr', 'disabled');
         });
-        it('default entry value should not show', () => {
-          cy.get('[data-test=schedule-entry]').should('not.exist');
+        it('default entry value should show and be disabled', () => {
+          cy.get('[data-test=entry]')
+            .should('exist')
+            .and('have.attr', 'placeholder')
+            .then(placeholder => {
+              expect(placeholder).to.include('0 0 * * *');
+            });
+          cy.get('[data-test=entry]')
+            .should('exist')
+            .and('have.attr', 'disabled');
         });
-        it('default branch value should not show', () => {
-          cy.get('[data-test=schedule-branch-name]').should('not.exist');
+        it('default branch placeholder should show and be disabled', () => {
+          cy.get('[data-test=branch-name]')
+            .should('exist')
+            .and('have.attr', 'placeholder')
+            .then(placeholder => {
+              expect(placeholder).to.include('Branch Name');
+            });
+          cy.get('[data-test=branch-name]')
+            .should('exist')
+            .and('have.attr', 'disabled');
         });
-        it('add button should not show', () => {
-          cy.get('[data-test=schedule-add-button]').should('not.exist');
+        it('submit button should show and be disabled', () => {
+          cy.get('[data-test=submit]')
+            .should('exist')
+            .and('have.attr', 'disabled');
         });
         it('should show not allowed warning', () => {
           cy.get('[data-test=repo-schedule-not-allowed]').should('exist');
@@ -136,12 +162,12 @@ context('View/Edit Schedule', () => {
       },
       () => {
         it('default name value should show', () => {
-          cy.get('[data-test=schedule-name]')
+          cy.get('[data-test=name]')
             .should('exist')
             .should('have.value', 'Daily');
         });
         it('default entry value should show', () => {
-          cy.get('[data-test=schedule-entry]')
+          cy.get('[data-test=entry]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
@@ -149,15 +175,15 @@ context('View/Edit Schedule', () => {
             });
         });
         it('default branch value should show', () => {
-          cy.get('[data-test=schedule-branch-name]')
+          cy.get('[data-test=branch-name]')
             .should('exist')
             .should('have.value', 'main');
         });
-        it('update button should show', () => {
-          cy.get('[data-test=schedule-update-button]').should('exist');
+        it('submit button should show', () => {
+          cy.get('[data-test=submit]').should('exist');
         });
         it('delete button should show', () => {
-          cy.get('[data-test=schedule-delete-button]').should('exist');
+          cy.get('[data-test=delete]').should('exist');
         });
       },
     );
@@ -171,12 +197,12 @@ context('View/Edit Schedule', () => {
       },
       () => {
         it('default name value should show', () => {
-          cy.get('[data-test=schedule-name]')
+          cy.get('[data-test=name]')
             .should('exist')
             .should('have.value', 'Daily');
         });
         it('default entry value should show', () => {
-          cy.get('[data-test=schedule-entry]')
+          cy.get('[data-test=entry]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
@@ -184,15 +210,15 @@ context('View/Edit Schedule', () => {
             });
         });
         it('default branch value should show', () => {
-          cy.get('[data-test=schedule-branch-name]')
+          cy.get('[data-test=branch-name]')
             .should('exist')
             .should('have.value', 'main');
         });
-        it('update button should show', () => {
-          cy.get('[data-test=schedule-update-button]').should('exist');
+        it('submit button should show', () => {
+          cy.get('[data-test=submit]').should('exist');
         });
         it('delete button should show', () => {
-          cy.get('[data-test=schedule-delete-button]').should('exist');
+          cy.get('[data-test=delete]').should('exist');
         });
       },
     );
@@ -204,20 +230,43 @@ context('View/Edit Schedule', () => {
         },
       },
       () => {
-        it('default name value should not show', () => {
-          cy.get('[data-test=schedule-name]').should('not.exist');
+        it('default entry value should show and be disabled', () => {
+          cy.get('[data-test=name]')
+            .should('exist')
+            .and('have.attr', 'placeholder')
+            .then(placeholder => {
+              expect(placeholder).to.include('Schedule Name');
+            });
+          cy.get('[data-test=name]')
+            .should('exist')
+            .and('have.attr', 'disabled');
         });
-        it('default entry value should not show', () => {
-          cy.get('[data-test=schedule-entry]').should('not.exist');
+        it('default entry value should show and be disabled', () => {
+          cy.get('[data-test=entry]')
+            .should('exist')
+            .and('have.attr', 'placeholder')
+            .then(placeholder => {
+              expect(placeholder).to.include('0 0 * * *');
+            });
+          cy.get('[data-test=entry]')
+            .should('exist')
+            .and('have.attr', 'disabled');
         });
-        it('default branch value should not show', () => {
-          cy.get('[data-test=schedule-branch-name]').should('not.exist');
+        it('default branch placeholder should show and be disabled', () => {
+          cy.get('[data-test=branch-name]')
+            .should('exist')
+            .and('have.attr', 'placeholder')
+            .then(placeholder => {
+              expect(placeholder).to.include('Branch Name');
+            });
+          cy.get('[data-test=branch-name]')
+            .should('exist')
+            .and('have.attr', 'disabled');
         });
-        it('update button should not show', () => {
-          cy.get('[data-test=schedule-update-button]').should('not.exist');
-        });
-        it('delete button should not show', () => {
-          cy.get('[data-test=schedule-delete-button]').should('not.exist');
+        it('submit button should show and be disabled', () => {
+          cy.get('[data-test=submit]')
+            .should('exist')
+            .and('have.attr', 'disabled');
         });
         it('should show not allowed warning', () => {
           cy.get('[data-test=repo-schedule-not-allowed]').should('exist');
