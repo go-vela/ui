@@ -35,6 +35,8 @@ import Utils.Helpers as Util
 import View exposing (View)
 
 
+{-| page : shared model, route, and returns the login page.
+-}
 page : Shared.Model -> Route () -> Page Model Msg
 page shared route =
     Page.new
@@ -50,6 +52,8 @@ page shared route =
 -- LAYOUT
 
 
+{-| toLayout : takes model and passes the login page info to Layouts.
+-}
 toLayout : Model -> Layouts.Layout Msg
 toLayout model =
     Layouts.Default
@@ -66,10 +70,14 @@ toLayout model =
 -- INIT
 
 
+{-| Model : alias for a model object.
+-}
 type alias Model =
     {}
 
 
+{-| init : initializes a login page with no arguments.
+-}
 init : () -> ( Model, Effect Msg )
 init () =
     ( {}
@@ -81,12 +89,16 @@ init () =
 -- UPDATE
 
 
+{-| Msg : a custom type with possible messages.
+-}
 type Msg
     = NoOp
       -- AUTH
     | SignInRequested
 
 
+{-| update : takes current models, message, and returns an updated model and effect.
+-}
 update : Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
 update shared msg model =
     case msg of
@@ -106,6 +118,8 @@ update shared msg model =
 -- SUBSCRIPTIONS
 
 
+{-| subscriptions : takes model and returns that there are no subscriptions.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
@@ -115,6 +129,8 @@ subscriptions model =
 -- VIEW
 
 
+{-| view : takes models, route, and creates the html for the login page.
+-}
 view : Shared.Model -> Route () -> Model -> View Msg
 view shared route model =
     let
@@ -144,6 +160,8 @@ view shared route model =
     }
 
 
+{-| viewLogin : renders a div with authorize button on the login page.
+-}
 viewLogin : Html Msg
 viewLogin =
     div []

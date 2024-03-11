@@ -23,6 +23,8 @@ import Shared
 import View exposing (View)
 
 
+{-| page : takes user, shared model, route, and returns a (template) page.
+-}
 page : Auth.User -> Shared.Model -> Route { org : String, repo : String } -> Page Model Msg
 page user shared route =
     Page.new
@@ -38,6 +40,8 @@ page user shared route =
 -- LAYOUT
 
 
+{-| toLayout : takes user, model, and passes (a template's) page info to Layouts.
+-}
 toLayout : Auth.User -> Model -> Layouts.Layout Msg
 toLayout user model =
     Layouts.Default
@@ -49,10 +53,14 @@ toLayout user model =
 -- INIT
 
 
+{-| Model : alias for a model object.
+-}
 type alias Model =
     {}
 
 
+{-| init : takes shared model and initializes a templage page input arguments.
+-}
 init : Shared.Model -> () -> ( Model, Effect Msg )
 init shared () =
     ( {}
@@ -64,10 +72,14 @@ init shared () =
 -- UPDATE
 
 
+{-| Msg : a custom type with no messages.
+-}
 type Msg
     = NoOp
 
 
+{-| update : takes current model, message, and returns an updated model and effect.
+-}
 update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
@@ -81,6 +93,8 @@ update msg model =
 -- SUBSCRIPTIONS
 
 
+{-| subscriptions : takes model and returns that there are no subscriptions.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
@@ -90,6 +104,8 @@ subscriptions model =
 -- VIEW
 
 
+{-| view : takes models, route, and creates the html for the (template) page.
+-}
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
     let

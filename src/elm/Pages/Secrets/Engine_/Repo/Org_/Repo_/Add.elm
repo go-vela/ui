@@ -28,6 +28,8 @@ import Vela exposing (defaultSecretPayload)
 import View exposing (View)
 
 
+{-| page : takes user, shared model, route, and returns an add repo secret page.
+-}
 page : Auth.User -> Shared.Model -> Route { engine : String, org : String, repo : String } -> Page Model Msg
 page user shared route =
     Page.new
@@ -43,6 +45,8 @@ page user shared route =
 -- LAYOUT
 
 
+{-| toLayout : takes user, route, model, and passes an add repo secret page info to Layouts.
+-}
 toLayout : Auth.User -> Route { engine : String, org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
@@ -68,6 +72,8 @@ toLayout user route model =
 -- INIT
 
 
+{-| Model : alias for a model object.
+-}
 type alias Model =
     { name : String
     , value : String
@@ -78,6 +84,8 @@ type alias Model =
     }
 
 
+{-| init : takes shared model, route, and initializes add repo secret page input arguments.
+-}
 init : Shared.Model -> () -> ( Model, Effect Msg )
 init shared () =
     ( { name = ""
@@ -95,6 +103,8 @@ init shared () =
 -- UPDATE
 
 
+{-| Msg : a custom type with possible messages.
+-}
 type Msg
     = -- SECRETS
       AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
@@ -108,6 +118,8 @@ type Msg
     | SubmitForm
 
 
+{-| update : takes current models, route, message, and returns an updated model and effect.
+-}
 update : Shared.Model -> Route { engine : String, org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
@@ -218,6 +230,8 @@ update shared route msg model =
 -- SUBSCRIPTIONS
 
 
+{-| subscriptions : takes model and returns that there are no subscriptions.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
@@ -227,6 +241,8 @@ subscriptions model =
 -- VIEW
 
 
+{-| view : takes models, route, and creates the html for an add repo secret page.
+-}
 view : Shared.Model -> Route { engine : String, org : String, repo : String } -> Model -> View Msg
 view shared route model =
     let

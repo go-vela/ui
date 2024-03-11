@@ -52,6 +52,8 @@ import Vela
 import View exposing (View)
 
 
+{-| page : takes user, shared model, route, and returns a hooks (a.k.a. audit) page.
+-}
 page : Auth.User -> Shared.Model -> Route { org : String, repo : String } -> Page Model Msg
 page user shared route =
     Page.new
@@ -67,6 +69,8 @@ page user shared route =
 -- LAYOUT
 
 
+{-| toLayout : takes user, route, model, and passes a hooks (a.k.a. audit) page info to Layouts.
+-}
 toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Repo
@@ -109,12 +113,16 @@ toLayout user route model =
 -- INIT
 
 
+{-| Model : alias for a model object.
+-}
 type alias Model =
     { hooks : WebData (List Vela.Hook)
     , pager : List WebLink
     }
 
 
+{-| init : takes shared model, route, and initializes hooks page input arguments.
+-}
 init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { hooks = shared.hooks
@@ -136,6 +144,8 @@ init shared route () =
 -- UPDATE
 
 
+{-| Msg : a custom type with possible messages.
+-}
 type Msg
     = -- HOOKS
       GetRepoHooksResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Hook ))
@@ -146,6 +156,8 @@ type Msg
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
+{-| update : takes current models, route, message, and returns an updated model and effect.
+-}
 update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
@@ -239,6 +251,8 @@ update shared route msg model =
 -- SUBSCRIPTIONS
 
 
+{-| subscriptions : takes model and returns the subscriptions for auto refreshing the page.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Interval.tickEveryFiveSeconds Tick
@@ -248,6 +262,8 @@ subscriptions model =
 -- VIEW
 
 
+{-| view : takes models, route, and creates the html for the hooks page.
+-}
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
     { title = "Audit" ++ Util.pageToString (Dict.get "page" route.query)
@@ -263,7 +279,7 @@ view shared route model =
     }
 
 
-{-| viewHooks : renders a list of hooks
+{-| viewHooks : renders a list of hooks.
 -}
 viewHooks : Shared.Model -> Model -> WebData (List Vela.Hook) -> Html Msg
 viewHooks shared model hooks =
@@ -317,7 +333,7 @@ viewHooks shared model hooks =
     div [] [ Components.Table.view cfg ]
 
 
-{-| hooksToRows : takes list of hooks and produces list of Table rows
+{-| hooksToRows : takes list of hooks and produces list of Table rows.
 -}
 hooksToRows : Time.Posix -> List Vela.Hook -> ({ hook : Vela.Hook } -> Msg) -> Components.Table.Rows Vela.Hook Msg
 hooksToRows now hooks redeliverHook =
@@ -326,7 +342,7 @@ hooksToRows now hooks redeliverHook =
         |> List.filterMap identity
 
 
-{-| tableHeaders : returns table headers for secrets table
+{-| tableHeaders : returns table headers for secrets table.
 -}
 tableHeaders : Components.Table.Columns
 tableHeaders =
@@ -339,7 +355,7 @@ tableHeaders =
     ]
 
 
-{-| viewHook : takes hook and renders a table row
+{-| viewHook : takes hook and renders a table row.
 -}
 viewHook : Time.Posix -> ({ hook : Vela.Hook } -> msg) -> Vela.Hook -> Html msg
 viewHook now redeliverHook hook =
@@ -412,6 +428,8 @@ viewHook now redeliverHook hook =
         ]
 
 
+{-| hookErrorRow : populates hook error if error exists.
+-}
 hookErrorRow : Vela.Hook -> Maybe (Components.Table.Row Vela.Hook msg)
 hookErrorRow hook =
     if not <| String.isEmpty hook.error then
@@ -421,6 +439,8 @@ hookErrorRow hook =
         Nothing
 
 
+{-| viewHookError : renders a component for a hook error.
+-}
 viewHookError : Vela.Hook -> Html msg
 viewHookError hook =
     let
@@ -455,6 +475,8 @@ viewHookError hook =
     msgRow
 
 
+{-| hookStatusToRowClass : populates hook class based on status.
+-}
 hookStatusToRowClass : String -> Html.Attribute msg
 hookStatusToRowClass status =
     case status of

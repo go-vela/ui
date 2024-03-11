@@ -51,6 +51,8 @@ import Vela
 import View exposing (View)
 
 
+{-| page : takes user, shared model, route, and returns the home page.
+-}
 page : Auth.User -> Shared.Model -> Route () -> Page Model Msg
 page user shared route =
     Page.new
@@ -66,6 +68,8 @@ page user shared route =
 -- LAYOUT
 
 
+{-| toLayout : takes user, model, and passes the home page info to Layouts.
+-}
 toLayout : Auth.User -> Model -> Layouts.Layout Msg
 toLayout user model =
     Layouts.Default
@@ -82,11 +86,15 @@ toLayout user model =
 -- INIT
 
 
+{-| Model : alias for a model object.
+-}
 type alias Model =
     { favoritesFilter : String
     }
 
 
+{-| init : takes shared model and initializes home page input arguments.
+-}
 init : Shared.Model -> () -> ( Model, Effect Msg )
 init shared () =
     ( { favoritesFilter = ""
@@ -99,6 +107,8 @@ init shared () =
 -- UPDATE
 
 
+{-| Msg : a custom type with possible messages.
+-}
 type Msg
     = NoOp
       -- FAVORITES
@@ -108,6 +118,8 @@ type Msg
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
+{-| update : takes current model, message, and returns an updated model and effect.
+-}
 update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
@@ -138,6 +150,8 @@ update msg model =
 -- SUBSCRIPTIONS
 
 
+{-| subscriptions : takes model and returns the subscriptions for auto refreshing the page.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Interval.tickEveryFiveSeconds Tick
@@ -147,6 +161,8 @@ subscriptions model =
 -- VIEW
 
 
+{-| view : takes models, route, and creates the html for the home page.
+-}
 view : Shared.Model -> Route () -> Model -> View Msg
 view shared route model =
     let
@@ -200,7 +216,7 @@ view shared route model =
     }
 
 
-{-| viewFavorites : takes favorites, user search input and favorite action and renders favorites
+{-| viewFavorites : takes favorites, user search input and favorite action and renders favorites.
 -}
 viewFavorites : Shared.Model -> List String -> String -> Html Msg
 viewFavorites shared favorites filter =
@@ -213,7 +229,7 @@ viewFavorites shared favorites filter =
         viewFilteredFavorites shared favorites filter
 
 
-{-| viewFilteredFavorites : takes favorites, user search input and favorite action and renders favorites
+{-| viewFilteredFavorites : takes favorites, user search input and favorite action and renders favorites.
 -}
 viewFilteredFavorites : Shared.Model -> List String -> String -> Html Msg
 viewFilteredFavorites shared favorites filter =
@@ -230,7 +246,7 @@ viewFilteredFavorites shared favorites filter =
             [ div [ class "no-results" ] [ text "No results" ] ]
 
 
-{-| viewFavoritesByOrg : takes favorites dictionary and favorite action and renders favorites by org
+{-| viewFavoritesByOrg : takes favorites dictionary and favorite action and renders favorites by org.
 -}
 viewFavoritesByOrg : Shared.Model -> Dict String (List String) -> Html Msg
 viewFavoritesByOrg shared orgFavorites =
@@ -241,7 +257,7 @@ viewFavoritesByOrg shared orgFavorites =
         |> div [ class "repo-list" ]
 
 
-{-| toOrgFavorites : takes favorites and organizes them by org in a dict
+{-| toOrgFavorites : takes favorites and organizes them by org in a dict.
 -}
 toOrgFavorites : List String -> Dict String (List String)
 toOrgFavorites favorites =
@@ -260,7 +276,7 @@ toOrgFavorites favorites =
         List.sort favorites
 
 
-{-| viewOrg : takes org, favorites and favorite action and renders favorites by org
+{-| viewOrg : takes org, favorites and favorite action and renders favorites by org.
 -}
 viewOrg : Shared.Model -> String -> List String -> Html Msg
 viewOrg shared org favorites =
@@ -273,7 +289,7 @@ viewOrg shared org favorites =
         )
 
 
-{-| viewFavorite : takes favorite in the form of a repo full name and renders the repo component
+{-| viewFavorite : takes favorite in the form of a repo full name and renders the repo component.
 -}
 viewFavorite : Shared.Model -> List String -> Bool -> String -> Html Msg
 viewFavorite shared favorites filtered repoFullName =

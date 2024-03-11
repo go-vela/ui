@@ -51,6 +51,8 @@ import Vela
 import View exposing (View)
 
 
+{-| page : takes user, shared model, route, and returns a deployment page.
+-}
 page : Auth.User -> Shared.Model -> Route { org : String, repo : String } -> Page Model Msg
 page user shared route =
     Page.new
@@ -66,6 +68,8 @@ page user shared route =
 -- LAYOUT
 
 
+{-| toLayout : takes user, route, model, and passes the deployments page info to Layouts.
+-}
 toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Repo
@@ -104,6 +108,8 @@ toLayout user route model =
 -- INIT
 
 
+{-| Model : alias for a model object.
+-}
 type alias Model =
     { repo : WebData Vela.Repository
     , deployments : WebData (List Vela.Deployment)
@@ -111,6 +117,8 @@ type alias Model =
     }
 
 
+{-| init : takes shared model, route, and initializes deployments page input arguments.
+-}
 init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { deployments = RemoteData.Loading
@@ -142,6 +150,8 @@ init shared route () =
 -- UPDATE
 
 
+{-| Msg : a custom type with possible messages.
+-}
 type Msg
     = -- REPO
       GetRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
@@ -152,6 +162,8 @@ type Msg
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
+{-| update : takes current models, route, message, and returns an updated model and effect.
+-}
 update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
@@ -232,6 +244,8 @@ update shared route msg model =
 -- SUBSCRIPTIONS
 
 
+{-| subscriptions : takes model and returns the subscriptions for auto refreshing the page.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Interval.tickEveryFiveSeconds Tick
@@ -241,6 +255,8 @@ subscriptions model =
 -- VIEW
 
 
+{-| view : takes models, route, and creates the html for the deployments page.
+-}
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
     { title = "Deployments" ++ Util.pageToString (Dict.get "page" route.query)
@@ -256,7 +272,7 @@ view shared route model =
     }
 
 
-{-| viewDeployments : renders a list of deployments
+{-| viewDeployments : renders a list of deployments.
 -}
 viewDeployments : Shared.Model -> Model -> Route { org : String, repo : String } -> Html Msg
 viewDeployments shared model route =
@@ -336,14 +352,14 @@ viewDeployments shared model route =
 -- TABLE
 
 
-{-| deploymentsToRows : takes list of deployments and produces list of Table rows
+{-| deploymentsToRows : takes list of deployments and produces list of Table rows.
 -}
 deploymentsToRows : Shared.Model -> Vela.Repository -> List Vela.Deployment -> Components.Table.Rows Vela.Deployment Msg
 deploymentsToRows shared repo deployments =
     List.map (\deployment -> Components.Table.Row deployment (viewDeployment shared repo)) deployments
 
 
-{-| tableHeaders : returns table headers for deployments table
+{-| tableHeaders : returns table headers for deployments table.
 -}
 tableHeaders : Components.Table.Columns
 tableHeaders =
@@ -360,7 +376,7 @@ tableHeaders =
     ]
 
 
-{-| viewDeployment : takes deployment and renders a table row
+{-| viewDeployment : takes deployment and renders a table row.
 -}
 viewDeployment : Shared.Model -> Vela.Repository -> Vela.Deployment -> Html Msg
 viewDeployment shared repo deployment =
@@ -483,6 +499,8 @@ viewDeployment shared repo deployment =
         ]
 
 
+{-| viewDeploymentBuildsLinks : renders a list of related build links for a deployment.
+-}
 viewDeploymentBuildsLinks : Vela.Deployment -> Html msg
 viewDeploymentBuildsLinks deployment =
     deployment.builds

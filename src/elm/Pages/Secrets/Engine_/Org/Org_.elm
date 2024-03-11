@@ -32,6 +32,8 @@ import Vela
 import View exposing (View)
 
 
+{-| page : takes user, shared model, route, and returns an org's secrets page.
+-}
 page : Auth.User -> Shared.Model -> Route { engine : String, org : String } -> Page Model Msg
 page user shared route =
     Page.new
@@ -47,6 +49,8 @@ page user shared route =
 -- LAYOUT
 
 
+{-| toLayout : takes user, route, model, and passes an org's secrets page info to Layouts.
+-}
 toLayout : Auth.User -> Route { engine : String, org : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Org
@@ -83,6 +87,8 @@ toLayout user route model =
 -- INIT
 
 
+{-| Model : alias for a model object.
+-}
 type alias Model =
     { orgSecrets : WebData (List Vela.Secret)
     , sharedSecrets : WebData (List Vela.Secret)
@@ -90,6 +96,8 @@ type alias Model =
     }
 
 
+{-| init : takes shared model, route, and initializes org's secret page input arguments.
+-}
 init : Shared.Model -> Route { engine : String, org : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { orgSecrets = RemoteData.Loading
@@ -124,6 +132,8 @@ init shared route () =
 -- UPDATE
 
 
+{-| Msg : a custom type with possible messages.
+-}
 type Msg
     = -- SECRETS
       GetOrgSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Secret ))
@@ -135,6 +145,8 @@ type Msg
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
+{-| update : takes current models, route, message, and returns an updated model and effect.
+-}
 update : Shared.Model -> Route { engine : String, org : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
@@ -233,6 +245,8 @@ update shared route msg model =
 -- SUBSCRIPTIONS
 
 
+{-| subscriptions : takes model and returns the subscriptions for auto refreshing the page.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Interval.tickEveryFiveSeconds Tick
@@ -242,6 +256,8 @@ subscriptions model =
 -- VIEW
 
 
+{-| view : takes models, route, and creates the html for an org's secrets page.
+-}
 view : Shared.Model -> Route { engine : String, org : String } -> Model -> View Msg
 view shared route model =
     { title = "Secrets" ++ Util.pageToString (Dict.get "page" route.query)
