@@ -15,8 +15,6 @@ import Shared
 -- VIEW
 
 
-{-| view : placeholder component for tabs, if applicable.
--}
 view : Shared.Model -> Route () -> List (Html msg) -> Html msg
 view shared route buttons =
     div [ class "util" ]

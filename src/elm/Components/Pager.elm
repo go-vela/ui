@@ -19,8 +19,6 @@ import Utils.Helpers as Util
 -- TYPES
 
 
-{-| Label : alias for an object containing label strings.
--}
 type alias Labels =
     { previousLabel : String
     , nextLabel : String
@@ -53,8 +51,6 @@ type alias Props msg =
 -- VIEW
 
 
-{-| view : renders pager buttons with correct state based on number of pages.
--}
 view : Props msg -> Html msg
 view props =
     let
