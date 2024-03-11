@@ -31,6 +31,8 @@ import Utils.Helpers as Util
 -- VIEW
 
 
+{-| viewCronHelp : renders cron help link for schedules.
+-}
 viewCronHelp : Time.Posix -> Html msg
 viewCronHelp time =
     span []
@@ -48,6 +50,8 @@ viewCronHelp time =
         ]
 
 
+{-| viewEnabledInput : renders Active section of repo schedule with enabled status.
+-}
 viewEnabledInput : { msg : String -> msg, value : Bool, disabled_ : Bool } -> Html msg
 viewEnabledInput { msg, value, disabled_ } =
     section [ Util.testAttribute "schedule-enabled" ]
@@ -85,6 +89,8 @@ viewEnabledInput { msg, value, disabled_ } =
         ]
 
 
+{-| viewHelp : renders docs help link for schedules.
+-}
 viewHelp : String -> Html msg
 viewHelp docsUrl =
     div [ class "help" ]
@@ -97,6 +103,8 @@ viewHelp docsUrl =
         ]
 
 
+{-| viewSchedulesNotAllowedWarning : renders message that schedules are not allowed for this repo.
+-}
 viewSchedulesNotAllowedWarning : Html msg
 viewSchedulesNotAllowedWarning =
     span [ class "not-allowed", Util.testAttribute "repo-schedule-not-allowed" ]

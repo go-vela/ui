@@ -19,18 +19,26 @@ import Utils.Helpers as Util
 -- TYPES
 
 
+{-| Link : alias to represent a record for label and destination.
+-}
 type alias Link =
     ( Label, Destination )
 
 
+{-| Label : alias for label string.
+-}
 type alias Label =
     String
 
 
+{-| Destination : alias to represent route path.
+-}
 type alias Destination =
     Route.Path.Path
 
 
+{-| Alert : alert status.
+-}
 type Alert
     = Success String String (Maybe Link)
     | Error String String
@@ -76,6 +84,8 @@ wrapAlert variantClass title message link copy =
         ]
 
 
+{-| copyButton : renders a copy button.
+-}
 copyButton : String -> Maybe (String -> msg) -> Html msg
 copyButton copyContent copy =
     case copy of
@@ -101,7 +111,7 @@ copyButton copyContent copy =
 -- HELPERS
 
 
-{-| config : configurations for alert items, used for displaying notifications to the user
+{-| config : configurations for alert items, used for displaying notifications to the user.
 
     config delays automatic dismissal x seconds and applies unique container and item styles
 
@@ -116,7 +126,7 @@ config timeoutSeconds =
         |> Alerting.itemAttrs [ Util.testAttribute "alert", class "animated", class "alert-item-attributes" ]
 
 
-{-| successConfig : configurations for successful alert items
+{-| successConfig : configurations for successful alert items.
 
     successConfig delays automatic dismissal 5 seconds and applies unique container and item styles
 
@@ -126,7 +136,7 @@ successConfig =
     config 5
 
 
-{-| errorConfig : configurations for erroroneous alert items
+{-| errorConfig : configurations for erroroneous alert items.
 
     errorConfig delays automatic dismissal 15 seconds and applies unique container and item styles
 
@@ -136,7 +146,7 @@ errorConfig =
     config 15
 
 
-{-| toHyperlink : takes Link and produces an Html hyperlink
+{-| toHyperlink : takes Link and produces an Html hyperlink.
 -}
 toHyperlink : Link -> Html msg
 toHyperlink ( label, destination ) =
