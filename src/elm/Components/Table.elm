@@ -43,19 +43,19 @@ import Utils.Helpers as Util
 -- TYPES
 
 
-{-| Column : string alias for table column headers.
+{-| Column : string alias for table column headers
 -}
 type alias Column =
     ( Maybe String, String )
 
 
-{-| Columns : list of columns.
+{-| Columns : list of columns
 -}
 type alias Columns =
     List Column
 
 
-{-| Rows : object containing render data and msg.
+{-| Rows : object containing render data and msg
 -}
 type alias Row data msg =
     { data : data
@@ -63,13 +63,13 @@ type alias Row data msg =
     }
 
 
-{-| Rows : list of rows with render data and msg.
+{-| Rows : list of rows with render data and msg
 -}
 type alias Rows data msg =
     List (Row data msg)
 
 
-{-| Config : configurations for rendering the data table.
+{-| Config : configurations for rendering the data table
 -}
 type alias Config data msg =
     { label : String
@@ -85,7 +85,7 @@ type alias Config data msg =
 -- VIEW
 
 
-{-| view : renders data table.
+{-| view : renders data table
 -}
 view : Config data msg -> Html msg
 view { label, testLabel, noRows, columns, rows, headerElement } =
@@ -120,7 +120,7 @@ view { label, testLabel, noRows, columns, rows, headerElement } =
         ]
 
 
-{-| viewFooter : renders data table footer.
+{-| viewFooter : renders data table footer
 -}
 viewFooter : Html msg -> Int -> Int -> Html msg
 viewFooter noRows numRows numColumns =
@@ -131,7 +131,7 @@ viewFooter noRows numRows numColumns =
         text ""
 
 
-{-| viewListCell : takes list of items, text for none and className and renders a table cell.
+{-| viewListCell : takes list of items, text for none and className and renders a table cell
 -}
 viewListCell : { dataLabel : String, items : List String, none : String, itemWrapperClassList : List ( String, Bool ) } -> Html msg
 viewListCell { dataLabel, items, none, itemWrapperClassList } =
@@ -159,7 +159,7 @@ viewListCell { dataLabel, items, none, itemWrapperClassList } =
             |> div []
 
 
-{-| viewListItemCell : takes classlist and children elements and renders a list item cell element.
+{-| viewListItemCell : takes classlist and children elements and renders a list item cell element
 -}
 viewListItemCell : { dataLabel : String, parentClassList : List ( String, Bool ), itemWrapperClassList : List ( String, Bool ), itemClassList : List ( String, Bool ), children : List (Html msg) } -> Html msg
 viewListItemCell { dataLabel, parentClassList, itemWrapperClassList, itemClassList, children } =
@@ -179,7 +179,7 @@ viewListItemCell { dataLabel, parentClassList, itemWrapperClassList, itemClassLi
         ]
 
 
-{-| viewItemCell : takes classlist and children elements and renders a cell element.
+{-| viewItemCell : takes classlist and children elements and renders a cell element
 -}
 viewItemCell : { dataLabel : String, parentClassList : List ( String, Bool ), itemClassList : List ( String, Bool ), children : List (Html msg) } -> Html msg
 viewItemCell { dataLabel, parentClassList, itemClassList, children } =
@@ -197,7 +197,7 @@ viewItemCell { dataLabel, parentClassList, itemClassList, children } =
         ]
 
 
-{-| viewIconCell : takes classlist and children elements and renders a cell icon element.
+{-| viewIconCell : takes classlist and children elements and renders a cell icon element
 -}
 viewIconCell : { dataLabel : String, parentClassList : List ( String, Bool ), itemWrapperClassList : List ( String, Bool ), itemClassList : List ( String, Bool ), children : List (Html msg) } -> Html msg
 viewIconCell { dataLabel, parentClassList, itemWrapperClassList, itemClassList, children } =

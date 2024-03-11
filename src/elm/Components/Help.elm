@@ -18,8 +18,6 @@ import Utils.Helpers as Util
 -- TYPES
 
 
-{-| Props : alias for an object containing properties and msg.
--}
 type alias Props msg =
     { show : Bool
     , showHide : Maybe Bool -> msg
@@ -28,8 +26,6 @@ type alias Props msg =
     }
 
 
-{-| Command : alias for an object containing strings.
--}
 type alias Command =
     { name : String
     , content : String
@@ -41,8 +37,6 @@ type alias Command =
 -- VIEW
 
 
-{-| view : renders contextual help component when tooltip is selected.
--}
 view : Shared.Model -> Props msg -> Html msg
 view shared props =
     details
@@ -70,8 +64,6 @@ view shared props =
         ]
 
 
-{-| viewCommand : renders contextual cli command and cli doc link.
--}
 viewCommand : Shared.Model -> Props msg -> Command -> Html msg
 viewCommand shared props command =
     div [ class "form-controls", class "-stack", Util.testAttribute "help-cmd-header" ]
@@ -126,7 +118,7 @@ viewCommand shared props command =
         ]
 
 
-{-| cmdSize : takes command content and returns appropriate size for readonly input; max value of 18 is arbitrary.
+{-| cmdSize : takes command content and returns appropriate size for readonly input
 -}
 cmdSize : String -> Int
 cmdSize content =

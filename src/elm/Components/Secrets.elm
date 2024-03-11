@@ -24,15 +24,11 @@ import Vela
 -- TYPES
 
 
-{-| Msgs : alias for an object potentially containing multiple msg.
--}
 type alias Msgs msg =
     { showCopyAlert : String -> msg
     }
 
 
-{-| Props : alias for an object containing properties and msg.
--}
 type alias Props msg =
     { msgs : Msgs msg
     , engine : String
@@ -46,7 +42,7 @@ type alias Props msg =
 -- VIEW
 
 
-{-| viewOrgSecrets : takes secrets model and renders table for viewing org secrets.
+{-| viewOrgSecrets : takes secrets model and renders table for viewing org secrets
 -}
 viewOrgSecrets : Shared.Model -> Props msg -> Html msg
 viewOrgSecrets shared props =
@@ -96,7 +92,7 @@ viewOrgSecrets shared props =
     div [] [ Components.Table.view cfg ]
 
 
-{-| viewRepoSecrets : takes secrets model and renders table for viewing repo secrets.
+{-| viewRepoSecrets : takes secrets model and renders table for viewing repo secrets
 -}
 viewRepoSecrets : Shared.Model -> Props msg -> Html msg
 viewRepoSecrets shared props =
@@ -146,7 +142,7 @@ viewRepoSecrets shared props =
     div [] [ Components.Table.view cfg ]
 
 
-{-| viewSharedSecrets : takes secrets model and renders table for viewing shared secrets.
+{-| viewSharedSecrets : takes secrets model and renders table for viewing shared secrets
 -}
 viewSharedSecrets : Shared.Model -> Props msg -> Html msg
 viewSharedSecrets shared props =
@@ -196,7 +192,7 @@ viewSharedSecrets shared props =
     div [ class "shared-secrets-container" ] [ Components.Table.view cfg ]
 
 
-{-| tableHeaders : returns table headers for secrets table.
+{-| tableHeaders : returns table headers for secrets table
 -}
 tableHeaders : Components.Table.Columns
 tableHeaders =
@@ -210,14 +206,14 @@ tableHeaders =
     ]
 
 
-{-| secretsToRows : takes list of secrets and produces list of Table rows.
+{-| secretsToRows : takes list of secrets and produces list of Table rows
 -}
 secretsToRows : String -> Vela.SecretType -> (String -> msg) -> List Vela.Secret -> Components.Table.Rows Vela.Secret msg
 secretsToRows engine type_ copyMsg secrets =
     List.map (\secret -> Components.Table.Row (addKey secret) (viewSecret engine type_ copyMsg)) secrets
 
 
-{-| addKey : helper to create secret key.
+{-| addKey : helper to create secret key
 -}
 addKey : Vela.Secret -> Vela.Secret
 addKey secret =
@@ -232,7 +228,7 @@ addKey secret =
             { secret | key = secret.org ++ "/" ++ secret.repo ++ "/" ++ secret.name }
 
 
-{-| viewSecret : takes secret and secret type and renders a table row.
+{-| viewSecret : takes secret and secret type and renders a table row
 -}
 viewSecret : String -> Vela.SecretType -> (String -> msg) -> Vela.Secret -> Html msg
 viewSecret engine type_ copyMsg secret =
@@ -297,7 +293,7 @@ viewSecret engine type_ copyMsg secret =
         ]
 
 
-{-| copySecret : takes a secret and returns the yaml struct of the secret.
+{-| copySecret : takes a secret and returns the yaml struct of the secret
 -}
 copySecret : Vela.Secret -> String
 copySecret secret =
@@ -316,7 +312,7 @@ copySecret secret =
             yaml ++ "shared"
 
 
-{-| copyButton : copy button that copys secret yaml to clipboard.
+{-| copyButton : copy button that copys secret yaml to clipboard
 -}
 copyButton : String -> (String -> msg) -> Html msg
 copyButton copyYaml copyMsg =
@@ -337,7 +333,7 @@ copyButton copyYaml copyMsg =
         ]
 
 
-{-| editSecretHref : takes secret and secret type and returns href link for routing to view/edit secret page.
+{-| editSecretHref : takes secret and secret type and returns href link for routing to view/edit secret page
 -}
 editSecretHref : String -> Vela.SecretType -> Vela.Secret -> Html.Attribute msg
 editSecretHref engine type_ secret =
@@ -374,7 +370,7 @@ editSecretHref engine type_ secret =
                     }
 
 
-{-| enabledAllowEventsToList : takes allow events struct and converts it to a list of vieweable strings based on which events are enabled.
+{-| enabledAllowEventsToList : takes allow events struct and converts it to a list of vieweable strings based on which events are enabled
 -}
 enabledAllowEventsToList : Vela.AllowEvents -> List String
 enabledAllowEventsToList allowEvents =

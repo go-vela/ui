@@ -17,8 +17,6 @@ import Utils.Helpers as Util
 -- TYPES
 
 
-{-| Crumb : alias to represent a record for a string and route path.
--}
 type alias Crumb =
     ( String, Maybe Route.Path.Path )
 
@@ -27,7 +25,7 @@ type alias Crumb =
 -- VIEW
 
 
-{-| view : takes current path and returns Html breadcrumbs.
+{-| view : takes current path and returns Html breadcrumbs
 -}
 view : Route.Path.Path -> List Crumb -> Html msg
 view path crumbs =
@@ -38,7 +36,7 @@ view path crumbs =
     ol [ attribute "aria-label" "Breadcrumb" ] items
 
 
-{-| item : uses page and current page, and returns Html breadcrumb item with possible href link.
+{-| item : uses page and current page, and returns Html breadcrumb item with possible href link
 -}
 item : Crumb -> Route.Path.Path -> Html msg
 item crumb path =

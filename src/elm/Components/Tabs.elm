@@ -20,7 +20,7 @@ import Utils.Helpers as Util
 -- TYPES
 
 
-{-| Tab : record to represent information used by page navigation tab.
+{-| Tab : record to represent information used by page navigation tab
 -}
 type alias Tab =
     { toPath : Route.Path.Path
@@ -34,7 +34,7 @@ type alias Tab =
 -- VIEW
 
 
-{-| view : takes list of tab records and renders them with spacers and horizontal filler.
+{-| view : takes list of tab records and renders them with spacers and horizontal filler
 -}
 view : Dict String Url -> Route.Path.Path -> List Tab -> String -> Html msg
 view tabHistory currentPath tabs testLabel =
@@ -45,7 +45,7 @@ view tabHistory currentPath tabs testLabel =
         |> div [ class "jump-bar", Util.testAttribute testLabel ]
 
 
-{-| viewTab : takes single tab record and renders jump link, uses current page to display conditional style.
+{-| viewTab : takes single tab record and renders jump link, uses current page to display conditional style
 -}
 viewTab : Dict String Url -> Route.Path.Path -> Tab -> Maybe (Html msg)
 viewTab tabHistory currentPath { name, toPath, isAlerting, show } =
@@ -83,21 +83,21 @@ viewTab tabHistory currentPath { name, toPath, isAlerting, show } =
         Nothing
 
 
-{-| viewSpacer : renders horizontal spacer between tabs.
+{-| viewSpacer : renders horizontal spacer between tabs
 -}
 viewSpacer : Html msg
 viewSpacer =
     span [ class "jump", class "spacer" ] []
 
 
-{-| viewSpacer : renders horizontal filler to the right of tabs.
+{-| viewSpacer : renders horizontal filler to the right of tabs
 -}
 viewFiller : Html msg
 viewFiller =
     span [ class "jump", class "fill" ] []
 
 
-{-| currentPathClass : returns css class if current path matches tab path.
+{-| currentPathClass : returns css class if current path matches tab path
 -}
 currentPathClass : Route.Path.Path -> Route.Path.Path -> Html.Attribute msg
 currentPathClass p1 p2 =
@@ -112,8 +112,6 @@ currentPathClass p1 p2 =
 -- ORG
 
 
-{-| viewOrgTabs : renders tabs available for viewing for an org.
--}
 viewOrgTabs :
     Shared.Model
     ->
@@ -149,8 +147,6 @@ viewOrgTabs shared props =
 -- REPO
 
 
-{-| viewRepoTabs : renders tabs available for viewing for a repo
--}
 viewRepoTabs :
     Shared.Model
     ->
@@ -250,8 +246,6 @@ viewRepoTabs shared props =
 -- BUILD
 
 
-{-| viewBuildTabs : renders tabs available for viewing for a build.
--}
 viewBuildTabs :
     Shared.Model
     ->

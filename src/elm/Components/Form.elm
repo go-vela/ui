@@ -18,8 +18,6 @@ import Vela
 -- VIEW
 
 
-{-| viewInput : renders an input field with temporary attributes and content.
--}
 viewInput :
     { id_ : String
     , title : Maybe String
@@ -59,8 +57,6 @@ viewInput { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, m
         ]
 
 
-{-| viewTextarea : renders a text area field with temporary attributes and content.
--}
 viewTextarea :
     { id_ : String
     , title : Maybe String
@@ -100,8 +96,6 @@ viewTextarea { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_
         ]
 
 
-{-| viewCheckbox : renders a checkbox with with temporary attributes and content.
--}
 viewCheckbox :
     { id_ : String
     , title : String
@@ -131,8 +125,6 @@ viewCheckbox { id_, title, subtitle, field, state, msg, disabled_ } =
         ]
 
 
-{-| viewRadio : renders a radio button with with temporary attributes and content.
--}
 viewRadio :
     { id_ : String
     , title : String
@@ -159,8 +151,6 @@ viewRadio { id_, title, subtitle, value, field, msg, disabled_ } =
         ]
 
 
-{-| viewButton : renders a button with with temporary attributes and content.
--}
 viewButton : { id_ : String, msg : msg, text_ : String, classList_ : List ( String, Bool ), disabled_ : Bool } -> Html msg
 viewButton { id_, msg, text_, classList_, disabled_ } =
     button
@@ -173,15 +163,11 @@ viewButton { id_, msg, text_, classList_, disabled_ } =
         [ text text_ ]
 
 
-{-| viewSubtitle : renders a subtitle with with temporary content.
--}
 viewSubtitle : Maybe (Html msg) -> Html msg
 viewSubtitle subtitle =
     Maybe.Extra.unwrap (text "") (\s -> span [] [ text <| " ", s ]) subtitle
 
 
-{-| viewAllowEvents : takes in allowed events and renders checkboxes with finalized attributes and content for each event.
--}
 viewAllowEvents :
     Shared.Model
     ->
