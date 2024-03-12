@@ -11,7 +11,18 @@ import Html exposing (Html, a, button, div, h2, span, td, text, tr)
 import Html.Attributes exposing (attribute, class, scope)
 import Html.Events exposing (onClick)
 import Http
-import Pages.Secrets.Form exposing (viewAllowCommandCheckbox, viewEventsSelect, viewHelp, viewImagesInput, viewInput, viewNameInput, viewSubmitButtons, viewValueInput)
+import Pages.Secrets.Form
+    exposing
+        ( viewAllowCommandCheckbox
+        , viewAllowSubstitutionCheckbox
+        , viewEventsSelect
+        , viewHelp
+        , viewImagesInput
+        , viewInput
+        , viewNameInput
+        , viewSubmitButtons
+        , viewValueInput
+        )
 import Pages.Secrets.Model
     exposing
         ( Msg
@@ -304,6 +315,7 @@ tableHeaders =
     , ( Nothing, "events" )
     , ( Nothing, "images" )
     , ( Nothing, "allow commands" )
+    , ( Nothing, "allow substitution" )
     ]
 
 
@@ -319,6 +331,7 @@ tableHeadersForSharedSecrets =
     , ( Nothing, "events" )
     , ( Nothing, "images" )
     , ( Nothing, "allow commands" )
+    , ( Nothing, "allow substitution" )
     ]
 
 
@@ -374,6 +387,12 @@ renderSecret type_ secret =
             , class "break-word"
             ]
             [ text <| Util.boolToYesNo secret.allowCommand ]
+        , td
+            [ attribute "data-label" "allow substitution"
+            , scope "row"
+            , class "break-word"
+            ]
+            [ text <| Util.boolToYesNo secret.allowSubstitution ]
         ]
 
 
@@ -435,6 +454,12 @@ renderSharedSecret type_ secret =
             , class "break-word"
             ]
             [ text <| Util.boolToYesNo secret.allowCommand ]
+        , td
+            [ attribute "data-label" "allow substitution"
+            , scope "row"
+            , class "break-word"
+            ]
+            [ text <| Util.boolToYesNo secret.allowSubstitution ]
         ]
 
 
@@ -609,6 +634,7 @@ addForm partialModel =
         , viewEventsSelect secretUpdate partialModel
         , viewImagesInput secretUpdate secretUpdate.imageInput
         , viewAllowCommandCheckbox secretUpdate
+        , viewAllowSubstitutionCheckbox secretUpdate
         , viewHelp
         , div [ class "form-action" ]
             [ button [ class "button", class "-outline", onClick <| Pages.Secrets.Model.AddSecret partialModel.secretsModel.engine ] [ text "Add" ]
@@ -684,6 +710,7 @@ editForm partialModel =
         , viewEventsSelect secretUpdate partialModel
         , viewImagesInput secretUpdate secretUpdate.imageInput
         , viewAllowCommandCheckbox secretUpdate
+        , viewAllowSubstitutionCheckbox secretUpdate
         , viewHelp
         , viewSubmitButtons partialModel.secretsModel
         ]

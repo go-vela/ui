@@ -2418,6 +2418,7 @@ type alias Secret =
     , events : List String
     , allowEvents : AllowEvents
     , allowCommand : Bool
+    , allowSubstitution : Bool
     }
 
 
@@ -2534,6 +2535,7 @@ decodeSecret =
         |> optional "events" (Decode.list string) []
         |> optional "allow_events" decodeAllowEvents defaultSecretAllowEvents
         |> optional "allow_command" bool False
+        |> optional "allow_substitution" bool False
 
 
 {-| decodeSecrets : decodes json from vela into list of secrets
@@ -2558,6 +2560,7 @@ type alias UpdateSecretPayload =
     , images : Maybe (List String)
     , allowEvents : Maybe AllowEventsPayload
     , allowCommand : Maybe Bool
+    , allowSubstitution : Maybe Bool
     }
 
 
@@ -2574,6 +2577,7 @@ encodeUpdateSecret secret =
         , ( "images", encodeOptionalList Encode.string secret.images )
         , ( "allow_events", encodeOptional encodeAllowEvents secret.allowEvents )
         , ( "allow_command", encodeOptional Encode.bool secret.allowCommand )
+        , ( "allow_substitution", encodeOptional Encode.bool secret.allowSubstitution )
         ]
 
 
@@ -2588,9 +2592,10 @@ buildUpdateSecretPayload :
     -> Maybe (List String)
     -> Maybe AllowEvents
     -> Maybe Bool
+    -> Maybe Bool
     -> UpdateSecretPayload
-buildUpdateSecretPayload type_ org repo team name value events images allowEvents allowCommand =
-    UpdateSecretPayload type_ org repo team name value events images allowEvents allowCommand
+buildUpdateSecretPayload type_ org repo team name value events images allowEvents allowCommand allowSubstitution =
+    UpdateSecretPayload type_ org repo team name value events images allowEvents allowCommand allowSubstitution
 
 
 

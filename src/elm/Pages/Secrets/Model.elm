@@ -15,6 +15,7 @@ module Pages.Secrets.Model exposing
     , SecretsResponse
     , UpdateSecretResponse
     , defaultSecretUpdate
+    , defaultSharedSecretUpdate
     )
 
 import Auth.Session exposing (Session)
@@ -81,13 +82,21 @@ type alias SecretForm =
     , images : List String
     , allowEvents : AllowEventsPayload
     , allowCommand : Bool
+    , allowSubstitution : Bool
     , team : Key
     }
 
 
 defaultSecretUpdate : SecretForm
 defaultSecretUpdate =
-    SecretForm "" "" defaultSecretEvents "" [] defaultSecretAllowEvents True ""
+    SecretForm "" "" defaultSecretEvents "" [] defaultSecretAllowEvents True True ""
+
+
+{-| for shared secrets the default is to disable command and substitution
+-}
+defaultSharedSecretUpdate : SecretForm
+defaultSharedSecretUpdate =
+    SecretForm "" "" defaultSecretEvents "" [] defaultSecretAllowEvents False False ""
 
 
 defaultSecretEvents : List String
@@ -125,6 +134,7 @@ type Msg
     | AddImage String
     | RemoveImage String
     | OnChangeAllowCommand String
+    | OnChangeAllowSubstitution String
     | AddSecret Engine
     | UpdateSecret Engine
     | DeleteSecret Engine

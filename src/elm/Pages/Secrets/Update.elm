@@ -27,6 +27,7 @@ import Pages.Secrets.Model
         , SecretsResponse
         , UpdateSecretResponse
         , defaultSecretUpdate
+        , defaultSharedSecretUpdate
         )
 import RemoteData exposing (RemoteData(..))
 import Routes
@@ -85,7 +86,12 @@ init copy secretResponse repoSecretsResponse orgSecretsResponse sharedSecretsRes
 -}
 reinitializeSecretAdd : Model msg -> Model msg
 reinitializeSecretAdd secretsModel =
-    { secretsModel | form = defaultSecretUpdate, secret = RemoteData.NotAsked }
+    case secretsModel.type_ of
+        SharedSecret ->
+            { secretsModel | form = defaultSharedSecretUpdate, secret = RemoteData.NotAsked }
+
+        _ ->
+            { secretsModel | form = defaultSecretUpdate, secret = RemoteData.NotAsked }
 
 
 {-| reinitializeSecretUpdate : takes an incoming secret and reinitializes the secrets page input arguments
@@ -97,7 +103,7 @@ reinitializeSecretUpdate secretsModel secret =
 
 initSecretUpdate : Secret -> SecretForm
 initSecretUpdate secret =
-    SecretForm secret.name "" secret.events "" secret.images secret.allowEvents secret.allowCommand secret.team
+    SecretForm secret.name "" secret.events "" secret.images secret.allowEvents secret.allowCommand secret.allowSubstitution secret.team
 
 
 {-| updateSecretModel : makes an update to the appropriate secret update
@@ -284,6 +290,22 @@ onChangeAllowCommand allow secretsModel =
             secretsModel
 
 
+{-| onChangeAllowSubstitution : updates allow\_substitution field on secret update
+-}
+onChangeAllowSubstitution : String -> Model msg -> Model msg
+onChangeAllowSubstitution allow secretsModel =
+    let
+        secretUpdate =
+            Just secretsModel.form
+    in
+    case secretUpdate of
+        Just s ->
+            updateSecretModel { s | allowSubstitution = Util.yesNoToBool allow } secretsModel
+
+        Nothing ->
+            secretsModel
+
+
 {-| getKey : gets the appropriate secret key based on type
 -}
 getKey : Model msg -> String
@@ -330,6 +352,7 @@ toAddSecretPayload secretsModel secret =
         (Just secret.images)
         (Just secret.allowEvents)
         (Just secret.allowCommand)
+        (Just secret.allowSubstitution)
 
 
 {-| toUpdateSecretPayload : builds payload for updating secret
@@ -348,9 +371,10 @@ toUpdateSecretPayload secretsModel secret =
             , images = Just secret.images
             , allowEvents = Just secret.allowEvents
             , allowCommand = Just secret.allowCommand
+            , allowSubstitution = Just secret.allowSubstitution
             }
     in
-    buildUpdateSecretPayload args.type_ args.org args.repo args.team args.name args.value args.events args.images args.allowEvents args.allowCommand
+    buildUpdateSecretPayload args.type_ args.org args.repo args.team args.name args.value args.events args.images args.allowEvents args.allowCommand args.allowSubstitution
 
 
 
@@ -379,6 +403,9 @@ update model msg =
 
                 OnChangeAllowCommand allow ->
                     ( onChangeAllowCommand allow secretsModel, Cmd.none )
+
+                OnChangeAllowSubstitution allow ->
+                    ( onChangeAllowSubstitution allow secretsModel, Cmd.none )
 
                 Pages.Secrets.Model.AddSecret engine ->
                     let

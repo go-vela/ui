@@ -5,6 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 module Pages.Secrets.Form exposing
     ( viewAllowCommandCheckbox
+    , viewAllowSubstitutionCheckbox
     , viewEventsSelect
     , viewHelp
     , viewImagesInput
@@ -322,21 +323,25 @@ viewImagesInput secret imageInput =
 
 {-| radio : takes current value, field id, title for label, and click action and renders an input radio.
 -}
-radio : String -> String -> Field -> msg -> Html msg
-radio value field title msg =
-    div [ class "form-control", Util.testAttribute <| "secret-radio-" ++ field ]
+radio : String -> String -> String -> Field -> msg -> Html msg
+radio value field uid title msg =
+    let
+        target =
+            String.join "-" [ "radio", uid, field ]
+    in
+    div [ class "form-control", Util.testAttribute <| String.append "secret-" target ]
         [ input
             [ type_ "radio"
-            , id <| "radio-" ++ field
+            , id target
             , checked (value == field)
             , onClick msg
             ]
             []
-        , label [ class "form-label", for <| "radio-" ++ field ] [ strong [] [ text title ] ]
+        , label [ class "form-label", for target ] [ strong [] [ text title ] ]
         ]
 
 
-{-| allowCommandCheckbox : renders checkbox inputs for selecting allowcommand
+{-| allowCommandCheckbox : renders checkbox inputs for selecting allowCommand
 -}
 viewAllowCommandCheckbox : SecretForm -> Html Msg
 viewAllowCommandCheckbox secretUpdate =
@@ -345,17 +350,40 @@ viewAllowCommandCheckbox secretUpdate =
             [ strong []
                 [ text "Allow Commands"
                 , span [ class "field-description" ]
-                    [ text "( "
-                    , em [] [ text "\"No\" will disable this secret in " ]
+                    [ text "("
+                    , em [] [ text "\"No\" will prevent secret injection when " ]
                     , code [] [ text "commands" ]
-                    , text " )"
+                    , text " is used)"
                     ]
                 ]
             ]
         , div
             [ class "form-controls", class "-stack" ]
-            [ radio (Util.boolToYesNo secretUpdate.allowCommand) "yes" "Yes" <| OnChangeAllowCommand "yes"
-            , radio (Util.boolToYesNo secretUpdate.allowCommand) "no" "No" <| OnChangeAllowCommand "no"
+            [ radio (Util.boolToYesNo secretUpdate.allowCommand) "yes" "command" "Yes" <| OnChangeAllowCommand "yes"
+            , radio (Util.boolToYesNo secretUpdate.allowCommand) "no" "command" "No" <| OnChangeAllowCommand "no"
+            ]
+        ]
+
+
+{-| viewAllowSubstitutionCheckbox : renders checkbox inputs for selecting allowSubstitution
+-}
+viewAllowSubstitutionCheckbox : SecretForm -> Html Msg
+viewAllowSubstitutionCheckbox secretUpdate =
+    section [ Util.testAttribute "" ]
+        [ div [ class "form-control" ]
+            [ strong []
+                [ text "Allow Substitution"
+                , span [ class "field-description" ]
+                    [ text "("
+                    , em [] [ text "\"No\" will prevent substitution" ]
+                    , text ")"
+                    ]
+                ]
+            ]
+        , div
+            [ class "form-controls", class "-stack" ]
+            [ radio (Util.boolToYesNo secretUpdate.allowSubstitution) "yes" "substitution" "Yes" <| OnChangeAllowSubstitution "yes"
+            , radio (Util.boolToYesNo secretUpdate.allowSubstitution) "no" "substitution" "No" <| OnChangeAllowSubstitution "no"
             ]
         ]
 

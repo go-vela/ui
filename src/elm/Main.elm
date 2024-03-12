@@ -102,7 +102,7 @@ import Pages.RepoSettings exposing (enableUpdate)
 import Pages.Schedules.Model
 import Pages.Schedules.Update
 import Pages.Schedules.View
-import Pages.Secrets.Model
+import Pages.Secrets.Model exposing (defaultSharedSecretUpdate)
 import Pages.Secrets.Update
 import Pages.Secrets.View
 import Pages.Settings
@@ -4202,7 +4202,7 @@ loadAddSharedSecretPage model engine org team =
                 , team = team
                 , engine = engine
                 , type_ = Vela.SharedSecret
-                , form = secretsModel.form
+                , form = defaultSharedSecretUpdate
             }
       }
     , getCurrentUser model
