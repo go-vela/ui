@@ -212,6 +212,9 @@ updateSecretEvents sform field value =
         "allow_pull_reopened" ->
             { sform | allowEvents = { events | pull = { pullActions | reopened = value } } }
 
+        "allow_pull_labeled" ->
+            { sform | allowEvents = { events | pull = { pullActions | labeled = value } } }
+
         "allow_deploy_created" ->
             { sform | allowEvents = { events | deploy = { deployActions | created = value } } }
 

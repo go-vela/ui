@@ -938,6 +938,7 @@ type alias PullActions =
     , synchronize : Bool
     , edited : Bool
     , reopened : Bool
+    , labeled : Bool
     }
 
 
@@ -1027,6 +1028,7 @@ decodePullActions =
         |> required "synchronize" bool
         |> required "edited" bool
         |> required "reopened" bool
+        |> required "labeled" bool
 
 
 decodeDeployActions : Decoder DeployActions
@@ -1202,6 +1204,7 @@ encodePullActions pull =
         , ( "synchronize", Encode.bool <| pull.synchronize )
         , ( "edited", Encode.bool <| pull.edited )
         , ( "reopened", Encode.bool <| pull.reopened )
+        , ( "labeled", Encode.bool <| pull.labeled )
         ]
 
 
@@ -1267,6 +1270,7 @@ type alias PullActionsPayload =
     , synchronize : Bool
     , edited : Bool
     , reopened : Bool
+    , labeled : Bool
     }
 
 
@@ -1348,10 +1352,10 @@ defaultPullActionsPayload : Maybe PullActions -> PullActionsPayload
 defaultPullActionsPayload pullActions =
     case pullActions of
         Nothing ->
-            PullActionsPayload False False False False
+            PullActionsPayload False False False False False
 
         Just pull ->
-            PullActionsPayload pull.opened pull.synchronize pull.edited pull.reopened
+            PullActionsPayload pull.opened pull.synchronize pull.edited pull.reopened pull.labeled
 
 
 defaultDeployActionsPayload : Maybe DeployActions -> DeployActionsPayload
@@ -1467,6 +1471,9 @@ buildUpdateRepoEventsPayload repository field value =
 
         "allow_pull_reopened" ->
             { defaultUpdateRepositoryPayload | allow_events = Just { events | pull = { pullActions | reopened = value } } }
+
+        "allow_pull_labeled" ->
+            { defaultUpdateRepositoryPayload | allow_events = Just { events | pull = { pullActions | labeled = value } } }
 
         "allow_deploy_created" ->
             { defaultUpdateRepositoryPayload | allow_events = Just { events | deploy = { deployActions | created = value } } }

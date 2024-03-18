@@ -502,6 +502,7 @@ allowEventsToList events =
         |> appendLabel events.pull.synchronize "pull_request:synchronize"
         |> appendLabel events.pull.edited "pull_request:edited"
         |> appendLabel events.pull.reopened "pull_request:reopened"
+        |> appendLabel events.pull.labeled "pull_request:labeled"
         |> appendLabel events.deploy.created "deployment"
         |> appendLabel events.comment.created "comment:created"
         |> appendLabel events.comment.edited "comment:edited"

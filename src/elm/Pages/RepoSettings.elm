@@ -347,6 +347,11 @@ events repo msg =
                         allowEvents.pull.reopened
                       <|
                         msg repo.org repo.name repo "allow_pull_reopened"
+                    , checkbox "Labled"
+                        "allow_pull_labeled"
+                        allowEvents.pull.labeled
+                      <|
+                        msg repo.org repo.name repo "allow_pull_labeled"
                     ]
                 , h3 [ class "settings-subtitle" ] [ text "Deployments" ]
                 , div [ class "form-controls", class "-two-col" ]
@@ -961,6 +966,9 @@ msgPrefix field =
         "allow_pull_reopened" ->
             "Pull reopened events for $ "
 
+        "allow_pull_labeled" ->
+            "Pull labeled events for $ "
+
         "allow_push_branch" ->
             "Push branch events for $ "
 
@@ -1046,6 +1054,14 @@ msgSuffix field repo =
 
                 Just allowEvents ->
                     toggleText "allow_pull_reopened" allowEvents.pull.reopened
+
+        "allow_pull_labeled" ->
+            case repo.allow_events of
+                Nothing ->
+                    ""
+
+                Just allowEvents ->
+                    toggleText "allow_pull_labeled" allowEvents.pull.labeled
 
         "allow_push_branch" ->
             case repo.allow_events of
