@@ -190,7 +190,7 @@ viewAllowCommandsInput { msg, value, disabled_ } =
             [ strong []
                 [ text "Allow Commands"
                 , span [ class "field-description" ]
-                    [ text "( "
+                    [ text "("
                     , em [] [ text "\"No\" will prevent secret injection when " ]
                     , code [] [ text "commands" ]
                     , text " is used)"
@@ -228,7 +228,7 @@ viewAllowSubstitutionInput { msg, value, disabled_ } =
             [ strong []
                 [ text "Allow Substitution"
                 , span [ class "field-description" ]
-                    [ text "( "
+                    [ text "("
                     , em [] [ text "\"No\" will prevent substitution" ]
                     , text ")"
                     ]
