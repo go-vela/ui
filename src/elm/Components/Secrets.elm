@@ -203,6 +203,7 @@ tableHeaders =
     , ( Nothing, "events" )
     , ( Nothing, "images" )
     , ( Nothing, "allow commands" )
+    , ( Nothing, "allow substitution" )
     ]
 
 
@@ -289,6 +290,12 @@ viewSecret engine type_ copyMsg secret =
             , parentClassList = []
             , itemClassList = []
             , children = [ text <| Util.boolToYesNo secret.allowCommand ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = "allow substitution"
+            , parentClassList = []
+            , itemClassList = []
+            , children = [ text <| Util.boolToYesNo secret.allowSubstitution ]
             }
         ]
 

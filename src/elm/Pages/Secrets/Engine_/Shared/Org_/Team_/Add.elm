@@ -22,7 +22,6 @@ import Route exposing (Route)
 import Route.Path
 import Shared
 import String.Extra
-import Url
 import Utils.Errors
 import Utils.Helpers as Util
 import Vela exposing (defaultSecretPayload)
@@ -68,31 +67,13 @@ toLayout user route model =
 
 
 type alias Model =
-    { team : String
-    , name : String
-    , value : String
-    , images : List String
-    , image : String
-    , allowCommand : Bool
-    , allowEvents : Vela.AllowEvents
+    { form : Components.SecretForm.Form
     }
 
 
 init : Shared.Model -> Route { engine : String, org : String, team : String } -> () -> ( Model, Effect Msg )
 init shared route () =
-    ( { team =
-            if route.params.team == "*" then
-                ""
-
-            else
-                Maybe.withDefault route.params.team <| Url.percentDecode route.params.team
-      , name = ""
-      , value = ""
-      , images = []
-      , image = ""
-      , allowCommand = True
-      , allowEvents = Vela.defaultEnabledAllowEvents
-      }
+    ( { form = Components.SecretForm.defaultSharedSecretForm route.params.team }
     , Effect.none
     )
 
@@ -111,25 +92,23 @@ type Msg
     | AddImage String
     | RemoveImage String
     | AllowCommandsOnClick String
+    | AllowSubstitutionOnClick String
     | AllowEventsUpdate { allowEvents : Vela.AllowEvents, event : Vela.AllowEventsField } Bool
     | SubmitForm
 
 
 update : Shared.Model -> Route { engine : String, org : String, team : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
+    let
+        form =
+            model.form
+    in
     case msg of
         -- SECRETS
         AddSecretResponse response ->
             case response of
                 Ok ( _, secret ) ->
-                    ( { model
-                        | name = ""
-                        , value = ""
-                        , images = []
-                        , image = ""
-                        , allowCommand = True
-                        , allowEvents = Vela.defaultEnabledAllowEvents
-                      }
+                    ( { form = Components.SecretForm.defaultSharedSecretForm route.params.team }
                     , Effect.addAlertSuccess
                         { content = "Added shared secret '" ++ secret.name ++ "'."
                         , addToastIfUnique = True
@@ -146,53 +125,76 @@ update shared route msg model =
                     )
 
         TeamOnInput val ->
-            ( { model | team = val }
+            ( { model | form = { form | team = val } }
             , Effect.none
             )
 
         NameOnInput val ->
-            ( { model | name = val }
+            ( { model | form = { form | name = val } }
             , Effect.none
             )
 
         ValueOnInput val ->
-            ( { model | value = val }
+            ( { model | form = { form | value = val } }
             , Effect.none
             )
 
         ImageOnInput val ->
-            ( { model | image = val }
+            ( { model | form = { form | image = val } }
             , Effect.none
             )
 
         AddImage image ->
             ( { model
-                | images =
-                    model.images
-                        |> List.append [ image ]
-                        |> List.Extra.unique
-                , image = ""
+                | form =
+                    { form
+                        | images =
+                            form.images
+                                |> List.append [ image ]
+                                |> List.Extra.unique
+                        , image = ""
+                    }
               }
             , Effect.none
             )
 
         RemoveImage image ->
             ( { model
-                | images =
-                    model.images
-                        |> List.filter ((/=) image)
+                | form =
+                    { form
+                        | images =
+                            form.images
+                                |> List.filter ((/=) image)
+                    }
               }
             , Effect.none
             )
 
         AllowCommandsOnClick val ->
-            ( model
-                |> (\m -> { m | allowCommand = Util.yesNoToBool val })
+            ( { model
+                | form =
+                    { form
+                        | allowCommand = Util.yesNoToBool val
+                    }
+              }
+            , Effect.none
+            )
+
+        AllowSubstitutionOnClick val ->
+            ( { model
+                | form =
+                    { form
+                        | allowSubstitution = Util.yesNoToBool val
+                    }
+              }
             , Effect.none
             )
 
         AllowEventsUpdate options val ->
-            ( Vela.setAllowEvents model options.event val
+            ( { model
+                | form =
+                    Vela.setAllowEvents model.form options.event val
+              }
             , Effect.none
             )
 
@@ -203,12 +205,13 @@ update shared route msg model =
                         | type_ = Just Vela.SharedSecret
                         , org = Just route.params.org
                         , repo = Nothing
-                        , team = Just model.team
-                        , name = Util.stringToMaybe model.name
-                        , value = Util.stringToMaybe model.value
-                        , allowEvents = Just model.allowEvents
-                        , images = Just model.images
-                        , allowCommand = Just model.allowCommand
+                        , team = Just form.team
+                        , name = Util.stringToMaybe form.name
+                        , value = Util.stringToMaybe form.value
+                        , allowEvents = Just form.allowEvents
+                        , images = Just form.images
+                        , allowCommand = Just form.allowCommand
+                        , allowSubstitution = Just form.allowSubstitution
                     }
 
                 body =
@@ -221,7 +224,7 @@ update shared route msg model =
                 , onResponse = AddSecretResponse
                 , engine = route.params.engine
                 , org = route.params.org
-                , team = model.team
+                , team = form.team
                 , body = body
                 }
             )
@@ -268,7 +271,7 @@ view shared route model =
                             { title = Just "Team"
                             , subtitle = Nothing
                             , id_ = "team"
-                            , val = model.team
+                            , val = model.form.team
                             , placeholder_ = "GitHub Team"
                             , classList_ = [ ( "secret-team", True ) ]
                             , rows_ = Nothing
@@ -280,7 +283,7 @@ view shared route model =
                             { title = Just "Name"
                             , subtitle = Nothing
                             , id_ = "name"
-                            , val = model.name
+                            , val = model.form.name
                             , placeholder_ = "Secret Name"
                             , classList_ = [ ( "secret-name", True ) ]
                             , rows_ = Nothing
@@ -292,7 +295,7 @@ view shared route model =
                             { title = Just "Value"
                             , subtitle = Nothing
                             , id_ = "value"
-                            , val = model.value
+                            , val = model.form.value
                             , placeholder_ = "Secret Value"
                             , classList_ = [ ( "secret-value", True ) ]
                             , rows_ = Just 2
@@ -303,20 +306,25 @@ view shared route model =
                         , Components.SecretForm.viewAllowEventsSelect
                             shared
                             { msg = AllowEventsUpdate
-                            , allowEvents = model.allowEvents
+                            , allowEvents = model.form.allowEvents
                             , disabled_ = False
                             }
                         , Components.SecretForm.viewImagesInput
                             { onInput_ = ImageOnInput
                             , addImage = AddImage
                             , removeImage = RemoveImage
-                            , images = model.images
-                            , imageValue = model.image
+                            , images = model.form.images
+                            , imageValue = model.form.image
                             , disabled_ = False
                             }
                         , Components.SecretForm.viewAllowCommandsInput
                             { msg = AllowCommandsOnClick
-                            , value = model.allowCommand
+                            , value = model.form.allowCommand
+                            , disabled_ = False
+                            }
+                        , Components.SecretForm.viewAllowSubstitutionInput
+                            { msg = AllowSubstitutionOnClick
+                            , value = model.form.allowSubstitution
                             , disabled_ = False
                             }
                         , Components.SecretForm.viewHelp shared.velaDocsURL

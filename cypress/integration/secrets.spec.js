@@ -107,6 +107,22 @@ context('Secrets', () => {
     });
   });
 
+  context('add shared secret', () => {
+    beforeEach(() => {
+      cy.server();
+      cy.login('/-/secrets/native/shared/github/*/add');
+    });
+
+    it('allow command and substitution should default to false', () => {
+      cy.get('[data-test=secret-radio-command-no]')
+        .find('input')
+        .should('be.checked');
+      cy.get('[data-test=secret-radio-substitution-no]')
+        .find('input')
+        .should('be.checked');
+    });
+  });
+
   context('server returning remove error', () => {
     beforeEach(() => {
       cy.server();

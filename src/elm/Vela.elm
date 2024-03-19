@@ -1597,6 +1597,7 @@ type alias Secret =
     , type_ : SecretType
     , images : List String
     , allowCommand : Bool
+    , allowSubstitution : Bool
     , allowEvents : AllowEvents
     }
 
@@ -1682,6 +1683,7 @@ decodeSecret =
         |> optional "type" secretTypeDecoder RepoSecret
         |> optional "images" (Json.Decode.list string) []
         |> optional "allow_command" bool False
+        |> optional "allow_subtitution" bool False
         |> optional "allow_events" decodeAllowEvents defaultAllowEvents
 
 
@@ -1700,6 +1702,7 @@ type alias SecretPayload =
     , events : Maybe (List String)
     , images : Maybe (List String)
     , allowCommand : Maybe Bool
+    , allowSubstitution : Maybe Bool
     , allowEvents : Maybe AllowEvents
     }
 
@@ -1715,6 +1718,7 @@ defaultSecretPayload =
     , events = Nothing
     , images = Nothing
     , allowCommand = Nothing
+    , allowSubstitution = Nothing
     , allowEvents = Nothing
     }
 
@@ -1730,6 +1734,7 @@ encodeSecretPayload secret =
         , ( "value", encodeOptional Json.Encode.string secret.value )
         , ( "images", encodeOptionalList Json.Encode.string secret.images )
         , ( "allow_command", encodeOptional Json.Encode.bool secret.allowCommand )
+        , ( "allow_substitution", encodeOptional Json.Encode.bool secret.allowSubstitution )
         , ( "allow_events", encodeOptional encodeAllowEvents secret.allowEvents )
         ]
 

@@ -76,12 +76,7 @@ toLayout user route model =
 
 type alias Model =
     { secret : WebData Vela.Secret
-    , name : String
-    , value : String
-    , images : List String
-    , image : String
-    , allowCommand : Bool
-    , allowEvents : Vela.AllowEvents
+    , form : Components.SecretForm.Form
     , confirmingDelete : Bool
     }
 
@@ -89,12 +84,7 @@ type alias Model =
 init : Shared.Model -> Route { engine : String, org : String, team : String, name : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { secret = RemoteData.Loading
-      , name = ""
-      , value = ""
-      , images = []
-      , image = ""
-      , allowCommand = True
-      , allowEvents = Vela.defaultAllowEvents
+      , form = Components.SecretForm.defaultSharedSecretForm route.params.team
       , confirmingDelete = False
       }
     , Effect.getSharedSecret
@@ -124,6 +114,7 @@ type Msg
     | AddImage String
     | RemoveImage String
     | AllowCommandsOnClick String
+    | AllowSubstitutionOnClick String
     | AllowEventsUpdate { allowEvents : Vela.AllowEvents, event : Vela.AllowEventsField } Bool
     | SubmitForm
     | ClickDelete
@@ -133,6 +124,10 @@ type Msg
 
 update : Shared.Model -> Route { engine : String, org : String, team : String, name : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
+    let
+        form =
+            model.form
+    in
     case msg of
         NoOp ->
             ( model, Effect.none )
@@ -143,10 +138,7 @@ update shared route msg model =
                 Ok ( _, secret ) ->
                     ( { model
                         | secret = RemoteData.succeed secret
-                        , name = secret.name
-                        , images = secret.images
-                        , allowCommand = secret.allowCommand
-                        , allowEvents = secret.allowEvents
+                        , form = Components.SecretForm.toForm secret
                       }
                     , Effect.none
                     )
@@ -206,43 +198,66 @@ update shared route msg model =
                     )
 
         ValueOnInput val ->
-            ( { model | value = val }
+            ( { model | form = { form | value = val } }
             , Effect.none
             )
 
         ImageOnInput val ->
-            ( { model | image = val }
+            ( { model | form = { form | image = val } }
             , Effect.none
             )
 
         AddImage image ->
             ( { model
-                | images =
-                    model.images
-                        |> List.append [ image ]
-                        |> List.Extra.unique
-                , image = ""
+                | form =
+                    { form
+                        | images =
+                            form.images
+                                |> List.append [ image ]
+                                |> List.Extra.unique
+                        , image = ""
+                    }
               }
             , Effect.none
             )
 
         RemoveImage image ->
             ( { model
-                | images =
-                    model.images
-                        |> List.filter ((/=) image)
+                | form =
+                    { form
+                        | images =
+                            form.images
+                                |> List.filter ((/=) image)
+                    }
               }
             , Effect.none
             )
 
         AllowCommandsOnClick val ->
-            ( model
-                |> (\m -> { m | allowCommand = Util.yesNoToBool val })
+            ( { model
+                | form =
+                    { form
+                        | allowCommand = Util.yesNoToBool val
+                    }
+              }
+            , Effect.none
+            )
+
+        AllowSubstitutionOnClick val ->
+            ( { model
+                | form =
+                    { form
+                        | allowSubstitution = Util.yesNoToBool val
+                    }
+              }
             , Effect.none
             )
 
         AllowEventsUpdate options val ->
-            ( Vela.setAllowEvents model options.event val
+            ( { model
+                | form =
+                    Vela.setAllowEvents model.form options.event val
+              }
             , Effect.none
             )
 
@@ -254,11 +269,12 @@ update shared route msg model =
                         , org = Just route.params.org
                         , repo = Nothing
                         , team = Just route.params.team
-                        , name = Util.stringToMaybe model.name
-                        , value = Util.stringToMaybe model.value
-                        , images = Just model.images
-                        , allowCommand = Just model.allowCommand
-                        , allowEvents = Just model.allowEvents
+                        , name = Util.stringToMaybe form.name
+                        , value = Util.stringToMaybe form.value
+                        , allowEvents = Just form.allowEvents
+                        , images = Just form.images
+                        , allowCommand = Just form.allowCommand
+                        , allowSubstitution = Just form.allowSubstitution
                     }
 
                 body =
@@ -355,7 +371,7 @@ view shared route model =
                             { title = Just "Value"
                             , subtitle = Nothing
                             , id_ = "value"
-                            , val = model.value
+                            , val = model.form.value
                             , placeholder_ = RemoteData.unwrap "Loading..." (\_ -> "<leave blank to make no change to the value>") model.secret
                             , classList_ = [ ( "secret-value", True ) ]
                             , rows_ = Just 2
@@ -366,20 +382,25 @@ view shared route model =
                         , Components.SecretForm.viewAllowEventsSelect
                             shared
                             { msg = AllowEventsUpdate
-                            , allowEvents = model.allowEvents
+                            , allowEvents = model.form.allowEvents
                             , disabled_ = False
                             }
                         , Components.SecretForm.viewImagesInput
                             { onInput_ = ImageOnInput
                             , addImage = AddImage
                             , removeImage = RemoveImage
-                            , images = model.images
-                            , imageValue = model.image
+                            , images = model.form.images
+                            , imageValue = model.form.image
                             , disabled_ = not <| RemoteData.isSuccess model.secret
                             }
                         , Components.SecretForm.viewAllowCommandsInput
                             { msg = AllowCommandsOnClick
-                            , value = model.allowCommand
+                            , value = model.form.allowCommand
+                            , disabled_ = not <| RemoteData.isSuccess model.secret
+                            }
+                        , Components.SecretForm.viewAllowSubstitutionInput
+                            { msg = AllowSubstitutionOnClick
+                            , value = model.form.allowSubstitution
                             , disabled_ = not <| RemoteData.isSuccess model.secret
                             }
                         , Components.SecretForm.viewHelp shared.velaDocsURL

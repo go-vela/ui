@@ -3,9 +3,8 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.SecretForm exposing (viewAllowCommandsInput, viewAllowEventsSelect, viewHelp, viewImagesInput)
+module Components.SecretForm exposing (Form, defaultOrgRepoSecretForm, defaultSharedSecretForm, toForm, viewAllowCommandsInput, viewAllowEventsSelect, viewAllowSubstitutionInput, viewHelp, viewImagesInput)
 
-import Components.Alerts exposing (view)
 import Components.Form
 import Html
     exposing
@@ -29,13 +28,73 @@ import Html.Attributes
         , for
         , href
         , id
-        , target
         , value
         )
 import Html.Events exposing (onClick)
 import Shared
+import Url
 import Utils.Helpers as Util
 import Vela
+
+
+
+-- TYPES
+
+
+type alias Form =
+    { team : String
+    , name : String
+    , value : String
+    , allowEvents : Vela.AllowEvents
+    , images : List String
+    , image : String
+    , allowCommand : Bool
+    , allowSubstitution : Bool
+    }
+
+
+defaultOrgRepoSecretForm : Form
+defaultOrgRepoSecretForm =
+    { team = ""
+    , name = ""
+    , value = ""
+    , allowEvents = Vela.defaultEnabledAllowEvents
+    , images = []
+    , image = ""
+    , allowCommand = True
+    , allowSubstitution = True
+    }
+
+
+defaultSharedSecretForm : String -> Form
+defaultSharedSecretForm team =
+    { team =
+        if team == "*" then
+            ""
+
+        else
+            Maybe.withDefault team <| Url.percentDecode team
+    , name = ""
+    , value = ""
+    , allowEvents = Vela.defaultEnabledAllowEvents
+    , images = []
+    , image = ""
+    , allowCommand = False
+    , allowSubstitution = False
+    }
+
+
+toForm : Vela.Secret -> Form
+toForm secret =
+    { team = secret.team
+    , name = secret.name
+    , value = ""
+    , allowEvents = secret.allowEvents
+    , images = secret.images
+    , image = ""
+    , allowCommand = secret.allowCommand
+    , allowSubstitution = secret.allowSubstitution
+    }
 
 
 
@@ -132,9 +191,9 @@ viewAllowCommandsInput { msg, value, disabled_ } =
                 [ text "Allow Commands"
                 , span [ class "field-description" ]
                     [ text "( "
-                    , em [] [ text "\"No\" will disable this secret in " ]
+                    , em [] [ text "\"No\" will prevent secret injection when " ]
                     , code [] [ text "commands" ]
-                    , text " )"
+                    , text " is used)"
                     ]
                 ]
             ]
@@ -157,6 +216,43 @@ viewAllowCommandsInput { msg, value, disabled_ } =
                 , msg = msg "no"
                 , disabled_ = disabled_
                 , id_ = "secret-allow-commands-no"
+                }
+            ]
+        ]
+
+
+viewAllowSubstitutionInput : { msg : String -> msg, value : Bool, disabled_ : Bool } -> Html msg
+viewAllowSubstitutionInput { msg, value, disabled_ } =
+    section [ Util.testAttribute "allow-substitution" ]
+        [ div [ class "form-control" ]
+            [ strong []
+                [ text "Allow Substitution"
+                , span [ class "field-description" ]
+                    [ text "( "
+                    , em [] [ text "\"No\" will prevent substitution" ]
+                    , text ")"
+                    ]
+                ]
+            ]
+        , div
+            [ class "form-controls", class "-stack" ]
+            [ Components.Form.viewRadio
+                { value = Util.boolToYesNo value
+                , field = "yes"
+                , title = "Yes"
+                , subtitle = Nothing
+                , msg = msg "yes"
+                , disabled_ = disabled_
+                , id_ = "secret-allow-substitution-yes"
+                }
+            , Components.Form.viewRadio
+                { value = Util.boolToYesNo value
+                , field = "no"
+                , title = "No"
+                , subtitle = Nothing
+                , msg = msg "no"
+                , disabled_ = disabled_
+                , id_ = "secret-allow-substitution-no"
                 }
             ]
         ]
