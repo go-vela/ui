@@ -22,7 +22,7 @@ context('Add Schedule', () => {
       },
       () => {
         it('default name placeholder should show', () => {
-          cy.get('[data-test=name]')
+          cy.get('[data-test=input-name]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
@@ -30,7 +30,7 @@ context('Add Schedule', () => {
             });
         });
         it('default entry value should show', () => {
-          cy.get('[data-test=entry]')
+          cy.get('[data-test=textarea-entry]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
@@ -38,7 +38,7 @@ context('Add Schedule', () => {
             });
         });
         it('default branch placeholder should show', () => {
-          cy.get('[data-test=branch-name]')
+          cy.get('[data-test=input-branch-name]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
@@ -60,7 +60,7 @@ context('Add Schedule', () => {
       },
       () => {
         it('default entry value should show', () => {
-          cy.get('[data-test=name]')
+          cy.get('[data-test=input-name]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
@@ -68,7 +68,7 @@ context('Add Schedule', () => {
             });
         });
         it('default entry value should show', () => {
-          cy.get('[data-test=entry]')
+          cy.get('[data-test=textarea-entry]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
@@ -76,7 +76,7 @@ context('Add Schedule', () => {
             });
         });
         it('default branch placeholder should show', () => {
-          cy.get('[data-test=branch-name]')
+          cy.get('[data-test=input-branch-name]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
@@ -97,35 +97,35 @@ context('Add Schedule', () => {
       },
       () => {
         it('default entry value should show and be disabled', () => {
-          cy.get('[data-test=name]')
+          cy.get('[data-test=input-name]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
               expect(placeholder).to.include('Schedule Name');
             });
-          cy.get('[data-test=name]')
+          cy.get('[data-test=input-name]')
             .should('exist')
             .and('have.attr', 'disabled');
         });
         it('default entry value should show and be disabled', () => {
-          cy.get('[data-test=entry]')
+          cy.get('[data-test=textarea-entry]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
               expect(placeholder).to.include('0 0 * * *');
             });
-          cy.get('[data-test=entry]')
+          cy.get('[data-test=textarea-entry]')
             .should('exist')
             .and('have.attr', 'disabled');
         });
         it('default branch placeholder should show and be disabled', () => {
-          cy.get('[data-test=branch-name]')
+          cy.get('[data-test=input-branch-name]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
               expect(placeholder).to.include('Branch Name');
             });
-          cy.get('[data-test=branch-name]')
+          cy.get('[data-test=input-branch-name]')
             .should('exist')
             .and('have.attr', 'disabled');
         });
@@ -162,12 +162,12 @@ context('View/Edit Schedule', () => {
       },
       () => {
         it('default name value should show', () => {
-          cy.get('[data-test=name]')
+          cy.get('[data-test=input-name]')
             .should('exist')
             .should('have.value', 'Daily');
         });
         it('default entry value should show', () => {
-          cy.get('[data-test=entry]')
+          cy.get('[data-test=textarea-entry]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
@@ -175,7 +175,7 @@ context('View/Edit Schedule', () => {
             });
         });
         it('default branch value should show', () => {
-          cy.get('[data-test=branch-name]')
+          cy.get('[data-test=input-branch-name]')
             .should('exist')
             .should('have.value', 'main');
         });
@@ -197,12 +197,12 @@ context('View/Edit Schedule', () => {
       },
       () => {
         it('default name value should show', () => {
-          cy.get('[data-test=name]')
+          cy.get('[data-test=input-name]')
             .should('exist')
             .should('have.value', 'Daily');
         });
         it('default entry value should show', () => {
-          cy.get('[data-test=entry]')
+          cy.get('[data-test=textarea-entry]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
@@ -210,7 +210,7 @@ context('View/Edit Schedule', () => {
             });
         });
         it('default branch value should show', () => {
-          cy.get('[data-test=branch-name]')
+          cy.get('[data-test=input-branch-name]')
             .should('exist')
             .should('have.value', 'main');
         });
@@ -231,35 +231,35 @@ context('View/Edit Schedule', () => {
       },
       () => {
         it('default entry value should show and be disabled', () => {
-          cy.get('[data-test=name]')
+          cy.get('[data-test=input-name]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
               expect(placeholder).to.include('Schedule Name');
             });
-          cy.get('[data-test=name]')
+          cy.get('[data-test=input-name]')
             .should('exist')
             .and('have.attr', 'disabled');
         });
         it('default entry value should show and be disabled', () => {
-          cy.get('[data-test=entry]')
+          cy.get('[data-test=textarea-entry]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
               expect(placeholder).to.include('0 0 * * *');
             });
-          cy.get('[data-test=entry]')
+          cy.get('[data-test=textarea-entry]')
             .should('exist')
             .and('have.attr', 'disabled');
         });
         it('default branch placeholder should show and be disabled', () => {
-          cy.get('[data-test=branch-name]')
+          cy.get('[data-test=input-branch-name]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
               expect(placeholder).to.include('Branch Name');
             });
-          cy.get('[data-test=branch-name]')
+          cy.get('[data-test=input-branch-name]')
             .should('exist')
             .and('have.attr', 'disabled');
         });
