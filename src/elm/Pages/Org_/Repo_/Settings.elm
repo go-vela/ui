@@ -785,7 +785,7 @@ viewForkPolicy repo msg =
                 , field = "fork-always"
                 , msg = msg "fork-always"
                 , disabled_ = False
-                , id_ = "fork-policy-always"
+                , id_ = "policy-fork-always"
                 }
             , Components.Form.viewRadio
                 { title = "Require Admin Approval When Contributor Is Read Only"
@@ -794,7 +794,7 @@ viewForkPolicy repo msg =
                 , field = "fork-no-write"
                 , msg = msg "fork-no-write"
                 , disabled_ = False
-                , id_ = "fork-no-write"
+                , id_ = "policy-fork-no-write"
                 }
             , Components.Form.viewRadio
                 { title = "Require Admin Approval for First Time Contributors"
@@ -803,7 +803,7 @@ viewForkPolicy repo msg =
                 , field = "first-time"
                 , msg = msg "first-time"
                 , disabled_ = False
-                , id_ = "first-time"
+                , id_ = "policy-first-time"
                 }
             , Components.Form.viewRadio
                 { title = "Never Require Admin Approval"
@@ -812,7 +812,7 @@ viewForkPolicy repo msg =
                 , field = "never"
                 , msg = msg "never"
                 , disabled_ = False
-                , id_ = "fork-policy-never"
+                , id_ = "policy-never"
                 }
             ]
         ]

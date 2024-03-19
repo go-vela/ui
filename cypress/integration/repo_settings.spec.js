@@ -65,21 +65,23 @@ context('Repo Settings', () => {
     });
 
     it('clicking access radio should toggle both values', () => {
-      cy.get('[data-test=radio-private] input').as('accessRadio');
+      cy.get('[data-test=radio-access-private] input').as('accessRadio');
       cy.get('@accessRadio').should('not.have.checked');
       cy.get('@accessRadio').click({ force: true });
       cy.get('@accessRadio').should('have.checked');
     });
 
     it('clicking outside contributor approval policy should toggle', () => {
-      cy.get('[data-test=radio-fork-no-write] input').as('forkPolicyRadio');
+      cy.get('[data-test=radio-policy-fork-no-write] input').as(
+        'forkPolicyRadio',
+      );
       cy.get('@forkPolicyRadio').should('not.have.checked');
       cy.get('@forkPolicyRadio').click({ force: true });
       cy.get('@forkPolicyRadio').should('have.checked');
     });
 
     it('clicking pipeline type radio should toggle all values', () => {
-      cy.get('[data-test=radio-private] input').as('pipelineTypeRadio');
+      cy.get('[data-test=radio-access-private] input').as('pipelineTypeRadio');
       cy.get('@pipelineTypeRadio').should('not.have.checked');
       cy.get('@pipelineTypeRadio').click({ force: true });
       cy.get('@pipelineTypeRadio').should('have.checked');

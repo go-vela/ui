@@ -114,8 +114,10 @@ context('Secrets', () => {
     });
 
     it('allow command and substitution should default to false', () => {
-      cy.get('[data-test=secret-allow-command-no]').should('be.checked');
-      cy.get('[data-test=secret-allow-substitution-no]').should('be.checked');
+      cy.get('[data-test=radio-secret-allow-command-no]').should('be.checked');
+      cy.get('[data-test=radio-secret-allow-substitution-no]').should(
+        'be.checked',
+      );
     });
   });
 
