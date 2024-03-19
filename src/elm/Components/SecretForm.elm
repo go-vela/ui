@@ -206,7 +206,7 @@ viewAllowCommandsInput { msg, value, disabled_ } =
                 , subtitle = Nothing
                 , msg = msg "yes"
                 , disabled_ = disabled_
-                , id_ = "secret-allow-commands-yes"
+                , id_ = "secret-allow-command-yes"
                 }
             , Components.Form.viewRadio
                 { value = Util.boolToYesNo value
@@ -215,7 +215,7 @@ viewAllowCommandsInput { msg, value, disabled_ } =
                 , subtitle = Nothing
                 , msg = msg "no"
                 , disabled_ = disabled_
-                , id_ = "secret-allow-commands-no"
+                , id_ = "secret-allow-command-no"
                 }
             ]
         ]

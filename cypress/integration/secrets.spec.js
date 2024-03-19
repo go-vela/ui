@@ -114,10 +114,10 @@ context('Secrets', () => {
     });
 
     it('allow command and substitution should default to false', () => {
-      cy.get('[data-test=secret-radio-command-no]')
+      cy.get('[data-test=secret-allow-command-no]')
         .find('input')
         .should('be.checked');
-      cy.get('[data-test=secret-radio-substitution-no]')
+      cy.get('[data-test=secret-allow-substitution-no]')
         .find('input')
         .should('be.checked');
     });
