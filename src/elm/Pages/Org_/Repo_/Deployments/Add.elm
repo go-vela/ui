@@ -164,10 +164,18 @@ update shared route msg model =
         AddDeploymentResponse response ->
             case response of
                 Ok ( _, deployment ) ->
+                    let
+                        ref =
+                            if String.trim model.ref == "" then
+                                RemoteData.unwrap "main" .branch model.repo
+
+                            else
+                                model.ref
+                    in
                     ( model
                     , Effect.batch
                         [ Effect.addAlertSuccess
-                            { content = "Added deployment for commit " ++ deployment.commit ++ "."
+                            { content = "Added deployment for ref " ++ ref ++ "."
                             , addToastIfUnique = True
                             , link = Nothing
                             }
@@ -240,7 +248,7 @@ update shared route msg model =
                         , description = Just model.description
                         , ref =
                             Just <|
-                                if String.trim model.target == "" then
+                                if String.trim model.ref == "" then
                                     RemoteData.unwrap "main" .branch model.repo
 
                                 else
