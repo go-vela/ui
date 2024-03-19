@@ -52,13 +52,15 @@ context('Repo Settings', () => {
     });
 
     it('allow_push_branch checkbox should show', () => {
-      cy.get('[data-test=checkbox-allow_push_branch]').should('be.visible');
+      cy.get(
+        '[data-test=checkbox-allow-events-push-branch-allow_push_branch]',
+      ).should('be.visible');
     });
 
     it('clicking allow_push_branch checkbox should toggle the value', () => {
-      cy.get('[data-test=checkbox-allow_push_branch] input').as(
-        'allowPushCheckbox',
-      );
+      cy.get(
+        '[data-test=checkbox-allow-events-push-branch-allow_push_branch] input',
+      ).as('allowPushCheckbox');
       cy.get('@allowPushCheckbox').should('have.checked');
       cy.get('@allowPushCheckbox').click({ force: true });
       cy.get('@allowPushCheckbox').should('not.have.checked');

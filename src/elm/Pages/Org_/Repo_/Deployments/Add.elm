@@ -418,9 +418,8 @@ view shared route model =
                                     , button
                                         [ class "button"
                                         , class "-outline"
-                                        , class "add-parameter"
                                         , onClick <| AddParameter
-                                        , Util.testAttribute "add-parameter-button"
+                                        , Util.testAttribute "button-parameter-add"
                                         , disabled <| String.length model.parameterKey == 0 || String.length model.parameterValue == 0
                                         ]
                                         [ text "Add"

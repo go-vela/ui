@@ -15,7 +15,7 @@ context('Deployment', () => {
     });
 
     it('add parameter button should be disabled', () => {
-      cy.get('[data-test=add-parameter-button]')
+      cy.get('[data-test=button-parameter-add]')
         .should('exist')
         .should('not.be.enabled')
         .contains('Add');
@@ -26,9 +26,9 @@ context('Deployment', () => {
         .children()
         .first()
         .should('contain.text', 'no parameters defined');
-      cy.get('[data-test=parameter-key]').should('exist').type('key1');
-      cy.get('[data-test=parameter-value]').should('exist').type('val1');
-      cy.get('[data-test=add-parameter-button]')
+      cy.get('[data-test=input-parameter-key]').should('exist').type('key1');
+      cy.get('[data-test=input-parameter-value]').should('exist').type('val1');
+      cy.get('[data-test=button-parameter-add]')
         .should('exist')
         .should('be.enabled')
         .contains('Add')
@@ -43,10 +43,10 @@ context('Deployment', () => {
         .children()
         .last()
         .should('contain.text', 'remove');
-      cy.get('[data-test=parameter-key]')
+      cy.get('[data-test=input-parameter-key]')
         .should('exist')
         .should('have.value', '');
-      cy.get('[data-test=parameter-value]')
+      cy.get('[data-test=input-parameter-value]')
         .should('exist')
         .should('have.value', '');
     });

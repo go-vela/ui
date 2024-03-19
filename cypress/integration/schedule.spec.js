@@ -46,7 +46,7 @@ context('Add Schedule', () => {
             });
         });
         it('submit button should show', () => {
-          cy.get('[data-test=submit]').should('exist');
+          cy.get('[data-test=button-submit]').should('exist');
         });
       },
     );
@@ -84,7 +84,7 @@ context('Add Schedule', () => {
             });
         });
         it('submit button should show', () => {
-          cy.get('[data-test=submit]').should('exist');
+          cy.get('[data-test=button-submit]').should('exist');
         });
       },
     );
@@ -130,7 +130,7 @@ context('Add Schedule', () => {
             .and('have.attr', 'disabled');
         });
         it('submit button should show and be disabled', () => {
-          cy.get('[data-test=submit]')
+          cy.get('[data-test=button-submit]')
             .should('exist')
             .and('have.attr', 'disabled');
         });
@@ -180,10 +180,10 @@ context('View/Edit Schedule', () => {
             .should('have.value', 'main');
         });
         it('submit button should show', () => {
-          cy.get('[data-test=submit]').should('exist');
+          cy.get('[data-test=button-submit]').should('exist');
         });
         it('delete button should show', () => {
-          cy.get('[data-test=delete]').should('exist');
+          cy.get('[data-test=button-delete]').should('exist');
         });
       },
     );
@@ -215,10 +215,10 @@ context('View/Edit Schedule', () => {
             .should('have.value', 'main');
         });
         it('submit button should show', () => {
-          cy.get('[data-test=submit]').should('exist');
+          cy.get('[data-test=button-submit]').should('exist');
         });
         it('delete button should show', () => {
-          cy.get('[data-test=delete]').should('exist');
+          cy.get('[data-test=button-delete]').should('exist');
         });
       },
     );
@@ -264,7 +264,7 @@ context('View/Edit Schedule', () => {
             .and('have.attr', 'disabled');
         });
         it('submit button should show and be disabled', () => {
-          cy.get('[data-test=submit]')
+          cy.get('[data-test=button-submit]')
             .should('exist')
             .and('have.attr', 'disabled');
         });
