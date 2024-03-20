@@ -1683,7 +1683,7 @@ decodeSecret =
         |> optional "type" secretTypeDecoder RepoSecret
         |> optional "images" (Json.Decode.list string) []
         |> optional "allow_command" bool False
-        |> optional "allow_subtitution" bool False
+        |> optional "allow_substitution" bool False
         |> optional "allow_events" decodeAllowEvents defaultAllowEvents
 
 
