@@ -26,7 +26,7 @@ import Route.Path
 import Shared
 import Time
 import Url exposing (Url)
-import Utils.Errors
+import Utils.Errors as Errors
 import Utils.Favicons as Favicons
 import Utils.Helpers as Util
 import Utils.Interval as Interval
@@ -168,11 +168,11 @@ update props shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | build = Utils.Errors.toFailure error }
+                    ( { model | build = Errors.toFailure error }
                     , Effect.batch
                         [ Effect.handleHttpError
                             { error = error
-                            , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                            , shouldShowAlertFn = Errors.showAlertAlways
                             }
                         , Effect.updateFavicon { favicon = Favicons.statusToFavicon Vela.Error }
                         ]
@@ -225,7 +225,7 @@ update props shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -266,7 +266,7 @@ update props shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -307,7 +307,7 @@ update props shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 

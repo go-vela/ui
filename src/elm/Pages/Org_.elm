@@ -24,7 +24,7 @@ import Route exposing (Route)
 import Route.Path
 import Shared
 import Time
-import Utils.Errors
+import Utils.Errors as Errors
 import Utils.Favorites as Favorites
 import Utils.Helpers as Util
 import Utils.Interval as Interval
@@ -121,10 +121,10 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | repos = Utils.Errors.toFailure error }
+                    ( { model | repos = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 

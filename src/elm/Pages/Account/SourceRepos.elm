@@ -45,7 +45,7 @@ import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Route.Path
 import Shared
-import Utils.Errors
+import Utils.Errors as Errors
 import Utils.Favorites as Favorites
 import Utils.Helpers as Util
 import Vela
@@ -159,11 +159,11 @@ update shared msg model =
 
                     Err error ->
                         ( { model
-                            | sourceRepos = Utils.Errors.toFailure error
+                            | sourceRepos = Errors.toFailure error
                           }
                         , Effect.handleHttpError
                             { error = error
-                            , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                            , shouldShowAlertFn = Errors.showAlertAlways
                             }
                         )
 
@@ -281,7 +281,7 @@ update shared msg model =
                                         ( Vela.Failed
                                         , Effect.handleHttpError
                                             { error = error
-                                            , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                                            , shouldShowAlertFn = Errors.showAlertAlways
                                             }
                                         )
 
@@ -289,7 +289,7 @@ update shared msg model =
                                 ( Vela.Failed
                                 , Effect.handleHttpError
                                     { error = error
-                                    , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                                    , shouldShowAlertFn = Errors.showAlertAlways
                                     }
                                 )
                         )

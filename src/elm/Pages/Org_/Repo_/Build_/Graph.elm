@@ -29,7 +29,7 @@ import Shared
 import Svg
 import Svg.Attributes
 import Time
-import Utils.Errors
+import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Utils.Interval as Interval
 import Vela
@@ -204,11 +204,11 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | graph = Utils.Errors.toFailure error }
+                    ( { model | graph = Errors.toFailure error }
                     , Effect.batch
                         [ Effect.handleHttpError
                             { error = error
-                            , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                            , shouldShowAlertFn = Errors.showAlertAlways
                             }
                         , clearBuildGraph |> Effect.sendCmd
                         ]

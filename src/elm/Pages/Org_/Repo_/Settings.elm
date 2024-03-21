@@ -22,7 +22,7 @@ import Route exposing (Route)
 import Route.Path
 import Shared
 import Time
-import Utils.Errors
+import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Utils.Interval as Interval
 import Vela exposing (defaultRepoPayload)
@@ -174,7 +174,7 @@ update shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -196,7 +196,7 @@ update shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -219,7 +219,7 @@ update shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -297,7 +297,7 @@ update shared route msg model =
                                       }
                                     , Effect.handleHttpError
                                         { error = error
-                                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                                        , shouldShowAlertFn = Errors.showAlertAlways
                                         }
                                     )
 
@@ -307,7 +307,7 @@ update shared route msg model =
                               }
                             , Effect.handleHttpError
                                 { error = error
-                                , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                                , shouldShowAlertFn = Errors.showAlertAlways
                                 }
                             )
 
@@ -382,7 +382,7 @@ update shared route msg model =
                       }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -433,7 +433,7 @@ update shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -472,7 +472,7 @@ update shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 

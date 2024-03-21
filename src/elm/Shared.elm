@@ -30,7 +30,7 @@ import Task
 import Time
 import Toasty as Alerting
 import Url
-import Utils.Errors
+import Utils.Errors as Errors
 import Utils.Favicons as Favicons
 import Utils.Favorites as Favorites
 import Utils.Helpers as Util
@@ -381,7 +381,7 @@ update route msg model =
                                         , Effect.setRedirect { redirect = velaRedirect }
                                         , Effect.handleHttpError
                                             { error = error
-                                            , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                                            , shouldShowAlertFn = Errors.showAlertAlways
                                             }
                                         ]
                                     )
@@ -396,7 +396,7 @@ update route msg model =
                                 , Effect.setRedirect { redirect = velaRedirect }
                                 , Effect.handleHttpError
                                     { error = error
-                                    , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                                    , shouldShowAlertFn = Errors.showAlertAlways
                                     }
                                 ]
                             )
@@ -451,10 +451,10 @@ update route msg model =
                     )
 
                 Err error ->
-                    ( { model | user = Utils.Errors.toFailure error }
+                    ( { model | user = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -510,10 +510,10 @@ update route msg model =
                     )
 
                 Err error ->
-                    ( { model | user = Utils.Errors.toFailure error }
+                    ( { model | user = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -547,10 +547,10 @@ update route msg model =
                     )
 
                 Err error ->
-                    ( { model | user = Utils.Errors.toFailure error }
+                    ( { model | user = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -571,10 +571,10 @@ update route msg model =
                     )
 
                 Err error ->
-                    ( { model | builds = Utils.Errors.toFailure error }
+                    ( { model | builds = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -595,10 +595,10 @@ update route msg model =
                     )
 
                 Err error ->
-                    ( { model | hooks = Utils.Errors.toFailure error }
+                    ( { model | hooks = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -674,7 +674,7 @@ update route msg model =
             , Effect.batch
                 [ if options.shouldShowAlertFn options.error then
                     Effect.addAlertError
-                        { content = Utils.Errors.detailedErrorToString options.error
+                        { content = Errors.detailedErrorToString options.error
                         , addToastIfUnique = True
                         , link = Nothing
                         }

@@ -27,7 +27,7 @@ import Route.Path
 import Shared
 import Svg.Attributes
 import Time
-import Utils.Errors
+import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Utils.Interval as Interval
 import Vela
@@ -125,7 +125,7 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | sharedSecrets = Utils.Errors.toFailure error }
+                    ( { model | sharedSecrets = Errors.toFailure error }
                     , Effect.none
                     )
 

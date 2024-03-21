@@ -28,7 +28,7 @@ import Route exposing (Route)
 import Route.Path
 import Shared
 import Time
-import Utils.Errors
+import Utils.Errors as Errors
 import Utils.Focus as Focus
 import Utils.Helpers as Util
 import Utils.Interval as Interval exposing (Interval)
@@ -253,10 +253,10 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | services = Utils.Errors.toFailure error }
+                    ( { model | services = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -282,10 +282,10 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | services = Utils.Errors.toFailure error }
+                    ( { model | services = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -330,10 +330,10 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | services = Utils.Errors.toFailure error }
+                    ( { model | services = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -361,10 +361,10 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | services = Utils.Errors.toFailure error }
+                    ( { model | services = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
