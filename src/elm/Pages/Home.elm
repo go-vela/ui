@@ -30,11 +30,7 @@ import Html
         , summary
         , text
         )
-import Html.Attributes
-    exposing
-        ( attribute
-        , class
-        )
+import Html.Attributes exposing (attribute, class)
 import Layouts
 import List
 import List.Extra

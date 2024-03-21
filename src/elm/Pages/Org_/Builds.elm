@@ -12,7 +12,7 @@ import Components.Builds
 import Components.Pager
 import Dict
 import Effect exposing (Effect)
-import Html exposing (caption, span)
+import Html exposing (caption, div, span)
 import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
@@ -430,7 +430,7 @@ view shared route model =
             [ class "builds-caption"
             ]
             [ span [] []
-            , Html.div [ class "buttons" ]
+            , div [ class "buttons" ]
                 [ Components.Pager.view
                     { show = RemoteData.unwrap False (\builds -> List.length builds > 0) model.builds
                     , links = model.pager

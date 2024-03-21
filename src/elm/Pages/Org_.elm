@@ -12,7 +12,7 @@ import Components.Pager
 import Components.Repo
 import Dict
 import Effect exposing (Effect)
-import Html exposing (Html, a, div, h1, p, text)
+import Html exposing (a, caption, div, h1, p, span, text)
 import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
@@ -185,10 +185,10 @@ view : Shared.Model -> Route { org : String } -> Model -> View Msg
 view shared route model =
     { title = "Repos" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
-        [ Html.caption
+        [ caption
             [ class "builds-caption"
             ]
-            [ Html.span [] []
+            [ span [] []
             , Components.Pager.view
                 { show = True
                 , links = model.pager

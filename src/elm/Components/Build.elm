@@ -203,8 +203,8 @@ view shared props =
                 , duration = [ text "--:--" ]
                 , infoRow = []
                 , buildAnimation = [ buildAnimation Vela.Pending 1 ]
-                , hoverTitle = Html.Attributes.class ""
-                , viewActionsMenu = Html.div [] []
+                , hoverTitle = class ""
+                , viewActionsMenu = div [] []
                 }
 
 

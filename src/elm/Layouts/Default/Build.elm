@@ -5,7 +5,6 @@ SPDX-License-Identifier: Apache-2.0
 
 module Layouts.Default.Build exposing (Model, Msg, Props, layout, map)
 
-import Components.Alerts
 import Components.Build
 import Components.Crumbs
 import Components.Help
@@ -15,7 +14,7 @@ import Components.Tabs
 import Components.Util
 import Dict exposing (Dict)
 import Effect exposing (Effect)
-import Html exposing (Html, main_, p, text)
+import Html exposing (Html, div, main_, p, text)
 import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
@@ -433,7 +432,7 @@ view props shared route { toContentMsg, model, content } =
              , Components.Build.view shared
                 { build = model.build
                 , showFullTimestamps = False
-                , actionsMenu = Html.div [] []
+                , actionsMenu = div [] []
                 , showRepoLink = False
                 , linkBuildNumber = False
                 }

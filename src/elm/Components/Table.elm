@@ -19,11 +19,14 @@ module Components.Table exposing
 import Html
     exposing
         ( Html
+        , caption
         , div
         , span
+        , table
         , tbody
         , td
         , text
+        , tfoot
         , th
         , thead
         , tr
@@ -96,8 +99,8 @@ view { label, testLabel, noRows, columns, rows, headerElement } =
         numColumns =
             List.length columns
     in
-    Html.table [ class "table-base", Util.testAttribute <| testLabel ++ "-table" ]
-        [ Html.caption []
+    table [ class "table-base", Util.testAttribute <| testLabel ++ "-table" ]
+        [ caption []
             [ div []
                 [ text label
                 , Maybe.withDefault (text "") headerElement
@@ -125,7 +128,7 @@ view { label, testLabel, noRows, columns, rows, headerElement } =
 viewFooter : Html msg -> Int -> Int -> Html msg
 viewFooter noRows numRows numColumns =
     if numRows == 0 then
-        Html.tfoot [ class "no-rows" ] [ tr [] [ td [ attribute "colspan" <| String.fromInt numColumns ] [ noRows ] ] ]
+        tfoot [ class "no-rows" ] [ tr [] [ td [ attribute "colspan" <| String.fromInt numColumns ] [ noRows ] ] ]
 
     else
         text ""

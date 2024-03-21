@@ -54,16 +54,14 @@ import Bytes
 import Bytes.Decode
 import DateFormat
 import DateFormat.Relative exposing (defaultRelativeOptions, relativeTimeWithOptions)
-import Dict
 import Filesize
 import Html exposing (Attribute)
-import Html.Attributes exposing (attribute, class)
+import Html.Attributes exposing (attribute, class, classList)
 import Html.Events exposing (custom)
 import Json.Decode
 import List.Extra
 import Maybe.Extra
 import RemoteData exposing (WebData)
-import Route
 import Route.Path
 import String.Extra
 import Task exposing (perform, succeed)
@@ -423,7 +421,7 @@ attrIf cond attr =
 -}
 attrNone : Html.Attribute msg
 attrNone =
-    Html.Attributes.classList []
+    classList []
 
 
 {-| boolToString : takes bool and converts to true/false string

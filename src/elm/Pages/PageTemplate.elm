@@ -9,11 +9,7 @@ import Auth
 import Components.Crumbs
 import Components.Nav
 import Effect exposing (Effect)
-import Html
-    exposing
-        ( main_
-        , text
-        )
+import Html exposing (li, main_, text, ul)
 import Html.Attributes exposing (class)
 import Layouts
 import Page exposing (Page)
@@ -109,18 +105,18 @@ view shared route model =
             , crumbs = Components.Crumbs.view route.path crumbs
             }
         , main_ [ class "content-wrap" ]
-            [ Html.ul []
-                [ Html.li [] [ text "this is a template page\n" ]
-                , Html.li [] [ text "add page specific data to the Model like API resources\n" ]
-                , Html.li [] [ text "apply any Layouts to the page in toLayout\n" ]
-                , Html.li [] [ text "add html to the view to trigger page messages\n" ]
-                , Html.li [] [ text "re-use components first, but add new components when necessary\n" ]
-                , Html.li [] [ text "add page messages and pass them as components args\n" ]
-                , Html.li [] [ text "use page messages to dispatch shared Effects and handle API calls\n" ]
-                , Html.li [] [ text "use page messages and shared Effects to dispatch API calls\n" ]
-                , Html.li [] [ text "add page specific subscriptions like page refresh and favicon updates\n" ]
-                , Html.li [] [ text "try to implement things in the page!\n" ]
-                , Html.li [] [ text "avoid using Shared.Model whenever possible!\n" ]
+            [ ul []
+                [ li [] [ text "this is a template page\n" ]
+                , li [] [ text "add page specific data to the Model like API resources\n" ]
+                , li [] [ text "apply any Layouts to the page in toLayout\n" ]
+                , li [] [ text "add html to the view to trigger page messages\n" ]
+                , li [] [ text "re-use components first, but add new components when necessary\n" ]
+                , li [] [ text "add page messages and pass them as components args\n" ]
+                , li [] [ text "use page messages to dispatch shared Effects and handle API calls\n" ]
+                , li [] [ text "use page messages and shared Effects to dispatch API calls\n" ]
+                , li [] [ text "add page specific subscriptions like page refresh and favicon updates\n" ]
+                , li [] [ text "try to implement things in the page!\n" ]
+                , li [] [ text "avoid using Shared.Model whenever possible!\n" ]
                 ]
             ]
         ]

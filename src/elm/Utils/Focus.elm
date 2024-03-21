@@ -18,7 +18,7 @@ module Utils.Focus exposing
     )
 
 import Html
-import Html.Attributes
+import Html.Attributes exposing (id)
 import Maybe.Extra
 
 
@@ -162,7 +162,7 @@ toAttr focus =
         |> List.map String.fromInt
         |> (::) "focus"
         |> String.join "-"
-        |> Html.Attributes.id
+        |> id
 
 
 canTarget : Focus -> Bool

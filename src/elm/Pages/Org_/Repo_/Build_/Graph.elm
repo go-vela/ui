@@ -13,7 +13,7 @@ import Dict exposing (Dict)
 import Effect exposing (Effect)
 import FeatherIcons
 import Graph exposing (Edge, Node)
-import Html exposing (button, div, li, text, ul)
+import Html exposing (button, div, input, label, li, text, ul)
 import Html.Attributes exposing (checked, class, for, id, placeholder, title, type_, value)
 import Html.Events exposing (onCheck, onClick, onInput)
 import Http
@@ -366,7 +366,7 @@ view shared route model =
                             [ class "button"
                             , class "-icon"
                             , class "build-graph-action-refresh"
-                            , Html.Attributes.title "Refresh visualization"
+                            , title "Refresh visualization"
                             , onClick <| Refresh { freshDraw = True, setToLoading = True, clear = True }
                             ]
                             [ FeatherIcons.refreshCw
@@ -400,7 +400,7 @@ view shared route model =
                 , div [ class "elm-build-graph-action-toggles" ]
                     [ div [ class "form-control" ]
                         [ div []
-                            [ Html.input
+                            [ input
                                 [ type_ "checkbox"
                                 , checked model.showServices
                                 , onCheck ShowHideServices
@@ -408,7 +408,7 @@ view shared route model =
                                 , Util.testAttribute "build-graph-action-toggle-services"
                                 ]
                                 []
-                            , Html.label
+                            , label
                                 [ class "form-label"
                                 , for "checkbox-services-toggle"
                                 ]
@@ -418,7 +418,7 @@ view shared route model =
                         ]
                     , div [ class "form-control" ]
                         [ div []
-                            [ Html.input
+                            [ input
                                 [ type_ "checkbox"
                                 , checked model.showSteps
                                 , onCheck ShowHideSteps
@@ -426,7 +426,7 @@ view shared route model =
                                 , Util.testAttribute "build-graph-action-toggle-steps"
                                 ]
                                 []
-                            , Html.label
+                            , label
                                 [ class "form-label"
                                 , for "checkbox-steps-toggle"
                                 ]
@@ -439,7 +439,7 @@ view shared route model =
                         , class "elm-build-graph-search-filter"
                         ]
                         [ div [ class "elm-build-graph-search-filter-input" ]
-                            [ Html.input
+                            [ input
                                 [ type_ "input"
                                 , placeholder "type to highlight nodes..."
                                 , onInput UpdateFilter
@@ -448,7 +448,7 @@ view shared route model =
                                 , value model.filter
                                 ]
                                 []
-                            , Html.label
+                            , label
                                 [ class "elm-build-graph-search-filter-form-label"
                                 , for "build-graph-action-filter"
                                 ]

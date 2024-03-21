@@ -11,8 +11,8 @@ import Components.Form
 import Components.Nav
 import Dict
 import Effect exposing (Effect)
-import Html exposing (button, code, div, em, h2, label, main_, p, section, span, strong, text)
-import Html.Attributes exposing (class, disabled, for, id)
+import Html exposing (a, button, code, div, em, h2, label, main_, p, section, span, strong, text)
+import Html.Attributes exposing (class, disabled, for, href, id)
 import Html.Events exposing (onClick)
 import Http
 import Http.Detailed
@@ -462,8 +462,8 @@ view shared route model =
                             ]
                         , div [ class "help" ]
                             [ text "Need help? Visit our "
-                            , Html.a
-                                [ Html.Attributes.href <| shared.velaDocsURL ++ "/usage/deployments/"
+                            , a
+                                [ href <| shared.velaDocsURL ++ "/usage/deployments/"
                                 ]
                                 [ text "docs" ]
                             , text "!"

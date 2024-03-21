@@ -11,9 +11,9 @@ import Browser.Dom exposing (focus)
 import Components.Loading
 import FeatherIcons
 import Html exposing (Html, a, button, code, div, span, table, td, text, tr)
-import Html.Attributes exposing (attribute, class, href, id)
+import Html.Attributes exposing (attribute, class, disabled, href, id, tabindex)
 import Html.Events exposing (onClick)
-import Html.Lazy
+import Html.Lazy exposing (lazy6)
 import RemoteData exposing (WebData)
 import Shared
 import Url
@@ -80,7 +80,7 @@ viewLogLines props log =
     let
         -- deconstructing props here to make lazy rendering work properly
         lines =
-            Html.Lazy.lazy6
+            lazy6
                 viewLines
                 props.msgs.pushUrlHash
                 props.resourceType
@@ -129,7 +129,7 @@ viewLines pushUrlHashMsg resourceType resourceNumber shift focus log =
                 [ a
                     [ id <| Logs.topTrackerFocusId resourceNumber
                     , Util.testAttribute <| "top-log-tracker-" ++ resourceNumber
-                    , Html.Attributes.tabindex -1
+                    , tabindex -1
                     ]
                     []
                 ]
@@ -139,7 +139,7 @@ viewLines pushUrlHashMsg resourceType resourceNumber shift focus log =
                 [ a
                     [ id <| Logs.bottomTrackerFocusId resourceNumber
                     , Util.testAttribute <| "bottom-log-tracker-" ++ resourceNumber
-                    , Html.Attributes.tabindex -1
+                    , tabindex -1
                     ]
                     []
                 ]
@@ -155,7 +155,7 @@ viewLines pushUrlHashMsg resourceType resourceNumber shift focus log =
 viewLine : ({ hash : String } -> msg) -> String -> String -> Bool -> Focus.Focus -> LogLine msg -> Int -> Html msg
 viewLine pushUrlHashMsg resourceType resourceNumber shift focus logLine lineNumber =
     tr
-        [ Html.Attributes.id <|
+        [ id <|
             resourceNumber
                 ++ ":"
                 ++ String.fromInt lineNumber
@@ -402,7 +402,7 @@ viewDownloadButton props log =
     button
         [ class "button"
         , class "-link"
-        , Html.Attributes.disabled logEmpty
+        , disabled logEmpty
         , Util.attrIf logEmpty <| class "-hidden"
         , Util.attrIf logEmpty <| Util.ariaHidden
         , Util.testAttribute <| "download-logs-" ++ props.resourceNumber

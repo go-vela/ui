@@ -7,9 +7,9 @@ module Components.Help exposing (Command, Props, cmdSize, view)
 
 import Components.Svgs as SvgBuilder
 import FeatherIcons
-import Html exposing (Html, a, button, details, div, label, span, strong, summary, text)
-import Html.Attributes exposing (attribute, class, for, href, id, size, value)
-import Html.Events
+import Html exposing (Html, a, button, details, div, input, label, span, strong, summary, text)
+import Html.Attributes exposing (attribute, class, for, href, id, readonly, size, tabindex, type_, value)
+import Html.Events exposing (onClick)
 import Shared
 import Utils.Helpers as Util
 
@@ -49,7 +49,7 @@ view shared props =
             [ class "summary"
             , class "-no-pad"
             , Util.testAttribute "help-trigger"
-            , Html.Attributes.tabindex 0
+            , tabindex 0
             , Util.onClickPreventDefault (props.showHide Nothing)
             ]
             [ SvgBuilder.terminal ]
@@ -86,10 +86,10 @@ viewCommand shared props command =
             [ class "cmd"
             , Util.testAttribute "help-row"
             ]
-            [ Html.input
+            [ input
                 [ class "cmd-text"
-                , Html.Attributes.type_ "text"
-                , Html.Attributes.readonly True
+                , type_ "text"
+                , readonly True
                 , id command.name
                 , size <| cmdSize command.content
                 , value command.content
@@ -102,7 +102,7 @@ viewCommand shared props command =
                         , attribute "aria-label" <| "copy " ++ command.content ++ " to clipboard"
                         , class "button"
                         , class "-icon"
-                        , Html.Events.onClick <| props.showCopyAlert command.content
+                        , onClick <| props.showCopyAlert command.content
                         , class "copy-button"
                         , attribute "data-clipboard-text" command.content
                         ]

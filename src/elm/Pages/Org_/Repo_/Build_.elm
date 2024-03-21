@@ -275,7 +275,6 @@ update shared route msg model =
                     ( { model | steps = RemoteData.succeed steps }
                     , steps
                         |> List.Extra.find (\step -> Maybe.withDefault -1 model.focus.group == step.number)
-                        |> Maybe.map (\step -> step)
                         |> Maybe.map
                             (\step ->
                                 ExpandStep
