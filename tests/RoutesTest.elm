@@ -2,13 +2,13 @@
 SPDX-License-Identifier: Apache-2.0
 --}
 
+
 module RoutesTest exposing (testHref, testMatch, testRouteToUrl)
 
 import Expect
 import Route.Path
 import Test exposing (..)
 import Url exposing (Url)
-
 
 
 
@@ -43,7 +43,6 @@ testUrl p route =
             makeUrl p
                 |> Route.Path.fromUrl
                 |> Expect.equal route
-
 
 
 makeUrl : String -> Url
