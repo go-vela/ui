@@ -326,7 +326,7 @@ copyButton copyYaml copyMsg =
     div []
         [ button
             [ class "copy-button"
-            , attribute "aria-label" <| "copy secret yaml to clipboard "
+            , attribute "aria-label" "copy secret yaml to clipboard "
             , class "button"
             , class "-icon"
             , onClick <| copyMsg copyYaml
