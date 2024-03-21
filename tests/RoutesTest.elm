@@ -12,7 +12,7 @@ import Url exposing (Url)
 
 
 
--- href
+-- Route.Path.toString
 
 
 testHref : Test
@@ -24,7 +24,7 @@ testHref =
 
 
 
--- match
+-- Route.Path.fromUrl
 
 
 testMatch : Test
@@ -57,7 +57,7 @@ makeUrl p =
 
 
 
--- routeToUrl
+-- Route.Path.toString
 
 
 testRouteToUrl : Test
