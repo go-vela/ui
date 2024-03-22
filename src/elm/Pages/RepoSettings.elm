@@ -347,12 +347,12 @@ events repo msg =
                         allowEvents.pull.reopened
                       <|
                         msg repo.org repo.name repo "allow_pull_reopened"
-                    , checkbox "Labled"
+                    , checkbox "Labeled"
                         "allow_pull_labeled"
                         allowEvents.pull.labeled
                       <|
                         msg repo.org repo.name repo "allow_pull_labeled"
-                    , checkbox "Unlabled"
+                    , checkbox "Unlabeled"
                         "allow_pull_unlabeled"
                         allowEvents.pull.unlabeled
                       <|
