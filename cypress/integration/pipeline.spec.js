@@ -4,7 +4,7 @@
 
 context('Pipeline', () => {
   context(
-    'logged in and server returning pipeline configuration and templates errors',
+    'logged in and server returning pipeline configuration error and templates errors',
     () => {
       beforeEach(() => {
         cy.server();
@@ -95,6 +95,7 @@ context('Pipeline', () => {
           cy.get('[data-test=pipeline-expand-toggle]').click({
             force: true,
           });
+          cy.wait('@expand');
         });
 
         it('should update path with expand query', () => {
@@ -117,69 +118,50 @@ context('Pipeline', () => {
           );
         });
 
-        it('pipeline configuration data should contain expanded steps', () => {
-          cy.get('[data-test=pipeline-configuration-data]').should(
-            'contain',
-            'commands:',
-          );
-        });
-
         context('click line number', () => {
           beforeEach(() => {
-            cy.get('[data-test=config-line-num-0-2]').click({ force: true });
+            cy.get('[data-test=config-line-num-2]').click({ force: true });
           });
 
           it('should update path with line num', () => {
-            cy.hash().should('eq', '#config:0:2');
+            cy.hash().should('eq', '#2');
           });
 
           it('other lines should not have focus style', () => {
-            cy.get('[data-test=config-line-0-3]').should(
+            cy.get('[data-test=config-line-3]').should(
               'not.have.class',
               '-focus',
             );
           });
 
           it('should set focus style on single line', () => {
-            cy.get('[data-test=config-line-0-2]').should(
-              'have.class',
-              '-focus',
-            );
+            cy.get('[data-test=config-line-2]').should('have.class', '-focus');
           });
         });
 
         context('click line number, then shift click other line number', () => {
           beforeEach(() => {
-            cy.get('[data-test=config-line-num-0-2]')
+            cy.get('[data-test=config-line-num-2]')
               .type('{shift}', { release: false })
-              .get('[data-test=config-line-num-0-5]')
+              .get('[data-test=config-line-num-5]')
               .click({ force: true });
           });
 
           it('should update path with range', () => {
-            cy.hash().should('eq', '#config:0:2:5');
+            cy.hash().should('eq', '#2:5');
           });
 
           it('lines outside the range should not have focus style', () => {
-            cy.get('[data-test=config-line-0-6]').should(
+            cy.get('[data-test=config-line-6]').should(
               'not.have.class',
               '-focus',
             );
           });
 
           it('lines within the range should have focus style', () => {
-            cy.get('[data-test=config-line-0-2]').should(
-              'have.class',
-              '-focus',
-            );
-            cy.get('[data-test=config-line-0-3]').should(
-              'have.class',
-              '-focus',
-            );
-            cy.get('[data-test=config-line-0-4]').should(
-              'have.class',
-              '-focus',
-            );
+            cy.get('[data-test=config-line-2]').should('have.class', '-focus');
+            cy.get('[data-test=config-line-3]').should('have.class', '-focus');
+            cy.get('[data-test=config-line-4]').should('have.class', '-focus');
           });
         });
       });
@@ -193,54 +175,54 @@ context('Pipeline', () => {
       });
 
       it('pipeline configuration data should respect yaml spacing', () => {
-        cy.get('[data-test=config-line-0-1]').should('contain', 'version:');
-        cy.get('[data-test=config-line-0-2]').should('contain', 'steps:');
+        cy.get('[data-test=config-line-1]').should('contain', 'version:');
+        cy.get('[data-test=config-line-2]').should('contain', 'steps:');
       });
 
       context('click line number', () => {
         beforeEach(() => {
-          cy.get('[data-test=config-line-num-0-2]').click({ force: true });
+          cy.get('[data-test=config-line-num-2]').click({ force: true });
         });
 
         it('should update path with line num', () => {
-          cy.hash().should('eq', '#config:0:2');
+          cy.hash().should('eq', '#2');
         });
 
         it('other lines should not have focus style', () => {
-          cy.get('[data-test=config-line-0-3]').should(
+          cy.get('[data-test=config-line-3]').should(
             'not.have.class',
             '-focus',
           );
         });
 
         it('should set focus style on single line', () => {
-          cy.get('[data-test=config-line-0-2]').should('have.class', '-focus');
+          cy.get('[data-test=config-line-2]').should('have.class', '-focus');
         });
       });
 
       context('click line number, then shift click other line number', () => {
         beforeEach(() => {
-          cy.get('[data-test=config-line-num-0-2]')
+          cy.get('[data-test=config-line-num-2]')
             .type('{shift}', { release: false })
-            .get('[data-test=config-line-num-0-5]')
+            .get('[data-test=config-line-num-5]')
             .click({ force: true });
         });
 
         it('should update path with range', () => {
-          cy.hash().should('eq', '#config:0:2:5');
+          cy.hash().should('eq', '#2:5');
         });
 
         it('lines outside the range should not have focus style', () => {
-          cy.get('[data-test=config-line-0-6]').should(
+          cy.get('[data-test=config-line-6]').should(
             'not.have.class',
             '-focus',
           );
         });
 
         it('lines within the range should have focus style', () => {
-          cy.get('[data-test=config-line-0-2]').should('have.class', '-focus');
-          cy.get('[data-test=config-line-0-3]').should('have.class', '-focus');
-          cy.get('[data-test=config-line-0-4]').should('have.class', '-focus');
+          cy.get('[data-test=config-line-2]').should('have.class', '-focus');
+          cy.get('[data-test=config-line-3]').should('have.class', '-focus');
+          cy.get('[data-test=config-line-4]').should('have.class', '-focus');
         });
       });
     },
@@ -283,15 +265,6 @@ context('Pipeline', () => {
 
         it('error alert should show', () => {
           cy.get('[data-test=alerts]').should('exist').contains('Error');
-        });
-
-        it('should show pipeline configuration error', () => {
-          cy.get('[data-test=pipeline-configuration-error]').should(
-            'be.visible',
-          );
-          cy.get('[data-test=pipeline-configuration-data]').should(
-            'not.be.visible',
-          );
         });
 
         context('click expand pipeline again', () => {

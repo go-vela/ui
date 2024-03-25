@@ -18,6 +18,7 @@ context('Build', () => {
   context('logged in and server returning 5 builds', () => {
     beforeEach(() => {
       cy.server();
+      cy.stubBuild();
       cy.route('GET', '*api/v1/repos/*/*/builds*', 'fixture:builds_5.json');
       cy.login('/github/octocat/1');
       cy.get('[data-test=build-history]').as('buildHistory');
@@ -33,7 +34,7 @@ context('Build', () => {
     });
 
     it('clicking build history item should redirect to build page', () => {
-      cy.get('[data-test=recent-build-link-1]').children().last().click();
+      cy.get('[data-test=recent-build-link-105]').children().last().click();
       cy.location('pathname').should('eq', '/github/octocat/105');
     });
   });
@@ -78,7 +79,7 @@ context('Build', () => {
 
       it('clicking build history item should redirect to build page', () => {
         cy.get('[data-test=recent-build-link-1]').children().last().click();
-        cy.location('pathname').should('eq', '/github/octocat/10');
+        cy.location('pathname').should('eq', '/github/octocat/1');
       });
 
       context('hover build history item', () => {
@@ -133,7 +134,7 @@ context('Build', () => {
         cy.get('@restartBuild').click();
         cy.get('[data-test=alert]').should(
           'contain',
-          'github/octocat/1 restarted',
+          'Restarted build github/octocat/1',
         );
       });
 
@@ -250,7 +251,7 @@ context('Build', () => {
     context('visit running build', () => {
       beforeEach(() => {
         cy.visit('/github/octocat/1');
-        cy.get('[data-test=full-build]').as('build');
+        cy.get('[data-test=build]').as('build');
         cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
 
@@ -286,7 +287,7 @@ context('Build', () => {
     context('visit pending build', () => {
       beforeEach(() => {
         cy.visit('/github/octocat/2');
-        cy.get('[data-test=full-build]').as('build');
+        cy.get('[data-test=build]').as('build');
         cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
 
@@ -298,7 +299,7 @@ context('Build', () => {
     context('visit success build', () => {
       beforeEach(() => {
         cy.visit('/github/octocat/3');
-        cy.get('[data-test=full-build]').as('build');
+        cy.get('[data-test=build]').as('build');
         cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
 
@@ -310,7 +311,7 @@ context('Build', () => {
     context('visit failure build', () => {
       beforeEach(() => {
         cy.visit('/github/octocat/4');
-        cy.get('[data-test=full-build]').as('build');
+        cy.get('[data-test=build]').as('build');
         cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
 
@@ -322,7 +323,7 @@ context('Build', () => {
     context('visit build with server error', () => {
       beforeEach(() => {
         cy.visit('/github/octocat/5');
-        cy.get('[data-test=full-build]').as('build');
+        cy.get('[data-test=build]').as('build');
         cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
 
@@ -343,7 +344,7 @@ context('Build', () => {
     context('visit canceled build', () => {
       beforeEach(() => {
         cy.visit('/github/octocat/6');
-        cy.get('[data-test=full-build]').as('build');
+        cy.get('[data-test=build]').as('build');
         cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
 

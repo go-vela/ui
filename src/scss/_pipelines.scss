@@ -154,7 +154,7 @@
 
   .logs-table {
     padding-top: 0;
-    padding-bottom: 1rem;
+    padding-bottom: 0;
   }
 
   .logs-table.-error {
@@ -174,5 +174,9 @@
   // stylelint-disable selector-max-compound-selectors
   .logs-table .line ~ .line {
     margin-top: 0;
+  }
+
+  .logs-table .logs {
+    padding-bottom: 1rem;
   }
 }

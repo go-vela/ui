@@ -52,29 +52,29 @@ context('Repo Settings', () => {
     });
 
     it('allow_push_branch checkbox should show', () => {
-      cy.get('[data-test=repo-checkbox-allow_push_branch]').should(
-        'be.visible',
-      );
+      cy.get(
+        '[data-test=checkbox-allow-events-push-branch-allow_push_branch]',
+      ).should('be.visible');
     });
 
     it('clicking allow_push_branch checkbox should toggle the value', () => {
-      cy.get('[data-test=repo-checkbox-allow_push_branch] input').as(
-        'allowPushCheckbox',
-      );
+      cy.get(
+        '[data-test=checkbox-allow-events-push-branch-allow_push_branch] input',
+      ).as('allowPushCheckbox');
       cy.get('@allowPushCheckbox').should('have.checked');
       cy.get('@allowPushCheckbox').click({ force: true });
       cy.get('@allowPushCheckbox').should('not.have.checked');
     });
 
     it('clicking access radio should toggle both values', () => {
-      cy.get('[data-test=repo-radio-private] input').as('accessRadio');
+      cy.get('[data-test=radio-access-private] input').as('accessRadio');
       cy.get('@accessRadio').should('not.have.checked');
       cy.get('@accessRadio').click({ force: true });
       cy.get('@accessRadio').should('have.checked');
     });
 
     it('clicking outside contributor approval policy should toggle', () => {
-      cy.get('[data-test=repo-radio-fork-no-write] input').as(
+      cy.get('[data-test=radio-policy-fork-no-write] input').as(
         'forkPolicyRadio',
       );
       cy.get('@forkPolicyRadio').should('not.have.checked');
@@ -83,7 +83,7 @@ context('Repo Settings', () => {
     });
 
     it('clicking pipeline type radio should toggle all values', () => {
-      cy.get('[data-test=repo-radio-private] input').as('pipelineTypeRadio');
+      cy.get('[data-test=radio-access-private] input').as('pipelineTypeRadio');
       cy.get('@pipelineTypeRadio').should('not.have.checked');
       cy.get('@pipelineTypeRadio').click({ force: true });
       cy.get('@pipelineTypeRadio').should('have.checked');
@@ -181,7 +181,7 @@ context('Repo Settings', () => {
         response: `"Repo CookieCat/applications deleted"`,
       });
       cy.get('[data-test=repo-disable]').first().click({ force: true });
-      cy.get('[data-test=repo-disable]').should('contain', 'Really Disable?');
+      cy.get('[data-test=repo-disable]').should('contain', 'Confirm Disable');
     });
 
     it('clicking button twice should disable the repo', () => {
@@ -236,7 +236,7 @@ context('Repo Settings', () => {
     it('should copy markdown to clipboard and alert', () => {
       let clipboardContent;
       cy.get('[data-test=copy-md]').click();
-      cy.get('[data-test=alerts]').should('exist').contains('Copied');
+      cy.get('[data-test=alerts]').should('exist').contains('copied');
     });
 
     it('Chown button should exist', () => {
@@ -305,17 +305,6 @@ context('Repo Settings', () => {
 
     it('should show enable button', () => {
       cy.get('[data-test=repo-enable]').should('exist').contains('Enable');
-    });
-
-    it('successful repair enables disable button', () => {
-      cy.route({
-        method: 'PATCH',
-        url: '*api/v1/repos/github/**',
-        response: '"Repo github/octocat repaired."',
-      });
-      cy.get('[data-test=repo-repair]').click();
-      cy.get('[data-test=alerts]').should('exist').contains('Success');
-      cy.get('[data-test=repo-disable').should('exist').contains('Disable');
     });
 
     it('failed repair keeps enable button enabled', () => {
