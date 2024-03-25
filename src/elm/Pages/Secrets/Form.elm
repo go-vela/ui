@@ -237,6 +237,16 @@ viewEventsSelect secret model =
                     secret.allowEvents.pull.reopened
                   <|
                     OnChangeEvent "allow_pull_reopened"
+                , checkbox "Labeled"
+                    "allow_pull_labeled"
+                    secret.allowEvents.pull.labeled
+                  <|
+                    OnChangeEvent "allow_pull_labeled"
+                , checkbox "Unlabeled"
+                    "allow_pull_unlabeled"
+                    secret.allowEvents.pull.unlabeled
+                  <|
+                    OnChangeEvent "allow_pull_unlabeled"
                 ]
             , strong [ class "settings-subtitle" ] [ text "Deployments" ]
             , div [ class "form-controls", class "-two-col" ]
