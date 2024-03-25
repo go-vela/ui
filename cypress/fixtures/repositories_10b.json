@@ -33,7 +33,9 @@
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -81,7 +83,9 @@
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -129,7 +133,9 @@
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -177,7 +183,9 @@
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -225,7 +233,9 @@
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -273,7 +283,9 @@
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -321,7 +333,9 @@
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -369,7 +383,9 @@
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -417,7 +433,9 @@
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -465,7 +483,9 @@
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false

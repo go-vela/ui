@@ -258,6 +258,24 @@ viewAllowEvents shared { msg, allowEvents } =
             , disabled_ = False
             , id_ = "allow-events-pull-reopened"
             }
+        , viewCheckbox
+            { title = "Labeled"
+            , subtitle = Nothing
+            , field = "allow_pull_labeled"
+            , state = allowEvents.pull.labeled
+            , msg = msg { allowEvents = allowEvents, event = Vela.PullLabeled }
+            , disabled_ = False
+            , id_ = "allow-events-pull-labeled"
+            }
+        , viewCheckbox
+            { title = "Unlabeled"
+            , subtitle = Nothing
+            , field = "allow_pull_unlabeled"
+            , state = allowEvents.pull.unlabeled
+            , msg = msg { allowEvents = allowEvents, event = Vela.PullUnlabeled }
+            , disabled_ = False
+            , id_ = "allow-events-pull-unlabeled"
+            }
         ]
     , h3 [ class "settings-subtitle" ] [ text "Deployments" ]
     , div [ class "form-controls", class "-two-col" ]
