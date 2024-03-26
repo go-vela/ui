@@ -1185,7 +1185,8 @@ runWhenAuthenticatedWithLayout model toRecord =
                 ( Main.Pages.Model.Redirecting_
                 , Cmd.batch
                     [ toCmd (Effect.replaceRoute options)
-                    , Maybe.Extra.unwrap Cmd.none
+                    , Maybe.Extra.unwrap
+                        Cmd.none
                         (\from -> Interop.setRedirect <| Json.Encode.string from)
                         (Dict.get "from" options.query)
                     ]
@@ -1198,7 +1199,8 @@ runWhenAuthenticatedWithLayout model toRecord =
                 ( Main.Pages.Model.Redirecting_
                 , Cmd.batch
                     [ toCmd (Effect.pushRoute options)
-                    , Maybe.Extra.unwrap Cmd.none
+                    , Maybe.Extra.unwrap
+                        Cmd.none
                         (\from -> Interop.setRedirect <| Json.Encode.string from)
                         (Dict.get "from" options.query)
                     ]
