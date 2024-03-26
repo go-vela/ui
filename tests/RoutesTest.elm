@@ -32,7 +32,7 @@ testMatch =
     describe "route gets matched as intended for given url"
         [ testUrl "/account/login" Route.Path.Account_Login
         , testUrl "/asdf" (Route.Path.Org_ { org = "asdf" })
-        , testUrl "/" Route.Path.Home
+        , testUrl "/" Route.Path.Home_
         ]
 
 

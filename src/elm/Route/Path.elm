@@ -12,7 +12,7 @@ import Url.Parser exposing ((</>))
 
 
 type Path
-    = Home
+    = Home_
     | Account_Login
     | Account_Logout
     | AccountAuthenticate_
@@ -63,7 +63,7 @@ fromString urlPath =
     in
     case urlPathSegments of
         [] ->
-            Just Home
+            Just Home_
 
         [ "account", "login" ] ->
             Just Account_Login
@@ -282,7 +282,7 @@ toString path =
         pieces : List String
         pieces =
             case path of
-                Home ->
+                Home_ ->
                     []
 
                 Account_Login ->

@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Home exposing (Model, Msg, page, view)
+module Pages.Home_ exposing (Model, Msg, page, view)
 
 import Auth
 import Components.Crumbs

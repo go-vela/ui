@@ -39,7 +39,7 @@ import Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Name_
 import Pages.Dash.Secrets.Engine_.Shared.Org_.Team_
 import Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Add
 import Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_
-import Pages.Home
+import Pages.Home_
 import Pages.NotFound_
 import Pages.Org_
 import Pages.Org_.Builds
@@ -402,26 +402,26 @@ initPageAndLayout model =
             , layout = Nothing
             }
 
-        Route.Path.Home ->
+        Route.Path.Home_ ->
             runWhenAuthenticatedWithLayout
                 model
                 (\user ->
                     let
-                        page : Page.Page Pages.Home.Model Pages.Home.Msg
+                        page : Page.Page Pages.Home_.Model Pages.Home_.Msg
                         page =
-                            Pages.Home.page user model.shared (Route.fromUrl () model.url)
+                            Pages.Home_.page user model.shared (Route.fromUrl () model.url)
 
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
                     { page =
                         Tuple.mapBoth
-                            Main.Pages.Model.Home
-                            (Effect.map Main.Pages.Msg.Home >> fromPageEffect model)
+                            Main.Pages.Model.Home_
+                            (Effect.map Main.Pages.Msg.Home_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
                     , layout =
                         Page.layout pageModel page
-                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Home >> Page))
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Home_ >> Page))
                             |> Maybe.map (initLayout model)
                     }
                 )
@@ -1294,14 +1294,14 @@ updateFromPage msg model =
                         (Page.update (Pages.Account.SourceRepos.page user model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
                 )
 
-        ( Main.Pages.Msg.Home pageMsg, Main.Pages.Model.Home pageModel ) ->
+        ( Main.Pages.Msg.Home_ pageMsg, Main.Pages.Model.Home_ pageModel ) ->
             runWhenAuthenticated
                 model
                 (\user ->
                     Tuple.mapBoth
-                        Main.Pages.Model.Home
-                        (Effect.map Main.Pages.Msg.Home >> fromPageEffect model)
-                        (Page.update (Pages.Home.page user model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
+                        Main.Pages.Model.Home_
+                        (Effect.map Main.Pages.Msg.Home_ >> fromPageEffect model)
+                        (Page.update (Pages.Home_.page user model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
                 )
 
         ( Main.Pages.Msg.Org_ pageMsg, Main.Pages.Model.Org_ params pageModel ) ->
@@ -1639,11 +1639,11 @@ toLayoutFromPage model =
                 |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.Account_SourceRepos >> Page))
 
-        Main.Pages.Model.Home pageModel ->
+        Main.Pages.Model.Home_ pageModel ->
             Route.fromUrl () model.url
-                |> toAuthProtectedPage model Pages.Home.page
+                |> toAuthProtectedPage model Pages.Home_.page
                 |> Maybe.andThen (Page.layout pageModel)
-                |> Maybe.map (Layouts.map (Main.Pages.Msg.Home >> Page))
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.Home_ >> Page))
 
         Main.Pages.Model.Org_ params pageModel ->
             Route.fromUrl params model.url
@@ -1845,7 +1845,7 @@ subscriptions model =
                 Main.Pages.Model.Account_SourceRepos pageModel ->
                     Sub.none
 
-                Main.Pages.Model.Home pageModel ->
+                Main.Pages.Model.Home_ pageModel ->
                     Sub.none
 
                 Main.Pages.Model.Org_ params pageModel ->
@@ -2259,11 +2259,11 @@ viewPage model =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.Home pageModel ->
+        Main.Pages.Model.Home_ pageModel ->
             Auth.Action.view
                 (\user ->
-                    Page.view (Pages.Home.page user model.shared (Route.fromUrl () model.url)) pageModel
-                        |> View.map Main.Pages.Msg.Home
+                    Page.view (Pages.Home_.page user model.shared (Route.fromUrl () model.url)) pageModel
+                        |> View.map Main.Pages.Msg.Home_
                         |> View.map Page
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -2570,11 +2570,11 @@ toPageUrlHookCmd model routes =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.Home pageModel ->
+        Main.Pages.Model.Home_ pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Home.page user model.shared (Route.fromUrl () model.url))
-                        |> List.map Main.Pages.Msg.Home
+                    Page.toUrlMessages routes (Pages.Home_.page user model.shared (Route.fromUrl () model.url))
+                        |> List.map Main.Pages.Msg.Home_
                         |> List.map Page
                         |> toCommands
                 )
@@ -2959,7 +2959,7 @@ isAuthProtected routePath =
         Route.Path.Account_SourceRepos ->
             True
 
-        Route.Path.Home ->
+        Route.Path.Home_ ->
             True
 
         Route.Path.Org_ _ ->

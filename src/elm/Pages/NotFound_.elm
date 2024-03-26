@@ -89,7 +89,7 @@ view : Shared.Model -> Route () -> Model -> View Msg
 view shared route model =
     let
         crumbs =
-            [ ( "Overview", Just Route.Path.Home ), ( "Not Found", Nothing ) ]
+            [ ( "Overview", Just Route.Path.Home_ ), ( "Not Found", Nothing ) ]
     in
     { title = "Not Found"
     , body =

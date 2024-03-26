@@ -195,7 +195,7 @@ view : Shared.Model -> Route { engine : String, org : String, team : String } ->
 view shared route model =
     let
         crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
             , ( route.params.team, Nothing )
             , ( "Secrets", Nothing )

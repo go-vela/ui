@@ -343,7 +343,7 @@ view : Shared.Model -> Route { engine : String, org : String, name : String } ->
 view shared route model =
     let
         crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
             , ( "Org Secrets", Just <| Route.Path.Dash_Secrets_Engine__Org_Org_ { org = route.params.org, engine = route.params.engine } )
             , ( "Edit", Nothing )

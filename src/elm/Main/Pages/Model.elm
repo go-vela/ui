@@ -17,10 +17,15 @@ import Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Name_
 import Pages.Dash.Secrets.Engine_.Shared.Org_.Team_
 import Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Add
 import Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_
-import Pages.Home
+import Pages.Home_
+import Pages.NotFound_
 import Pages.Org_
 import Pages.Org_.Builds
 import Pages.Org_.Repo_
+import Pages.Org_.Repo_.Build_
+import Pages.Org_.Repo_.Build_.Graph
+import Pages.Org_.Repo_.Build_.Pipeline
+import Pages.Org_.Repo_.Build_.Services
 import Pages.Org_.Repo_.Deployments
 import Pages.Org_.Repo_.Deployments.Add
 import Pages.Org_.Repo_.Hooks
@@ -28,16 +33,12 @@ import Pages.Org_.Repo_.Schedules
 import Pages.Org_.Repo_.Schedules.Add
 import Pages.Org_.Repo_.Schedules.Name_
 import Pages.Org_.Repo_.Settings
-import Pages.Org_.Repo_.Build_
-import Pages.Org_.Repo_.Build_.Graph
-import Pages.Org_.Repo_.Build_.Pipeline
-import Pages.Org_.Repo_.Build_.Services
-import Pages.NotFound_
 import View exposing (View)
 
 
 type Model
-    = Account_Login Pages.Account.Login.Model
+    = Home_ Pages.Home_.Model
+    | Account_Login Pages.Account.Login.Model
     | Account_Settings Pages.Account.Settings.Model
     | Account_SourceRepos Pages.Account.SourceRepos.Model
     | Dash_Secrets_Engine__Org_Org_ { engine : String, org : String } Pages.Dash.Secrets.Engine_.Org.Org_.Model
@@ -49,7 +50,6 @@ type Model
     | Dash_Secrets_Engine__Shared_Org__Team_ { engine : String, org : String, team : String } Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Model
     | Dash_Secrets_Engine__Shared_Org__Team__Add { engine : String, org : String, team : String } Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Add.Model
     | Dash_Secrets_Engine__Shared_Org__Team__Name_ { engine : String, org : String, team : String, name : String } Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_.Model
-    | Home Pages.Home.Model
     | Org_ { org : String } Pages.Org_.Model
     | Org__Builds { org : String } Pages.Org_.Builds.Model
     | Org__Repo_ { org : String, repo : String } Pages.Org_.Repo_.Model

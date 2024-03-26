@@ -136,7 +136,7 @@ view : Shared.Model -> Route () -> Model -> View Msg
 view shared route model =
     let
         crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( "My Settings", Nothing )
             ]
     in

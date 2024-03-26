@@ -17,10 +17,15 @@ import Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Name_
 import Pages.Dash.Secrets.Engine_.Shared.Org_.Team_
 import Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Add
 import Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_
-import Pages.Home
+import Pages.Home_
+import Pages.NotFound_
 import Pages.Org_
 import Pages.Org_.Builds
 import Pages.Org_.Repo_
+import Pages.Org_.Repo_.Build_
+import Pages.Org_.Repo_.Build_.Graph
+import Pages.Org_.Repo_.Build_.Pipeline
+import Pages.Org_.Repo_.Build_.Services
 import Pages.Org_.Repo_.Deployments
 import Pages.Org_.Repo_.Deployments.Add
 import Pages.Org_.Repo_.Hooks
@@ -28,15 +33,11 @@ import Pages.Org_.Repo_.Schedules
 import Pages.Org_.Repo_.Schedules.Add
 import Pages.Org_.Repo_.Schedules.Name_
 import Pages.Org_.Repo_.Settings
-import Pages.Org_.Repo_.Build_
-import Pages.Org_.Repo_.Build_.Graph
-import Pages.Org_.Repo_.Build_.Pipeline
-import Pages.Org_.Repo_.Build_.Services
-import Pages.NotFound_
 
 
 type Msg
-    = Account_Login Pages.Account.Login.Msg
+    = Home_ Pages.Home_.Msg
+    | Account_Login Pages.Account.Login.Msg
     | Account_Settings Pages.Account.Settings.Msg
     | Account_SourceRepos Pages.Account.SourceRepos.Msg
     | Dash_Secrets_Engine__Org_Org_ Pages.Dash.Secrets.Engine_.Org.Org_.Msg
@@ -48,7 +49,6 @@ type Msg
     | Dash_Secrets_Engine__Shared_Org__Team_ Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Msg
     | Dash_Secrets_Engine__Shared_Org__Team__Add Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Add.Msg
     | Dash_Secrets_Engine__Shared_Org__Team__Name_ Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_.Msg
-    | Home Pages.Home.Msg
     | Org_ Pages.Org_.Msg
     | Org__Builds Pages.Org_.Builds.Msg
     | Org__Repo_ Pages.Org_.Repo_.Msg

@@ -55,7 +55,7 @@ view shared props =
     header []
         [ div [ class "identity", id "identity", Util.testAttribute "identity" ]
             [ a
-                [ Route.Path.href Route.Path.Home
+                [ Route.Path.href Route.Path.Home_
                 , class "identity-logo-link"
                 , attribute "aria-label" "Home"
                 ]
