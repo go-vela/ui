@@ -422,21 +422,22 @@ initPageAndLayout model =
 
         Route.Path.Account_Authenticate ->
             let
-                route =
-                    Route.fromUrl () model.url
+                page : Page.Page Pages.Account.Authenticate.Model Pages.Account.Authenticate.Msg
+                page =
+                    Pages.Account.Authenticate.page model.shared (Route.fromUrl () model.url)
 
-                code =
-                    Dict.get "code" route.query
-
-                state =
-                    Dict.get "state" route.query
+                ( pageModel, pageEffect ) =
+                    Page.init page ()
             in
             { page =
-                ( Main.Pages.Model.Redirecting_
-                , Effect.finishAuthentication { code = code, state = state }
-                    |> Effect.toCmd { key = model.key, url = model.url, shared = model.shared, fromSharedMsg = Shared, batch = Batch, toCmd = Task.succeed >> Task.perform identity }
-                )
-            , layout = Nothing
+                Tuple.mapBoth
+                    Main.Pages.Model.Account_Authenticate
+                    (Effect.map Main.Pages.Msg.Account_Authenticate >> fromPageEffect model)
+                    ( pageModel, pageEffect )
+            , layout =
+                Page.layout pageModel page
+                    |> Maybe.map (Layouts.map (Main.Pages.Msg.Account_Authenticate >> Page))
+                    |> Maybe.map (initLayout model)
             }
 
         Route.Path.Account_Login ->
@@ -460,23 +461,23 @@ initPageAndLayout model =
             }
 
         Route.Path.Account_Logout ->
-            -- todo: fix: this is firing twice
-            -- once on initial logout, with 200
-            -- then again on logout response, with 401
+            let
+                page : Page.Page Pages.Account.Logout.Model Pages.Account.Logout.Msg
+                page =
+                    Pages.Account.Logout.page model.shared (Route.fromUrl () model.url)
+
+                ( pageModel, pageEffect ) =
+                    Page.init page ()
+            in
             { page =
-                ( Main.Pages.Model.Redirecting_
-                , Effect.logout
-                    { from = Dict.get "from" (Route.fromUrl () model.url).query }
-                    |> Effect.toCmd
-                        { key = model.key
-                        , url = model.url
-                        , shared = model.shared
-                        , fromSharedMsg = Shared
-                        , batch = Batch
-                        , toCmd = Task.succeed >> Task.perform identity
-                        }
-                )
-            , layout = Nothing
+                Tuple.mapBoth
+                    Main.Pages.Model.Account_Logout
+                    (Effect.map Main.Pages.Msg.Account_Logout >> fromPageEffect model)
+                    ( pageModel, pageEffect )
+            , layout =
+                Page.layout pageModel page
+                    |> Maybe.map (Layouts.map (Main.Pages.Msg.Account_Logout >> Page))
+                    |> Maybe.map (initLayout model)
             }
 
         Route.Path.Account_Settings ->

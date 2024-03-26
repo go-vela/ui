@@ -5,8 +5,8 @@ SPDX-License-Identifier: Apache-2.0
 
 module Pages.Account.Logout exposing (Model, Msg, page)
 
+import Dict
 import Effect exposing (Effect)
-import Html
 import Page exposing (Page)
 import Route exposing (Route)
 import Shared
@@ -16,7 +16,7 @@ import View exposing (View)
 page : Shared.Model -> Route () -> Page Model Msg
 page shared route =
     Page.new
-        { init = init
+        { init = init route
         , update = update
         , subscriptions = subscriptions
         , view = view
@@ -31,10 +31,10 @@ type alias Model =
     {}
 
 
-init : () -> ( Model, Effect Msg )
-init () =
+init : Route () -> () -> ( Model, Effect Msg )
+init route () =
     ( {}
-    , Effect.none
+    , Effect.logout { from = Dict.get "from" route.query }
     )
 
 
