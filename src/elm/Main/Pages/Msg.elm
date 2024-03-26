@@ -8,6 +8,15 @@ module Main.Pages.Msg exposing (Msg(..))
 import Pages.Account.Login
 import Pages.Account.Settings
 import Pages.Account.SourceRepos
+import Pages.Dash.Secrets.Engine_.Org.Org_
+import Pages.Dash.Secrets.Engine_.Org.Org_.Add
+import Pages.Dash.Secrets.Engine_.Org.Org_.Name_
+import Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_
+import Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Add
+import Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Name_
+import Pages.Dash.Secrets.Engine_.Shared.Org_.Team_
+import Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Add
+import Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_
 import Pages.Home
 import Pages.NotFound_
 import Pages.Org_
@@ -24,15 +33,6 @@ import Pages.Org_.Repo_.Schedules
 import Pages.Org_.Repo_.Schedules.Add
 import Pages.Org_.Repo_.Schedules.Name_
 import Pages.Org_.Repo_.Settings
-import Pages.Secrets.Engine_.Org.Org_
-import Pages.Secrets.Engine_.Org.Org_.Add
-import Pages.Secrets.Engine_.Org.Org_.Name_
-import Pages.Secrets.Engine_.Repo.Org_.Repo_
-import Pages.Secrets.Engine_.Repo.Org_.Repo_.Add
-import Pages.Secrets.Engine_.Repo.Org_.Repo_.Name_
-import Pages.Secrets.Engine_.Shared.Org_.Team_
-import Pages.Secrets.Engine_.Shared.Org_.Team_.Add
-import Pages.Secrets.Engine_.Shared.Org_.Team_.Name_
 
 
 type Msg
@@ -54,13 +54,13 @@ type Msg
     | Org_Repo_Build_Services Pages.Org_.Repo_.Build_.Services.Msg
     | Org_Repo_Build_Pipeline Pages.Org_.Repo_.Build_.Pipeline.Msg
     | Org_Repo_Build_Graph Pages.Org_.Repo_.Build_.Graph.Msg
-    | SecretsEngine_OrgOrg_ Pages.Secrets.Engine_.Org.Org_.Msg
-    | SecretsEngine_OrgOrg_Add Pages.Secrets.Engine_.Org.Org_.Add.Msg
-    | SecretsEngine_OrgOrg_Name_ Pages.Secrets.Engine_.Org.Org_.Name_.Msg
-    | SecretsEngine_RepoOrg_Repo_ Pages.Secrets.Engine_.Repo.Org_.Repo_.Msg
-    | SecretsEngine_RepoOrg_Repo_Add Pages.Secrets.Engine_.Repo.Org_.Repo_.Add.Msg
-    | SecretsEngine_RepoOrg_Repo_Name_ Pages.Secrets.Engine_.Repo.Org_.Repo_.Name_.Msg
-    | SecretsEngine_SharedOrg_Team_ Pages.Secrets.Engine_.Shared.Org_.Team_.Msg
-    | SecretsEngine_SharedOrg_Team_Add Pages.Secrets.Engine_.Shared.Org_.Team_.Add.Msg
-    | SecretsEngine_SharedOrg_Team_Name_ Pages.Secrets.Engine_.Shared.Org_.Team_.Name_.Msg
+    | SecretsEngine_OrgOrg_ Pages.Dash.Secrets.Engine_.Org.Org_.Msg
+    | SecretsEngine_OrgOrg_Add Pages.Dash.Secrets.Engine_.Org.Org_.Add.Msg
+    | SecretsEngine_OrgOrg_Name_ Pages.Dash.Secrets.Engine_.Org.Org_.Name_.Msg
+    | SecretsEngine_RepoOrg_Repo_ Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Msg
+    | SecretsEngine_RepoOrg_Repo_Add Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Add.Msg
+    | SecretsEngine_RepoOrg_Repo_Name_ Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Name_.Msg
+    | SecretsEngine_SharedOrg_Team_ Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Msg
+    | SecretsEngine_SharedOrg_Team_Add Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Add.Msg
+    | SecretsEngine_SharedOrg_Team_Name_ Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_.Msg
     | NotFound_ Pages.NotFound_.Msg

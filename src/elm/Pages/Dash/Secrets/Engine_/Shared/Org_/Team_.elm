@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Secrets.Engine_.Shared.Org_.Team_ exposing (Model, Msg, page, view)
+module Pages.Dash.Secrets.Engine_.Shared.Org_.Team_ exposing (Model, Msg, page, view)
 
 import Api.Pagination
 import Auth

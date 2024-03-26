@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Secrets.Engine_.Org.Org_.Add exposing (Model, Msg, page, view)
+module Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Add exposing (Model, Msg, page, view)
 
 import Auth
 import Components.Crumbs
@@ -28,10 +28,10 @@ import Vela exposing (defaultSecretPayload)
 import View exposing (View)
 
 
-page : Auth.User -> Shared.Model -> Route { engine : String, org : String } -> Page Model Msg
+page : Auth.User -> Shared.Model -> Route { engine : String, org : String, team : String } -> Page Model Msg
 page user shared route =
     Page.new
-        { init = init shared
+        { init = init shared route
         , update = update shared route
         , subscriptions = subscriptions
         , view = view shared route
@@ -43,19 +43,19 @@ page user shared route =
 -- LAYOUT
 
 
-toLayout : Auth.User -> Route { engine : String, org : String } -> Model -> Layouts.Layout Msg
+toLayout : Auth.User -> Route { engine : String, org : String, team : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
         { helpCommands =
-            [ { name = "Add Org Secret Help"
+            [ { name = "Add Shared Secret Help"
               , content = "vela add secret -h"
               , docs = Just "secret/add"
               }
-            , { name = "Add Org Secret Example"
+            , { name = "Add Shared Secret Example"
               , content =
-                    "vela add secrets --secret.engine native --secret.type org --org "
+                    "vela add secret --secret.engine native --secret.type shared --org "
                         ++ route.params.org
-                        ++ " --name password --value vela --event push"
+                        ++ " --team octokitties --name foo --value bar --event push"
               , docs = Just "secret/add"
               }
             ]
@@ -71,9 +71,9 @@ type alias Model =
     }
 
 
-init : Shared.Model -> () -> ( Model, Effect Msg )
-init shared () =
-    ( { form = Components.SecretForm.defaultOrgRepoSecretForm }
+init : Shared.Model -> Route { engine : String, org : String, team : String } -> () -> ( Model, Effect Msg )
+init shared route () =
+    ( { form = Components.SecretForm.defaultSharedSecretForm route.params.team }
     , Effect.none
     )
 
@@ -85,6 +85,7 @@ init shared () =
 type Msg
     = -- SECRETS
       AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
+    | TeamOnInput String
     | NameOnInput String
     | ValueOnInput String
     | ImageOnInput String
@@ -96,7 +97,7 @@ type Msg
     | SubmitForm
 
 
-update : Shared.Model -> Route { engine : String, org : String } -> Msg -> Model -> ( Model, Effect Msg )
+update : Shared.Model -> Route { engine : String, org : String, team : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     let
         form =
@@ -107,9 +108,9 @@ update shared route msg model =
         AddSecretResponse response ->
             case response of
                 Ok ( _, secret ) ->
-                    ( { form = Components.SecretForm.defaultOrgRepoSecretForm }
+                    ( { form = Components.SecretForm.defaultSharedSecretForm route.params.team }
                     , Effect.addAlertSuccess
-                        { content = "Added org secret '" ++ secret.name ++ "'."
+                        { content = "Added shared secret '" ++ secret.name ++ "'."
                         , addToastIfUnique = True
                         , link = Nothing
                         }
@@ -122,6 +123,11 @@ update shared route msg model =
                         , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
+
+        TeamOnInput val ->
+            ( { model | form = { form | team = val } }
+            , Effect.none
+            )
 
         NameOnInput val ->
             ( { model | form = { form | name = val } }
@@ -196,10 +202,10 @@ update shared route msg model =
             let
                 payload =
                     { defaultSecretPayload
-                        | type_ = Just Vela.OrgSecret
+                        | type_ = Just Vela.SharedSecret
                         , org = Just route.params.org
-                        , repo = Just "*"
-                        , team = Nothing
+                        , repo = Nothing
+                        , team = Just form.team
                         , name = Util.stringToMaybe form.name
                         , value = Util.stringToMaybe form.value
                         , allowEvents = Just form.allowEvents
@@ -212,12 +218,13 @@ update shared route msg model =
                     Http.jsonBody <| Vela.encodeSecretPayload payload
             in
             ( model
-            , Effect.addOrgSecret
+            , Effect.addSharedSecret
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = AddSecretResponse
                 , engine = route.params.engine
                 , org = route.params.org
+                , team = form.team
                 , body = body
                 }
             )
@@ -236,13 +243,14 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Route { engine : String, org : String } -> Model -> View Msg
+view : Shared.Model -> Route { engine : String, org : String, team : String } -> Model -> View Msg
 view shared route model =
     let
         crumbs =
             [ ( "Overview", Just Route.Path.Home )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( "Org Secrets", Just <| Route.Path.SecretsEngine_OrgOrg_ { org = route.params.org, engine = route.params.engine } )
+            , ( route.params.team, Nothing )
+            , ( "Shared Secrets", Just <| Route.Path.SecretsEngine_SharedOrg_Team_ { engine = route.params.engine, org = route.params.org, team = route.params.team } )
             , ( "Add", Nothing )
             ]
     in
@@ -257,9 +265,21 @@ view shared route model =
         , main_ [ class "content-wrap" ]
             [ div [ class "manage-secret", Util.testAttribute "manage-secret" ]
                 [ div []
-                    [ h2 [] [ text <| String.Extra.toTitleCase "add org secret" ]
+                    [ h2 [] [ text <| String.Extra.toTitleCase "add shared secret" ]
                     , div [ class "secret-form" ]
                         [ Components.Form.viewInput
+                            { title = Just "Team"
+                            , subtitle = Nothing
+                            , id_ = "team"
+                            , val = model.form.team
+                            , placeholder_ = "GitHub Team"
+                            , classList_ = [ ( "secret-team", True ) ]
+                            , rows_ = Nothing
+                            , wrap_ = Nothing
+                            , msg = TeamOnInput
+                            , disabled_ = False
+                            }
+                        , Components.Form.viewInput
                             { title = Just "Name"
                             , subtitle = Nothing
                             , id_ = "name"
