@@ -261,7 +261,7 @@ view shared route model =
                         , class "button-with-icon"
                         , Util.testAttribute "add-org-secret"
                         , Route.Path.href <|
-                            Route.Path.SecretsEngine_OrgOrg_Add
+                            Route.Path.DashSecretsEngine_OrgOrg_Add
                                 { engine = route.params.engine
                                 , org = route.params.org
                                 }
@@ -300,7 +300,7 @@ view shared route model =
                         , class "button-with-icon"
                         , Util.testAttribute "manage-shared-secrets"
                         , Route.Path.href <|
-                            Route.Path.SecretsEngine_SharedOrg_Team_
+                            Route.Path.DashSecretsEngine_SharedOrg_Team_
                                 { engine = route.params.engine
                                 , org = route.params.org
                                 , team = "*"

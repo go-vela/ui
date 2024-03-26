@@ -70,7 +70,7 @@ view shared { toggleFavoriteMsg, org, repo, favorites, filtered } =
                 [ class "button"
                 , class "-outline"
                 , Util.testAttribute "repo-secrets"
-                , Route.Path.href <| Route.Path.SecretsEngine_RepoOrg_Repo_ { org = org, repo = repo, engine = "native" }
+                , Route.Path.href <| Route.Path.DashSecretsEngine_RepoOrg_Repo_ { org = org, repo = repo, engine = "native" }
                 ]
                 [ text "Secrets" ]
             , a

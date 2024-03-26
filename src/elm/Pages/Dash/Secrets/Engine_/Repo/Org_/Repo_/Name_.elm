@@ -198,7 +198,7 @@ update shared route msg model =
                             , link = Nothing
                             }
                         , Effect.pushPath <|
-                            Route.Path.SecretsEngine_RepoOrg_Repo_
+                            Route.Path.DashSecretsEngine_RepoOrg_Repo_
                                 { org = route.params.org
                                 , repo = route.params.repo
                                 , engine = route.params.engine
@@ -354,7 +354,7 @@ view shared route model =
             [ ( "Overview", Just Route.Path.Home )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
             , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
-            , ( "Repo Secrets", Just <| Route.Path.SecretsEngine_RepoOrg_Repo_ { org = route.params.org, repo = route.params.repo, engine = route.params.engine } )
+            , ( "Repo Secrets", Just <| Route.Path.DashSecretsEngine_RepoOrg_Repo_ { org = route.params.org, repo = route.params.repo, engine = route.params.engine } )
             , ( "Edit", Nothing )
             , ( route.params.name, Nothing )
             ]

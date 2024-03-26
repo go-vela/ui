@@ -134,7 +134,7 @@ viewOrgTabs shared props =
               , show = True
               }
             , { name = "Secrets"
-              , toPath = Route.Path.SecretsEngine_OrgOrg_ { org = props.org, engine = "native" }
+              , toPath = Route.Path.DashSecretsEngine_OrgOrg_ { org = props.org, engine = "native" }
               , isAlerting = False
               , show = True
               }
@@ -214,7 +214,7 @@ viewRepoTabs shared props =
               }
             , { name = "Secrets"
               , toPath =
-                    Route.Path.SecretsEngine_RepoOrg_Repo_
+                    Route.Path.DashSecretsEngine_RepoOrg_Repo_
                         { org = props.org
                         , repo = props.repo
                         , engine = "native"

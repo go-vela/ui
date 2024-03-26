@@ -225,7 +225,7 @@ view shared route model =
                             , class "button-with-icon"
                             , Util.testAttribute "add-shared-secret"
                             , Route.Path.href <|
-                                Route.Path.SecretsEngine_SharedOrg_Team_Add { engine = route.params.engine, org = route.params.org, team = route.params.team }
+                                Route.Path.DashSecretsEngine_SharedOrg_Team_Add { engine = route.params.engine, org = route.params.org, team = route.params.team }
                             ]
                             [ text "Add Shared Secret"
                             , FeatherIcons.plus

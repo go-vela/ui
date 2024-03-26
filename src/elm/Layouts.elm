@@ -25,10 +25,10 @@ map fn layout =
             Default data
 
         Default_Build data ->
-            Default_Build (Layouts.Default.Build.map fn  data)
+            Default_Build (Layouts.Default.Build.map fn data)
 
         Default_Org data ->
-            Default_Org (Layouts.Default.Org.map fn  data)
+            Default_Org (Layouts.Default.Org.map fn data)
 
         Default_Repo data ->
-            Default_Repo (Layouts.Default.Repo.map fn  data)
+            Default_Repo (Layouts.Default.Repo.map fn data)

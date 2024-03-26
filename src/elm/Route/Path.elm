@@ -34,15 +34,15 @@ type Path
     | Org_Repo_Build_Services { org : String, repo : String, build : String }
     | Org_Repo_Build_Pipeline { org : String, repo : String, build : String }
     | Org_Repo_Build_Graph { org : String, repo : String, build : String }
-    | SecretsEngine_OrgOrg_ { engine : String, org : String }
-    | SecretsEngine_OrgOrg_Add { engine : String, org : String }
-    | SecretsEngine_OrgOrg_Name_ { engine : String, org : String, name : String }
-    | SecretsEngine_RepoOrg_Repo_ { engine : String, org : String, repo : String }
-    | SecretsEngine_RepoOrg_Repo_Add { engine : String, org : String, repo : String }
-    | SecretsEngine_RepoOrg_Repo_Name_ { engine : String, org : String, repo : String, name : String }
-    | SecretsEngine_SharedOrg_Team_ { engine : String, org : String, team : String }
-    | SecretsEngine_SharedOrg_Team_Add { engine : String, org : String, team : String }
-    | SecretsEngine_SharedOrg_Team_Name_ { engine : String, org : String, team : String, name : String }
+    | DashSecretsEngine_OrgOrg_ { engine : String, org : String }
+    | DashSecretsEngine_OrgOrg_Add { engine : String, org : String }
+    | DashSecretsEngine_OrgOrg_Name_ { engine : String, org : String, name : String }
+    | DashSecretsEngine_RepoOrg_Repo_ { engine : String, org : String, repo : String }
+    | DashSecretsEngine_RepoOrg_Repo_Add { engine : String, org : String, repo : String }
+    | DashSecretsEngine_RepoOrg_Repo_Name_ { engine : String, org : String, repo : String, name : String }
+    | DashSecretsEngine_SharedOrg_Team_ { engine : String, org : String, team : String }
+    | DashSecretsEngine_SharedOrg_Team_Add { engine : String, org : String, team : String }
+    | DashSecretsEngine_SharedOrg_Team_Name_ { engine : String, org : String, team : String, name : String }
     | NotFound_
 
 
@@ -196,21 +196,21 @@ fromString urlPath =
                 |> Just
 
         "-" :: "secrets" :: engine :: "org" :: org :: [] ->
-            SecretsEngine_OrgOrg_
+            DashSecretsEngine_OrgOrg_
                 { org = org
                 , engine = engine
                 }
                 |> Just
 
         "-" :: "secrets" :: engine :: "org" :: org :: "add" :: [] ->
-            SecretsEngine_OrgOrg_Add
+            DashSecretsEngine_OrgOrg_Add
                 { org = org
                 , engine = engine
                 }
                 |> Just
 
         "-" :: "secrets" :: engine :: "org" :: org :: name :: [] ->
-            SecretsEngine_OrgOrg_Name_
+            DashSecretsEngine_OrgOrg_Name_
                 { org = org
                 , name = name
                 , engine = engine
@@ -218,7 +218,7 @@ fromString urlPath =
                 |> Just
 
         "-" :: "secrets" :: engine :: "repo" :: org :: repo :: [] ->
-            SecretsEngine_RepoOrg_Repo_
+            DashSecretsEngine_RepoOrg_Repo_
                 { org = org
                 , repo = repo
                 , engine = engine
@@ -226,7 +226,7 @@ fromString urlPath =
                 |> Just
 
         "-" :: "secrets" :: engine :: "repo" :: org :: repo :: "add" :: [] ->
-            SecretsEngine_RepoOrg_Repo_Add
+            DashSecretsEngine_RepoOrg_Repo_Add
                 { org = org
                 , repo = repo
                 , engine = engine
@@ -234,7 +234,7 @@ fromString urlPath =
                 |> Just
 
         "-" :: "secrets" :: engine :: "repo" :: org :: repo :: name :: [] ->
-            SecretsEngine_RepoOrg_Repo_Name_
+            DashSecretsEngine_RepoOrg_Repo_Name_
                 { org = org
                 , repo = repo
                 , name = name
@@ -243,7 +243,7 @@ fromString urlPath =
                 |> Just
 
         "-" :: "secrets" :: engine :: "shared" :: org :: team :: [] ->
-            SecretsEngine_SharedOrg_Team_
+            DashSecretsEngine_SharedOrg_Team_
                 { org = org
                 , team = team
                 , engine = engine
@@ -251,7 +251,7 @@ fromString urlPath =
                 |> Just
 
         "-" :: "secrets" :: engine :: "shared" :: org :: team :: "add" :: [] ->
-            SecretsEngine_SharedOrg_Team_Add
+            DashSecretsEngine_SharedOrg_Team_Add
                 { org = org
                 , team = team
                 , engine = engine
@@ -259,7 +259,7 @@ fromString urlPath =
                 |> Just
 
         "-" :: "secrets" :: engine :: "shared" :: org :: team :: name :: [] ->
-            SecretsEngine_SharedOrg_Team_Name_
+            DashSecretsEngine_SharedOrg_Team_Name_
                 { org = org
                 , team = team
                 , name = name
@@ -348,31 +348,31 @@ toString path =
                 Org_Repo_Build_Graph params ->
                     [ params.org, params.repo, params.build, "graph" ]
 
-                SecretsEngine_OrgOrg_ params ->
+                DashSecretsEngine_OrgOrg_ params ->
                     [ "-", "secrets", params.engine, "org", params.org ]
 
-                SecretsEngine_OrgOrg_Add params ->
+                DashSecretsEngine_OrgOrg_Add params ->
                     [ "-", "secrets", params.engine, "org", params.org, "add" ]
 
-                SecretsEngine_OrgOrg_Name_ params ->
+                DashSecretsEngine_OrgOrg_Name_ params ->
                     [ "-", "secrets", params.engine, "org", params.org, params.name ]
 
-                SecretsEngine_RepoOrg_Repo_ params ->
+                DashSecretsEngine_RepoOrg_Repo_ params ->
                     [ "-", "secrets", params.engine, "repo", params.org, params.repo ]
 
-                SecretsEngine_RepoOrg_Repo_Add params ->
+                DashSecretsEngine_RepoOrg_Repo_Add params ->
                     [ "-", "secrets", params.engine, "repo", params.org, params.repo, "add" ]
 
-                SecretsEngine_RepoOrg_Repo_Name_ params ->
+                DashSecretsEngine_RepoOrg_Repo_Name_ params ->
                     [ "-", "secrets", params.engine, "repo", params.org, params.repo, params.name ]
 
-                SecretsEngine_SharedOrg_Team_ params ->
+                DashSecretsEngine_SharedOrg_Team_ params ->
                     [ "-", "secrets", params.engine, "shared", params.org, params.team ]
 
-                SecretsEngine_SharedOrg_Team_Add params ->
+                DashSecretsEngine_SharedOrg_Team_Add params ->
                     [ "-", "secrets", params.engine, "shared", params.org, params.team, "add" ]
 
-                SecretsEngine_SharedOrg_Team_Name_ params ->
+                DashSecretsEngine_SharedOrg_Team_Name_ params ->
                     [ "-", "secrets", params.engine, "shared", params.org, params.team, params.name ]
 
                 NotFound_ ->

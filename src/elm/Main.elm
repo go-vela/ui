@@ -248,7 +248,7 @@ initLayout model layout =
                 ( nestedLayoutModel, nestedLayoutEffect ) =
                     Layout.init defaultNestedLayout ()
             in
-            ( Main.Layouts.Model.Default_Build { default = existing.default, repo = nestedLayoutModel }
+            ( Main.Layouts.Model.Default_Build { default = existing.default, build = nestedLayoutModel }
             , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Build nestedLayoutEffect)
             )
 
@@ -275,7 +275,7 @@ initLayout model layout =
                 ( defaultLayoutModel, defaultLayoutEffect ) =
                     Layout.init defaultLayout ()
             in
-            ( Main.Layouts.Model.Default_Build { default = defaultLayoutModel, repo = nestedLayoutModel }
+            ( Main.Layouts.Model.Default_Build { default = defaultLayoutModel, build = nestedLayoutModel }
             , Cmd.batch
                 [ fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Build nestedLayoutEffect)
                 , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default defaultLayoutEffect)
@@ -810,7 +810,7 @@ initPageAndLayout model =
                     }
                 )
 
-        Route.Path.SecretsEngine_OrgOrg_ params ->
+        Route.Path.DashSecretsEngine_OrgOrg_ params ->
             runWhenAuthenticatedWithLayout
                 model
                 (\user ->
@@ -824,17 +824,17 @@ initPageAndLayout model =
                     in
                     { page =
                         Tuple.mapBoth
-                            (Main.Pages.Model.SecretsEngine_OrgOrg_ params)
-                            (Effect.map Main.Pages.Msg.SecretsEngine_OrgOrg_ >> fromPageEffect model)
+                            (Main.Pages.Model.DashSecretsEngine_OrgOrg_ params)
+                            (Effect.map Main.Pages.Msg.DashSecretsEngine_OrgOrg_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
                     , layout =
                         Page.layout pageModel page
-                            |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_OrgOrg_ >> Page))
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.DashSecretsEngine_OrgOrg_ >> Page))
                             |> Maybe.map (initLayout model)
                     }
                 )
 
-        Route.Path.SecretsEngine_OrgOrg_Add params ->
+        Route.Path.DashSecretsEngine_OrgOrg_Add params ->
             runWhenAuthenticatedWithLayout
                 model
                 (\user ->
@@ -848,17 +848,17 @@ initPageAndLayout model =
                     in
                     { page =
                         Tuple.mapBoth
-                            (Main.Pages.Model.SecretsEngine_OrgOrg_Add params)
-                            (Effect.map Main.Pages.Msg.SecretsEngine_OrgOrg_Add >> fromPageEffect model)
+                            (Main.Pages.Model.DashSecretsEngine_OrgOrg_Add params)
+                            (Effect.map Main.Pages.Msg.DashSecretsEngine_OrgOrg_Add >> fromPageEffect model)
                             ( pageModel, pageEffect )
                     , layout =
                         Page.layout pageModel page
-                            |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_OrgOrg_Add >> Page))
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.DashSecretsEngine_OrgOrg_Add >> Page))
                             |> Maybe.map (initLayout model)
                     }
                 )
 
-        Route.Path.SecretsEngine_OrgOrg_Name_ params ->
+        Route.Path.DashSecretsEngine_OrgOrg_Name_ params ->
             runWhenAuthenticatedWithLayout
                 model
                 (\user ->
@@ -872,17 +872,17 @@ initPageAndLayout model =
                     in
                     { page =
                         Tuple.mapBoth
-                            (Main.Pages.Model.SecretsEngine_OrgOrg_Name_ params)
-                            (Effect.map Main.Pages.Msg.SecretsEngine_OrgOrg_Name_ >> fromPageEffect model)
+                            (Main.Pages.Model.DashSecretsEngine_OrgOrg_Name_ params)
+                            (Effect.map Main.Pages.Msg.DashSecretsEngine_OrgOrg_Name_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
                     , layout =
                         Page.layout pageModel page
-                            |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_OrgOrg_Name_ >> Page))
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.DashSecretsEngine_OrgOrg_Name_ >> Page))
                             |> Maybe.map (initLayout model)
                     }
                 )
 
-        Route.Path.SecretsEngine_RepoOrg_Repo_ params ->
+        Route.Path.DashSecretsEngine_RepoOrg_Repo_ params ->
             runWhenAuthenticatedWithLayout
                 model
                 (\user ->
@@ -896,17 +896,17 @@ initPageAndLayout model =
                     in
                     { page =
                         Tuple.mapBoth
-                            (Main.Pages.Model.SecretsEngine_RepoOrg_Repo_ params)
-                            (Effect.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_ >> fromPageEffect model)
+                            (Main.Pages.Model.DashSecretsEngine_RepoOrg_Repo_ params)
+                            (Effect.map Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
                     , layout =
                         Page.layout pageModel page
-                            |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_ >> Page))
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_ >> Page))
                             |> Maybe.map (initLayout model)
                     }
                 )
 
-        Route.Path.SecretsEngine_RepoOrg_Repo_Add params ->
+        Route.Path.DashSecretsEngine_RepoOrg_Repo_Add params ->
             runWhenAuthenticatedWithLayout
                 model
                 (\user ->
@@ -920,17 +920,17 @@ initPageAndLayout model =
                     in
                     { page =
                         Tuple.mapBoth
-                            (Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Add params)
-                            (Effect.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Add >> fromPageEffect model)
+                            (Main.Pages.Model.DashSecretsEngine_RepoOrg_Repo_Add params)
+                            (Effect.map Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_Add >> fromPageEffect model)
                             ( pageModel, pageEffect )
                     , layout =
                         Page.layout pageModel page
-                            |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Add >> Page))
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_Add >> Page))
                             |> Maybe.map (initLayout model)
                     }
                 )
 
-        Route.Path.SecretsEngine_RepoOrg_Repo_Name_ params ->
+        Route.Path.DashSecretsEngine_RepoOrg_Repo_Name_ params ->
             runWhenAuthenticatedWithLayout
                 model
                 (\user ->
@@ -944,17 +944,17 @@ initPageAndLayout model =
                     in
                     { page =
                         Tuple.mapBoth
-                            (Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Name_ params)
-                            (Effect.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Name_ >> fromPageEffect model)
+                            (Main.Pages.Model.DashSecretsEngine_RepoOrg_Repo_Name_ params)
+                            (Effect.map Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_Name_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
                     , layout =
                         Page.layout pageModel page
-                            |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Name_ >> Page))
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_Name_ >> Page))
                             |> Maybe.map (initLayout model)
                     }
                 )
 
-        Route.Path.SecretsEngine_SharedOrg_Team_ params ->
+        Route.Path.DashSecretsEngine_SharedOrg_Team_ params ->
             runWhenAuthenticatedWithLayout
                 model
                 (\user ->
@@ -968,17 +968,17 @@ initPageAndLayout model =
                     in
                     { page =
                         Tuple.mapBoth
-                            (Main.Pages.Model.SecretsEngine_SharedOrg_Team_ params)
-                            (Effect.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_ >> fromPageEffect model)
+                            (Main.Pages.Model.DashSecretsEngine_SharedOrg_Team_ params)
+                            (Effect.map Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
                     , layout =
                         Page.layout pageModel page
-                            |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_SharedOrg_Team_ >> Page))
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_ >> Page))
                             |> Maybe.map (initLayout model)
                     }
                 )
 
-        Route.Path.SecretsEngine_SharedOrg_Team_Add params ->
+        Route.Path.DashSecretsEngine_SharedOrg_Team_Add params ->
             runWhenAuthenticatedWithLayout
                 model
                 (\user ->
@@ -992,17 +992,17 @@ initPageAndLayout model =
                     in
                     { page =
                         Tuple.mapBoth
-                            (Main.Pages.Model.SecretsEngine_SharedOrg_Team_Add params)
-                            (Effect.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Add >> fromPageEffect model)
+                            (Main.Pages.Model.DashSecretsEngine_SharedOrg_Team_Add params)
+                            (Effect.map Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_Add >> fromPageEffect model)
                             ( pageModel, pageEffect )
                     , layout =
                         Page.layout pageModel page
-                            |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Add >> Page))
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_Add >> Page))
                             |> Maybe.map (initLayout model)
                     }
                 )
 
-        Route.Path.SecretsEngine_SharedOrg_Team_Name_ params ->
+        Route.Path.DashSecretsEngine_SharedOrg_Team_Name_ params ->
             runWhenAuthenticatedWithLayout
                 model
                 (\user ->
@@ -1016,12 +1016,12 @@ initPageAndLayout model =
                     in
                     { page =
                         Tuple.mapBoth
-                            (Main.Pages.Model.SecretsEngine_SharedOrg_Team_Name_ params)
-                            (Effect.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Name_ >> fromPageEffect model)
+                            (Main.Pages.Model.DashSecretsEngine_SharedOrg_Team_Name_ params)
+                            (Effect.map Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_Name_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
                     , layout =
                         Page.layout pageModel page
-                            |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Name_ >> Page))
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_Name_ >> Page))
                             |> Maybe.map (initLayout model)
                     }
                 )
@@ -1444,93 +1444,93 @@ updateFromPage msg model =
                         (Page.update (Pages.Org_.Repo_.Build_.Graph.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
-        ( Main.Pages.Msg.SecretsEngine_OrgOrg_ pageMsg, Main.Pages.Model.SecretsEngine_OrgOrg_ params pageModel ) ->
+        ( Main.Pages.Msg.DashSecretsEngine_OrgOrg_ pageMsg, Main.Pages.Model.DashSecretsEngine_OrgOrg_ params pageModel ) ->
             runWhenAuthenticated
                 model
                 (\user ->
                     Tuple.mapBoth
-                        (Main.Pages.Model.SecretsEngine_OrgOrg_ params)
-                        (Effect.map Main.Pages.Msg.SecretsEngine_OrgOrg_ >> fromPageEffect model)
+                        (Main.Pages.Model.DashSecretsEngine_OrgOrg_ params)
+                        (Effect.map Main.Pages.Msg.DashSecretsEngine_OrgOrg_ >> fromPageEffect model)
                         (Page.update (Pages.Dash.Secrets.Engine_.Org.Org_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
-        ( Main.Pages.Msg.SecretsEngine_OrgOrg_Add pageMsg, Main.Pages.Model.SecretsEngine_OrgOrg_Add params pageModel ) ->
+        ( Main.Pages.Msg.DashSecretsEngine_OrgOrg_Add pageMsg, Main.Pages.Model.DashSecretsEngine_OrgOrg_Add params pageModel ) ->
             runWhenAuthenticated
                 model
                 (\user ->
                     Tuple.mapBoth
-                        (Main.Pages.Model.SecretsEngine_OrgOrg_Add params)
-                        (Effect.map Main.Pages.Msg.SecretsEngine_OrgOrg_Add >> fromPageEffect model)
+                        (Main.Pages.Model.DashSecretsEngine_OrgOrg_Add params)
+                        (Effect.map Main.Pages.Msg.DashSecretsEngine_OrgOrg_Add >> fromPageEffect model)
                         (Page.update (Pages.Dash.Secrets.Engine_.Org.Org_.Add.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
-        ( Main.Pages.Msg.SecretsEngine_OrgOrg_Name_ pageMsg, Main.Pages.Model.SecretsEngine_OrgOrg_Name_ params pageModel ) ->
+        ( Main.Pages.Msg.DashSecretsEngine_OrgOrg_Name_ pageMsg, Main.Pages.Model.DashSecretsEngine_OrgOrg_Name_ params pageModel ) ->
             runWhenAuthenticated
                 model
                 (\user ->
                     Tuple.mapBoth
-                        (Main.Pages.Model.SecretsEngine_OrgOrg_Name_ params)
-                        (Effect.map Main.Pages.Msg.SecretsEngine_OrgOrg_Name_ >> fromPageEffect model)
+                        (Main.Pages.Model.DashSecretsEngine_OrgOrg_Name_ params)
+                        (Effect.map Main.Pages.Msg.DashSecretsEngine_OrgOrg_Name_ >> fromPageEffect model)
                         (Page.update (Pages.Dash.Secrets.Engine_.Org.Org_.Name_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
-        ( Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_ pageMsg, Main.Pages.Model.SecretsEngine_RepoOrg_Repo_ params pageModel ) ->
+        ( Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_ pageMsg, Main.Pages.Model.DashSecretsEngine_RepoOrg_Repo_ params pageModel ) ->
             runWhenAuthenticated
                 model
                 (\user ->
                     Tuple.mapBoth
-                        (Main.Pages.Model.SecretsEngine_RepoOrg_Repo_ params)
-                        (Effect.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_ >> fromPageEffect model)
+                        (Main.Pages.Model.DashSecretsEngine_RepoOrg_Repo_ params)
+                        (Effect.map Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_ >> fromPageEffect model)
                         (Page.update (Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
-        ( Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Add pageMsg, Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Add params pageModel ) ->
+        ( Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_Add pageMsg, Main.Pages.Model.DashSecretsEngine_RepoOrg_Repo_Add params pageModel ) ->
             runWhenAuthenticated
                 model
                 (\user ->
                     Tuple.mapBoth
-                        (Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Add params)
-                        (Effect.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Add >> fromPageEffect model)
+                        (Main.Pages.Model.DashSecretsEngine_RepoOrg_Repo_Add params)
+                        (Effect.map Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_Add >> fromPageEffect model)
                         (Page.update (Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Add.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
-        ( Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Name_ pageMsg, Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Name_ params pageModel ) ->
+        ( Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_Name_ pageMsg, Main.Pages.Model.DashSecretsEngine_RepoOrg_Repo_Name_ params pageModel ) ->
             runWhenAuthenticated
                 model
                 (\user ->
                     Tuple.mapBoth
-                        (Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Name_ params)
-                        (Effect.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Name_ >> fromPageEffect model)
+                        (Main.Pages.Model.DashSecretsEngine_RepoOrg_Repo_Name_ params)
+                        (Effect.map Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_Name_ >> fromPageEffect model)
                         (Page.update (Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Name_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
-        ( Main.Pages.Msg.SecretsEngine_SharedOrg_Team_ pageMsg, Main.Pages.Model.SecretsEngine_SharedOrg_Team_ params pageModel ) ->
+        ( Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_ pageMsg, Main.Pages.Model.DashSecretsEngine_SharedOrg_Team_ params pageModel ) ->
             runWhenAuthenticated
                 model
                 (\user ->
                     Tuple.mapBoth
-                        (Main.Pages.Model.SecretsEngine_SharedOrg_Team_ params)
-                        (Effect.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_ >> fromPageEffect model)
+                        (Main.Pages.Model.DashSecretsEngine_SharedOrg_Team_ params)
+                        (Effect.map Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_ >> fromPageEffect model)
                         (Page.update (Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
-        ( Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Add pageMsg, Main.Pages.Model.SecretsEngine_SharedOrg_Team_Add params pageModel ) ->
+        ( Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_Add pageMsg, Main.Pages.Model.DashSecretsEngine_SharedOrg_Team_Add params pageModel ) ->
             runWhenAuthenticated
                 model
                 (\user ->
                     Tuple.mapBoth
-                        (Main.Pages.Model.SecretsEngine_SharedOrg_Team_Add params)
-                        (Effect.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Add >> fromPageEffect model)
+                        (Main.Pages.Model.DashSecretsEngine_SharedOrg_Team_Add params)
+                        (Effect.map Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_Add >> fromPageEffect model)
                         (Page.update (Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Add.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
-        ( Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Name_ pageMsg, Main.Pages.Model.SecretsEngine_SharedOrg_Team_Name_ params pageModel ) ->
+        ( Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_Name_ pageMsg, Main.Pages.Model.DashSecretsEngine_SharedOrg_Team_Name_ params pageModel ) ->
             runWhenAuthenticated
                 model
                 (\user ->
                     Tuple.mapBoth
-                        (Main.Pages.Model.SecretsEngine_SharedOrg_Team_Name_ params)
-                        (Effect.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Name_ >> fromPageEffect model)
+                        (Main.Pages.Model.DashSecretsEngine_SharedOrg_Team_Name_ params)
+                        (Effect.map Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_Name_ >> fromPageEffect model)
                         (Page.update (Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
@@ -1608,9 +1608,9 @@ updateFromLayout msg model =
 
         ( Just (Layouts.Default_Build props), Just (Main.Layouts.Model.Default_Build layoutModel), Main.Layouts.Msg.Default_Build layoutMsg ) ->
             Tuple.mapBoth
-                (\newModel -> Just (Main.Layouts.Model.Default_Build { layoutModel | repo = newModel }))
+                (\newModel -> Just (Main.Layouts.Model.Default_Build { layoutModel | build = newModel }))
                 (Effect.map Main.Layouts.Msg.Default_Build >> fromLayoutEffect model)
-                (Layout.update (Layouts.Default.Build.layout props model.shared route) layoutMsg layoutModel.repo)
+                (Layout.update (Layouts.Default.Build.layout props model.shared route) layoutMsg layoutModel.build)
 
         _ ->
             ( model.layout
@@ -1729,59 +1729,59 @@ toLayoutFromPage model =
                 |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_Build_Graph >> Page))
 
-        Main.Pages.Model.SecretsEngine_OrgOrg_ params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_OrgOrg_ params pageModel ->
             Route.fromUrl params model.url
                 |> toAuthProtectedPage model Pages.Dash.Secrets.Engine_.Org.Org_.page
                 |> Maybe.andThen (Page.layout pageModel)
-                |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_OrgOrg_ >> Page))
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.DashSecretsEngine_OrgOrg_ >> Page))
 
-        Main.Pages.Model.SecretsEngine_OrgOrg_Add params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_OrgOrg_Add params pageModel ->
             Route.fromUrl params model.url
                 |> toAuthProtectedPage model Pages.Dash.Secrets.Engine_.Org.Org_.Add.page
                 |> Maybe.andThen (Page.layout pageModel)
-                |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_OrgOrg_Add >> Page))
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.DashSecretsEngine_OrgOrg_Add >> Page))
 
-        Main.Pages.Model.SecretsEngine_OrgOrg_Name_ params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_OrgOrg_Name_ params pageModel ->
             Route.fromUrl params model.url
                 |> toAuthProtectedPage model Pages.Dash.Secrets.Engine_.Org.Org_.Name_.page
                 |> Maybe.andThen (Page.layout pageModel)
-                |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_OrgOrg_Name_ >> Page))
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.DashSecretsEngine_OrgOrg_Name_ >> Page))
 
-        Main.Pages.Model.SecretsEngine_RepoOrg_Repo_ params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_RepoOrg_Repo_ params pageModel ->
             Route.fromUrl params model.url
                 |> toAuthProtectedPage model Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.page
                 |> Maybe.andThen (Page.layout pageModel)
-                |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_ >> Page))
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_ >> Page))
 
-        Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Add params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_RepoOrg_Repo_Add params pageModel ->
             Route.fromUrl params model.url
                 |> toAuthProtectedPage model Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Add.page
                 |> Maybe.andThen (Page.layout pageModel)
-                |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Add >> Page))
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_Add >> Page))
 
-        Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Name_ params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_RepoOrg_Repo_Name_ params pageModel ->
             Route.fromUrl params model.url
                 |> toAuthProtectedPage model Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Name_.page
                 |> Maybe.andThen (Page.layout pageModel)
-                |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Name_ >> Page))
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_Name_ >> Page))
 
-        Main.Pages.Model.SecretsEngine_SharedOrg_Team_ params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_SharedOrg_Team_ params pageModel ->
             Route.fromUrl params model.url
                 |> toAuthProtectedPage model Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.page
                 |> Maybe.andThen (Page.layout pageModel)
-                |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_SharedOrg_Team_ >> Page))
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_ >> Page))
 
-        Main.Pages.Model.SecretsEngine_SharedOrg_Team_Add params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_SharedOrg_Team_Add params pageModel ->
             Route.fromUrl params model.url
                 |> toAuthProtectedPage model Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Add.page
                 |> Maybe.andThen (Page.layout pageModel)
-                |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Add >> Page))
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_Add >> Page))
 
-        Main.Pages.Model.SecretsEngine_SharedOrg_Team_Name_ params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_SharedOrg_Team_Name_ params pageModel ->
             Route.fromUrl params model.url
                 |> toAuthProtectedPage model Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_.page
                 |> Maybe.andThen (Page.layout pageModel)
-                |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Name_ >> Page))
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_Name_ >> Page))
 
         Main.Pages.Model.NotFound_ pageModel ->
             Route.fromUrl () model.url
@@ -1974,83 +1974,83 @@ subscriptions model =
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-                Main.Pages.Model.SecretsEngine_OrgOrg_ params pageModel ->
+                Main.Pages.Model.DashSecretsEngine_OrgOrg_ params pageModel ->
                     Auth.Action.subscriptions
                         (\user ->
                             Page.subscriptions (Pages.Dash.Secrets.Engine_.Org.Org_.page user model.shared (Route.fromUrl params model.url)) pageModel
-                                |> Sub.map Main.Pages.Msg.SecretsEngine_OrgOrg_
+                                |> Sub.map Main.Pages.Msg.DashSecretsEngine_OrgOrg_
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-                Main.Pages.Model.SecretsEngine_OrgOrg_Add params pageModel ->
+                Main.Pages.Model.DashSecretsEngine_OrgOrg_Add params pageModel ->
                     Auth.Action.subscriptions
                         (\user ->
                             Page.subscriptions (Pages.Dash.Secrets.Engine_.Org.Org_.Add.page user model.shared (Route.fromUrl params model.url)) pageModel
-                                |> Sub.map Main.Pages.Msg.SecretsEngine_OrgOrg_Add
+                                |> Sub.map Main.Pages.Msg.DashSecretsEngine_OrgOrg_Add
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-                Main.Pages.Model.SecretsEngine_OrgOrg_Name_ params pageModel ->
+                Main.Pages.Model.DashSecretsEngine_OrgOrg_Name_ params pageModel ->
                     Auth.Action.subscriptions
                         (\user ->
                             Page.subscriptions (Pages.Dash.Secrets.Engine_.Org.Org_.Name_.page user model.shared (Route.fromUrl params model.url)) pageModel
-                                |> Sub.map Main.Pages.Msg.SecretsEngine_OrgOrg_Name_
+                                |> Sub.map Main.Pages.Msg.DashSecretsEngine_OrgOrg_Name_
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-                Main.Pages.Model.SecretsEngine_RepoOrg_Repo_ params pageModel ->
+                Main.Pages.Model.DashSecretsEngine_RepoOrg_Repo_ params pageModel ->
                     Auth.Action.subscriptions
                         (\user ->
                             Page.subscriptions (Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.page user model.shared (Route.fromUrl params model.url)) pageModel
-                                |> Sub.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_
+                                |> Sub.map Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-                Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Add params pageModel ->
+                Main.Pages.Model.DashSecretsEngine_RepoOrg_Repo_Add params pageModel ->
                     Auth.Action.subscriptions
                         (\user ->
                             Page.subscriptions (Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Add.page user model.shared (Route.fromUrl params model.url)) pageModel
-                                |> Sub.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Add
+                                |> Sub.map Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_Add
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-                Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Name_ params pageModel ->
+                Main.Pages.Model.DashSecretsEngine_RepoOrg_Repo_Name_ params pageModel ->
                     Auth.Action.subscriptions
                         (\user ->
                             Page.subscriptions (Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Name_.page user model.shared (Route.fromUrl params model.url)) pageModel
-                                |> Sub.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Name_
+                                |> Sub.map Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_Name_
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-                Main.Pages.Model.SecretsEngine_SharedOrg_Team_ params pageModel ->
+                Main.Pages.Model.DashSecretsEngine_SharedOrg_Team_ params pageModel ->
                     Auth.Action.subscriptions
                         (\user ->
                             Page.subscriptions (Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.page user model.shared (Route.fromUrl params model.url)) pageModel
-                                |> Sub.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_
+                                |> Sub.map Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-                Main.Pages.Model.SecretsEngine_SharedOrg_Team_Add params pageModel ->
+                Main.Pages.Model.DashSecretsEngine_SharedOrg_Team_Add params pageModel ->
                     Auth.Action.subscriptions
                         (\user ->
                             Page.subscriptions (Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Add.page user model.shared (Route.fromUrl params model.url)) pageModel
-                                |> Sub.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Add
+                                |> Sub.map Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_Add
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-                Main.Pages.Model.SecretsEngine_SharedOrg_Team_Name_ params pageModel ->
+                Main.Pages.Model.DashSecretsEngine_SharedOrg_Team_Name_ params pageModel ->
                     Auth.Action.subscriptions
                         (\user ->
                             Page.subscriptions (Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_.page user model.shared (Route.fromUrl params model.url)) pageModel
-                                |> Sub.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Name_
+                                |> Sub.map Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_Name_
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -2122,7 +2122,7 @@ subscriptions model =
                         [ Layout.subscriptions (Layouts.Default.layout defaultProps model.shared route) layoutModel.default
                             |> Sub.map Main.Layouts.Msg.Default
                             |> Sub.map Layout
-                        , Layout.subscriptions (Layouts.Default.Build.layout props model.shared route) layoutModel.repo
+                        , Layout.subscriptions (Layouts.Default.Build.layout props model.shared route) layoutModel.build
                             |> Sub.map Main.Layouts.Msg.Default_Build
                             |> Sub.map Layout
                         ]
@@ -2223,7 +2223,7 @@ toView model =
                 , content =
                     Layout.view
                         (Layouts.Default.Build.layout props model.shared route)
-                        { model = layoutModel.repo
+                        { model = layoutModel.build
                         , toContentMsg = Main.Layouts.Msg.Default_Build >> Layout
                         , content = viewPage model
                         }
@@ -2394,83 +2394,83 @@ viewPage model =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.SecretsEngine_OrgOrg_ params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_OrgOrg_ params pageModel ->
             Auth.Action.view
                 (\user ->
                     Page.view (Pages.Dash.Secrets.Engine_.Org.Org_.page user model.shared (Route.fromUrl params model.url)) pageModel
-                        |> View.map Main.Pages.Msg.SecretsEngine_OrgOrg_
+                        |> View.map Main.Pages.Msg.DashSecretsEngine_OrgOrg_
                         |> View.map Page
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.SecretsEngine_OrgOrg_Add params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_OrgOrg_Add params pageModel ->
             Auth.Action.view
                 (\user ->
                     Page.view (Pages.Dash.Secrets.Engine_.Org.Org_.Add.page user model.shared (Route.fromUrl params model.url)) pageModel
-                        |> View.map Main.Pages.Msg.SecretsEngine_OrgOrg_Add
+                        |> View.map Main.Pages.Msg.DashSecretsEngine_OrgOrg_Add
                         |> View.map Page
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.SecretsEngine_OrgOrg_Name_ params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_OrgOrg_Name_ params pageModel ->
             Auth.Action.view
                 (\user ->
                     Page.view (Pages.Dash.Secrets.Engine_.Org.Org_.Name_.page user model.shared (Route.fromUrl params model.url)) pageModel
-                        |> View.map Main.Pages.Msg.SecretsEngine_OrgOrg_Name_
+                        |> View.map Main.Pages.Msg.DashSecretsEngine_OrgOrg_Name_
                         |> View.map Page
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.SecretsEngine_RepoOrg_Repo_ params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_RepoOrg_Repo_ params pageModel ->
             Auth.Action.view
                 (\user ->
                     Page.view (Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.page user model.shared (Route.fromUrl params model.url)) pageModel
-                        |> View.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_
+                        |> View.map Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_
                         |> View.map Page
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Add params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_RepoOrg_Repo_Add params pageModel ->
             Auth.Action.view
                 (\user ->
                     Page.view (Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Add.page user model.shared (Route.fromUrl params model.url)) pageModel
-                        |> View.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Add
+                        |> View.map Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_Add
                         |> View.map Page
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Name_ params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_RepoOrg_Repo_Name_ params pageModel ->
             Auth.Action.view
                 (\user ->
                     Page.view (Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Name_.page user model.shared (Route.fromUrl params model.url)) pageModel
-                        |> View.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Name_
+                        |> View.map Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_Name_
                         |> View.map Page
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.SecretsEngine_SharedOrg_Team_ params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_SharedOrg_Team_ params pageModel ->
             Auth.Action.view
                 (\user ->
                     Page.view (Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.page user model.shared (Route.fromUrl params model.url)) pageModel
-                        |> View.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_
+                        |> View.map Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_
                         |> View.map Page
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.SecretsEngine_SharedOrg_Team_Add params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_SharedOrg_Team_Add params pageModel ->
             Auth.Action.view
                 (\user ->
                     Page.view (Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Add.page user model.shared (Route.fromUrl params model.url)) pageModel
-                        |> View.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Add
+                        |> View.map Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_Add
                         |> View.map Page
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.SecretsEngine_SharedOrg_Team_Name_ params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_SharedOrg_Team_Name_ params pageModel ->
             Auth.Action.view
                 (\user ->
                     Page.view (Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_.page user model.shared (Route.fromUrl params model.url)) pageModel
-                        |> View.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Name_
+                        |> View.map Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_Name_
                         |> View.map Page
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -2680,11 +2680,11 @@ toPageUrlHookCmd model routes =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.SecretsEngine_OrgOrg_ params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_OrgOrg_ params pageModel ->
             Auth.Action.command
                 (\user ->
                     Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Org.Org_.page user model.shared (Route.fromUrl params model.url))
-                        |> List.map Main.Pages.Msg.SecretsEngine_OrgOrg_
+                        |> List.map Main.Pages.Msg.DashSecretsEngine_OrgOrg_
                         |> List.map Page
                         |> toCommands
                 )
@@ -2736,81 +2736,81 @@ toPageUrlHookCmd model routes =
                 |> List.map Page
                 |> toCommands
 
-        Main.Pages.Model.SecretsEngine_OrgOrg_Add params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_OrgOrg_Add params pageModel ->
             Auth.Action.command
                 (\user ->
                     Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Org.Org_.Add.page user model.shared (Route.fromUrl params model.url))
-                        |> List.map Main.Pages.Msg.SecretsEngine_OrgOrg_Add
+                        |> List.map Main.Pages.Msg.DashSecretsEngine_OrgOrg_Add
                         |> List.map Page
                         |> toCommands
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.SecretsEngine_OrgOrg_Name_ params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_OrgOrg_Name_ params pageModel ->
             Auth.Action.command
                 (\user ->
                     Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Org.Org_.Name_.page user model.shared (Route.fromUrl params model.url))
-                        |> List.map Main.Pages.Msg.SecretsEngine_OrgOrg_Name_
+                        |> List.map Main.Pages.Msg.DashSecretsEngine_OrgOrg_Name_
                         |> List.map Page
                         |> toCommands
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.SecretsEngine_RepoOrg_Repo_ params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_RepoOrg_Repo_ params pageModel ->
             Auth.Action.command
                 (\user ->
                     Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.page user model.shared (Route.fromUrl params model.url))
-                        |> List.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_
+                        |> List.map Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_
                         |> List.map Page
                         |> toCommands
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Add params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_RepoOrg_Repo_Add params pageModel ->
             Auth.Action.command
                 (\user ->
                     Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Add.page user model.shared (Route.fromUrl params model.url))
-                        |> List.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Add
+                        |> List.map Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_Add
                         |> List.map Page
                         |> toCommands
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Name_ params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_RepoOrg_Repo_Name_ params pageModel ->
             Auth.Action.command
                 (\user ->
                     Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Name_.page user model.shared (Route.fromUrl params model.url))
-                        |> List.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Name_
+                        |> List.map Main.Pages.Msg.DashSecretsEngine_RepoOrg_Repo_Name_
                         |> List.map Page
                         |> toCommands
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.SecretsEngine_SharedOrg_Team_ params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_SharedOrg_Team_ params pageModel ->
             Auth.Action.command
                 (\user ->
                     Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.page user model.shared (Route.fromUrl params model.url))
-                        |> List.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_
+                        |> List.map Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_
                         |> List.map Page
                         |> toCommands
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.SecretsEngine_SharedOrg_Team_Add params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_SharedOrg_Team_Add params pageModel ->
             Auth.Action.command
                 (\user ->
                     Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Add.page user model.shared (Route.fromUrl params model.url))
-                        |> List.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Add
+                        |> List.map Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_Add
                         |> List.map Page
                         |> toCommands
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.SecretsEngine_SharedOrg_Team_Name_ params pageModel ->
+        Main.Pages.Model.DashSecretsEngine_SharedOrg_Team_Name_ params pageModel ->
             Auth.Action.command
                 (\user ->
                     Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_.page user model.shared (Route.fromUrl params model.url))
-                        |> List.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Name_
+                        |> List.map Main.Pages.Msg.DashSecretsEngine_SharedOrg_Team_Name_
                         |> List.map Page
                         |> toCommands
                 )
@@ -3010,31 +3010,31 @@ isAuthProtected routePath =
         Route.Path.Org_Repo_Build_Graph _ ->
             True
 
-        Route.Path.SecretsEngine_OrgOrg_ _ ->
+        Route.Path.DashSecretsEngine_OrgOrg_ _ ->
             True
 
-        Route.Path.SecretsEngine_OrgOrg_Add _ ->
+        Route.Path.DashSecretsEngine_OrgOrg_Add _ ->
             True
 
-        Route.Path.SecretsEngine_OrgOrg_Name_ _ ->
+        Route.Path.DashSecretsEngine_OrgOrg_Name_ _ ->
             True
 
-        Route.Path.SecretsEngine_RepoOrg_Repo_ _ ->
+        Route.Path.DashSecretsEngine_RepoOrg_Repo_ _ ->
             True
 
-        Route.Path.SecretsEngine_RepoOrg_Repo_Add _ ->
+        Route.Path.DashSecretsEngine_RepoOrg_Repo_Add _ ->
             True
 
-        Route.Path.SecretsEngine_RepoOrg_Repo_Name_ _ ->
+        Route.Path.DashSecretsEngine_RepoOrg_Repo_Name_ _ ->
             True
 
-        Route.Path.SecretsEngine_SharedOrg_Team_ _ ->
+        Route.Path.DashSecretsEngine_SharedOrg_Team_ _ ->
             True
 
-        Route.Path.SecretsEngine_SharedOrg_Team_Add _ ->
+        Route.Path.DashSecretsEngine_SharedOrg_Team_Add _ ->
             True
 
-        Route.Path.SecretsEngine_SharedOrg_Team_Name_ _ ->
+        Route.Path.DashSecretsEngine_SharedOrg_Team_Name_ _ ->
             True
 
         Route.Path.NotFound_ ->

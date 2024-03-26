@@ -261,7 +261,7 @@ view shared route model =
                         , class "button-with-icon"
                         , Util.testAttribute "add-repo-secret"
                         , Route.Path.href <|
-                            Route.Path.SecretsEngine_RepoOrg_Repo_Add
+                            Route.Path.DashSecretsEngine_RepoOrg_Repo_Add
                                 { engine = route.params.engine
                                 , org = route.params.org
                                 , repo = route.params.repo
@@ -293,7 +293,7 @@ view shared route model =
                         [ class "button"
                         , class "-outline"
                         , Route.Path.href <|
-                            Route.Path.SecretsEngine_OrgOrg_
+                            Route.Path.DashSecretsEngine_OrgOrg_
                                 { engine = route.params.engine
                                 , org = route.params.org
                                 }
