@@ -383,7 +383,7 @@ initPageAndLayout model =
             , layout = Nothing
             }
 
-        Route.Path.AccountAuthenticate_ ->
+        Route.Path.Account_Authenticate ->
             let
                 route =
                     Route.fromUrl () model.url
@@ -2950,7 +2950,7 @@ isAuthProtected routePath =
         Route.Path.Account_Logout ->
             True
 
-        Route.Path.AccountAuthenticate_ ->
+        Route.Path.Account_Authenticate ->
             False
 
         Route.Path.Account_Settings ->

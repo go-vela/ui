@@ -15,25 +15,9 @@ type Path
     = Home_
     | Account_Login
     | Account_Logout
-    | AccountAuthenticate_
+    | Account_Authenticate
     | Account_Settings
     | Account_SourceRepos
-    | Org_ { org : String }
-    | Org__Builds { org : String }
-    | Org__Repo_ { org : String, repo : String }
-    | Org__Repo__Pulls { org : String, repo : String }
-    | Org__Repo__Tags { org : String, repo : String }
-    | Org__Repo__Deployments { org : String, repo : String }
-    | Org__Repo__Deployments_Add { org : String, repo : String }
-    | Org__Repo__Schedules { org : String, repo : String }
-    | Org__Repo__Schedules_Add { org : String, repo : String }
-    | Org__Repo__Schedules_Name_ { org : String, repo : String, name : String }
-    | Org__Repo__Hooks { org : String, repo : String }
-    | Org__Repo__Settings { org : String, repo : String }
-    | Org__Repo__Build_ { org : String, repo : String, build : String }
-    | Org__Repo__Build__Services { org : String, repo : String, build : String }
-    | Org__Repo__Build__Pipeline { org : String, repo : String, build : String }
-    | Org__Repo__Build__Graph { org : String, repo : String, build : String }
     | Dash_Secrets_Engine__Org_Org_ { engine : String, org : String }
     | Dash_Secrets_Engine__Org_Org__Add { engine : String, org : String }
     | Dash_Secrets_Engine__Org_Org__Name_ { engine : String, org : String, name : String }
@@ -43,7 +27,23 @@ type Path
     | Dash_Secrets_Engine__Shared_Org__Team_ { engine : String, org : String, team : String }
     | Dash_Secrets_Engine__Shared_Org__Team__Add { engine : String, org : String, team : String }
     | Dash_Secrets_Engine__Shared_Org__Team__Name_ { engine : String, org : String, team : String, name : String }
+    | Org_ { org : String }
+    | Org__Builds { org : String }
+    | Org__Repo_ { org : String, repo : String }
+    | Org__Repo__Deployments { org : String, repo : String }
+    | Org__Repo__Deployments_Add { org : String, repo : String }
+    | Org__Repo__Hooks { org : String, repo : String }
+    | Org__Repo__Schedules { org : String, repo : String }
+    | Org__Repo__Schedules_Add { org : String, repo : String }
+    | Org__Repo__Schedules_Name_ { org : String, repo : String, name : String }
+    | Org__Repo__Settings { org : String, repo : String }
+    | Org__Repo__Build_ { org : String, repo : String, build : String }
+    | Org__Repo__Build__Graph { org : String, repo : String, build : String }
+    | Org__Repo__Build__Pipeline { org : String, repo : String, build : String }
+    | Org__Repo__Build__Services { org : String, repo : String, build : String }
     | NotFound_
+    | Org__Repo__Pulls { org : String, repo : String }
+    | Org__Repo__Tags { org : String, repo : String }
 
 
 fromUrl : Url -> Path
@@ -72,7 +72,7 @@ fromString urlPath =
             Just Account_Logout
 
         [ "account", "authenticate" ] ->
-            Just AccountAuthenticate_
+            Just Account_Authenticate
 
         [ "account", "settings" ] ->
             Just Account_Settings
@@ -291,7 +291,7 @@ toString path =
                 Account_Logout ->
                     [ "account", "logout" ]
 
-                AccountAuthenticate_ ->
+                Account_Authenticate ->
                     [ "account", "authenticate" ]
 
                 Account_Settings ->
