@@ -70,6 +70,4 @@ subscriptions model =
 
 view : Model -> View Msg
 view model =
-    { title = "Pages.Org_.Repo_.Tags"
-    , body = [ Html.text "/:org/:repo/tags" ]
-    }
+    View.none
