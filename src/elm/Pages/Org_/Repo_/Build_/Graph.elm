@@ -92,7 +92,7 @@ toLayout user route model =
         , crumbs =
             [ ( "Overview", Just Route.Path.Home )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
+            , ( route.params.repo, Just <| Route.Path.Org__Repo_ { org = route.params.org, repo = route.params.repo } )
             , ( "#" ++ route.params.build, Nothing )
             ]
         , org = route.params.org
@@ -100,7 +100,7 @@ toLayout user route model =
         , build = route.params.build
         , toBuildPath =
             \build ->
-                Route.Path.Org_Repo_Build_Graph
+                Route.Path.Org__Repo__Build_Graph
                     { org = route.params.org
                     , repo = route.params.repo
                     , build = build
@@ -287,7 +287,7 @@ update shared route msg model =
                                 |> String.replace hrefHandle ""
                                 |> Route.Path.fromString
                                 |> Maybe.withDefault
-                                    (Route.Path.Org_Repo_Build_Graph
+                                    (Route.Path.Org__Repo__Build_Graph
                                         { org = route.params.org
                                         , repo = route.params.repo
                                         , build = route.params.build
@@ -776,7 +776,7 @@ nodeLabel shared model graph node showSteps =
         link step =
             Route.toString <|
                 { path =
-                    Route.Path.Org_Repo_Build_
+                    Route.Path.Org__Repo__Build_
                         { org = graph.org
                         , repo = graph.repo
                         , build = String.fromInt graph.build

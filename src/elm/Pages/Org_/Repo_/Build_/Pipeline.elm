@@ -89,7 +89,7 @@ toLayout user route model =
         , crumbs =
             [ ( "Overview", Just Route.Path.Home )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
+            , ( route.params.repo, Just <| Route.Path.Org__Repo_ { org = route.params.org, repo = route.params.repo } )
             , ( "#" ++ route.params.build, Nothing )
             ]
         , org = route.params.org
@@ -97,7 +97,7 @@ toLayout user route model =
         , build = route.params.build
         , toBuildPath =
             \build ->
-                Route.Path.Org_Repo_Build_Pipeline
+                Route.Path.Org__Repo__Build_Pipeline
                     { org = route.params.org
                     , repo = route.params.repo
                     , build = build
@@ -236,7 +236,7 @@ update shared route msg model =
             ( model
             , Effect.pushRoute
                 { path =
-                    Route.Path.Org_Repo_Build_Pipeline
+                    Route.Path.Org__Repo__Build_Pipeline
                         { org = route.params.org
                         , repo = route.params.repo
                         , build = route.params.build
@@ -273,7 +273,7 @@ update shared route msg model =
             ( model
             , Effect.pushRoute
                 { path =
-                    Route.Path.Org_Repo_Build_Pipeline
+                    Route.Path.Org__Repo__Build_Pipeline
                         { org = route.params.org
                         , repo = route.params.repo
                         , build = route.params.build

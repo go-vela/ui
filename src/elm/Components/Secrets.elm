@@ -354,14 +354,14 @@ editSecretHref engine type_ secret =
     Route.Path.href <|
         case type_ of
             Vela.OrgSecret ->
-                Route.Path.DashSecretsEngine_OrgOrg_Name_
+                Route.Path.Dash_Secrets_Engine__Org_Org__Name_
                     { org = secret.org
                     , name = encodedName
                     , engine = engine
                     }
 
             Vela.RepoSecret ->
-                Route.Path.DashSecretsEngine_RepoOrg_Repo_Name_
+                Route.Path.Dash_Secrets_Engine__Repo_Org__Repo__Name_
                     { org = secret.org
                     , repo = secret.repo
                     , name = encodedName
@@ -369,7 +369,7 @@ editSecretHref engine type_ secret =
                     }
 
             Vela.SharedSecret ->
-                Route.Path.DashSecretsEngine_SharedOrg_Team_Name_
+                Route.Path.Dash_Secrets_Engine__Shared_Org__Team__Name_
                     { org = secret.org
                     , team = encodedTeam
                     , name = secret.name

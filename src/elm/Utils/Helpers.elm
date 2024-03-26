@@ -567,7 +567,7 @@ orgRepoFromBuildLink link =
                 |> Maybe.Extra.unwrap link .path
     in
     case Route.Path.fromString path of
-        Just (Route.Path.Org_Repo_Build_ params) ->
+        Just (Route.Path.Org__Repo__Build_ params) ->
             ( params.org, params.repo )
 
         _ ->

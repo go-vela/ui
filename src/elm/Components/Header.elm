@@ -71,7 +71,7 @@ view shared props =
                             [ li [ class "identity-menu-item" ]
                                 [ a
                                     [ Util.testAttribute "settings-link"
-                                    , Route.Path.href Route.Path.AccountSettings
+                                    , Route.Path.href Route.Path.Account_Settings
                                     , attribute "role" "menuitem"
                                     , onClick (props.showHideIdentity (Just False))
                                     ]

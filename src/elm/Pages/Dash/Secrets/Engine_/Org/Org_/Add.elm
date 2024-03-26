@@ -242,7 +242,7 @@ view shared route model =
         crumbs =
             [ ( "Overview", Just Route.Path.Home )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( "Org Secrets", Just <| Route.Path.DashSecretsEngine_OrgOrg_ { org = route.params.org, engine = route.params.engine } )
+            , ( "Org Secrets", Just <| Route.Path.Dash_Secrets_Engine__Org_Org__ { org = route.params.org, engine = route.params.engine } )
             , ( "Add", Nothing )
             ]
     in

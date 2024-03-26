@@ -115,7 +115,7 @@ view props shared route { toContentMsg, model, content } =
                             [ class "button"
                             , class "-outline"
                             , Util.testAttribute "source-repos"
-                            , Route.Path.href Route.Path.AccountSourceRepos
+                            , Route.Path.href Route.Path.Account_SourceRepos
                             ]
                             [ text "Source Repositories" ]
                        ]

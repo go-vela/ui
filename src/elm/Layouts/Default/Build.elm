@@ -197,7 +197,7 @@ update props shared route msg model =
                         newBuildLink =
                             Just
                                 ( "View Build #" ++ String.fromInt build.number
-                                , Route.Path.Org_Repo_Build_
+                                , Route.Path.Org__Repo__Build_
                                     { org = options.org
                                     , repo = options.repo
                                     , build = String.fromInt build.number

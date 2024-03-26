@@ -200,7 +200,7 @@ update shared route msg model =
                             , link = Nothing
                             }
                         , Effect.pushPath <|
-                            Route.Path.Org_Repo_Schedules
+                            Route.Path.Org__Repo__Schedules
                                 { org = route.params.org
                                 , repo = route.params.repo
                                 }
@@ -306,12 +306,12 @@ view shared route model =
         crumbs =
             [ ( "Overview", Just Route.Path.Home )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
-            , ( "Schedules", Just <| Route.Path.Org_Repo_Schedules { org = route.params.org, repo = route.params.repo } )
+            , ( route.params.repo, Just <| Route.Path.Org__Repo_ { org = route.params.org, repo = route.params.repo } )
+            , ( "Schedules", Just <| Route.Path.Org__Repo__Schedules { org = route.params.org, repo = route.params.repo } )
             , ( "Edit", Nothing )
             , ( route.params.name
               , Just <|
-                    Route.Path.Org_Repo_SchedulesName_
+                    Route.Path.Org__Repo__SchedulesName_
                         { org = route.params.org
                         , repo = route.params.repo
                         , name = route.params.name

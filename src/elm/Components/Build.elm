@@ -60,7 +60,7 @@ view shared props =
                         span []
                             [ a
                                 [ Route.Path.href <|
-                                    Route.Path.Org_Repo_
+                                    Route.Path.Org__Repo_
                                         { org = org
                                         , repo = repo
                                         }

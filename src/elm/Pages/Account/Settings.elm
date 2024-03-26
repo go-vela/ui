@@ -150,15 +150,15 @@ view shared route model =
             }
         , main_ [ class "content-wrap" ]
             [ div [ Util.testAttribute "user-settings" ]
-                [ viewAccountSettings shared model
+                [ viewAccount_Settings shared model
                 ]
             ]
         ]
     }
 
 
-viewAccountSettings : Shared.Model -> Model -> Html Msg
-viewAccountSettings shared model =
+viewAccount_Settings : Shared.Model -> Model -> Html Msg
+viewAccount_Settings shared model =
     div [ class "my-settings", Util.testAttribute "settings" ] <|
         case shared.session of
             Authenticated auth ->
