@@ -59,7 +59,7 @@ toLayout user route model =
               }
             ]
         , crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Nothing )
             ]
         , org = route.params.org
@@ -206,7 +206,7 @@ view shared route model =
                             [ class "button"
                             , class "-outline"
                             , Util.testAttribute "source-repos"
-                            , Route.Path.href Route.Path.AccountSourceRepos
+                            , Route.Path.href Route.Path.Account_SourceRepos
                             ]
                             [ text "Source Repositories" ]
                         ]

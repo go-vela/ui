@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Secrets.Engine_.Shared.Org_.Team_ exposing (Model, Msg, page, view)
+module Pages.Dash.Secrets.Engine_.Shared.Org_.Team_ exposing (Model, Msg, page, view)
 
 import Api.Pagination
 import Auth
@@ -195,7 +195,7 @@ view : Shared.Model -> Route { engine : String, org : String, team : String } ->
 view shared route model =
     let
         crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
             , ( route.params.team, Nothing )
             , ( "Secrets", Nothing )
@@ -225,7 +225,7 @@ view shared route model =
                             , class "button-with-icon"
                             , Util.testAttribute "add-shared-secret"
                             , Route.Path.href <|
-                                Route.Path.SecretsEngine_SharedOrg_Team_Add { engine = route.params.engine, org = route.params.org, team = route.params.team }
+                                Route.Path.Dash_Secrets_Engine__Shared_Org__Team__Add { engine = route.params.engine, org = route.params.org, team = route.params.team }
                             ]
                             [ text "Add Shared Secret"
                             , FeatherIcons.plus

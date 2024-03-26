@@ -19,7 +19,7 @@ testHref : Test
 testHref =
     test "returns the href of a route" <|
         \_ ->
-            Route.Path.toString Route.Path.AccountLogin
+            Route.Path.toString Route.Path.Account_Login
                 |> Expect.equal "/account/login"
 
 
@@ -30,9 +30,9 @@ testHref =
 testMatch : Test
 testMatch =
     describe "route gets matched as intended for given url"
-        [ testUrl "/account/login" Route.Path.AccountLogin
+        [ testUrl "/account/login" Route.Path.Account_Login
         , testUrl "/asdf" (Route.Path.Org_ { org = "asdf" })
-        , testUrl "/" Route.Path.Home
+        , testUrl "/" Route.Path.Home_
         ]
 
 
@@ -64,5 +64,5 @@ testRouteToUrl : Test
 testRouteToUrl =
     test "Login -> /account/login" <|
         \_ ->
-            Route.Path.toString Route.Path.AccountLogin
+            Route.Path.toString Route.Path.Account_Login
                 |> Expect.equal "/account/login"

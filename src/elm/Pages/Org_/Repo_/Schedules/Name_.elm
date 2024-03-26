@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Org_.Repo_.Schedules.Edit_ exposing (Model, Msg, page, view)
+module Pages.Org_.Repo_.Schedules.Name_ exposing (Model, Msg, page, view)
 
 import Auth
 import Components.Crumbs
@@ -200,7 +200,7 @@ update shared route msg model =
                             , link = Nothing
                             }
                         , Effect.pushPath <|
-                            Route.Path.Org_Repo_Schedules
+                            Route.Path.Org__Repo__Schedules
                                 { org = route.params.org
                                 , repo = route.params.repo
                                 }
@@ -304,14 +304,14 @@ view shared route model =
             not schedulesAllowed || (not <| RemoteData.isSuccess model.schedule)
 
         crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
-            , ( "Schedules", Just <| Route.Path.Org_Repo_Schedules { org = route.params.org, repo = route.params.repo } )
+            , ( route.params.repo, Just <| Route.Path.Org__Repo_ { org = route.params.org, repo = route.params.repo } )
+            , ( "Schedules", Just <| Route.Path.Org__Repo__Schedules { org = route.params.org, repo = route.params.repo } )
             , ( "Edit", Nothing )
             , ( route.params.name
               , Just <|
-                    Route.Path.Org_Repo_SchedulesEdit_
+                    Route.Path.Org__Repo__Schedules_Name_
                         { org = route.params.org
                         , repo = route.params.repo
                         , name = route.params.name

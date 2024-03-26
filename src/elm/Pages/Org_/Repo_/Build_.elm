@@ -38,7 +38,7 @@ import Vela
 import View exposing (View)
 
 
-page : Auth.User -> Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> Page Model Msg
+page : Auth.User -> Shared.Model -> Route { org : String, repo : String, build : String } -> Page Model Msg
 page user shared route =
     Page.new
         { init = init shared route
@@ -54,7 +54,7 @@ page user shared route =
 -- LAYOUT
 
 
-toLayout : Auth.User -> Route { org : String, repo : String, buildNumber : String } -> Model -> Layouts.Layout Msg
+toLayout : Auth.User -> Route { org : String, repo : String, build : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Build
         { navButtons = []
@@ -67,7 +67,7 @@ toLayout user route model =
                         ++ " --repo "
                         ++ route.params.repo
                         ++ " --build "
-                        ++ route.params.buildNumber
+                        ++ route.params.build
               , docs = Just "build/view"
               }
             , { name = "Restart Build"
@@ -77,7 +77,7 @@ toLayout user route model =
                         ++ " --repo "
                         ++ route.params.repo
                         ++ " --build "
-                        ++ route.params.buildNumber
+                        ++ route.params.build
               , docs = Just "build/restart"
               }
             , { name = "Cancel Build"
@@ -87,7 +87,7 @@ toLayout user route model =
                         ++ " --repo "
                         ++ route.params.repo
                         ++ " --build "
-                        ++ route.params.buildNumber
+                        ++ route.params.build
               , docs = Just "build/cancel"
               }
             , { name = "List Steps"
@@ -97,7 +97,7 @@ toLayout user route model =
                         ++ " --repo "
                         ++ route.params.repo
                         ++ " --build "
-                        ++ route.params.buildNumber
+                        ++ route.params.build
               , docs = Just "step/get"
               }
             , { name = "View Step"
@@ -107,7 +107,7 @@ toLayout user route model =
                         ++ " --repo "
                         ++ route.params.repo
                         ++ " --build "
-                        ++ route.params.buildNumber
+                        ++ route.params.build
                         ++ " --step 1"
               , docs = Just "step/view"
               }
@@ -118,7 +118,7 @@ toLayout user route model =
                         ++ " --repo "
                         ++ route.params.repo
                         ++ " --build "
-                        ++ route.params.buildNumber
+                        ++ route.params.build
               , docs = Just "log/get"
               }
             , { name = "View Log Help"
@@ -132,26 +132,26 @@ toLayout user route model =
                         ++ " --repo "
                         ++ route.params.repo
                         ++ " --build "
-                        ++ route.params.buildNumber
+                        ++ route.params.build
                         ++ " --step 1"
               , docs = Just "log/view"
               }
             ]
         , crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
-            , ( "#" ++ route.params.buildNumber, Nothing )
+            , ( route.params.repo, Just <| Route.Path.Org__Repo_ { org = route.params.org, repo = route.params.repo } )
+            , ( "#" ++ route.params.build, Nothing )
             ]
         , org = route.params.org
         , repo = route.params.repo
-        , buildNumber = route.params.buildNumber
+        , build = route.params.build
         , toBuildPath =
-            \buildNumber ->
-                Route.Path.Org_Repo_Build_
+            \build ->
+                Route.Path.Org__Repo__Build_
                     { org = route.params.org
                     , repo = route.params.repo
-                    , buildNumber = buildNumber
+                    , build = build
                     }
         }
 
@@ -169,7 +169,7 @@ type alias Model =
     }
 
 
-init : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> () -> ( Model, Effect Msg )
+init : Shared.Model -> Route { org : String, repo : String, build : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { steps = RemoteData.Loading
       , logs = Dict.empty
@@ -193,7 +193,7 @@ init shared route () =
             , perPage = Just 100
             , org = route.params.org
             , repo = route.params.repo
-            , buildNumber = route.params.buildNumber
+            , build = route.params.build
             }
         , Effect.none
         ]
@@ -227,7 +227,7 @@ type Msg
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
-update : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> Msg -> Model -> ( Model, Effect Msg )
+update : Shared.Model -> Route { org : String, repo : String, build : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
         NoOp ->
@@ -253,10 +253,10 @@ update shared route msg model =
             ( model
             , Effect.pushRoute
                 { path =
-                    Route.Path.Org_Repo_Build_
+                    Route.Path.Org__Repo__Build_
                         { org = route.params.org
                         , repo = route.params.repo
-                        , buildNumber = route.params.buildNumber
+                        , build = route.params.build
                         }
                 , query = route.query
                 , hash = Just options.hash
@@ -309,7 +309,7 @@ update shared route msg model =
                                     , onResponse = GetBuildStepLogRefreshResponse { step = step }
                                     , org = route.params.org
                                     , repo = route.params.repo
-                                    , buildNumber = route.params.buildNumber
+                                    , build = route.params.build
                                     , stepNumber = String.fromInt step.number
                                     }
                             )
@@ -446,7 +446,7 @@ update shared route msg model =
                             }
                     , org = route.params.org
                     , repo = route.params.repo
-                    , buildNumber = route.params.buildNumber
+                    , build = route.params.build
                     , stepNumber = String.fromInt options.step.number
                     }
                 , if options.applyDomFocus then
@@ -534,7 +534,7 @@ update shared route msg model =
                 , perPage = Just 100
                 , org = route.params.org
                 , repo = route.params.repo
-                , buildNumber = route.params.buildNumber
+                , build = route.params.build
                 }
             )
 
@@ -552,7 +552,7 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> Model -> View Msg
+view : Shared.Model -> Route { org : String, repo : String, build : String } -> Model -> View Msg
 view shared route model =
     { title = ""
     , body =
@@ -602,7 +602,7 @@ view shared route model =
     }
 
 
-viewStages : Shared.Model -> Model -> Route { org : String, repo : String, buildNumber : String } -> List Vela.Step -> List (Html Msg)
+viewStages : Shared.Model -> Model -> Route { org : String, repo : String, build : String } -> List Vela.Step -> List (Html Msg)
 viewStages shared model route steps =
     steps
         |> List.map .stage
@@ -619,7 +619,7 @@ viewStages shared model route steps =
             )
 
 
-viewStage : Shared.Model -> Model -> Route { org : String, repo : String, buildNumber : String } -> String -> List Vela.Step -> Html Msg
+viewStage : Shared.Model -> Model -> Route { org : String, repo : String, build : String } -> String -> List Vela.Step -> Html Msg
 viewStage shared model route stage steps =
     div
         [ class "stage", Util.testAttribute <| "stage" ]
@@ -630,7 +630,7 @@ viewStage shared model route stage steps =
         ]
 
 
-viewStep : Shared.Model -> Model -> Route { org : String, repo : String, buildNumber : String } -> Vela.Step -> Html Msg
+viewStep : Shared.Model -> Model -> Route { org : String, repo : String, build : String } -> Vela.Step -> Html Msg
 viewStep shared model route step =
     div
         [ classList
@@ -703,7 +703,7 @@ hasStages steps =
         |> (\stage -> stage /= "")
 
 
-viewLogs : Shared.Model -> Model -> Route { org : String, repo : String, buildNumber : String } -> Vela.Step -> WebData Vela.Log -> Html Msg
+viewLogs : Shared.Model -> Model -> Route { org : String, repo : String, build : String } -> Vela.Step -> WebData Vela.Log -> Html Msg
 viewLogs shared model route step log =
     case step.status of
         Vela.Error ->
@@ -735,7 +735,7 @@ viewLogs shared model route step log =
                 , log = log
                 , org = route.params.org
                 , repo = route.params.repo
-                , buildNumber = route.params.buildNumber
+                , build = route.params.build
                 , resourceType = "step"
                 , resourceNumber = String.fromInt step.number
                 , focus = model.focus

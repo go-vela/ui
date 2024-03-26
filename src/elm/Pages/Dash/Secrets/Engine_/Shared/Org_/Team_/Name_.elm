@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_ exposing (Model, Msg, page, view)
+module Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_ exposing (Model, Msg, page, view)
 
 import Auth
 import Components.Crumbs
@@ -181,7 +181,7 @@ update shared route msg model =
                             , link = Nothing
                             }
                         , Effect.pushPath <|
-                            Route.Path.SecretsEngine_SharedOrg_Team_
+                            Route.Path.Dash_Secrets_Engine__Shared_Org__Team_
                                 { org = route.params.org
                                 , team = route.params.team
                                 , engine = route.params.engine
@@ -334,10 +334,10 @@ view : Shared.Model -> Route { engine : String, org : String, team : String, nam
 view shared route model =
     let
         crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
             , ( route.params.team, Nothing )
-            , ( "Shared Secrets", Just <| Route.Path.SecretsEngine_SharedOrg_Team_ { engine = route.params.engine, org = route.params.org, team = route.params.team } )
+            , ( "Shared Secrets", Just <| Route.Path.Dash_Secrets_Engine__Shared_Org__Team_ { engine = route.params.engine, org = route.params.org, team = route.params.team } )
             , ( "Edit", Nothing )
             , ( route.params.name, Nothing )
             ]

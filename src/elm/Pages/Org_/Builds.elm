@@ -61,7 +61,7 @@ toLayout user route model =
               }
             ]
         , crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Nothing )
             ]
         , org = route.params.org
@@ -111,12 +111,12 @@ type Msg
       -- BUILDS
     | GetOrgBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))
     | GotoPage Int
-    | RestartBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
-    | RestartBuildResponse { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
-    | CancelBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
-    | CancelBuildResponse { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
-    | ApproveBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
-    | ApproveBuildResponse { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
+    | RestartBuild { org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber }
+    | RestartBuildResponse { org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
+    | CancelBuild { org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber }
+    | CancelBuildResponse { org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
+    | ApproveBuild { org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber }
+    | ApproveBuildResponse { org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
     | ShowHideActionsMenus (Maybe Int) (Maybe Bool)
     | FilterByEvent (Maybe String)
     | ShowHideFullTimestamps
@@ -190,7 +190,7 @@ update shared route msg model =
                 , onResponse = RestartBuildResponse options
                 , org = options.org
                 , repo = options.repo
-                , buildNumber = options.buildNumber
+                , build = options.build
                 }
             )
 
@@ -201,10 +201,10 @@ update shared route msg model =
                         newBuildLink =
                             Just
                                 ( "View Build #" ++ String.fromInt build.number
-                                , Route.Path.Org_Repo_Build_
+                                , Route.Path.Org__Repo__Build_
                                     { org = options.org
                                     , repo = options.repo
-                                    , buildNumber = String.fromInt build.number
+                                    , build = String.fromInt build.number
                                     }
                                 )
                     in
@@ -220,7 +220,7 @@ update shared route msg model =
                             , org = route.params.org
                             }
                         , Effect.addAlertSuccess
-                            { content = "Restarted build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ] ++ "."
+                            { content = "Restarted build " ++ String.join "/" [ options.org, options.repo, options.build ] ++ "."
                             , addToastIfUnique = True
                             , link = newBuildLink
                             }
@@ -243,7 +243,7 @@ update shared route msg model =
                 , onResponse = CancelBuildResponse options
                 , org = options.org
                 , repo = options.repo
-                , buildNumber = options.buildNumber
+                , build = options.build
                 }
             )
 
@@ -262,7 +262,7 @@ update shared route msg model =
                             , org = route.params.org
                             }
                         , Effect.addAlertSuccess
-                            { content = "Canceled build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ] ++ "."
+                            { content = "Canceled build " ++ String.join "/" [ options.org, options.repo, options.build ] ++ "."
                             , addToastIfUnique = True
                             , link = Nothing
                             }
@@ -285,7 +285,7 @@ update shared route msg model =
                 , onResponse = ApproveBuildResponse options
                 , org = options.org
                 , repo = options.repo
-                , buildNumber = options.buildNumber
+                , build = options.build
                 }
             )
 
@@ -304,7 +304,7 @@ update shared route msg model =
                             , org = route.params.org
                             }
                         , Effect.addAlertSuccess
-                            { content = "Approved build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ] ++ "."
+                            { content = "Approved build " ++ String.join "/" [ options.org, options.repo, options.build ] ++ "."
                             , addToastIfUnique = True
                             , link = Nothing
                             }

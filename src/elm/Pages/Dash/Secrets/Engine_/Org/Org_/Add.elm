@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Secrets.Engine_.Repo.Org_.Repo_.Add exposing (Model, Msg, page, view)
+module Pages.Dash.Secrets.Engine_.Org.Org_.Add exposing (Model, Msg, page, view)
 
 import Auth
 import Components.Crumbs
@@ -28,7 +28,7 @@ import Vela exposing (defaultSecretPayload)
 import View exposing (View)
 
 
-page : Auth.User -> Shared.Model -> Route { engine : String, org : String, repo : String } -> Page Model Msg
+page : Auth.User -> Shared.Model -> Route { engine : String, org : String } -> Page Model Msg
 page user shared route =
     Page.new
         { init = init shared
@@ -43,21 +43,19 @@ page user shared route =
 -- LAYOUT
 
 
-toLayout : Auth.User -> Route { engine : String, org : String, repo : String } -> Model -> Layouts.Layout Msg
+toLayout : Auth.User -> Route { engine : String, org : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
         { helpCommands =
-            [ { name = "Add Repo Secret Help"
+            [ { name = "Add Org Secret Help"
               , content = "vela add secret -h"
               , docs = Just "secret/add"
               }
-            , { name = "Add Repo Secret Example"
+            , { name = "Add Org Secret Example"
               , content =
-                    "vela add secret --secret.engine native --secret.type repo --org "
+                    "vela add secrets --secret.engine native --secret.type org --org "
                         ++ route.params.org
-                        ++ " --repo "
-                        ++ route.params.repo
-                        ++ " --name foo --value bar --event push"
+                        ++ " --name password --value vela --event push"
               , docs = Just "secret/add"
               }
             ]
@@ -98,7 +96,7 @@ type Msg
     | SubmitForm
 
 
-update : Shared.Model -> Route { engine : String, org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
+update : Shared.Model -> Route { engine : String, org : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     let
         form =
@@ -111,7 +109,7 @@ update shared route msg model =
                 Ok ( _, secret ) ->
                     ( { form = Components.SecretForm.defaultOrgRepoSecretForm }
                     , Effect.addAlertSuccess
-                        { content = "Added repo secret '" ++ secret.name ++ "'."
+                        { content = "Added org secret '" ++ secret.name ++ "'."
                         , addToastIfUnique = True
                         , link = Nothing
                         }
@@ -198,9 +196,9 @@ update shared route msg model =
             let
                 payload =
                     { defaultSecretPayload
-                        | type_ = Just Vela.RepoSecret
+                        | type_ = Just Vela.OrgSecret
                         , org = Just route.params.org
-                        , repo = Just route.params.repo
+                        , repo = Just "*"
                         , team = Nothing
                         , name = Util.stringToMaybe form.name
                         , value = Util.stringToMaybe form.value
@@ -214,13 +212,12 @@ update shared route msg model =
                     Http.jsonBody <| Vela.encodeSecretPayload payload
             in
             ( model
-            , Effect.addRepoSecret
+            , Effect.addOrgSecret
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = AddSecretResponse
                 , engine = route.params.engine
                 , org = route.params.org
-                , repo = route.params.repo
                 , body = body
                 }
             )
@@ -239,14 +236,13 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Route { engine : String, org : String, repo : String } -> Model -> View Msg
+view : Shared.Model -> Route { engine : String, org : String } -> Model -> View Msg
 view shared route model =
     let
         crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
-            , ( "Repo Secrets", Just <| Route.Path.SecretsEngine_RepoOrg_Repo_ { org = route.params.org, repo = route.params.repo, engine = route.params.engine } )
+            , ( "Org Secrets", Just <| Route.Path.Dash_Secrets_Engine__Org_Org_ { org = route.params.org, engine = route.params.engine } )
             , ( "Add", Nothing )
             ]
     in
@@ -261,7 +257,7 @@ view shared route model =
         , main_ [ class "content-wrap" ]
             [ div [ class "manage-secret", Util.testAttribute "manage-secret" ]
                 [ div []
-                    [ h2 [] [ text <| String.Extra.toTitleCase "add repo secret" ]
+                    [ h2 [] [ text <| String.Extra.toTitleCase "add org secret" ]
                     , div [ class "secret-form" ]
                         [ Components.Form.viewInput
                             { title = Just "Name"

@@ -48,9 +48,9 @@ import Vela
 
 
 type alias Msgs msg =
-    { approveBuild : { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } -> msg
-    , restartBuild : { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } -> msg
-    , cancelBuild : { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } -> msg
+    { approveBuild : { org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } -> msg
+    , restartBuild : { org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } -> msg
+    , cancelBuild : { org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } -> msg
     , showHideActionsMenus : Maybe Int -> Maybe Bool -> msg
     }
 

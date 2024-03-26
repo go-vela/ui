@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Secrets.Engine_.Repo.Org_.Repo_ exposing (Model, Msg, page, view)
+module Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_ exposing (Model, Msg, page, view)
 
 import Api.Pagination
 import Auth
@@ -69,7 +69,7 @@ toLayout user route model =
               }
             ]
         , crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
             , ( route.params.repo, Nothing )
             ]
@@ -261,7 +261,7 @@ view shared route model =
                         , class "button-with-icon"
                         , Util.testAttribute "add-repo-secret"
                         , Route.Path.href <|
-                            Route.Path.SecretsEngine_RepoOrg_Repo_Add
+                            Route.Path.Dash_Secrets_Engine__Repo_Org__Repo__Add
                                 { engine = route.params.engine
                                 , org = route.params.org
                                 , repo = route.params.repo
@@ -293,7 +293,7 @@ view shared route model =
                         [ class "button"
                         , class "-outline"
                         , Route.Path.href <|
-                            Route.Path.SecretsEngine_OrgOrg_
+                            Route.Path.Dash_Secrets_Engine__Org_Org_
                                 { engine = route.params.engine
                                 , org = route.params.org
                                 }

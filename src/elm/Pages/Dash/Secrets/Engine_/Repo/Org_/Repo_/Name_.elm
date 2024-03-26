@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Secrets.Engine_.Org.Org_.Edit_ exposing (Model, Msg, page, view)
+module Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Name_ exposing (Model, Msg, page, view)
 
 import Auth
 import Components.Crumbs
@@ -29,7 +29,7 @@ import Vela exposing (defaultSecretPayload)
 import View exposing (View)
 
 
-page : Auth.User -> Shared.Model -> Route { engine : String, org : String, name : String } -> Page Model Msg
+page : Auth.User -> Shared.Model -> Route { engine : String, org : String, repo : String, name : String } -> Page Model Msg
 page user shared route =
     Page.new
         { init = init shared route
@@ -44,14 +44,16 @@ page user shared route =
 -- LAYOUT
 
 
-toLayout : Auth.User -> Route { engine : String, org : String, name : String } -> Model -> Layouts.Layout Msg
+toLayout : Auth.User -> Route { engine : String, org : String, repo : String, name : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
         { helpCommands =
-            [ { name = "View Org Secret"
+            [ { name = "View Repo Secret"
               , content =
-                    "vela view secret --secret.engine native --secret.type org --org "
+                    "vela view secret --secret.engine native --secret.type repo --org "
                         ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
                         ++ " --name "
                         ++ route.params.name
               , docs = Just "secret/view"
@@ -60,19 +62,23 @@ toLayout user route model =
               , content = "vela update secrets -h"
               , docs = Just "secret/update"
               }
-            , { name = "Update Org Secret Example"
+            , { name = "Update Repo Secret Example"
               , content =
-                    "vela update secret --secret.engine native --secret.type org --org "
+                    "vela update secret --secret.engine native --secret.type repo --org "
                         ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
                         ++ " --name "
                         ++ route.params.name
                         ++ " --value vela"
               , docs = Just "secret/update"
               }
-            , { name = "Delete Org Secret"
+            , { name = "Delete Repo Secret"
               , content =
-                    "vela remove secret --secret.engine native --secret.type org --org "
+                    "vela remove secret --secret.engine native --secret.type repo --org "
                         ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
                         ++ " --name "
                         ++ route.params.name
               , docs = Just "secret/remove"
@@ -92,18 +98,19 @@ type alias Model =
     }
 
 
-init : Shared.Model -> Route { engine : String, org : String, name : String } -> () -> ( Model, Effect Msg )
+init : Shared.Model -> Route { engine : String, org : String, repo : String, name : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { secret = RemoteData.Loading
       , form = Components.SecretForm.defaultOrgRepoSecretForm
       , confirmingDelete = False
       }
-    , Effect.getOrgSecret
+    , Effect.getRepoSecret
         { baseUrl = shared.velaAPIBaseURL
         , session = shared.session
         , onResponse = GetSecretResponse
         , engine = route.params.engine
         , org = route.params.org
+        , repo = route.params.repo
         , name = route.params.name
         }
     )
@@ -114,11 +121,11 @@ init shared route () =
 
 
 type Msg
-    = -- SECRETS
-      GetSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
+    = NoOp
+      -- SECRETS
+    | GetSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
     | UpdateSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
     | DeleteSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | NameOnInput String
     | ValueOnInput String
     | ImageOnInput String
     | AddImage String
@@ -132,13 +139,16 @@ type Msg
     | ConfirmDelete
 
 
-update : Shared.Model -> Route { engine : String, org : String, name : String } -> Msg -> Model -> ( Model, Effect Msg )
+update : Shared.Model -> Route { engine : String, org : String, repo : String, name : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     let
         form =
             model.form
     in
     case msg of
+        NoOp ->
+            ( model, Effect.none )
+
         -- SECRETS
         GetSecretResponse response ->
             case response of
@@ -163,7 +173,7 @@ update shared route msg model =
                 Ok ( _, secret ) ->
                     ( model
                     , Effect.addAlertSuccess
-                        { content = "Updated org secret '" ++ secret.name ++ "'."
+                        { content = "Updated repo secret '" ++ route.params.name ++ "'."
                         , addToastIfUnique = True
                         , link = Nothing
                         }
@@ -183,13 +193,14 @@ update shared route msg model =
                     ( model
                     , Effect.batch
                         [ Effect.addAlertSuccess
-                            { content = "Deleted org secret '" ++ route.params.name ++ "'."
+                            { content = "Deleted repo secret '" ++ route.params.name ++ "'."
                             , addToastIfUnique = True
                             , link = Nothing
                             }
                         , Effect.pushPath <|
-                            Route.Path.SecretsEngine_OrgOrg_
+                            Route.Path.Dash_Secrets_Engine__Repo_Org__Repo_
                                 { org = route.params.org
+                                , repo = route.params.repo
                                 , engine = route.params.engine
                                 }
                         ]
@@ -202,11 +213,6 @@ update shared route msg model =
                         , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
-
-        NameOnInput val ->
-            ( { model | form = { form | name = val } }
-            , Effect.none
-            )
 
         ValueOnInput val ->
             ( { model | form = { form | value = val } }
@@ -276,9 +282,9 @@ update shared route msg model =
             let
                 payload =
                     { defaultSecretPayload
-                        | type_ = Just Vela.OrgSecret
+                        | type_ = Just Vela.RepoSecret
                         , org = Just route.params.org
-                        , repo = Nothing
+                        , repo = Just route.params.repo
                         , team = Nothing
                         , name = Util.stringToMaybe form.name
                         , value = Util.stringToMaybe form.value
@@ -292,12 +298,13 @@ update shared route msg model =
                     Http.jsonBody <| Vela.encodeSecretPayload payload
             in
             ( model
-            , Effect.updateOrgSecret
+            , Effect.updateRepoSecret
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = UpdateSecretResponse
                 , engine = route.params.engine
                 , org = route.params.org
+                , repo = route.params.repo
                 , name = route.params.name
                 , body = body
                 }
@@ -315,12 +322,13 @@ update shared route msg model =
 
         ConfirmDelete ->
             ( { model | confirmingDelete = False }
-            , Effect.deleteOrgSecret
+            , Effect.deleteRepoSecret
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = DeleteSecretResponse
                 , engine = route.params.engine
                 , org = route.params.org
+                , repo = route.params.repo
                 , name = route.params.name
                 }
             )
@@ -339,13 +347,14 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Route { engine : String, org : String, name : String } -> Model -> View Msg
+view : Shared.Model -> Route { engine : String, org : String, repo : String, name : String } -> Model -> View Msg
 view shared route model =
     let
         crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( "Org Secrets", Just <| Route.Path.SecretsEngine_OrgOrg_ { org = route.params.org, engine = route.params.engine } )
+            , ( route.params.repo, Just <| Route.Path.Org__Repo_ { org = route.params.org, repo = route.params.repo } )
+            , ( "Repo Secrets", Just <| Route.Path.Dash_Secrets_Engine__Repo_Org__Repo_ { org = route.params.org, repo = route.params.repo, engine = route.params.engine } )
             , ( "Edit", Nothing )
             , ( route.params.name, Nothing )
             ]
@@ -361,7 +370,7 @@ view shared route model =
         , main_ [ class "content-wrap" ]
             [ div [ class "manage-secret", Util.testAttribute "manage-secret" ]
                 [ div []
-                    [ h2 [] [ text <| String.Extra.toTitleCase "edit org secret" ]
+                    [ h2 [] [ text <| String.Extra.toTitleCase "edit repo secret" ]
                     , div [ class "secret-form" ]
                         [ Components.Form.viewInput
                             { title = Just "Name"
@@ -372,7 +381,7 @@ view shared route model =
                             , classList_ = [ ( "secret-name", True ) ]
                             , rows_ = Nothing
                             , wrap_ = Nothing
-                            , msg = NameOnInput
+                            , msg = \_ -> NoOp
                             , disabled_ = True
                             }
                         , Components.Form.viewTextarea
@@ -433,23 +442,21 @@ view shared route model =
 
                               else
                                 Components.Form.viewButton
-                                    { msg = CancelDelete
+                                    { id_ = "delete-cancel"
+                                    , msg = CancelDelete
                                     , text_ = "Cancel"
                                     , classList_ =
                                         [ ( "-outline", True )
                                         ]
                                     , disabled_ = not <| RemoteData.isSuccess model.secret
-                                    , id_ = "delete-cancel"
                                     }
                             , if model.confirmingDelete then
                                 Components.Form.viewButton
-                                    { msg = ConfirmDelete
+                                    { id_ = "delete-confirm"
+                                    , msg = ConfirmDelete
                                     , text_ = "Confirm Delete"
-                                    , classList_ =
-                                        [ ( "-secret-delete-confirm", True )
-                                        ]
+                                    , classList_ = [ ( "-secret-delete-confirm", True ) ]
                                     , disabled_ = not <| RemoteData.isSuccess model.secret
-                                    , id_ = "delete-confirm"
                                     }
 
                               else

@@ -91,7 +91,7 @@ toLayout user route model =
               }
             ]
         , crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
             , ( route.params.repo, Nothing )
             ]
@@ -270,7 +270,7 @@ viewDeployments shared model route =
                         , class "button-with-icon"
                         , Util.testAttribute "add-deployment"
                         , Route.Path.href <|
-                            Route.Path.Org_Repo_DeploymentsAdd { org = route.params.org, repo = route.params.repo }
+                            Route.Path.Org__Repo__Deployments_Add { org = route.params.org, repo = route.params.repo }
                         ]
                         [ text "Add Deployment"
                         , FeatherIcons.plus
@@ -449,7 +449,7 @@ viewDeployment shared repo deployment =
                     [ class "redeploy-link"
                     , attribute "aria-label" <| "redeploy deployment " ++ String.fromInt deployment.id
                     , Route.href <|
-                        { path = Route.Path.Org_Repo_DeploymentsAdd { org = repo.org, repo = repo.name }
+                        { path = Route.Path.Org__Repo__Deployments_Add { org = repo.org, repo = repo.name }
                         , query =
                             Dict.fromList <|
                                 [ ( "target", deployment.target )

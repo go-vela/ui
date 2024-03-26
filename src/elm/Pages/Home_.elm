@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Home exposing (Model, Msg, page, view)
+module Pages.Home_ exposing (Model, Msg, page, view)
 
 import Auth
 import Components.Crumbs
@@ -159,7 +159,7 @@ view shared route model =
                     [ class "button"
                     , class "-outline"
                     , Util.testAttribute "source-repos"
-                    , Route.Path.href Route.Path.AccountSourceRepos
+                    , Route.Path.href Route.Path.Account_SourceRepos
                     ]
                     [ text "Source Repositories" ]
                 ]
@@ -183,7 +183,7 @@ view shared route model =
                                     , Components.Svgs.star False
                                     ]
                                 , p [] [ text "Enable repositories from your GitHub account on Vela now!" ]
-                                , a [ class "button", Route.Path.href Route.Path.AccountSourceRepos ] [ text "Source Repositories" ]
+                                , a [ class "button", Route.Path.href Route.Path.Account_SourceRepos ] [ text "Source Repositories" ]
                                 ]
                             ]
 

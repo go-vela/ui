@@ -296,7 +296,7 @@ restartBuild :
         { a
             | org : String
             , repo : String
-            , buildNumber : String
+            , build : String
         }
     -> Request Vela.Build
 restartBuild baseUrl session options =
@@ -304,7 +304,7 @@ restartBuild baseUrl session options =
         (Api.Endpoint.Build
             options.org
             options.repo
-            options.buildNumber
+            options.build
         )
         Http.emptyBody
         Vela.decodeBuild
@@ -320,7 +320,7 @@ cancelBuild :
         { a
             | org : String
             , repo : String
-            , buildNumber : String
+            , build : String
         }
     -> Request Vela.Build
 cancelBuild baseUrl session options =
@@ -328,7 +328,7 @@ cancelBuild baseUrl session options =
         (Api.Endpoint.CancelBuild
             options.org
             options.repo
-            options.buildNumber
+            options.build
         )
         Vela.decodeBuild
         |> withAuth session
@@ -343,7 +343,7 @@ approveBuild :
         { a
             | org : String
             , repo : String
-            , buildNumber : String
+            , build : String
         }
     -> Request Vela.Build
 approveBuild baseUrl session options =
@@ -351,7 +351,7 @@ approveBuild baseUrl session options =
         (Api.Endpoint.ApproveBuild
             options.org
             options.repo
-            options.buildNumber
+            options.build
         )
         Http.emptyBody
         Vela.decodeBuild
@@ -586,7 +586,7 @@ getBuild :
         { a
             | org : String
             , repo : String
-            , buildNumber : String
+            , build : String
         }
     -> Request Vela.Build
 getBuild baseUrl session options =
@@ -594,7 +594,7 @@ getBuild baseUrl session options =
         (Api.Endpoint.Build
             options.org
             options.repo
-            options.buildNumber
+            options.build
         )
         Vela.decodeBuild
         |> withAuth session
@@ -609,7 +609,7 @@ getBuildSteps :
         { a
             | org : String
             , repo : String
-            , buildNumber : String
+            , build : String
             , pageNumber : Maybe Int
             , perPage : Maybe Int
         }
@@ -621,7 +621,7 @@ getBuildSteps baseUrl session options =
             options.perPage
             options.org
             options.repo
-            options.buildNumber
+            options.build
         )
         Vela.decodeSteps
         |> withAuth session
@@ -636,7 +636,7 @@ getBuildServices :
         { a
             | org : String
             , repo : String
-            , buildNumber : String
+            , build : String
             , pageNumber : Maybe Int
             , perPage : Maybe Int
         }
@@ -648,7 +648,7 @@ getBuildServices baseUrl session options =
             options.perPage
             options.org
             options.repo
-            options.buildNumber
+            options.build
         )
         Vela.decodeServices
         |> withAuth session
@@ -663,7 +663,7 @@ getBuildStepLog :
         { a
             | org : String
             , repo : String
-            , buildNumber : String
+            , build : String
             , stepNumber : String
         }
     -> Request Vela.Log
@@ -672,7 +672,7 @@ getBuildStepLog baseUrl session options =
         (Api.Endpoint.StepLogs
             options.org
             options.repo
-            options.buildNumber
+            options.build
             options.stepNumber
         )
         Vela.decodeLog
@@ -688,7 +688,7 @@ getBuildServiceLog :
         { a
             | org : String
             , repo : String
-            , buildNumber : String
+            , build : String
             , serviceNumber : String
         }
     -> Request Vela.Log
@@ -697,7 +697,7 @@ getBuildServiceLog baseUrl session options =
         (Api.Endpoint.ServiceLogs
             options.org
             options.repo
-            options.buildNumber
+            options.build
             options.serviceNumber
         )
         Vela.decodeLog
@@ -783,7 +783,7 @@ getBuildGraph :
         { a
             | org : String
             , repo : String
-            , buildNumber : String
+            , build : String
         }
     -> Request Vela.BuildGraph
 getBuildGraph baseUrl session options =
@@ -791,7 +791,7 @@ getBuildGraph baseUrl session options =
         (Api.Endpoint.BuildGraph
             options.org
             options.repo
-            options.buildNumber
+            options.build
         )
         Vela.decodeBuildGraph
         |> withAuth session

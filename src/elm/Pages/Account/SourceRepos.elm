@@ -330,7 +330,7 @@ view : Shared.Model -> Route () -> Model -> View Msg
 view shared route model =
     let
         crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( "Account", Nothing )
             , ( "Source Repositories", Nothing )
             ]
@@ -602,7 +602,7 @@ enableRepoButton repo enableRepo toggleFavorite user =
                 , a
                     [ class "button"
                     , Util.testAttribute <| String.join "-" [ "view", repo.org, repo.name ]
-                    , Route.Path.href <| Route.Path.Org_Repo_ { org = repo.org, repo = repo.name }
+                    , Route.Path.href <| Route.Path.Org__Repo_ { org = repo.org, repo = repo.name }
                     ]
                     [ text "View" ]
                 ]
@@ -626,7 +626,7 @@ enableRepoButton repo enableRepo toggleFavorite user =
                 , a
                     [ class "button"
                     , Util.testAttribute <| String.join "-" [ "view", repo.org, repo.name ]
-                    , Route.Path.href <| Route.Path.Org_Repo_ { org = repo.org, repo = repo.name }
+                    , Route.Path.href <| Route.Path.Org__Repo_ { org = repo.org, repo = repo.name }
                     ]
                     [ text "View" ]
                 ]

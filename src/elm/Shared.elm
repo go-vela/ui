@@ -290,9 +290,9 @@ update route msg model =
                             model.velaRedirect
 
                 redirectRoute =
-                    Route.Path.parsePath velaRedirect
+                    Route.parsePath velaRedirect
                         |> (\parsed ->
-                                { path = Maybe.withDefault Route.Path.Home <| Route.Path.fromString parsed.path
+                                { path = Maybe.withDefault Route.Path.Home_ <| Route.Path.fromString parsed.path
                                 , query = Route.Query.fromString <| Maybe.withDefault "" parsed.query
                                 , hash = parsed.hash
                                 }
@@ -335,11 +335,11 @@ update route msg model =
                     let
                         redirectToLogin =
                             case route.path of
-                                Route.Path.AccountLogin ->
+                                Route.Path.Account_Login ->
                                     Effect.none
 
                                 _ ->
-                                    Effect.replacePath Route.Path.AccountLogin
+                                    Effect.replacePath Route.Path.Account_Login
                     in
                     case error of
                         Http.Detailed.BadStatus meta _ ->
@@ -426,7 +426,7 @@ update route msg model =
             in
             ( { model | session = Auth.Session.Unauthenticated, velaRedirect = from }
             , Effect.replaceRoute <|
-                { path = Route.Path.AccountLogin
+                { path = Route.Path.Account_Login
                 , query =
                     Dict.fromList
                         [ ( "from", from ) ]
@@ -663,7 +663,7 @@ update route msg model =
                         --                 | session = Auth.Session.Unauthenticated
                         --                 , velaRedirect = "/"
                         --               }
-                        --                      , Effect.replacePath <| Route.Path.AccountLogin
+                        --                      , Effect.replacePath <| Route.Path.Account_Login
                         --             )
                         --         _ ->
                         --             ( model, Effect.none )
