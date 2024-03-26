@@ -221,6 +221,20 @@ fromString urlPath =
                 }
                 |> Just
 
+        org_ :: repo_ :: "pulls" :: [] ->
+            Org__Repo__Pulls
+                { org = org_
+                , repo = repo_
+                }
+                |> Just
+
+        org_ :: repo_ :: "tags" :: [] ->
+            Org__Repo__Tags
+                { org = org_
+                , repo = repo_
+                }
+                |> Just
+
         org_ :: repo_ :: build_ :: [] ->
             Org__Repo__Build_
                 { org = org_
