@@ -134,7 +134,7 @@ viewOrgTabs shared props =
               , show = True
               }
             , { name = "Secrets"
-              , toPath = Route.Path.Dash_Secrets_Engine__Org_Org__ { org = props.org, engine = "native" }
+              , toPath = Route.Path.Dash_Secrets_Engine__Org_Org_ { org = props.org, engine = "native" }
               , isAlerting = False
               , show = True
               }
@@ -214,7 +214,7 @@ viewRepoTabs shared props =
               }
             , { name = "Secrets"
               , toPath =
-                    Route.Path.Dash_Secrets_Engine__Repo_Org__Repo__
+                    Route.Path.Dash_Secrets_Engine__Repo_Org__Repo_
                         { org = props.org
                         , repo = props.repo
                         , engine = "native"
@@ -271,7 +271,7 @@ viewBuildTabs shared props =
               }
             , { name = "Services"
               , toPath =
-                    Route.Path.Org__Repo__Build_Services
+                    Route.Path.Org__Repo__Build__Services
                         { org = props.org
                         , repo = props.repo
                         , build = props.build
@@ -281,7 +281,7 @@ viewBuildTabs shared props =
               }
             , { name = "Pipeline"
               , toPath =
-                    Route.Path.Org__Repo__Build_Pipeline
+                    Route.Path.Org__Repo__Build__Pipeline
                         { org = props.org
                         , repo = props.repo
                         , build = props.build
@@ -291,7 +291,7 @@ viewBuildTabs shared props =
               }
             , { name = "Visualize"
               , toPath =
-                    Route.Path.Org__Repo__Build_Graph
+                    Route.Path.Org__Repo__Build__Graph
                         { org = props.org
                         , repo = props.repo
                         , build = props.build

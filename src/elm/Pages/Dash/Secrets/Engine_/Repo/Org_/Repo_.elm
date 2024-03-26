@@ -293,7 +293,7 @@ view shared route model =
                         [ class "button"
                         , class "-outline"
                         , Route.Path.href <|
-                            Route.Path.Dash_Secrets_Engine__Org_Org__
+                            Route.Path.Dash_Secrets_Engine__Org_Org_
                                 { engine = route.params.engine
                                 , org = route.params.org
                                 }

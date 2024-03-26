@@ -100,7 +100,7 @@ toLayout user route model =
         , build = route.params.build
         , toBuildPath =
             \build ->
-                Route.Path.Org__Repo__Build_Graph
+                Route.Path.Org__Repo__Build__Graph
                     { org = route.params.org
                     , repo = route.params.repo
                     , build = build
@@ -287,7 +287,7 @@ update shared route msg model =
                                 |> String.replace hrefHandle ""
                                 |> Route.Path.fromString
                                 |> Maybe.withDefault
-                                    (Route.Path.Org__Repo__Build_Graph
+                                    (Route.Path.Org__Repo__Build__Graph
                                         { org = route.params.org
                                         , repo = route.params.repo
                                         , build = route.params.build

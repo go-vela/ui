@@ -218,7 +218,7 @@ viewRepoSchedules shared model org repo =
                             , class "-outline"
                             , Util.testAttribute "add-repo-schedule"
                             , Route.Path.href <|
-                                Route.Path.Org__Repo__SchedulesAdd
+                                Route.Path.Org__Repo__Schedules_Add
                                     { org = org
                                     , repo = repo
                                     }
@@ -318,7 +318,7 @@ viewSchedule zone org repo schedule =
             , children =
                 [ a
                     [ Route.Path.href <|
-                        Route.Path.Org__Repo__SchedulesName_
+                        Route.Path.Org__Repo__Schedules_Name_
                             { org = org
                             , repo = repo
                             , name = schedule.name

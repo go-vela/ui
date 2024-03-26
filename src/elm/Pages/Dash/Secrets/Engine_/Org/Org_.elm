@@ -300,7 +300,7 @@ view shared route model =
                         , class "button-with-icon"
                         , Util.testAttribute "manage-shared-secrets"
                         , Route.Path.href <|
-                            Route.Path.Dash_Secrets_Engine__Shared_Org__Team__
+                            Route.Path.Dash_Secrets_Engine__Shared_Org__Team_
                                 { engine = route.params.engine
                                 , org = route.params.org
                                 , team = "*"

@@ -81,7 +81,7 @@ view shared props =
                                 [ a
                                     [ Util.testAttribute "logout-link"
                                     , Route.href
-                                        { path = Route.Path.AccountLogout
+                                        { path = Route.Path.Account_Logout
                                         , query =
                                             Dict.fromList
                                                 [ ( "from", props.from ) ]

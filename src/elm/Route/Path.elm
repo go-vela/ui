@@ -14,33 +14,33 @@ import Url.Parser exposing ((</>))
 type Path
     = Home
     | Account_Login
-    | AccountLogout
+    | Account_Logout
     | AccountAuthenticate_
     | Account_Settings
     | Account_SourceRepos
     | Org_ { org : String }
     | Org__Builds { org : String }
     | Org__Repo_ { org : String, repo : String }
-    | Org_Repo_Pulls { org : String, repo : String }
-    | Org_Repo_Tags { org : String, repo : String }
+    | Org__Repo__Pulls { org : String, repo : String }
+    | Org__Repo__Tags { org : String, repo : String }
     | Org__Repo__Deployments { org : String, repo : String }
-    | Org__Repo__DeploymentsAdd { org : String, repo : String }
+    | Org__Repo__Deployments_Add { org : String, repo : String }
     | Org__Repo__Schedules { org : String, repo : String }
-    | Org__Repo__SchedulesAdd { org : String, repo : String }
-    | Org__Repo__SchedulesName_ { org : String, repo : String, name : String }
+    | Org__Repo__Schedules_Add { org : String, repo : String }
+    | Org__Repo__Schedules_Name_ { org : String, repo : String, name : String }
     | Org__Repo__Hooks { org : String, repo : String }
     | Org__Repo__Settings { org : String, repo : String }
     | Org__Repo__Build_ { org : String, repo : String, build : String }
-    | Org__Repo__Build_Services { org : String, repo : String, build : String }
-    | Org__Repo__Build_Pipeline { org : String, repo : String, build : String }
-    | Org__Repo__Build_Graph { org : String, repo : String, build : String }
-    | Dash_Secrets_Engine__Org_Org__ { engine : String, org : String }
+    | Org__Repo__Build__Services { org : String, repo : String, build : String }
+    | Org__Repo__Build__Pipeline { org : String, repo : String, build : String }
+    | Org__Repo__Build__Graph { org : String, repo : String, build : String }
+    | Dash_Secrets_Engine__Org_Org_ { engine : String, org : String }
     | Dash_Secrets_Engine__Org_Org__Add { engine : String, org : String }
     | Dash_Secrets_Engine__Org_Org__Name_ { engine : String, org : String, name : String }
-    | Dash_Secrets_Engine__Repo_Org__Repo__ { engine : String, org : String, repo : String }
+    | Dash_Secrets_Engine__Repo_Org__Repo_ { engine : String, org : String, repo : String }
     | Dash_Secrets_Engine__Repo_Org__Repo__Add { engine : String, org : String, repo : String }
     | Dash_Secrets_Engine__Repo_Org__Repo__Name_ { engine : String, org : String, repo : String, name : String }
-    | Dash_Secrets_Engine__Shared_Org__Team__ { engine : String, org : String, team : String }
+    | Dash_Secrets_Engine__Shared_Org__Team_ { engine : String, org : String, team : String }
     | Dash_Secrets_Engine__Shared_Org__Team__Add { engine : String, org : String, team : String }
     | Dash_Secrets_Engine__Shared_Org__Team__Name_ { engine : String, org : String, team : String, name : String }
     | NotFound_
@@ -69,7 +69,7 @@ fromString urlPath =
             Just Account_Login
 
         [ "account", "logout" ] ->
-            Just AccountLogout
+            Just Account_Logout
 
         [ "account", "authenticate" ] ->
             Just AccountAuthenticate_
@@ -100,7 +100,7 @@ fromString urlPath =
                 |> Just
 
         org :: repo :: "deployments" :: "add" :: [] ->
-            Org__Repo__DeploymentsAdd
+            Org__Repo__Deployments_Add
                 { org = org
                 , repo = repo
                 }
@@ -121,14 +121,14 @@ fromString urlPath =
                 |> Just
 
         org :: repo :: "schedules" :: "add" :: [] ->
-            Org__Repo__SchedulesAdd
+            Org__Repo__Schedules_Add
                 { org = org
                 , repo = repo
                 }
                 |> Just
 
         org :: repo :: "schedules" :: name :: [] ->
-            Org__Repo__SchedulesName_
+            Org__Repo__Schedules_Name_
                 { org = org
                 , repo = repo
                 , name = name
@@ -150,14 +150,14 @@ fromString urlPath =
                 |> Just
 
         org :: repo :: "pulls" :: [] ->
-            Org_Repo_Pulls
+            Org__Repo__Pulls
                 { org = org
                 , repo = repo
                 }
                 |> Just
 
         org :: repo :: "tags" :: [] ->
-            Org_Repo_Tags
+            Org__Repo__Tags
                 { org = org
                 , repo = repo
                 }
@@ -172,7 +172,7 @@ fromString urlPath =
                 |> Just
 
         org :: repo :: build :: "services" :: [] ->
-            Org__Repo__Build_Services
+            Org__Repo__Build__Services
                 { org = org
                 , repo = repo
                 , build = build
@@ -180,7 +180,7 @@ fromString urlPath =
                 |> Just
 
         org :: repo :: build :: "pipeline" :: [] ->
-            Org__Repo__Build_Pipeline
+            Org__Repo__Build__Pipeline
                 { org = org
                 , repo = repo
                 , build = build
@@ -188,7 +188,7 @@ fromString urlPath =
                 |> Just
 
         org :: repo :: build :: "graph" :: [] ->
-            Org__Repo__Build_Graph
+            Org__Repo__Build__Graph
                 { org = org
                 , repo = repo
                 , build = build
@@ -196,7 +196,7 @@ fromString urlPath =
                 |> Just
 
         "-" :: "secrets" :: engine :: "org" :: org :: [] ->
-            Dash_Secrets_Engine__Org_Org__
+            Dash_Secrets_Engine__Org_Org_
                 { org = org
                 , engine = engine
                 }
@@ -218,7 +218,7 @@ fromString urlPath =
                 |> Just
 
         "-" :: "secrets" :: engine :: "repo" :: org :: repo :: [] ->
-            Dash_Secrets_Engine__Repo_Org__Repo__
+            Dash_Secrets_Engine__Repo_Org__Repo_
                 { org = org
                 , repo = repo
                 , engine = engine
@@ -243,7 +243,7 @@ fromString urlPath =
                 |> Just
 
         "-" :: "secrets" :: engine :: "shared" :: org :: team :: [] ->
-            Dash_Secrets_Engine__Shared_Org__Team__
+            Dash_Secrets_Engine__Shared_Org__Team_
                 { org = org
                 , team = team
                 , engine = engine
@@ -288,7 +288,7 @@ toString path =
                 Account_Login ->
                     [ "account", "login" ]
 
-                AccountLogout ->
+                Account_Logout ->
                     [ "account", "logout" ]
 
                 AccountAuthenticate_ ->
@@ -309,25 +309,25 @@ toString path =
                 Org__Repo_ params ->
                     [ params.org, params.repo ]
 
-                Org_Repo_Pulls params ->
+                Org__Repo__Pulls params ->
                     [ params.org, params.repo, "?event=pull_request" ]
 
-                Org_Repo_Tags params ->
+                Org__Repo__Tags params ->
                     [ params.org, params.repo, "?event=tag" ]
 
                 Org__Repo__Deployments params ->
                     [ params.org, params.repo, "deployments" ]
 
-                Org__Repo__DeploymentsAdd params ->
+                Org__Repo__Deployments_Add params ->
                     [ params.org, params.repo, "deployments", "add" ]
 
                 Org__Repo__Schedules params ->
                     [ params.org, params.repo, "schedules" ]
 
-                Org__Repo__SchedulesAdd params ->
+                Org__Repo__Schedules_Add params ->
                     [ params.org, params.repo, "schedules", "add" ]
 
-                Org__Repo__SchedulesName_ params ->
+                Org__Repo__Schedules_Name_ params ->
                     [ params.org, params.repo, "schedules", params.name ]
 
                 Org__Repo__Hooks params ->
@@ -339,16 +339,16 @@ toString path =
                 Org__Repo__Build_ params ->
                     [ params.org, params.repo, params.build ]
 
-                Org__Repo__Build_Services params ->
+                Org__Repo__Build__Services params ->
                     [ params.org, params.repo, params.build, "services" ]
 
-                Org__Repo__Build_Pipeline params ->
+                Org__Repo__Build__Pipeline params ->
                     [ params.org, params.repo, params.build, "pipeline" ]
 
-                Org__Repo__Build_Graph params ->
+                Org__Repo__Build__Graph params ->
                     [ params.org, params.repo, params.build, "graph" ]
 
-                Dash_Secrets_Engine__Org_Org__ params ->
+                Dash_Secrets_Engine__Org_Org_ params ->
                     [ "-", "secrets", params.engine, "org", params.org ]
 
                 Dash_Secrets_Engine__Org_Org__Add params ->
@@ -357,7 +357,7 @@ toString path =
                 Dash_Secrets_Engine__Org_Org__Name_ params ->
                     [ "-", "secrets", params.engine, "org", params.org, params.name ]
 
-                Dash_Secrets_Engine__Repo_Org__Repo__ params ->
+                Dash_Secrets_Engine__Repo_Org__Repo_ params ->
                     [ "-", "secrets", params.engine, "repo", params.org, params.repo ]
 
                 Dash_Secrets_Engine__Repo_Org__Repo__Add params ->
@@ -366,7 +366,7 @@ toString path =
                 Dash_Secrets_Engine__Repo_Org__Repo__Name_ params ->
                     [ "-", "secrets", params.engine, "repo", params.org, params.repo, params.name ]
 
-                Dash_Secrets_Engine__Shared_Org__Team__ params ->
+                Dash_Secrets_Engine__Shared_Org__Team_ params ->
                     [ "-", "secrets", params.engine, "shared", params.org, params.team ]
 
                 Dash_Secrets_Engine__Shared_Org__Team__Add params ->

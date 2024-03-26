@@ -311,7 +311,7 @@ view shared route model =
             , ( "Edit", Nothing )
             , ( route.params.name
               , Just <|
-                    Route.Path.Org__Repo__SchedulesName_
+                    Route.Path.Org__Repo__Schedules_Name_
                         { org = route.params.org
                         , repo = route.params.repo
                         , name = route.params.name

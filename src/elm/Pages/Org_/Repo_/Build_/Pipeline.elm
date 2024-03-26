@@ -97,7 +97,7 @@ toLayout user route model =
         , build = route.params.build
         , toBuildPath =
             \build ->
-                Route.Path.Org__Repo__Build_Pipeline
+                Route.Path.Org__Repo__Build__Pipeline
                     { org = route.params.org
                     , repo = route.params.repo
                     , build = build
@@ -236,7 +236,7 @@ update shared route msg model =
             ( model
             , Effect.pushRoute
                 { path =
-                    Route.Path.Org__Repo__Build_Pipeline
+                    Route.Path.Org__Repo__Build__Pipeline
                         { org = route.params.org
                         , repo = route.params.repo
                         , build = route.params.build
@@ -273,7 +273,7 @@ update shared route msg model =
             ( model
             , Effect.pushRoute
                 { path =
-                    Route.Path.Org__Repo__Build_Pipeline
+                    Route.Path.Org__Repo__Build__Pipeline
                         { org = route.params.org
                         , repo = route.params.repo
                         , build = route.params.build
