@@ -80,190 +80,176 @@ fromString urlPath =
         "account" :: "source-repos" :: [] ->
             Just Account_SourceRepos
 
-        "-" :: "secrets" :: engine :: "org" :: org :: [] ->
+        "-" :: "secrets" :: engine_ :: "org" :: org_ :: [] ->
             Dash_Secrets_Engine__Org_Org_
-                { org = org
-                , engine = engine
+                { engine = engine_
+                , org = org_
                 }
                 |> Just
 
-        "-" :: "secrets" :: engine :: "org" :: org :: "add" :: [] ->
+        "-" :: "secrets" :: engine_ :: "org" :: org_ :: "add" :: [] ->
             Dash_Secrets_Engine__Org_Org__Add
-                { org = org
-                , engine = engine
+                { engine = engine_
+                , org = org_
                 }
                 |> Just
 
-        "-" :: "secrets" :: engine :: "org" :: org :: name :: [] ->
+        "-" :: "secrets" :: engine_ :: "org" :: org_ :: name_ :: [] ->
             Dash_Secrets_Engine__Org_Org__Name_
-                { org = org
-                , name = name
-                , engine = engine
+                { engine = engine_
+                , org = org_
+                , name = name_
                 }
                 |> Just
 
-        "-" :: "secrets" :: engine :: "repo" :: org :: repo :: [] ->
+        "-" :: "secrets" :: engine_ :: "repo" :: org_ :: repo_ :: [] ->
             Dash_Secrets_Engine__Repo_Org__Repo_
-                { org = org
-                , repo = repo
-                , engine = engine
+                { engine = engine_
+                , org = org_
+                , repo = repo_
                 }
                 |> Just
 
-        "-" :: "secrets" :: engine :: "repo" :: org :: repo :: "add" :: [] ->
+        "-" :: "secrets" :: engine_ :: "repo" :: org_ :: repo_ :: "add" :: [] ->
             Dash_Secrets_Engine__Repo_Org__Repo__Add
-                { org = org
-                , repo = repo
-                , engine = engine
+                { engine = engine_
+                , org = org_
+                , repo = repo_
                 }
                 |> Just
 
-        "-" :: "secrets" :: engine :: "repo" :: org :: repo :: name :: [] ->
+        "-" :: "secrets" :: engine_ :: "repo" :: org_ :: repo_ :: name_ :: [] ->
             Dash_Secrets_Engine__Repo_Org__Repo__Name_
-                { org = org
-                , repo = repo
-                , name = name
-                , engine = engine
+                { engine = engine_
+                , org = org_
+                , repo = repo_
+                , name = name_
                 }
                 |> Just
 
-        "-" :: "secrets" :: engine :: "shared" :: org :: team :: [] ->
+        "-" :: "secrets" :: engine_ :: "shared" :: org_ :: team_ :: [] ->
             Dash_Secrets_Engine__Shared_Org__Team_
-                { org = org
-                , team = team
-                , engine = engine
+                { engine = engine_
+                , org = org_
+                , team = team_
                 }
                 |> Just
 
-        "-" :: "secrets" :: engine :: "shared" :: org :: team :: "add" :: [] ->
+        "-" :: "secrets" :: engine_ :: "shared" :: org_ :: team_ :: "add" :: [] ->
             Dash_Secrets_Engine__Shared_Org__Team__Add
-                { org = org
-                , team = team
-                , engine = engine
+                { engine = engine_
+                , org = org_
+                , team = team_
                 }
                 |> Just
 
-        "-" :: "secrets" :: engine :: "shared" :: org :: team :: name :: [] ->
+        "-" :: "secrets" :: engine_ :: "shared" :: org_ :: team_ :: name_ :: [] ->
             Dash_Secrets_Engine__Shared_Org__Team__Name_
-                { org = org
-                , team = team
-                , name = name
-                , engine = engine
+                { engine = engine_
+                , org = org_
+                , team = team_
+                , name = name_
                 }
                 |> Just
 
-        org :: [] ->
+        org_ :: [] ->
             Org_
-                { org = org
+                { org = org_
                 }
                 |> Just
 
-        org :: "builds" :: [] ->
+        org_ :: "builds" :: [] ->
             Org__Builds
-                { org = org
+                { org = org_
                 }
                 |> Just
 
-        org :: repo :: [] ->
+        org_ :: repo_ :: [] ->
             Org__Repo_
-                { org = org
-                , repo = repo
+                { org = org_
+                , repo = repo_
                 }
                 |> Just
 
-        org :: repo :: "deployments" :: "add" :: [] ->
-            Org__Repo__Deployments_Add
-                { org = org
-                , repo = repo
-                }
-                |> Just
-
-        org :: repo :: "deployments" :: [] ->
+        org_ :: repo_ :: "deployments" :: [] ->
             Org__Repo__Deployments
-                { org = org
-                , repo = repo
+                { org = org_
+                , repo = repo_
                 }
                 |> Just
 
-        org :: repo :: "schedules" :: [] ->
-            Org__Repo__Schedules
-                { org = org
-                , repo = repo
+        org_ :: repo_ :: "deployments" :: "add" :: [] ->
+            Org__Repo__Deployments_Add
+                { org = org_
+                , repo = repo_
                 }
                 |> Just
 
-        org :: repo :: "schedules" :: "add" :: [] ->
-            Org__Repo__Schedules_Add
-                { org = org
-                , repo = repo
-                }
-                |> Just
-
-        org :: repo :: "schedules" :: name :: [] ->
-            Org__Repo__Schedules_Name_
-                { org = org
-                , repo = repo
-                , name = name
-                }
-                |> Just
-
-        org :: repo :: "hooks" :: [] ->
+        org_ :: repo_ :: "hooks" :: [] ->
             Org__Repo__Hooks
-                { org = org
-                , repo = repo
+                { org = org_
+                , repo = repo_
                 }
                 |> Just
 
-        org :: repo :: "settings" :: [] ->
+        org_ :: repo_ :: "schedules" :: [] ->
+            Org__Repo__Schedules
+                { org = org_
+                , repo = repo_
+                }
+                |> Just
+
+        org_ :: repo_ :: "schedules" :: "add" :: [] ->
+            Org__Repo__Schedules_Add
+                { org = org_
+                , repo = repo_
+                }
+                |> Just
+
+        org_ :: repo_ :: "schedules" :: name_ :: [] ->
+            Org__Repo__Schedules_Name_
+                { org = org_
+                , repo = repo_
+                , name = name_
+                }
+                |> Just
+
+        org_ :: repo_ :: "settings" :: [] ->
             Org__Repo__Settings
-                { org = org
-                , repo = repo
+                { org = org_
+                , repo = repo_
                 }
                 |> Just
 
-        org :: repo :: "pulls" :: [] ->
-            Org__Repo__Pulls
-                { org = org
-                , repo = repo
-                }
-                |> Just
-
-        org :: repo :: "tags" :: [] ->
-            Org__Repo__Tags
-                { org = org
-                , repo = repo
-                }
-                |> Just
-
-        org :: repo :: build :: [] ->
+        org_ :: repo_ :: build_ :: [] ->
             Org__Repo__Build_
-                { org = org
-                , repo = repo
-                , build = build
+                { org = org_
+                , repo = repo_
+                , build = build_
                 }
                 |> Just
 
-        org :: repo :: build :: "services" :: [] ->
-            Org__Repo__Build__Services
-                { org = org
-                , repo = repo
-                , build = build
-                }
-                |> Just
-
-        org :: repo :: build :: "pipeline" :: [] ->
-            Org__Repo__Build__Pipeline
-                { org = org
-                , repo = repo
-                , build = build
-                }
-                |> Just
-
-        org :: repo :: build :: "graph" :: [] ->
+        org_ :: repo_ :: build_ :: "graph" :: [] ->
             Org__Repo__Build__Graph
-                { org = org
-                , repo = repo
-                , build = build
+                { org = org_
+                , repo = repo_
+                , build = build_
+                }
+                |> Just
+
+        org_ :: repo_ :: build_ :: "pipeline" :: [] ->
+            Org__Repo__Build__Pipeline
+                { org = org_
+                , repo = repo_
+                , build = build_
+                }
+                |> Just
+
+        org_ :: repo_ :: build_ :: "services" :: [] ->
+            Org__Repo__Build__Services
+                { org = org_
+                , repo = repo_
+                , build = build_
                 }
                 |> Just
 
@@ -367,14 +353,14 @@ toString path =
                 Org__Repo__Build_ params ->
                     [ params.org, params.repo, params.build ]
 
-                Org__Repo__Build__Services params ->
-                    [ params.org, params.repo, params.build, "services" ]
+                Org__Repo__Build__Graph params ->
+                    [ params.org, params.repo, params.build, "graph" ]
 
                 Org__Repo__Build__Pipeline params ->
                     [ params.org, params.repo, params.build, "pipeline" ]
 
-                Org__Repo__Build__Graph params ->
-                    [ params.org, params.repo, params.build, "graph" ]
+                Org__Repo__Build__Services params ->
+                    [ params.org, params.repo, params.build, "services" ]
 
                 NotFound_ ->
                     [ "not-found" ]
