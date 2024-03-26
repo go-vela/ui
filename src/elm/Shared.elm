@@ -290,7 +290,7 @@ update route msg model =
                             model.velaRedirect
 
                 redirectRoute =
-                    Route.Path.parsePath velaRedirect
+                    Route.parsePath velaRedirect
                         |> (\parsed ->
                                 { path = Maybe.withDefault Route.Path.Home <| Route.Path.fromString parsed.path
                                 , query = Route.Query.fromString <| Maybe.withDefault "" parsed.query
