@@ -13,8 +13,8 @@ import Url.Parser exposing ((</>))
 
 type Path
     = Home_
-    | Account_Login
     | Account_Authenticate
+    | Account_Login
     | Account_Logout
     | Account_Settings
     | Account_SourceRepos
@@ -33,11 +33,11 @@ type Path
     | Org__Repo__Deployments { org : String, repo : String }
     | Org__Repo__Deployments_Add { org : String, repo : String }
     | Org__Repo__Hooks { org : String, repo : String }
+    | Org__Repo__Pulls { org : String, repo : String }
     | Org__Repo__Schedules { org : String, repo : String }
     | Org__Repo__Schedules_Add { org : String, repo : String }
     | Org__Repo__Schedules_Name_ { org : String, repo : String, name : String }
     | Org__Repo__Settings { org : String, repo : String }
-    | Org__Repo__Pulls { org : String, repo : String }
     | Org__Repo__Tags { org : String, repo : String }
     | Org__Repo__Build_ { org : String, repo : String, build : String }
     | Org__Repo__Build__Graph { org : String, repo : String, build : String }
@@ -65,11 +65,11 @@ fromString urlPath =
         [] ->
             Just Home_
 
-        "account" :: "login" :: [] ->
-            Just Account_Login
-
         "account" :: "authenticate" :: [] ->
             Just Account_Authenticate
+
+        "account" :: "login" :: [] ->
+            Just Account_Login
 
         "account" :: "logout" :: [] ->
             Just Account_Logout
@@ -192,6 +192,13 @@ fromString urlPath =
                 }
                 |> Just
 
+        org_ :: repo_ :: "pulls" :: [] ->
+            Org__Repo__Pulls
+                { org = org_
+                , repo = repo_
+                }
+                |> Just
+
         org_ :: repo_ :: "schedules" :: [] ->
             Org__Repo__Schedules
                 { org = org_
@@ -216,13 +223,6 @@ fromString urlPath =
 
         org_ :: repo_ :: "settings" :: [] ->
             Org__Repo__Settings
-                { org = org_
-                , repo = repo_
-                }
-                |> Just
-
-        org_ :: repo_ :: "pulls" :: [] ->
-            Org__Repo__Pulls
                 { org = org_
                 , repo = repo_
                 }
@@ -285,11 +285,11 @@ toString path =
                 Home_ ->
                     []
 
-                Account_Login ->
-                    [ "account", "login" ]
-
                 Account_Authenticate ->
                     [ "account", "authenticate" ]
+
+                Account_Login ->
+                    [ "account", "login" ]
 
                 Account_Logout ->
                     [ "account", "logout" ]
@@ -345,6 +345,9 @@ toString path =
                 Org__Repo__Hooks params ->
                     [ params.org, params.repo, "hooks" ]
 
+                Org__Repo__Pulls params ->
+                    [ params.org, params.repo, "?event=pull_request" ]
+
                 Org__Repo__Schedules params ->
                     [ params.org, params.repo, "schedules" ]
 
@@ -356,10 +359,6 @@ toString path =
 
                 Org__Repo__Settings params ->
                     [ params.org, params.repo, "settings" ]
-
-                -- ALIASES
-                Org__Repo__Pulls params ->
-                    [ params.org, params.repo, "?event=pull_request" ]
 
                 Org__Repo__Tags params ->
                     [ params.org, params.repo, "?event=tag" ]
