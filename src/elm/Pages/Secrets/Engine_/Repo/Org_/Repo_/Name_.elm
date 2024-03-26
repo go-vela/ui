@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_ exposing (Model, Msg, page, view)
+module Pages.Secrets.Engine_.Repo.Org_.Repo_.Name_ exposing (Model, Msg, page, view)
 
 import Auth
 import Components.Crumbs

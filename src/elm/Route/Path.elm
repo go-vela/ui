@@ -27,22 +27,22 @@ type Path
     | Org_Repo_DeploymentsAdd { org : String, repo : String }
     | Org_Repo_Schedules { org : String, repo : String }
     | Org_Repo_SchedulesAdd { org : String, repo : String }
-    | Org_Repo_SchedulesEdit_ { org : String, repo : String, name : String }
+    | Org_Repo_SchedulesName_ { org : String, repo : String, name : String }
     | Org_Repo_Hooks { org : String, repo : String }
     | Org_Repo_Settings { org : String, repo : String }
-    | Org_Repo_Build_ { org : String, repo : String, buildNumber : String }
-    | Org_Repo_Build_Services { org : String, repo : String, buildNumber : String }
-    | Org_Repo_Build_Pipeline { org : String, repo : String, buildNumber : String }
-    | Org_Repo_Build_Graph { org : String, repo : String, buildNumber : String }
+    | Org_Repo_Build_ { org : String, repo : String, build : String }
+    | Org_Repo_Build_Services { org : String, repo : String, build : String }
+    | Org_Repo_Build_Pipeline { org : String, repo : String, build : String }
+    | Org_Repo_Build_Graph { org : String, repo : String, build : String }
     | SecretsEngine_OrgOrg_ { engine : String, org : String }
     | SecretsEngine_OrgOrg_Add { engine : String, org : String }
-    | SecretsEngine_OrgOrg_Edit_ { engine : String, org : String, name : String }
+    | SecretsEngine_OrgOrg_Name_ { engine : String, org : String, name : String }
     | SecretsEngine_RepoOrg_Repo_ { engine : String, org : String, repo : String }
     | SecretsEngine_RepoOrg_Repo_Add { engine : String, org : String, repo : String }
-    | SecretsEngine_RepoOrg_Repo_Edit_ { engine : String, org : String, repo : String, name : String }
+    | SecretsEngine_RepoOrg_Repo_Name_ { engine : String, org : String, repo : String, name : String }
     | SecretsEngine_SharedOrg_Team_ { engine : String, org : String, team : String }
     | SecretsEngine_SharedOrg_Team_Add { engine : String, org : String, team : String }
-    | SecretsEngine_SharedOrg_Team_Edit_ { engine : String, org : String, team : String, name : String }
+    | SecretsEngine_SharedOrg_Team_Name_ { engine : String, org : String, team : String, name : String }
     | NotFound_
 
 
@@ -128,7 +128,7 @@ fromString urlPath =
                 |> Just
 
         org :: repo :: "schedules" :: name :: [] ->
-            Org_Repo_SchedulesEdit_
+            Org_Repo_SchedulesName_
                 { org = org
                 , repo = repo
                 , name = name
@@ -163,35 +163,35 @@ fromString urlPath =
                 }
                 |> Just
 
-        org :: repo :: buildNumber :: [] ->
+        org :: repo :: build :: [] ->
             Org_Repo_Build_
                 { org = org
                 , repo = repo
-                , buildNumber = buildNumber
+                , build = build
                 }
                 |> Just
 
-        org :: repo :: buildNumber :: "services" :: [] ->
+        org :: repo :: build :: "services" :: [] ->
             Org_Repo_Build_Services
                 { org = org
                 , repo = repo
-                , buildNumber = buildNumber
+                , build = build
                 }
                 |> Just
 
-        org :: repo :: buildNumber :: "pipeline" :: [] ->
+        org :: repo :: build :: "pipeline" :: [] ->
             Org_Repo_Build_Pipeline
                 { org = org
                 , repo = repo
-                , buildNumber = buildNumber
+                , build = build
                 }
                 |> Just
 
-        org :: repo :: buildNumber :: "graph" :: [] ->
+        org :: repo :: build :: "graph" :: [] ->
             Org_Repo_Build_Graph
                 { org = org
                 , repo = repo
-                , buildNumber = buildNumber
+                , build = build
                 }
                 |> Just
 
@@ -210,7 +210,7 @@ fromString urlPath =
                 |> Just
 
         "-" :: "secrets" :: engine :: "org" :: org :: name :: [] ->
-            SecretsEngine_OrgOrg_Edit_
+            SecretsEngine_OrgOrg_Name_
                 { org = org
                 , name = name
                 , engine = engine
@@ -234,7 +234,7 @@ fromString urlPath =
                 |> Just
 
         "-" :: "secrets" :: engine :: "repo" :: org :: repo :: name :: [] ->
-            SecretsEngine_RepoOrg_Repo_Edit_
+            SecretsEngine_RepoOrg_Repo_Name_
                 { org = org
                 , repo = repo
                 , name = name
@@ -259,7 +259,7 @@ fromString urlPath =
                 |> Just
 
         "-" :: "secrets" :: engine :: "shared" :: org :: team :: name :: [] ->
-            SecretsEngine_SharedOrg_Team_Edit_
+            SecretsEngine_SharedOrg_Team_Name_
                 { org = org
                 , team = team
                 , name = name
@@ -327,7 +327,7 @@ toString path =
                 Org_Repo_SchedulesAdd params ->
                     [ params.org, params.repo, "schedules", "add" ]
 
-                Org_Repo_SchedulesEdit_ params ->
+                Org_Repo_SchedulesName_ params ->
                     [ params.org, params.repo, "schedules", params.name ]
 
                 Org_Repo_Hooks params ->
@@ -337,16 +337,16 @@ toString path =
                     [ params.org, params.repo, "settings" ]
 
                 Org_Repo_Build_ params ->
-                    [ params.org, params.repo, params.buildNumber ]
+                    [ params.org, params.repo, params.build ]
 
                 Org_Repo_Build_Services params ->
-                    [ params.org, params.repo, params.buildNumber, "services" ]
+                    [ params.org, params.repo, params.build, "services" ]
 
                 Org_Repo_Build_Pipeline params ->
-                    [ params.org, params.repo, params.buildNumber, "pipeline" ]
+                    [ params.org, params.repo, params.build, "pipeline" ]
 
                 Org_Repo_Build_Graph params ->
-                    [ params.org, params.repo, params.buildNumber, "graph" ]
+                    [ params.org, params.repo, params.build, "graph" ]
 
                 SecretsEngine_OrgOrg_ params ->
                     [ "-", "secrets", params.engine, "org", params.org ]
@@ -354,7 +354,7 @@ toString path =
                 SecretsEngine_OrgOrg_Add params ->
                     [ "-", "secrets", params.engine, "org", params.org, "add" ]
 
-                SecretsEngine_OrgOrg_Edit_ params ->
+                SecretsEngine_OrgOrg_Name_ params ->
                     [ "-", "secrets", params.engine, "org", params.org, params.name ]
 
                 SecretsEngine_RepoOrg_Repo_ params ->
@@ -363,7 +363,7 @@ toString path =
                 SecretsEngine_RepoOrg_Repo_Add params ->
                     [ "-", "secrets", params.engine, "repo", params.org, params.repo, "add" ]
 
-                SecretsEngine_RepoOrg_Repo_Edit_ params ->
+                SecretsEngine_RepoOrg_Repo_Name_ params ->
                     [ "-", "secrets", params.engine, "repo", params.org, params.repo, params.name ]
 
                 SecretsEngine_SharedOrg_Team_ params ->
@@ -372,7 +372,7 @@ toString path =
                 SecretsEngine_SharedOrg_Team_Add params ->
                     [ "-", "secrets", params.engine, "shared", params.org, params.team, "add" ]
 
-                SecretsEngine_SharedOrg_Team_Edit_ params ->
+                SecretsEngine_SharedOrg_Team_Name_ params ->
                     [ "-", "secrets", params.engine, "shared", params.org, params.team, params.name ]
 
                 NotFound_ ->

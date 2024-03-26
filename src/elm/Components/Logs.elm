@@ -42,7 +42,7 @@ type alias Props msg =
     , log : WebData Vela.Log
     , org : String
     , repo : String
-    , buildNumber : String
+    , build : String
     , resourceType : String
     , resourceNumber : String
     , focus : Focus.Focus
@@ -396,7 +396,7 @@ viewDownloadButton props log =
             log.size == 0
 
         fileName =
-            String.join "-" [ props.org, props.repo, props.buildNumber, props.resourceType, props.resourceNumber ]
+            String.join "-" [ props.org, props.repo, props.build, props.resourceType, props.resourceNumber ]
                 ++ ".txt"
     in
     button

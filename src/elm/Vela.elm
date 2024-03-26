@@ -1154,7 +1154,7 @@ encodeBuildGraphRenderData graphData =
 
 type alias BuildGraph =
     { buildID : Int
-    , buildNumber : Int
+    , build : Int
     , org : Org
     , repo : Repo
     , nodes : Dict Int BuildGraphNode

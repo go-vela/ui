@@ -251,7 +251,7 @@ viewBuildTabs :
     ->
         { org : String
         , repo : String
-        , buildNumber : String
+        , build : String
         , currentPath : Route.Path.Path
         , tabHistory : Dict String Url
         }
@@ -264,7 +264,7 @@ viewBuildTabs shared props =
                     Route.Path.Org_Repo_Build_
                         { org = props.org
                         , repo = props.repo
-                        , buildNumber = props.buildNumber
+                        , build = props.build
                         }
               , isAlerting = False
               , show = True
@@ -274,7 +274,7 @@ viewBuildTabs shared props =
                     Route.Path.Org_Repo_Build_Services
                         { org = props.org
                         , repo = props.repo
-                        , buildNumber = props.buildNumber
+                        , build = props.build
                         }
               , isAlerting = False
               , show = True
@@ -284,7 +284,7 @@ viewBuildTabs shared props =
                     Route.Path.Org_Repo_Build_Pipeline
                         { org = props.org
                         , repo = props.repo
-                        , buildNumber = props.buildNumber
+                        , build = props.build
                         }
               , isAlerting = False
               , show = True
@@ -294,7 +294,7 @@ viewBuildTabs shared props =
                     Route.Path.Org_Repo_Build_Graph
                         { org = props.org
                         , repo = props.repo
-                        , buildNumber = props.buildNumber
+                        , build = props.build
                         }
               , isAlerting = False
               , show = True

@@ -44,17 +44,17 @@ import Pages.Org_.Repo_.Deployments.Add
 import Pages.Org_.Repo_.Hooks
 import Pages.Org_.Repo_.Schedules
 import Pages.Org_.Repo_.Schedules.Add
-import Pages.Org_.Repo_.Schedules.Edit_
+import Pages.Org_.Repo_.Schedules.Name_
 import Pages.Org_.Repo_.Settings
 import Pages.Secrets.Engine_.Org.Org_
 import Pages.Secrets.Engine_.Org.Org_.Add
-import Pages.Secrets.Engine_.Org.Org_.Edit_
+import Pages.Secrets.Engine_.Org.Org_.Name_
 import Pages.Secrets.Engine_.Repo.Org_.Repo_
 import Pages.Secrets.Engine_.Repo.Org_.Repo_.Add
-import Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_
+import Pages.Secrets.Engine_.Repo.Org_.Repo_.Name_
 import Pages.Secrets.Engine_.Shared.Org_.Team_
 import Pages.Secrets.Engine_.Shared.Org_.Team_.Add
-import Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_
+import Pages.Secrets.Engine_.Shared.Org_.Team_.Name_
 import Route exposing (Route)
 import Route.Path
 import Shared
@@ -642,26 +642,26 @@ initPageAndLayout model =
                     }
                 )
 
-        Route.Path.Org_Repo_SchedulesEdit_ params ->
+        Route.Path.Org_Repo_SchedulesName_ params ->
             runWhenAuthenticatedWithLayout
                 model
                 (\user ->
                     let
-                        page : Page.Page Pages.Org_.Repo_.Schedules.Edit_.Model Pages.Org_.Repo_.Schedules.Edit_.Msg
+                        page : Page.Page Pages.Org_.Repo_.Schedules.Name_.Model Pages.Org_.Repo_.Schedules.Name_.Msg
                         page =
-                            Pages.Org_.Repo_.Schedules.Edit_.page user model.shared (Route.fromUrl params model.url)
+                            Pages.Org_.Repo_.Schedules.Name_.page user model.shared (Route.fromUrl params model.url)
 
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
                     { page =
                         Tuple.mapBoth
-                            (Main.Pages.Model.Org_Repo_SchedulesEdit_ params)
-                            (Effect.map Main.Pages.Msg.Org_Repo_SchedulesEdit_ >> fromPageEffect model)
+                            (Main.Pages.Model.Org_Repo_SchedulesName_ params)
+                            (Effect.map Main.Pages.Msg.Org_Repo_SchedulesName_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
                     , layout =
                         Page.layout pageModel page
-                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_SchedulesEdit_ >> Page))
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_SchedulesName_ >> Page))
                             |> Maybe.map (initLayout model)
                     }
                 )
@@ -858,26 +858,26 @@ initPageAndLayout model =
                     }
                 )
 
-        Route.Path.SecretsEngine_OrgOrg_Edit_ params ->
+        Route.Path.SecretsEngine_OrgOrg_Name_ params ->
             runWhenAuthenticatedWithLayout
                 model
                 (\user ->
                     let
-                        page : Page.Page Pages.Secrets.Engine_.Org.Org_.Edit_.Model Pages.Secrets.Engine_.Org.Org_.Edit_.Msg
+                        page : Page.Page Pages.Secrets.Engine_.Org.Org_.Name_.Model Pages.Secrets.Engine_.Org.Org_.Name_.Msg
                         page =
-                            Pages.Secrets.Engine_.Org.Org_.Edit_.page user model.shared (Route.fromUrl params model.url)
+                            Pages.Secrets.Engine_.Org.Org_.Name_.page user model.shared (Route.fromUrl params model.url)
 
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
                     { page =
                         Tuple.mapBoth
-                            (Main.Pages.Model.SecretsEngine_OrgOrg_Edit_ params)
-                            (Effect.map Main.Pages.Msg.SecretsEngine_OrgOrg_Edit_ >> fromPageEffect model)
+                            (Main.Pages.Model.SecretsEngine_OrgOrg_Name_ params)
+                            (Effect.map Main.Pages.Msg.SecretsEngine_OrgOrg_Name_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
                     , layout =
                         Page.layout pageModel page
-                            |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_OrgOrg_Edit_ >> Page))
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_OrgOrg_Name_ >> Page))
                             |> Maybe.map (initLayout model)
                     }
                 )
@@ -930,26 +930,26 @@ initPageAndLayout model =
                     }
                 )
 
-        Route.Path.SecretsEngine_RepoOrg_Repo_Edit_ params ->
+        Route.Path.SecretsEngine_RepoOrg_Repo_Name_ params ->
             runWhenAuthenticatedWithLayout
                 model
                 (\user ->
                     let
-                        page : Page.Page Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_.Model Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_.Msg
+                        page : Page.Page Pages.Secrets.Engine_.Repo.Org_.Repo_.Name_.Model Pages.Secrets.Engine_.Repo.Org_.Repo_.Name_.Msg
                         page =
-                            Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_.page user model.shared (Route.fromUrl params model.url)
+                            Pages.Secrets.Engine_.Repo.Org_.Repo_.Name_.page user model.shared (Route.fromUrl params model.url)
 
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
                     { page =
                         Tuple.mapBoth
-                            (Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Edit_ params)
-                            (Effect.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Edit_ >> fromPageEffect model)
+                            (Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Name_ params)
+                            (Effect.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Name_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
                     , layout =
                         Page.layout pageModel page
-                            |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Edit_ >> Page))
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Name_ >> Page))
                             |> Maybe.map (initLayout model)
                     }
                 )
@@ -1002,26 +1002,26 @@ initPageAndLayout model =
                     }
                 )
 
-        Route.Path.SecretsEngine_SharedOrg_Team_Edit_ params ->
+        Route.Path.SecretsEngine_SharedOrg_Team_Name_ params ->
             runWhenAuthenticatedWithLayout
                 model
                 (\user ->
                     let
-                        page : Page.Page Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_.Model Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_.Msg
+                        page : Page.Page Pages.Secrets.Engine_.Shared.Org_.Team_.Name_.Model Pages.Secrets.Engine_.Shared.Org_.Team_.Name_.Msg
                         page =
-                            Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_.page user model.shared (Route.fromUrl params model.url)
+                            Pages.Secrets.Engine_.Shared.Org_.Team_.Name_.page user model.shared (Route.fromUrl params model.url)
 
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
                     { page =
                         Tuple.mapBoth
-                            (Main.Pages.Model.SecretsEngine_SharedOrg_Team_Edit_ params)
-                            (Effect.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Edit_ >> fromPageEffect model)
+                            (Main.Pages.Model.SecretsEngine_SharedOrg_Team_Name_ params)
+                            (Effect.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Name_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
                     , layout =
                         Page.layout pageModel page
-                            |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Edit_ >> Page))
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Name_ >> Page))
                             |> Maybe.map (initLayout model)
                     }
                 )
@@ -1374,14 +1374,14 @@ updateFromPage msg model =
                         (Page.update (Pages.Org_.Repo_.Schedules.Add.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
-        ( Main.Pages.Msg.Org_Repo_SchedulesEdit_ pageMsg, Main.Pages.Model.Org_Repo_SchedulesEdit_ params pageModel ) ->
+        ( Main.Pages.Msg.Org_Repo_SchedulesName_ pageMsg, Main.Pages.Model.Org_Repo_SchedulesName_ params pageModel ) ->
             runWhenAuthenticated
                 model
                 (\user ->
                     Tuple.mapBoth
-                        (Main.Pages.Model.Org_Repo_SchedulesEdit_ params)
-                        (Effect.map Main.Pages.Msg.Org_Repo_SchedulesEdit_ >> fromPageEffect model)
-                        (Page.update (Pages.Org_.Repo_.Schedules.Edit_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
+                        (Main.Pages.Model.Org_Repo_SchedulesName_ params)
+                        (Effect.map Main.Pages.Msg.Org_Repo_SchedulesName_ >> fromPageEffect model)
+                        (Page.update (Pages.Org_.Repo_.Schedules.Name_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
         ( Main.Pages.Msg.Org_Repo_Hooks pageMsg, Main.Pages.Model.Org_Repo_Hooks params pageModel ) ->
@@ -1464,14 +1464,14 @@ updateFromPage msg model =
                         (Page.update (Pages.Secrets.Engine_.Org.Org_.Add.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
-        ( Main.Pages.Msg.SecretsEngine_OrgOrg_Edit_ pageMsg, Main.Pages.Model.SecretsEngine_OrgOrg_Edit_ params pageModel ) ->
+        ( Main.Pages.Msg.SecretsEngine_OrgOrg_Name_ pageMsg, Main.Pages.Model.SecretsEngine_OrgOrg_Name_ params pageModel ) ->
             runWhenAuthenticated
                 model
                 (\user ->
                     Tuple.mapBoth
-                        (Main.Pages.Model.SecretsEngine_OrgOrg_Edit_ params)
-                        (Effect.map Main.Pages.Msg.SecretsEngine_OrgOrg_Edit_ >> fromPageEffect model)
-                        (Page.update (Pages.Secrets.Engine_.Org.Org_.Edit_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
+                        (Main.Pages.Model.SecretsEngine_OrgOrg_Name_ params)
+                        (Effect.map Main.Pages.Msg.SecretsEngine_OrgOrg_Name_ >> fromPageEffect model)
+                        (Page.update (Pages.Secrets.Engine_.Org.Org_.Name_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
         ( Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_ pageMsg, Main.Pages.Model.SecretsEngine_RepoOrg_Repo_ params pageModel ) ->
@@ -1494,14 +1494,14 @@ updateFromPage msg model =
                         (Page.update (Pages.Secrets.Engine_.Repo.Org_.Repo_.Add.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
-        ( Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Edit_ pageMsg, Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Edit_ params pageModel ) ->
+        ( Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Name_ pageMsg, Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Name_ params pageModel ) ->
             runWhenAuthenticated
                 model
                 (\user ->
                     Tuple.mapBoth
-                        (Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Edit_ params)
-                        (Effect.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Edit_ >> fromPageEffect model)
-                        (Page.update (Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
+                        (Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Name_ params)
+                        (Effect.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Name_ >> fromPageEffect model)
+                        (Page.update (Pages.Secrets.Engine_.Repo.Org_.Repo_.Name_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
         ( Main.Pages.Msg.SecretsEngine_SharedOrg_Team_ pageMsg, Main.Pages.Model.SecretsEngine_SharedOrg_Team_ params pageModel ) ->
@@ -1524,14 +1524,14 @@ updateFromPage msg model =
                         (Page.update (Pages.Secrets.Engine_.Shared.Org_.Team_.Add.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
-        ( Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Edit_ pageMsg, Main.Pages.Model.SecretsEngine_SharedOrg_Team_Edit_ params pageModel ) ->
+        ( Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Name_ pageMsg, Main.Pages.Model.SecretsEngine_SharedOrg_Team_Name_ params pageModel ) ->
             runWhenAuthenticated
                 model
                 (\user ->
                     Tuple.mapBoth
-                        (Main.Pages.Model.SecretsEngine_SharedOrg_Team_Edit_ params)
-                        (Effect.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Edit_ >> fromPageEffect model)
-                        (Page.update (Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
+                        (Main.Pages.Model.SecretsEngine_SharedOrg_Team_Name_ params)
+                        (Effect.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Name_ >> fromPageEffect model)
+                        (Page.update (Pages.Secrets.Engine_.Shared.Org_.Team_.Name_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
         ( Main.Pages.Msg.NotFound_ pageMsg, Main.Pages.Model.NotFound_ pageModel ) ->
@@ -1687,11 +1687,11 @@ toLayoutFromPage model =
                 |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_SchedulesAdd >> Page))
 
-        Main.Pages.Model.Org_Repo_SchedulesEdit_ params pageModel ->
+        Main.Pages.Model.Org_Repo_SchedulesName_ params pageModel ->
             Route.fromUrl params model.url
-                |> toAuthProtectedPage model Pages.Org_.Repo_.Schedules.Edit_.page
+                |> toAuthProtectedPage model Pages.Org_.Repo_.Schedules.Name_.page
                 |> Maybe.andThen (Page.layout pageModel)
-                |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_SchedulesEdit_ >> Page))
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_SchedulesName_ >> Page))
 
         Main.Pages.Model.Org_Repo_Hooks params pageModel ->
             Route.fromUrl params model.url
@@ -1741,11 +1741,11 @@ toLayoutFromPage model =
                 |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_OrgOrg_Add >> Page))
 
-        Main.Pages.Model.SecretsEngine_OrgOrg_Edit_ params pageModel ->
+        Main.Pages.Model.SecretsEngine_OrgOrg_Name_ params pageModel ->
             Route.fromUrl params model.url
-                |> toAuthProtectedPage model Pages.Secrets.Engine_.Org.Org_.Edit_.page
+                |> toAuthProtectedPage model Pages.Secrets.Engine_.Org.Org_.Name_.page
                 |> Maybe.andThen (Page.layout pageModel)
-                |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_OrgOrg_Edit_ >> Page))
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_OrgOrg_Name_ >> Page))
 
         Main.Pages.Model.SecretsEngine_RepoOrg_Repo_ params pageModel ->
             Route.fromUrl params model.url
@@ -1759,11 +1759,11 @@ toLayoutFromPage model =
                 |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Add >> Page))
 
-        Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Edit_ params pageModel ->
+        Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Name_ params pageModel ->
             Route.fromUrl params model.url
-                |> toAuthProtectedPage model Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_.page
+                |> toAuthProtectedPage model Pages.Secrets.Engine_.Repo.Org_.Repo_.Name_.page
                 |> Maybe.andThen (Page.layout pageModel)
-                |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Edit_ >> Page))
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Name_ >> Page))
 
         Main.Pages.Model.SecretsEngine_SharedOrg_Team_ params pageModel ->
             Route.fromUrl params model.url
@@ -1777,11 +1777,11 @@ toLayoutFromPage model =
                 |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Add >> Page))
 
-        Main.Pages.Model.SecretsEngine_SharedOrg_Team_Edit_ params pageModel ->
+        Main.Pages.Model.SecretsEngine_SharedOrg_Team_Name_ params pageModel ->
             Route.fromUrl params model.url
-                |> toAuthProtectedPage model Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_.page
+                |> toAuthProtectedPage model Pages.Secrets.Engine_.Shared.Org_.Team_.Name_.page
                 |> Maybe.andThen (Page.layout pageModel)
-                |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Edit_ >> Page))
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Name_ >> Page))
 
         Main.Pages.Model.NotFound_ pageModel ->
             Route.fromUrl () model.url
@@ -1911,11 +1911,11 @@ subscriptions model =
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-                Main.Pages.Model.Org_Repo_SchedulesEdit_ params pageModel ->
+                Main.Pages.Model.Org_Repo_SchedulesName_ params pageModel ->
                     Auth.Action.subscriptions
                         (\user ->
-                            Page.subscriptions (Pages.Org_.Repo_.Schedules.Edit_.page user model.shared (Route.fromUrl params model.url)) pageModel
-                                |> Sub.map Main.Pages.Msg.Org_Repo_SchedulesEdit_
+                            Page.subscriptions (Pages.Org_.Repo_.Schedules.Name_.page user model.shared (Route.fromUrl params model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.Org_Repo_SchedulesName_
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -1992,11 +1992,11 @@ subscriptions model =
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-                Main.Pages.Model.SecretsEngine_OrgOrg_Edit_ params pageModel ->
+                Main.Pages.Model.SecretsEngine_OrgOrg_Name_ params pageModel ->
                     Auth.Action.subscriptions
                         (\user ->
-                            Page.subscriptions (Pages.Secrets.Engine_.Org.Org_.Edit_.page user model.shared (Route.fromUrl params model.url)) pageModel
-                                |> Sub.map Main.Pages.Msg.SecretsEngine_OrgOrg_Edit_
+                            Page.subscriptions (Pages.Secrets.Engine_.Org.Org_.Name_.page user model.shared (Route.fromUrl params model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.SecretsEngine_OrgOrg_Name_
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -2019,11 +2019,11 @@ subscriptions model =
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-                Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Edit_ params pageModel ->
+                Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Name_ params pageModel ->
                     Auth.Action.subscriptions
                         (\user ->
-                            Page.subscriptions (Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_.page user model.shared (Route.fromUrl params model.url)) pageModel
-                                |> Sub.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Edit_
+                            Page.subscriptions (Pages.Secrets.Engine_.Repo.Org_.Repo_.Name_.page user model.shared (Route.fromUrl params model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Name_
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -2046,11 +2046,11 @@ subscriptions model =
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-                Main.Pages.Model.SecretsEngine_SharedOrg_Team_Edit_ params pageModel ->
+                Main.Pages.Model.SecretsEngine_SharedOrg_Team_Name_ params pageModel ->
                     Auth.Action.subscriptions
                         (\user ->
-                            Page.subscriptions (Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_.page user model.shared (Route.fromUrl params model.url)) pageModel
-                                |> Sub.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Edit_
+                            Page.subscriptions (Pages.Secrets.Engine_.Shared.Org_.Team_.Name_.page user model.shared (Route.fromUrl params model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Name_
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -2331,11 +2331,11 @@ viewPage model =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.Org_Repo_SchedulesEdit_ params pageModel ->
+        Main.Pages.Model.Org_Repo_SchedulesName_ params pageModel ->
             Auth.Action.view
                 (\user ->
-                    Page.view (Pages.Org_.Repo_.Schedules.Edit_.page user model.shared (Route.fromUrl params model.url)) pageModel
-                        |> View.map Main.Pages.Msg.Org_Repo_SchedulesEdit_
+                    Page.view (Pages.Org_.Repo_.Schedules.Name_.page user model.shared (Route.fromUrl params model.url)) pageModel
+                        |> View.map Main.Pages.Msg.Org_Repo_SchedulesName_
                         |> View.map Page
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -2412,11 +2412,11 @@ viewPage model =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.SecretsEngine_OrgOrg_Edit_ params pageModel ->
+        Main.Pages.Model.SecretsEngine_OrgOrg_Name_ params pageModel ->
             Auth.Action.view
                 (\user ->
-                    Page.view (Pages.Secrets.Engine_.Org.Org_.Edit_.page user model.shared (Route.fromUrl params model.url)) pageModel
-                        |> View.map Main.Pages.Msg.SecretsEngine_OrgOrg_Edit_
+                    Page.view (Pages.Secrets.Engine_.Org.Org_.Name_.page user model.shared (Route.fromUrl params model.url)) pageModel
+                        |> View.map Main.Pages.Msg.SecretsEngine_OrgOrg_Name_
                         |> View.map Page
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -2439,11 +2439,11 @@ viewPage model =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Edit_ params pageModel ->
+        Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Name_ params pageModel ->
             Auth.Action.view
                 (\user ->
-                    Page.view (Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_.page user model.shared (Route.fromUrl params model.url)) pageModel
-                        |> View.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Edit_
+                    Page.view (Pages.Secrets.Engine_.Repo.Org_.Repo_.Name_.page user model.shared (Route.fromUrl params model.url)) pageModel
+                        |> View.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Name_
                         |> View.map Page
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -2466,11 +2466,11 @@ viewPage model =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.SecretsEngine_SharedOrg_Team_Edit_ params pageModel ->
+        Main.Pages.Model.SecretsEngine_SharedOrg_Team_Name_ params pageModel ->
             Auth.Action.view
                 (\user ->
-                    Page.view (Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_.page user model.shared (Route.fromUrl params model.url)) pageModel
-                        |> View.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Edit_
+                    Page.view (Pages.Secrets.Engine_.Shared.Org_.Team_.Name_.page user model.shared (Route.fromUrl params model.url)) pageModel
+                        |> View.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Name_
                         |> View.map Page
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -2650,11 +2650,11 @@ toPageUrlHookCmd model routes =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.Org_Repo_SchedulesEdit_ params pageModel ->
+        Main.Pages.Model.Org_Repo_SchedulesName_ params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Org_.Repo_.Schedules.Edit_.page user model.shared (Route.fromUrl params model.url))
-                        |> List.map Main.Pages.Msg.Org_Repo_SchedulesEdit_
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.Schedules.Name_.page user model.shared (Route.fromUrl params model.url))
+                        |> List.map Main.Pages.Msg.Org_Repo_SchedulesName_
                         |> List.map Page
                         |> toCommands
                 )
@@ -2746,11 +2746,11 @@ toPageUrlHookCmd model routes =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.SecretsEngine_OrgOrg_Edit_ params pageModel ->
+        Main.Pages.Model.SecretsEngine_OrgOrg_Name_ params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Secrets.Engine_.Org.Org_.Edit_.page user model.shared (Route.fromUrl params model.url))
-                        |> List.map Main.Pages.Msg.SecretsEngine_OrgOrg_Edit_
+                    Page.toUrlMessages routes (Pages.Secrets.Engine_.Org.Org_.Name_.page user model.shared (Route.fromUrl params model.url))
+                        |> List.map Main.Pages.Msg.SecretsEngine_OrgOrg_Name_
                         |> List.map Page
                         |> toCommands
                 )
@@ -2776,11 +2776,11 @@ toPageUrlHookCmd model routes =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Edit_ params pageModel ->
+        Main.Pages.Model.SecretsEngine_RepoOrg_Repo_Name_ params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_.page user model.shared (Route.fromUrl params model.url))
-                        |> List.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Edit_
+                    Page.toUrlMessages routes (Pages.Secrets.Engine_.Repo.Org_.Repo_.Name_.page user model.shared (Route.fromUrl params model.url))
+                        |> List.map Main.Pages.Msg.SecretsEngine_RepoOrg_Repo_Name_
                         |> List.map Page
                         |> toCommands
                 )
@@ -2806,11 +2806,11 @@ toPageUrlHookCmd model routes =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.SecretsEngine_SharedOrg_Team_Edit_ params pageModel ->
+        Main.Pages.Model.SecretsEngine_SharedOrg_Team_Name_ params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_.page user model.shared (Route.fromUrl params model.url))
-                        |> List.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Edit_
+                    Page.toUrlMessages routes (Pages.Secrets.Engine_.Shared.Org_.Team_.Name_.page user model.shared (Route.fromUrl params model.url))
+                        |> List.map Main.Pages.Msg.SecretsEngine_SharedOrg_Team_Name_
                         |> List.map Page
                         |> toCommands
                 )
@@ -2989,7 +2989,7 @@ isAuthProtected routePath =
         Route.Path.Org_Repo_SchedulesAdd _ ->
             True
 
-        Route.Path.Org_Repo_SchedulesEdit_ _ ->
+        Route.Path.Org_Repo_SchedulesName_ _ ->
             True
 
         Route.Path.Org_Repo_Hooks _ ->
@@ -3016,7 +3016,7 @@ isAuthProtected routePath =
         Route.Path.SecretsEngine_OrgOrg_Add _ ->
             True
 
-        Route.Path.SecretsEngine_OrgOrg_Edit_ _ ->
+        Route.Path.SecretsEngine_OrgOrg_Name_ _ ->
             True
 
         Route.Path.SecretsEngine_RepoOrg_Repo_ _ ->
@@ -3025,7 +3025,7 @@ isAuthProtected routePath =
         Route.Path.SecretsEngine_RepoOrg_Repo_Add _ ->
             True
 
-        Route.Path.SecretsEngine_RepoOrg_Repo_Edit_ _ ->
+        Route.Path.SecretsEngine_RepoOrg_Repo_Name_ _ ->
             True
 
         Route.Path.SecretsEngine_SharedOrg_Team_ _ ->
@@ -3034,7 +3034,7 @@ isAuthProtected routePath =
         Route.Path.SecretsEngine_SharedOrg_Team_Add _ ->
             True
 
-        Route.Path.SecretsEngine_SharedOrg_Team_Edit_ _ ->
+        Route.Path.SecretsEngine_SharedOrg_Team_Name_ _ ->
             True
 
         Route.Path.NotFound_ ->

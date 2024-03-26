@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Org_.Repo_.Schedules.Edit_ exposing (Model, Msg, page, view)
+module Pages.Org_.Repo_.Schedules.Name_ exposing (Model, Msg, page, view)
 
 import Auth
 import Components.Crumbs
@@ -311,7 +311,7 @@ view shared route model =
             , ( "Edit", Nothing )
             , ( route.params.name
               , Just <|
-                    Route.Path.Org_Repo_SchedulesEdit_
+                    Route.Path.Org_Repo_SchedulesName_
                         { org = route.params.org
                         , repo = route.params.repo
                         , name = route.params.name

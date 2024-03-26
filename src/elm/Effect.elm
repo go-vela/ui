@@ -461,7 +461,7 @@ restartBuild :
     , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ) -> msg
     , org : String
     , repo : String
-    , buildNumber : String
+    , build : String
     }
     -> Effect msg
 restartBuild options =
@@ -477,7 +477,7 @@ cancelBuild :
     , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ) -> msg
     , org : String
     , repo : String
-    , buildNumber : String
+    , build : String
     }
     -> Effect msg
 cancelBuild options =
@@ -493,7 +493,7 @@ approveBuild :
     , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ) -> msg
     , org : String
     , repo : String
-    , buildNumber : String
+    , build : String
     }
     -> Effect msg
 approveBuild options =
@@ -685,7 +685,7 @@ getBuild :
     , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ) -> msg
     , org : String
     , repo : String
-    , buildNumber : String
+    , build : String
     }
     -> Effect msg
 getBuild options =
@@ -707,7 +707,7 @@ getBuildSteps :
     , perPage : Maybe Int
     , org : String
     , repo : String
-    , buildNumber : String
+    , build : String
     }
     -> Effect msg
 getBuildSteps options =
@@ -729,7 +729,7 @@ getBuildServices :
     , perPage : Maybe Int
     , org : String
     , repo : String
-    , buildNumber : String
+    , build : String
     }
     -> Effect msg
 getBuildServices options =
@@ -749,7 +749,7 @@ getBuildStepLog :
     , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Log ) -> msg
     , org : String
     , repo : String
-    , buildNumber : String
+    , build : String
     , stepNumber : String
     }
     -> Effect msg
@@ -770,7 +770,7 @@ getBuildServiceLog :
     , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Log ) -> msg
     , org : String
     , repo : String
-    , buildNumber : String
+    , build : String
     , serviceNumber : String
     }
     -> Effect msg
@@ -851,7 +851,7 @@ getBuildGraph :
     , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.BuildGraph ) -> msg
     , org : String
     , repo : String
-    , buildNumber : String
+    , build : String
     }
     -> Effect msg
 getBuildGraph options =

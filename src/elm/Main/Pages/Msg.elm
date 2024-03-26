@@ -22,17 +22,17 @@ import Pages.Org_.Repo_.Deployments.Add
 import Pages.Org_.Repo_.Hooks
 import Pages.Org_.Repo_.Schedules
 import Pages.Org_.Repo_.Schedules.Add
-import Pages.Org_.Repo_.Schedules.Edit_
+import Pages.Org_.Repo_.Schedules.Name_
 import Pages.Org_.Repo_.Settings
 import Pages.Secrets.Engine_.Org.Org_
 import Pages.Secrets.Engine_.Org.Org_.Add
-import Pages.Secrets.Engine_.Org.Org_.Edit_
+import Pages.Secrets.Engine_.Org.Org_.Name_
 import Pages.Secrets.Engine_.Repo.Org_.Repo_
 import Pages.Secrets.Engine_.Repo.Org_.Repo_.Add
-import Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_
+import Pages.Secrets.Engine_.Repo.Org_.Repo_.Name_
 import Pages.Secrets.Engine_.Shared.Org_.Team_
 import Pages.Secrets.Engine_.Shared.Org_.Team_.Add
-import Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_
+import Pages.Secrets.Engine_.Shared.Org_.Team_.Name_
 
 
 type Msg
@@ -47,7 +47,7 @@ type Msg
     | Org_Repo_DeploymentsAdd Pages.Org_.Repo_.Deployments.Add.Msg
     | Org_Repo_Schedules Pages.Org_.Repo_.Schedules.Msg
     | Org_Repo_SchedulesAdd Pages.Org_.Repo_.Schedules.Add.Msg
-    | Org_Repo_SchedulesEdit_ Pages.Org_.Repo_.Schedules.Edit_.Msg
+    | Org_Repo_SchedulesName_ Pages.Org_.Repo_.Schedules.Name_.Msg
     | Org_Repo_Hooks Pages.Org_.Repo_.Hooks.Msg
     | Org_Repo_Settings Pages.Org_.Repo_.Settings.Msg
     | Org_Repo_Build_ Pages.Org_.Repo_.Build_.Msg
@@ -56,11 +56,11 @@ type Msg
     | Org_Repo_Build_Graph Pages.Org_.Repo_.Build_.Graph.Msg
     | SecretsEngine_OrgOrg_ Pages.Secrets.Engine_.Org.Org_.Msg
     | SecretsEngine_OrgOrg_Add Pages.Secrets.Engine_.Org.Org_.Add.Msg
-    | SecretsEngine_OrgOrg_Edit_ Pages.Secrets.Engine_.Org.Org_.Edit_.Msg
+    | SecretsEngine_OrgOrg_Name_ Pages.Secrets.Engine_.Org.Org_.Name_.Msg
     | SecretsEngine_RepoOrg_Repo_ Pages.Secrets.Engine_.Repo.Org_.Repo_.Msg
     | SecretsEngine_RepoOrg_Repo_Add Pages.Secrets.Engine_.Repo.Org_.Repo_.Add.Msg
-    | SecretsEngine_RepoOrg_Repo_Edit_ Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_.Msg
+    | SecretsEngine_RepoOrg_Repo_Name_ Pages.Secrets.Engine_.Repo.Org_.Repo_.Name_.Msg
     | SecretsEngine_SharedOrg_Team_ Pages.Secrets.Engine_.Shared.Org_.Team_.Msg
     | SecretsEngine_SharedOrg_Team_Add Pages.Secrets.Engine_.Shared.Org_.Team_.Add.Msg
-    | SecretsEngine_SharedOrg_Team_Edit_ Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_.Msg
+    | SecretsEngine_SharedOrg_Team_Name_ Pages.Secrets.Engine_.Shared.Org_.Team_.Name_.Msg
     | NotFound_ Pages.NotFound_.Msg

@@ -37,7 +37,7 @@ view shared props =
                 ( org, repo ) =
                     Util.orgRepoFromBuildLink build.link
 
-                buildNumberLink =
+                buildLink =
                     ("#" ++ String.fromInt build.number)
                         |> (\t ->
                                 [ if props.linkBuildNumber then
@@ -175,7 +175,7 @@ view shared props =
             viewBuildPreview
                 { statusIcon = [ Components.Svgs.buildStatusToIcon build.status ]
                 , statusClass = statusToClass build.status
-                , buildNumberLink = buildNumberLink
+                , buildLink = buildLink
                 , commitMessage = [ strong [] message ]
                 , gitInfo =
                     [ div [ class "commit" ] commit
@@ -196,7 +196,7 @@ view shared props =
             viewBuildPreview
                 { statusIcon = [ Components.Svgs.buildStatusToIcon Vela.Pending ]
                 , statusClass = statusToClass Vela.Pending
-                , buildNumberLink = []
+                , buildLink = []
                 , commitMessage = []
                 , gitInfo = []
                 , displayTime = []
@@ -211,7 +211,7 @@ view shared props =
 viewBuildPreview :
     { statusIcon : List (Html msg)
     , statusClass : Html.Attribute msg
-    , buildNumberLink : List (Html msg)
+    , buildLink : List (Html msg)
     , commitMessage : List (Html msg)
     , gitInfo : List (Html msg)
     , displayTime : List (Html msg)
@@ -236,7 +236,7 @@ viewBuildPreview props =
                 props.statusIcon
              , div [ class "info" ]
                 [ div [ class "row -left" ]
-                    [ div [ class "id" ] props.buildNumberLink
+                    [ div [ class "id" ] props.buildLink
                     , div [ class "commit-msg" ] props.commitMessage
                     ]
                 , div [ class "row" ]
@@ -266,9 +266,9 @@ viewBuildPreview props =
 viewActionsMenu :
     { msgs :
         { showHideActionsMenus : Maybe Int -> Maybe Bool -> msg
-        , restartBuild : { org : String, repo : String, buildNumber : String } -> msg
-        , cancelBuild : { org : String, repo : String, buildNumber : String } -> msg
-        , approveBuild : { org : String, repo : String, buildNumber : String } -> msg
+        , restartBuild : { org : String, repo : String, build : String } -> msg
+        , cancelBuild : { org : String, repo : String, build : String } -> msg
+        , approveBuild : { org : String, repo : String, build : String } -> msg
         }
     , build : Vela.Build
     , showActionsMenus : List Int
@@ -454,10 +454,10 @@ statusToClass status =
 {-| buildAnimation : takes build info and returns div containing styled flair based on running status
 -}
 buildAnimation : Vela.Status -> Int -> Html msg
-buildAnimation buildStatus buildNumber =
+buildAnimation buildStatus build =
     case buildStatus of
         Vela.Running ->
-            div [ class "build-animation" ] <| topParticles buildNumber ++ bottomParticles buildNumber
+            div [ class "build-animation" ] <| topParticles build ++ bottomParticles build
 
         _ ->
             div [ class "build-animation", class "-not-running", statusToClass buildStatus ] []
@@ -466,11 +466,11 @@ buildAnimation buildStatus buildNumber =
 {-| topParticles : returns an svg frame to parallax scroll on a running build, set to the top of the build
 -}
 topParticles : Int -> List (Html msg)
-topParticles buildNumber =
+topParticles build =
     let
         -- Use the build number to dynamically set the dash particles, this way builds wont always have the same particle effects
         dashes =
-            topBuildNumberDashes buildNumber
+            topBuildNumberDashes build
 
         y =
             "0%"
@@ -485,11 +485,11 @@ topParticles buildNumber =
 {-| bottomParticles : returns an svg frame to parallax scroll on a running build, set to the bottom of the build
 -}
 bottomParticles : Int -> List (Html msg)
-bottomParticles buildNumber =
+bottomParticles build =
     let
         -- Use the build number to dynamically set the dash particles, this way builds wont always have the same particle effects
         dashes =
-            bottomBuildNumberDashes buildNumber
+            bottomBuildNumberDashes build
 
         y =
             "100%"
@@ -504,8 +504,8 @@ bottomParticles buildNumber =
 {-| topBuildNumberDashes : returns a different particle effect based on a module of the build number
 -}
 topBuildNumberDashes : Int -> String
-topBuildNumberDashes buildNumber =
-    case modBy 3 buildNumber of
+topBuildNumberDashes build =
+    case modBy 3 build of
         1 ->
             "-animation-dashes-1"
 
@@ -519,8 +519,8 @@ topBuildNumberDashes buildNumber =
 {-| bottomBuildNumberDashes : returns a different particle effect based on a module of the build number
 -}
 bottomBuildNumberDashes : Int -> String
-bottomBuildNumberDashes buildNumber =
-    case modBy 3 buildNumber of
+bottomBuildNumberDashes build =
+    case modBy 3 build of
         1 ->
             "-animation-dashes-3"
 
@@ -537,14 +537,14 @@ bottomBuildNumberDashes buildNumber =
 
 {-| viewRestartButton : takes org repo and build number and renders button to restart a build
 -}
-viewRestartButton : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } -> msg) -> Html msg
-viewRestartButton org repo buildNumber restartBuild =
+viewRestartButton : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } -> msg) -> Html msg
+viewRestartButton org repo build restartBuild =
     button
         [ classList
             [ ( "button", True )
             , ( "-outline", True )
             ]
-        , onClick <| restartBuild { org = org, repo = repo, buildNumber = buildNumber }
+        , onClick <| restartBuild { org = org, repo = repo, build = build }
         , Util.testAttribute "restart-build"
         ]
         [ text "Restart Build"
@@ -553,14 +553,14 @@ viewRestartButton org repo buildNumber restartBuild =
 
 {-| viewCancelButton : takes org repo and build number and renders button to cancel a build
 -}
-viewCancelButton : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } -> msg) -> Html msg
-viewCancelButton org repo buildNumber cancelBuild =
+viewCancelButton : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } -> msg) -> Html msg
+viewCancelButton org repo build cancelBuild =
     button
         [ classList
             [ ( "button", True )
             , ( "-outline", True )
             ]
-        , onClick <| cancelBuild { org = org, repo = repo, buildNumber = buildNumber }
+        , onClick <| cancelBuild { org = org, repo = repo, build = build }
         , Util.testAttribute "cancel-build"
         ]
         [ text "Cancel Build"
@@ -569,14 +569,14 @@ viewCancelButton org repo buildNumber cancelBuild =
 
 {-| viewApproveButton : takes org repo and build number and renders button to approve a build run
 -}
-viewApproveButton : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } -> msg) -> Html msg
-viewApproveButton org repo buildNumber approveBuild =
+viewApproveButton : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } -> msg) -> Html msg
+viewApproveButton org repo build approveBuild =
     button
         [ classList
             [ ( "button", True )
             , ( "-outline", True )
             ]
-        , onClick <| approveBuild { org = org, repo = repo, buildNumber = buildNumber }
+        , onClick <| approveBuild { org = org, repo = repo, build = build }
         , Util.testAttribute "approve-build"
         ]
         [ text "Approve Build"
@@ -585,8 +585,8 @@ viewApproveButton org repo buildNumber approveBuild =
 
 {-| viewRestartMenuLink : takes org repo and build number and renders actions menu link to restart a build
 -}
-viewRestartMenuLink : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } -> msg) -> Html msg
-viewRestartMenuLink org repo buildNumber restartBuild =
+viewRestartMenuLink : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } -> msg) -> Html msg
+viewRestartMenuLink org repo build restartBuild =
     li [ class "build-menu-item" ]
         [ a
             [ href "#"
@@ -595,7 +595,7 @@ viewRestartMenuLink org repo buildNumber restartBuild =
                 restartBuild
                     { org = org
                     , repo = repo
-                    , buildNumber = buildNumber
+                    , build = build
                     }
             , Util.testAttribute "restart-build"
             ]
@@ -606,8 +606,8 @@ viewRestartMenuLink org repo buildNumber restartBuild =
 
 {-| viewCancelMenuLink : takes org repo and build number and renders actions menu link to cancel a build
 -}
-viewCancelMenuLink : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } -> msg) -> Html msg
-viewCancelMenuLink org repo buildNumber cancelBuild =
+viewCancelMenuLink : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } -> msg) -> Html msg
+viewCancelMenuLink org repo build cancelBuild =
     li [ class "build-menu-item" ]
         [ a
             [ href "#"
@@ -616,7 +616,7 @@ viewCancelMenuLink org repo buildNumber cancelBuild =
                 cancelBuild
                     { org = org
                     , repo = repo
-                    , buildNumber = buildNumber
+                    , build = build
                     }
             , Util.testAttribute "cancel-build"
             ]
@@ -627,8 +627,8 @@ viewCancelMenuLink org repo buildNumber cancelBuild =
 
 {-| viewApproveMenuLink : takes org repo and build number and renders actions menu link to approve a build run
 -}
-viewApproveMenuLink : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } -> msg) -> Html msg
-viewApproveMenuLink org repo buildNumber approveBuild =
+viewApproveMenuLink : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } -> msg) -> Html msg
+viewApproveMenuLink org repo build approveBuild =
     li [ class "build-menu-item" ]
         [ a
             [ href "#"
@@ -637,7 +637,7 @@ viewApproveMenuLink org repo buildNumber approveBuild =
                 approveBuild
                     { org = org
                     , repo = repo
-                    , buildNumber = buildNumber
+                    , build = build
                     }
             , Util.testAttribute "approve-build"
             ]

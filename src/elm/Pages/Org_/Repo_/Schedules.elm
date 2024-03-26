@@ -318,7 +318,7 @@ viewSchedule zone org repo schedule =
             , children =
                 [ a
                     [ Route.Path.href <|
-                        Route.Path.Org_Repo_SchedulesEdit_
+                        Route.Path.Org_Repo_SchedulesName_
                             { org = org
                             , repo = repo
                             , name = schedule.name
