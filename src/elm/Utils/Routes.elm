@@ -1,14 +1,14 @@
-module Utils.Routes exposing (parsePath)
+module Utils.Routes exposing (pathFromString)
 
 
-parsePath :
+pathFromString :
     String
     ->
         { path : String
         , query : Maybe String
         , hash : Maybe String
         }
-parsePath urlString =
+pathFromString urlString =
     let
         pathsAndHash =
             String.split "#" urlString
