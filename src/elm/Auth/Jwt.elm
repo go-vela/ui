@@ -16,17 +16,21 @@ import Time
 import Utils.Helpers as Util
 
 
+{-| JwtAccessToken : alias for a string representing the access token.
+-}
 type alias JwtAccessToken =
     String
 
 
+{-| decodeJwtAccessToken : decodes the access token.
+-}
 decodeJwtAccessToken : Decoder JwtAccessToken
 decodeJwtAccessToken =
     field "token" string
 
 
-{-| JwtAccessTokenClaims defines the shape
-of the access token claims
+{-| JwtAccessTokenClaims : defines the shape
+of the access token claims.
 -}
 type alias JwtAccessTokenClaims =
     { is_admin : Bool
@@ -37,6 +41,8 @@ type alias JwtAccessTokenClaims =
     }
 
 
+{-| decodeJwtAccessTokenClaims : the decoder to validate type for required the access token claims.
+-}
 decodeJwtAccessTokenClaims : Decoder JwtAccessTokenClaims
 decodeJwtAccessTokenClaims =
     Decode.succeed JwtAccessTokenClaims
@@ -47,6 +53,8 @@ decodeJwtAccessTokenClaims =
         |> required "sub" string
 
 
+{-| defaultJwtAccessTokenClaims : the default claims for the access token.
+-}
 defaultJwtAccessTokenClaims : JwtAccessTokenClaims
 defaultJwtAccessTokenClaims =
     JwtAccessTokenClaims False False (Time.millisToPosix 0) (Time.millisToPosix 0) ""

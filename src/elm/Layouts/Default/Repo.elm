@@ -27,6 +27,8 @@ import Utils.Interval as Interval
 import View exposing (View)
 
 
+{-| Props : alias for an object containing properties with a contentMsg.
+-}
 type alias Props contentMsg =
     { navButtons : List (Html contentMsg)
     , utilButtons : List (Html contentMsg)
@@ -37,6 +39,9 @@ type alias Props contentMsg =
     }
 
 
+{-| map : takes a function and a properties object and returns a new properties object;
+map connects the page (msg1) to the layout (msg2).
+-}
 map : (msg1 -> msg2) -> Props msg1 -> Props msg2
 map fn props =
     { navButtons = List.map (Html.map fn) props.navButtons
@@ -48,6 +53,8 @@ map fn props =
     }
 
 
+{-| layout : takes in properties, shared model, route, and a content object and returns a default repo layout.
+-}
 layout : Props contentMsg -> Shared.Model -> Route () -> Layout Layouts.Default.Props Model Msg contentMsg
 layout props shared route =
     Layout.new
@@ -66,10 +73,14 @@ layout props shared route =
 -- MODEL
 
 
+{-| Model : alias for a model object.
+-}
 type alias Model =
     { tabHistory : Dict String Url }
 
 
+{-| init : takes in properties, shared model, route, and a content object and returns a model and effect.
+-}
 init : Props contentMsg -> Shared.Model -> Route () -> () -> ( Model, Effect Msg )
 init props shared route _ =
     ( { tabHistory = Dict.empty
@@ -98,6 +109,8 @@ init props shared route _ =
 -- UPDATE
 
 
+{-| Msg : possible messages for the default repo layout.
+-}
 type Msg
     = -- BROWSER
       OnUrlChanged { from : Route (), to : Route () }
@@ -107,6 +120,8 @@ type Msg
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
+{-| update : takes in properties, route, message, and model and returns a new model and effect.
+-}
 update : Props contentMsg -> Route () -> Msg -> Model -> ( Model, Effect Msg )
 update props route msg model =
     case msg of
@@ -152,6 +167,8 @@ update props route msg model =
             )
 
 
+{-| subscriptions : takes model and returns the subscriptions for auto refreshing the page.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Interval.tickEveryFiveSeconds Tick
@@ -161,6 +178,8 @@ subscriptions model =
 -- VIEW
 
 
+{-| view : takes in properties, shared model, route, and a content object and returns a view.
+-}
 view : Props contentMsg -> Shared.Model -> Route () -> { toContentMsg : Msg -> contentMsg, content : View contentMsg, model : Model } -> View contentMsg
 view props shared route { toContentMsg, model, content } =
     { title = props.org ++ "/" ++ props.repo ++ " " ++ content.title

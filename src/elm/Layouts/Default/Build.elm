@@ -35,6 +35,8 @@ import Vela
 import View exposing (View)
 
 
+{-| Props : alias for an object containing properties with a contentMsg.
+-}
 type alias Props contentMsg =
     { navButtons : List (Html contentMsg)
     , utilButtons : List (Html contentMsg)
@@ -47,6 +49,9 @@ type alias Props contentMsg =
     }
 
 
+{-| map : takes a function and a properties object and returns a new properties object;
+map connects the page (msg1) to the layout (msg2).
+-}
 map : (msg1 -> msg2) -> Props msg1 -> Props msg2
 map fn props =
     { navButtons = List.map (Html.map fn) props.navButtons
@@ -60,6 +65,8 @@ map fn props =
     }
 
 
+{-| layout : takes in properties, shared model, route, and a content object and returns a default build layout.
+-}
 layout : Props contentMsg -> Shared.Model -> Route () -> Layout Layouts.Default.Props Model Msg contentMsg
 layout props shared route =
     Layout.new
@@ -78,12 +85,16 @@ layout props shared route =
 -- MODEL
 
 
+{-| Model : alias for a model object.
+-}
 type alias Model =
     { build : WebData Vela.Build
     , tabHistory : Dict String Url
     }
 
 
+{-| init : takes in properties, shared model, route, and a content object and returns a model and effect.
+-}
 init : Props contentMsg -> Shared.Model -> Route () -> () -> ( Model, Effect Msg )
 init props shared route _ =
     ( { build = RemoteData.Loading
@@ -114,6 +125,8 @@ init props shared route _ =
 -- UPDATE
 
 
+{-| Msg : possible messages for the default build layout.
+-}
 type Msg
     = --BROWSER
       OnUrlChanged { from : Route (), to : Route () }
@@ -129,6 +142,8 @@ type Msg
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
+{-| update : takes in properties, models, route, message, and returns a new model and a message.
+-}
 update : Props contentMsg -> Shared.Model -> Route () -> Msg -> Model -> ( Model, Effect Msg )
 update props shared route msg model =
     case msg of
@@ -335,6 +350,8 @@ update props shared route msg model =
             )
 
 
+{-| subscriptions : takes in a model and returns the subscriptions for autorefreshing the page.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Interval.tickEveryFiveSeconds Tick
@@ -344,6 +361,8 @@ subscriptions model =
 -- VIEW
 
 
+{-| view : takes in properties, models, route, and messages, and returns a default build view.
+-}
 view : Props contentMsg -> Shared.Model -> Route () -> { toContentMsg : Msg -> contentMsg, content : View contentMsg, model : Model } -> View contentMsg
 view props shared route { toContentMsg, model, content } =
     let

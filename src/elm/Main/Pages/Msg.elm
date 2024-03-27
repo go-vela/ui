@@ -35,6 +35,8 @@ import Pages.Secrets.Engine_.Shared.Org_.Team_.Add
 import Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_
 
 
+{-| Msg : The main message type for the application, used to route messages to the correct page.
+-}
 type Msg
     = AccountLogin Pages.Account.Login.Msg
     | AccountSettings Pages.Account.Settings.Msg

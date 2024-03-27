@@ -14,6 +14,8 @@ import Shared
 import View exposing (View)
 
 
+{-| User : A type representing a user.
+-}
 type alias User =
     { token : String
     }

@@ -43,10 +43,14 @@ import Vela exposing (defaultUpdateUserPayload)
 -- INIT
 
 
+{-| Model : alias for the main shared model.
+-}
 type alias Model =
     Shared.Model.Model
 
 
+{-| Flags : the required flags for the app.
+-}
 type alias Flags =
     { isDev : Bool
     , velaAPI : String
@@ -60,6 +64,8 @@ type alias Flags =
     }
 
 
+{-| decoder : this will ensure the returned required flags are of the proper type.
+-}
 decoder : Json.Decode.Decoder Flags
 decoder =
     Json.Decode.succeed Flags
@@ -74,6 +80,8 @@ decoder =
         |> required "velaScheduleAllowlist" Json.Decode.string
 
 
+{-| init : takes in a result of flags and a route and returns a model and a message.
+-}
 init : Result Json.Decode.Error Flags -> Route () -> ( Model, Effect Msg )
 init flagsResult route =
     let
@@ -186,10 +194,14 @@ init flagsResult route =
 -- UPDATE
 
 
+{-| Msg : alias for the main shared message.
+-}
 type alias Msg =
     Shared.Msg.Msg
 
 
+{-| update : takes in a route, a message, and a model and returns a new model and a message.
+-}
 update : Route () -> Msg -> Model -> ( Model, Effect Msg )
 update route msg model =
     case msg of
@@ -695,6 +707,8 @@ update route msg model =
                     ( model, Effect.none )
 
 
+{-| subscriptions : takes in a route and model and returns a subscription message.
+-}
 subscriptions : Route () -> Model -> Sub Msg
 subscriptions _ model =
     Sub.batch

@@ -11,6 +11,8 @@ import Url.Builder
 import Vela
 
 
+{-| Favicon : type alias for favicon path.
+-}
 type alias Favicon =
     String
 

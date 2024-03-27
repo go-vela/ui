@@ -11,6 +11,8 @@ import Url exposing (Url)
 import Url.Parser exposing ((</>))
 
 
+{-| Path : possible paths for the application.
+-}
 type Path
     = Home
     | AccountLogin
@@ -46,12 +48,16 @@ type Path
     | NotFound_
 
 
+{-| fromUrl : takes in a url and returns a path.
+-}
 fromUrl : Url -> Path
 fromUrl url =
     fromString url.path
         |> Maybe.withDefault NotFound_
 
 
+{-| fromString : takes in a string and returns a path if it matches a known path.
+-}
 fromString : String -> Maybe Path
 fromString urlPath =
     let
@@ -271,11 +277,15 @@ fromString urlPath =
             Nothing
 
 
+{-| href : takes in a path and returns an href attribute.
+-}
 href : Path -> Html.Attribute msg
 href path =
     Html.Attributes.href (toString path)
 
 
+{-| toString : takes in a path and returns a path formatted as a string.
+-}
 toString : Path -> String
 toString path =
     let
@@ -383,6 +393,8 @@ toString path =
         |> String.append "/"
 
 
+{-| parsePath : takes in a string and parses specific path information, returned as an object.
+-}
 parsePath :
     String
     ->

@@ -23,6 +23,8 @@ import Route exposing (Route)
 import Shared.Model
 
 
+{-| View : A type alias for the view of the application.
+-}
 type alias View msg =
     { title : String
     , body : List (Html msg)

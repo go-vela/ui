@@ -35,6 +35,8 @@ import Pages.Secrets.Engine_.Shared.Org_.Team_.Add
 import Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_
 
 
+{-| Model : The main model for the application.
+-}
 type Model
     = AccountLogin Pages.Account.Login.Model
     | AccountSettings Pages.Account.Settings.Model

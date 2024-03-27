@@ -9,6 +9,8 @@ import Json.Decode
 import Json.Encode
 
 
+{-| Theme : available theme options.
+-}
 type Theme
     = Light
     | Dark
@@ -18,6 +20,8 @@ type Theme
 -- THEME
 
 
+{-| stringToTheme : convert a string to a theme.
+-}
 stringToTheme : String -> Theme
 stringToTheme theme =
     case theme of
@@ -28,6 +32,8 @@ stringToTheme theme =
             Dark
 
 
+{-| decodeTheme : decode the set theme from JSON.
+-}
 decodeTheme : Json.Decode.Decoder Theme
 decodeTheme =
     Json.Decode.string
@@ -37,6 +43,8 @@ decodeTheme =
             )
 
 
+{-| encodeTheme : a value to capture which theme is set.
+-}
 encodeTheme : Theme -> Json.Encode.Value
 encodeTheme theme =
     case theme of

@@ -11,6 +11,8 @@ import Layouts.Default.Org
 import Layouts.Default.Repo
 
 
+{-| Model : The model for the main layout.
+-}
 type Model
     = Default { default : Layouts.Default.Model }
     | Default_Org { default : Layouts.Default.Model, org : Layouts.Default.Org.Model }
