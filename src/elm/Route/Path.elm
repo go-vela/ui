@@ -346,7 +346,7 @@ toString path =
                     [ params.org, params.repo, "hooks" ]
 
                 Org__Repo__Pulls params ->
-                    [ params.org, params.repo, "?event=pull_request" ]
+                    [ params.org, params.repo, "pulls" ]
 
                 Org__Repo__Schedules params ->
                     [ params.org, params.repo, "schedules" ]
@@ -361,7 +361,7 @@ toString path =
                     [ params.org, params.repo, "settings" ]
 
                 Org__Repo__Tags params ->
-                    [ params.org, params.repo, "?event=tag" ]
+                    [ params.org, params.repo, "tags" ]
 
                 Org__Repo__Build_ params ->
                     [ params.org, params.repo, params.build ]
