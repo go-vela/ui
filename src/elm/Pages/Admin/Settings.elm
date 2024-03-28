@@ -3,25 +3,47 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Admin exposing (Model, Msg, page)
+module Pages.Admin.Settings exposing (Model, Msg, page)
 
-import Dict
+import Auth
 import Effect exposing (Effect)
 import Html
+import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
-import Route.Path
 import Shared
 import View exposing (View)
 
 
-page : Shared.Model -> Route () -> Page Model Msg
-page shared route =
+page : Auth.User -> Shared.Model -> Route () -> Page Model Msg
+page user shared route =
     Page.new
         { init = init
         , update = update
         , subscriptions = subscriptions
         , view = view
+        }
+        |> Page.withLayout (toLayout user)
+
+
+
+-- LAYOUT
+
+
+toLayout : Auth.User -> Model -> Layouts.Layout Msg
+toLayout user model =
+    Layouts.Default_Admin
+        { navButtons = []
+        , utilButtons = []
+        , helpCommands =
+            [ { name = "Platform Settings Help"
+              , content = "vela get settings"
+              , docs = Just "cli/admin/settings/get"
+              }
+            ]
+        , crumbs =
+            [ ( "Admin", Nothing )
+            ]
         }
 
 
@@ -36,11 +58,7 @@ type alias Model =
 init : () -> ( Model, Effect Msg )
 init () =
     ( {}
-    , Effect.replaceRoute <|
-        { path = Route.Path.Admin_Workers
-        , query = Dict.empty
-        , hash = Nothing
-        }
+    , Effect.none
     )
 
 
@@ -76,6 +94,6 @@ subscriptions model =
 
 view : Model -> View Msg
 view model =
-    { title = "Pages.Admin"
-    , body = [ Html.text "/admin" ]
+    { title = "Pages.Admin.Settings"
+    , body = [ Html.text "/admin/settings" ]
     }

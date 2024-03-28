@@ -1864,6 +1864,7 @@ decodeDeploymentParameters : Decoder (Maybe (List KeyValuePair))
 decodeDeploymentParameters =
     Json.Decode.map decodeKeyValuePairs <| Json.Decode.keyValuePairs Json.Decode.string
 
+
 type alias Worker =
     { id : Int
     , host_name : String
@@ -1896,9 +1897,11 @@ decodeWorker =
         |> optional "last_checked_in" int -1
         |> optional "build_limit" int -1
 
+
 decodeWorkers : Decoder (List Worker)
 decodeWorkers =
     Json.Decode.list decodeWorker
+
 
 type alias KeyValuePair =
     { key : String
