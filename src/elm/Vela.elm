@@ -47,6 +47,7 @@ module Vela exposing
     , Template
     , Templates
     , Type
+    , Worker
     , allowEventsFilterQueryKeys
     , allowEventsToList
     , buildRepoPayload
@@ -72,6 +73,7 @@ module Vela exposing
     , decodeServices
     , decodeSourceRepositories
     , decodeSteps
+    , decodeWorkers
     , defaultAllowEvents
     , defaultDeploymentPayload
     , defaultEnabledAllowEvents
@@ -740,8 +742,8 @@ decodePullActions =
         |> required "synchronize" bool
         |> required "edited" bool
         |> required "reopened" bool
-        |> required "labeled" bool
-        |> required "unlabeled" bool
+        |> optional "labeled" bool False
+        |> optional "unlabeled" bool False
 
 
 decodeDeployActions : Decoder DeployActions
@@ -1862,6 +1864,41 @@ decodeDeploymentParameters : Decoder (Maybe (List KeyValuePair))
 decodeDeploymentParameters =
     Json.Decode.map decodeKeyValuePairs <| Json.Decode.keyValuePairs Json.Decode.string
 
+type alias Worker =
+    { id : Int
+    , host_name : String
+    , address : String
+    , routes : List String
+    , active : Bool
+    , status : String
+    , last_status_update : Int
+    , running_builds : List Build
+    , last_build_started : Int
+    , last_build_finished : Int
+    , last_checked_in : Int
+    , build_limit : Int
+    }
+
+
+decodeWorker : Decoder Worker
+decodeWorker =
+    Json.Decode.succeed Worker
+        |> optional "id" int -1
+        |> required "hostname" string
+        |> required "address" string
+        |> optional "routes" (Json.Decode.list string) []
+        |> optional "active" bool False
+        |> optional "status" string ""
+        |> optional "last_status_update_at" int -1
+        |> optional "running_builds" decodeBuilds []
+        |> optional "last_build_started_at" int -1
+        |> optional "last_build_finished_at" int -1
+        |> optional "last_checked_in" int -1
+        |> optional "build_limit" int -1
+
+decodeWorkers : Decoder (List Worker)
+decodeWorkers =
+    Json.Decode.list decodeWorker
 
 type alias KeyValuePair =
     { key : String

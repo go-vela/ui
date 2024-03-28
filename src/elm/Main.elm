@@ -32,6 +32,7 @@ import Pages.Account.Login
 import Pages.Account.Logout
 import Pages.Account.Settings
 import Pages.Account.SourceRepos
+import Pages.Admin
 import Pages.Dash.Secrets.Engine_.Org.Org_
 import Pages.Dash.Secrets.Engine_.Org.Org_.Add
 import Pages.Dash.Secrets.Engine_.Org.Org_.Name_
@@ -524,6 +525,30 @@ initPageAndLayout model =
                     , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Account_SourceRepos >> Page))
+                            |> Maybe.map (initLayout model)
+                    }
+                )
+
+        Route.Path.Admin ->
+            runWhenAuthenticatedWithLayout
+                model
+                (\user ->
+                    let
+                        page : Page.Page Pages.Admin.Model Pages.Admin.Msg
+                        page =
+                            Pages.Admin.page user model.shared (Route.fromUrl () model.url)
+
+                        ( pageModel, pageEffect ) =
+                            Page.init page ()
+                    in
+                    { page =
+                        Tuple.mapBoth
+                            Main.Pages.Model.Admin
+                            (Effect.map Main.Pages.Msg.Admin >> fromPageEffect model)
+                            ( pageModel, pageEffect )
+                    , layout =
+                        Page.layout pageModel page
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Admin >> Page))
                             |> Maybe.map (initLayout model)
                     }
                 )
@@ -1408,6 +1433,16 @@ updateFromPage msg model =
                         (Page.update (Pages.Account.SourceRepos.page user model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
                 )
 
+        ( Main.Pages.Msg.Admin pageMsg, Main.Pages.Model.Admin pageModel ) ->
+            runWhenAuthenticated
+                model
+                (\user ->
+                    Tuple.mapBoth
+                        Main.Pages.Model.Admin
+                        (Effect.map Main.Pages.Msg.Admin >> fromPageEffect model)
+                        (Page.update (Pages.Admin.page user model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
+                )
+
         ( Main.Pages.Msg.Dash_Secrets_Engine__Org_Org_ pageMsg, Main.Pages.Model.Dash_Secrets_Engine__Org_Org_ params pageModel ) ->
             runWhenAuthenticated
                 model
@@ -1772,6 +1807,12 @@ toLayoutFromPage model =
                 |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.Account_SourceRepos >> Page))
 
+        Main.Pages.Model.Admin pageModel ->
+            Route.fromUrl () model.url
+                |> toAuthProtectedPage model Pages.Admin.page
+                |> Maybe.andThen (Page.layout pageModel)
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.Admin >> Page))
+
         Main.Pages.Model.Dash_Secrets_Engine__Org_Org_ params pageModel ->
             Route.fromUrl params model.url
                 |> toAuthProtectedPage model Pages.Dash.Secrets.Engine_.Org.Org_.page
@@ -2011,6 +2052,15 @@ subscriptions model =
                         (\user ->
                             Page.subscriptions (Pages.Account.SourceRepos.page user model.shared (Route.fromUrl () model.url)) pageModel
                                 |> Sub.map Main.Pages.Msg.Account_SourceRepos
+                                |> Sub.map Page
+                        )
+                        (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+                Main.Pages.Model.Admin pageModel ->
+                    Auth.Action.subscriptions
+                        (\user ->
+                            Page.subscriptions (Pages.Admin.page user model.shared (Route.fromUrl () model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.Admin
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -2455,6 +2505,15 @@ viewPage model =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
+        Main.Pages.Model.Admin pageModel ->
+            Auth.Action.view
+                (\user ->
+                    Page.view (Pages.Admin.page user model.shared (Route.fromUrl () model.url)) pageModel
+                        |> View.map Main.Pages.Msg.Admin
+                        |> View.map Page
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
         Main.Pages.Model.Dash_Secrets_Engine__Org_Org_ params pageModel ->
             Auth.Action.view
                 (\user ->
@@ -2784,6 +2843,16 @@ toPageUrlHookCmd model routes =
                 (\user ->
                     Page.toUrlMessages routes (Pages.Account.SourceRepos.page user model.shared (Route.fromUrl () model.url))
                         |> List.map Main.Pages.Msg.Account_SourceRepos
+                        |> List.map Page
+                        |> toCommands
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+        Main.Pages.Model.Admin pageModel ->
+            Auth.Action.command
+                (\user ->
+                    Page.toUrlMessages routes (Pages.Admin.page user model.shared (Route.fromUrl () model.url))
+                        |> List.map Main.Pages.Msg.Admin
                         |> List.map Page
                         |> toCommands
                 )
@@ -3181,6 +3250,9 @@ isAuthProtected routePath =
             True
 
         Route.Path.Account_SourceRepos ->
+            True
+
+        Route.Path.Admin ->
             True
 
         Route.Path.Dash_Secrets_Engine__Org_Org_ _ ->

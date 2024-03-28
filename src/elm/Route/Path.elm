@@ -18,6 +18,7 @@ type Path
     | Account_Logout
     | Account_Settings
     | Account_SourceRepos
+    | Admin
     | Dash_Secrets_Engine__Org_Org_ { engine : String, org : String }
     | Dash_Secrets_Engine__Org_Org__Add { engine : String, org : String }
     | Dash_Secrets_Engine__Org_Org__Name_ { engine : String, org : String, name : String }
@@ -79,6 +80,9 @@ fromString urlPath =
 
         "account" :: "source-repos" :: [] ->
             Just Account_SourceRepos
+
+        "admin" :: [] ->
+            Just Admin
 
         "-" :: "secrets" :: engine_ :: "org" :: org_ :: [] ->
             Dash_Secrets_Engine__Org_Org_
@@ -299,6 +303,9 @@ toString path =
 
                 Account_SourceRepos ->
                     [ "account", "source-repos" ]
+
+                Admin ->
+                    [ "admin" ]
 
                 Dash_Secrets_Engine__Org_Org_ params ->
                     [ "-", "secrets", params.engine, "org", params.org ]
