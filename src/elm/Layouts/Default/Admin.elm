@@ -74,20 +74,24 @@ init : Props contentMsg -> Shared.Model -> Route () -> () -> ( Model, Effect Msg
 init props shared route _ =
     ( { tabHistory = Dict.empty
       }
-    , case shared.user of
-        RemoteData.Success user ->
-            if not user.admin then
-                Effect.replacePath Route.Path.Home_
+    , Effect.batch
+        [ Effect.getCurrentUserShared {}
+        , case shared.user of
+            RemoteData.Success user ->
+                if not user.admin then
+                    Effect.replacePath Route.Path.Home_
 
-            else
-                Effect.none
+                else
+                    Effect.none
 
-        _ ->
-            Effect.getCurrentUser
-                { baseUrl = shared.velaAPIBaseURL
-                , session = shared.session
-                , onResponse = GetCurrentUserResponse
-                }
+            _ ->
+                -- we need to dispatch this effect to receive the callback and check admin status
+                Effect.getCurrentUser
+                    { baseUrl = shared.velaAPIBaseURL
+                    , session = shared.session
+                    , onResponse = GetCurrentUserResponse
+                    }
+        ]
     )
 
 
@@ -139,11 +143,14 @@ update props shared route msg model =
         -- REFRESH
         Tick options ->
             ( model
-            , Effect.getCurrentUser
-                { baseUrl = shared.velaAPIBaseURL
-                , session = shared.session
-                , onResponse = GetCurrentUserResponse
-                }
+            , Effect.batch
+                [ Effect.getCurrentUserShared {}
+                , Effect.getCurrentUser
+                    { baseUrl = shared.velaAPIBaseURL
+                    , session = shared.session
+                    , onResponse = GetCurrentUserResponse
+                    }
+                ]
             )
 
 
