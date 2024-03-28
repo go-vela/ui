@@ -183,7 +183,7 @@ view props shared route { toContentMsg, model, content } =
                     :: content.body
 
              else
-                [ Components.Loading.viewSmallLoaderWithText "loading user"
+                [ Components.Loading.viewSmallLoader
                 ]
             )
         ]
