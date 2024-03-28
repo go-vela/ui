@@ -85,7 +85,7 @@ init props shared route _ =
                     Effect.none
 
             _ ->
-                -- we need to dispatch this effect to receive the callback and check admin status
+                -- we need to dispatch non-shared effect to receive the callback and check admin status
                 Effect.getCurrentUser
                     { baseUrl = shared.velaAPIBaseURL
                     , session = shared.session
