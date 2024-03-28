@@ -6,8 +6,8 @@ SPDX-License-Identifier: Apache-2.0
 module Layouts.Default.Admin exposing (Model, Msg, Props, layout, map)
 
 import Components.Crumbs
-import Components.Favorites
 import Components.Help
+import Components.Loading
 import Components.Nav
 import Components.Tabs
 import Components.Util
@@ -15,15 +15,19 @@ import Dict exposing (Dict)
 import Effect exposing (Effect)
 import Html exposing (Html, main_)
 import Html.Attributes exposing (class)
+import Http
+import Http.Detailed
 import Layout exposing (Layout)
 import Layouts.Default
+import RemoteData
 import Route exposing (Route)
 import Route.Path
 import Shared
 import Time
 import Url exposing (Url)
-import Utils.Favorites as Favorites
+import Utils.Errors as Errors
 import Utils.Interval as Interval
+import Vela
 import View exposing (View)
 
 
@@ -48,7 +52,7 @@ layout : Props contentMsg -> Shared.Model -> Route () -> Layout Layouts.Default.
 layout props shared route =
     Layout.new
         { init = init props shared route
-        , update = update props route
+        , update = update props shared route
         , view = view props shared route
         , subscriptions = subscriptions
         }
@@ -70,9 +74,20 @@ init : Props contentMsg -> Shared.Model -> Route () -> () -> ( Model, Effect Msg
 init props shared route _ =
     ( { tabHistory = Dict.empty
       }
-    , Effect.batch
-        [ Effect.getCurrentUser {}
-        ]
+    , case shared.user of
+        RemoteData.Success user ->
+            if not user.admin then
+                Effect.replacePath Route.Path.Home_
+
+            else
+                Effect.none
+
+        _ ->
+            Effect.getCurrentUser
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse = GetCurrentUserResponse
+                }
     )
 
 
@@ -83,14 +98,14 @@ init props shared route _ =
 type Msg
     = -- BROWSER
       OnUrlChanged { from : Route (), to : Route () }
-      -- FAVORITES
-    | ToggleFavorite String (Maybe String)
+      -- USER
+    | GetCurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.CurrentUser ))
       -- REFRESH
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
-update : Props contentMsg -> Route () -> Msg -> Model -> ( Model, Effect Msg )
-update props route msg model =
+update : Props contentMsg -> Shared.Model -> Route () -> Msg -> Model -> ( Model, Effect Msg )
+update props shared route msg model =
     case msg of
         -- BROWSER
         OnUrlChanged options ->
@@ -101,22 +116,34 @@ update props route msg model =
             , Effect.replaceRouteRemoveTabHistorySkipDomFocus route
             )
 
-        -- FAVORITES
-        ToggleFavorite org maybeRepo ->
-            ( model
-            , Effect.updateFavorite
-                { org = org
-                , maybeRepo = maybeRepo
-                , updateType = Favorites.Toggle
-                }
-            )
+        -- USER
+        GetCurrentUserResponse response ->
+            case response of
+                Ok ( _, user ) ->
+                    ( model
+                    , if not user.admin then
+                        Effect.replacePath Route.Path.Home_
+
+                      else
+                        Effect.none
+                    )
+
+                Err error ->
+                    ( model
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Errors.showAlertAlways
+                        }
+                    )
 
         -- REFRESH
         Tick options ->
             ( model
-            , Effect.batch
-                [ Effect.getCurrentUser {}
-                ]
+            , Effect.getCurrentUser
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse = GetCurrentUserResponse
+                }
             )
 
 
@@ -131,6 +158,10 @@ subscriptions model =
 
 view : Props contentMsg -> Shared.Model -> Route () -> { toContentMsg : Msg -> contentMsg, content : View contentMsg, model : Model } -> View contentMsg
 view props shared route { toContentMsg, model, content } =
+    let
+        isAdmin =
+            RemoteData.unwrap False .admin shared.user
+    in
     { title = "Admin " ++ content.title
     , body =
         [ Components.Nav.view shared
@@ -139,16 +170,21 @@ view props shared route { toContentMsg, model, content } =
             , crumbs = Components.Crumbs.view route.path props.crumbs
             }
         , main_ [ class "content-wrap" ]
-            (Components.Util.view shared
-                route
-                (Components.Tabs.viewAdminTabs
-                    shared
-                    { currentPath = route.path
-                    , tabHistory = model.tabHistory
-                    }
-                    :: props.utilButtons
-                )
-                :: content.body
+            (if isAdmin then
+                Components.Util.view shared
+                    route
+                    (Components.Tabs.viewAdminTabs
+                        shared
+                        { currentPath = route.path
+                        , tabHistory = model.tabHistory
+                        }
+                        :: props.utilButtons
+                    )
+                    :: content.body
+
+             else
+                [ Components.Loading.viewSmallLoaderWithText "loading user"
+                ]
             )
         ]
     }

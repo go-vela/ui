@@ -43,7 +43,7 @@ type Msg
     | LogoutResponse { from : Maybe String } (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
       -- USER
     | GetCurrentUser
-    | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.CurrentUser ))
+    | GetCurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.CurrentUser ))
       -- SOURCE REPOS
     | UpdateSourceRepos { sourceRepos : WebData Vela.SourceRepositories }
       -- FAVORITES

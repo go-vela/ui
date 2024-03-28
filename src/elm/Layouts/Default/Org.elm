@@ -69,7 +69,7 @@ init : Shared.Model -> Route () -> () -> ( Model, Effect Msg )
 init shared route _ =
     ( { tabHistory = Dict.empty
       }
-    , Effect.getCurrentUser {}
+    , Effect.getCurrentUserShared {}
     )
 
 

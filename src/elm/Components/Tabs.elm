@@ -305,7 +305,7 @@ viewBuildTabs shared props =
 
 
 
--- REPO
+-- ADMIN
 
 
 viewAdminTabs :

@@ -75,7 +75,7 @@ init props shared route _ =
     ( { tabHistory = Dict.empty
       }
     , Effect.batch
-        [ Effect.getCurrentUser {}
+        [ Effect.getCurrentUserShared {}
         , Effect.getRepoBuildsShared
             { pageNumber = Nothing
             , perPage = Nothing
@@ -133,7 +133,7 @@ update props route msg model =
         Tick options ->
             ( model
             , Effect.batch
-                [ Effect.getCurrentUser {}
+                [ Effect.getCurrentUserShared {}
                 , Effect.getRepoBuildsShared
                     { pageNumber = Nothing
                     , perPage = Nothing

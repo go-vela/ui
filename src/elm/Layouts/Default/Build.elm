@@ -89,7 +89,7 @@ init props shared route _ =
       , tabHistory = Dict.empty
       }
     , Effect.batch
-        [ Effect.getCurrentUser {}
+        [ Effect.getCurrentUserShared {}
         , Effect.getRepoBuildsShared
             { pageNumber = Nothing
             , perPage = Nothing
