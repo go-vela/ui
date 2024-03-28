@@ -1,42 +1,47 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module RoutesTest exposing (testHref, testMatch, testRouteToUrl)
 
 import Expect
-import Routes exposing (Route(..), routeToUrl)
+import Route.Path
 import Test exposing (..)
 import Url exposing (Url)
 
 
 
--- href
+-- Route.Path.toString
 
 
 testHref : Test
 testHref =
     test "returns the href of a route" <|
         \_ ->
-            routeToUrl Routes.Login
+            Route.Path.toString Route.Path.Account_Login
                 |> Expect.equal "/account/login"
 
 
 
--- match
+-- Route.Path.fromUrl
 
 
 testMatch : Test
 testMatch =
     describe "route gets matched as intended for given url"
-        [ testUrl "/account/login" Login
-        , testUrl "/asdf" (OrgRepositories "asdf" Nothing Nothing)
-        , testUrl "/" Overview
+        [ testUrl "/account/login" Route.Path.Account_Login
+        , testUrl "/asdf" (Route.Path.Org_ { org = "asdf" })
+        , testUrl "/" Route.Path.Home_
         ]
 
 
-testUrl : String -> Route -> Test
+testUrl : String -> Route.Path.Path -> Test
 testUrl p route =
     test ("Testing '" ++ p) <|
         \_ ->
             makeUrl p
-                |> Routes.match
+                |> Route.Path.fromUrl
                 |> Expect.equal route
 
 
@@ -52,12 +57,12 @@ makeUrl p =
 
 
 
--- routeToUrl
+-- Route.Path.toString
 
 
 testRouteToUrl : Test
 testRouteToUrl =
     test "Login -> /account/login" <|
         \_ ->
-            Routes.routeToUrl Login
+            Route.Path.toString Route.Path.Account_Login
                 |> Expect.equal "/account/login"

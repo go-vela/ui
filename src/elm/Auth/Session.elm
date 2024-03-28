@@ -4,7 +4,8 @@ SPDX-License-Identifier: Apache-2.0
 
 
 module Auth.Session exposing
-    ( Session(..)
+    ( AuthParams
+    , Session(..)
     , SessionDetails
     , refreshAccessToken
     )
@@ -12,6 +13,15 @@ module Auth.Session exposing
 import Process
 import Task
 import Time exposing (Posix)
+
+
+{-| AuthParams defines the parameters
+used to complete authentication
+-}
+type alias AuthParams =
+    { code : Maybe String
+    , state : Maybe String
+    }
 
 
 {-| SessionDetails defines the shape

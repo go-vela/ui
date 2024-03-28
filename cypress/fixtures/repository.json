@@ -7,6 +7,7 @@
   "link": "",
   "clone": "",
   "branch": "main",
+  "topics": [],
   "build_limit": 10,
   "timeout": 30,
   "counter": 81,
@@ -30,7 +31,9 @@
       "opened": false,
       "synchronize": false,
       "edited": false,
-      "reopened": false
+      "reopened": false,
+      "labeled": false,
+      "unlabeled": false
     },
     "deployment": {
       "created": false

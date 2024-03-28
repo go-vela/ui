@@ -29,7 +29,7 @@ context('Authentication', () => {
     it('provides a logout link', () => {
       cy.get('[data-test=logout-link]')
         .should('have.prop', 'href')
-        .and('equal', Cypress.config().baseUrl + '/account/logout');
+        .and('contains', Cypress.config().baseUrl + '/account/logout');
     });
 
     // TODO: need to dynamically change return from call to

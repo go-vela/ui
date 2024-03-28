@@ -24,10 +24,8 @@ context('Secrets', () => {
       cy.login('/-/secrets/native/repo/github/octocat/password');
     });
 
-    it('Remove button should show', () => {
-      cy.get('[data-test=secret-delete-button]')
-        .should('exist')
-        .contains('Remove');
+    it('delete button should show', () => {
+      cy.get('[data-test=button-delete]').should('exist').contains('Delete');
     });
 
     context(
@@ -38,8 +36,8 @@ context('Secrets', () => {
         },
       },
       () => {
-        it('add button should show', () => {
-          cy.get('[data-test=repo-checkbox-schedule]').should('exist');
+        it('submit button should show', () => {
+          cy.get('[data-test=button-submit]').should('exist');
         });
       },
     );
@@ -53,49 +51,47 @@ context('Secrets', () => {
       },
       () => {
         it('add button should not show', () => {
-          cy.get('[data-test=repo-checkbox-schedule]').should('not.exist');
+          cy.get('[data-test=checkbox-schedule]').should('not.exist');
         });
       },
     );
 
-    context('click Remove', () => {
+    context('click Delete', () => {
       beforeEach(() => {
-        cy.get('[data-test=secret-delete-button]').click();
+        cy.get('[data-test=button-delete]').click();
       });
 
-      it('Remove button should show when going to another secrets page', () => {
+      it('delete button should show when going to another secrets page', () => {
         cy.visit('/-/secrets/native/org/github/password');
-        cy.get('[data-test=secret-delete-button]')
-          .should('exist')
-          .contains('Remove');
+        cy.get('[data-test=button-delete]').should('exist').contains('Delete');
       });
       it('Cancel button should show', () => {
-        cy.get('[data-test=secret-cancel-button]')
+        cy.get('[data-test=button-delete-cancel]')
           .should('exist')
           .contains('Cancel');
       });
       it('Confirm button should show', () => {
-        cy.get('[data-test=secret-delete-button]')
+        cy.get('[data-test=button-delete-confirm]')
           .should('exist')
           .contains('Confirm');
       });
       context('click Cancel', () => {
         beforeEach(() => {
-          cy.get('[data-test=secret-cancel-button]').click();
+          cy.get('[data-test=button-delete-cancel]').click();
         });
 
-        it('Cancel should revert Confirm to Remove', () => {
-          cy.get('[data-test=secret-delete-button]')
+        it('should revert Confirm to Delete', () => {
+          cy.get('[data-test=button-delete]')
             .should('exist')
-            .contains('Remove');
+            .contains('Delete');
         });
         it('Cancel should not show', () => {
-          cy.get('[data-test=secret-cancel-button]').should('not.exist');
+          cy.get('[data-test=button-delete-cancel]').should('not.exist');
         });
       });
       context('click Confirm', () => {
         beforeEach(() => {
-          cy.get('[data-test=secret-delete-button]').click();
+          cy.get('[data-test=button-delete-confirm]').click();
         });
 
         it('Confirm should redirect to repo secrets page', () => {
@@ -108,7 +104,7 @@ context('Secrets', () => {
           cy.get('[data-test=alerts]')
             .should('exist')
             .contains('password')
-            .contains('removed')
+            .contains('Deleted')
             .contains('repo');
         });
       });
@@ -122,12 +118,10 @@ context('Secrets', () => {
     });
 
     it('allow command and substitution should default to false', () => {
-      cy.get('[data-test=secret-radio-command-no]')
-        .find('input')
-        .should('be.checked');
-      cy.get('[data-test=secret-radio-substitution-no]')
-        .find('input')
-        .should('be.checked');
+      cy.get('[data-test=radio-secret-allow-command-no]').should('be.checked');
+      cy.get('[data-test=radio-secret-allow-substitution-no]').should(
+        'be.checked',
+      );
     });
   });
 
@@ -146,8 +140,8 @@ context('Secrets', () => {
         response: { error: 'server error could not remove' },
       });
       cy.login('/-/secrets/native/repo/github/octocat/password');
-      cy.get('[data-test=secret-delete-button]').click();
-      cy.get('[data-test=secret-delete-button]').click();
+      cy.get('[data-test=button-delete]').click();
+      cy.get('[data-test=button-delete-confirm]').click();
     });
 
     it('error should show', () => {
@@ -210,10 +204,10 @@ context('Secrets', () => {
 
       it('should show copy', () => {
         cy.get('@firstSecret').within(() => {
-          cy.get('[data-test=secrets-row-copy]').should('exist');
+          cy.get('[data-test=copy-secret]').should('exist');
         });
         cy.get('@lastSecret').within(() => {
-          cy.get('[data-test=secrets-row-copy]').should('exist');
+          cy.get('[data-test=copy-secret]').should('exist');
         });
       });
 
@@ -221,32 +215,32 @@ context('Secrets', () => {
         cy.get('@firstSecret').within(() => {
           cy.get('[data-test=copy-secret]').click();
         });
-        cy.get('[data-test=alerts]').should('exist').contains('Copied');
+        cy.get('[data-test=alerts]').should('exist').contains('copied');
       });
 
       it('should show key', () => {
         cy.get('@firstSecret').within(() => {
-          cy.get('[data-test=secrets-row-key]').contains(
-            'github/docker_username',
-          );
+          cy.get('[data-test=cell-key]').contains('github/docker_username');
         });
         cy.get('@lastSecret').within(() => {
-          cy.get('[data-test=secrets-row-key]').contains('github/deployment');
+          cy.get('[data-test=cell-key]').contains('github/deployment');
         });
       });
 
       it('should show name', () => {
         cy.get('@firstSecret').within(() => {
-          cy.get('[data-test=secrets-row-name]').contains('docker_username');
+          cy.get('[data-test=cell-name]').contains('docker_username');
         });
         cy.get('@lastSecret').within(() => {
-          cy.get('[data-test=secrets-row-name]').contains('deployment');
+          cy.get('[data-test=cell-name]').contains('deployment');
         });
       });
 
       it('clicking name should route to edit secret page', () => {
         cy.get('@firstSecret').within(() => {
-          cy.get('[data-test=secrets-row-name] > a').click({ force: true });
+          cy.get('[data-test=cell-name] > .single-item > a').click({
+            force: true,
+          });
           cy.location('pathname').should(
             'eq',
             '/-/secrets/native/org/github/docker_username',
@@ -256,7 +250,9 @@ context('Secrets', () => {
 
       it('clicking name with special character should use encoded url', () => {
         cy.get('@lastSecret').within(() => {
-          cy.get('[data-test=secrets-row-name] > a').click({ force: true });
+          cy.get('[data-test=cell-name] > .single-item > a').click({
+            force: true,
+          });
           cy.location('pathname').should(
             'eq',
             '/-/secrets/native/org/github/github%2Fdeployment',
