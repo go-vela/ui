@@ -7,7 +7,6 @@ module Pages.Org_.Repo_.Build_ exposing (..)
 
 import Auth
 import Browser.Dom exposing (focus)
-import Components.Build
 import Components.Loading
 import Components.Logs
 import Components.Svgs
@@ -272,7 +271,7 @@ update shared route msg model =
         GetBuildStepsResponse options response ->
             case response of
                 Ok ( _, steps ) ->
-                    ( { model | steps = RemoteData.succeed steps }
+                    ( { model | steps = RemoteData.succeed <| List.sortBy .number steps }
                     , steps
                         |> List.Extra.find (\step -> Maybe.withDefault -1 model.focus.group == step.number)
                         |> Maybe.map
@@ -298,7 +297,7 @@ update shared route msg model =
         GetBuildStepsRefreshResponse response ->
             case response of
                 Ok ( _, steps ) ->
-                    ( { model | steps = RemoteData.succeed steps }
+                    ( { model | steps = RemoteData.succeed <| List.sortBy .number steps }
                     , steps
                         |> List.filter (\step -> List.member step.number model.viewing)
                         |> List.map
@@ -587,9 +586,7 @@ view shared route model =
                                     viewStages shared model route steps
 
                                 else
-                                    List.map (viewStep shared model route) <|
-                                        List.sortBy .number <|
-                                            RemoteData.withDefault [] model.steps
+                                    List.map (viewStep shared model route) steps
                             ]
                         ]
 
