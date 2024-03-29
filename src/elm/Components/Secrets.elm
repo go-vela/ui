@@ -294,6 +294,12 @@ viewSecret engine type_ copyMsg secret =
             , itemClassList = []
             , children = [ text <| Util.boolToYesNo secret.allowCommand ]
             }
+        , Components.Table.viewItemCell
+            { dataLabel = "allow substitution"
+            , parentClassList = []
+            , itemClassList = []
+            , children = [ text <| Util.boolToYesNo secret.allowSubstitution ]
+            }
         ]
 
 
@@ -323,7 +329,7 @@ copyButton copyYaml copyMsg =
     div []
         [ button
             [ class "copy-button"
-            , attribute "aria-label" <| "copy secret yaml to clipboard "
+            , attribute "aria-label" "copy secret yaml to clipboard "
             , class "button"
             , class "-icon"
             , onClick <| copyMsg copyYaml
@@ -351,14 +357,14 @@ editSecretHref engine type_ secret =
     Route.Path.href <|
         case type_ of
             Vela.OrgSecret ->
-                Route.Path.SecretsEngine_OrgOrg_Edit_
+                Route.Path.Dash_Secrets_Engine__Org_Org__Name_
                     { org = secret.org
                     , name = encodedName
                     , engine = engine
                     }
 
             Vela.RepoSecret ->
-                Route.Path.SecretsEngine_RepoOrg_Repo_Edit_
+                Route.Path.Dash_Secrets_Engine__Repo_Org__Repo__Name_
                     { org = secret.org
                     , repo = secret.repo
                     , name = encodedName
@@ -366,7 +372,7 @@ editSecretHref engine type_ secret =
                     }
 
             Vela.SharedSecret ->
-                Route.Path.SecretsEngine_SharedOrg_Team_Edit_
+                Route.Path.Dash_Secrets_Engine__Shared_Org__Team__Name_
                     { org = secret.org
                     , team = encodedTeam
                     , name = secret.name

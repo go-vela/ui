@@ -25,7 +25,7 @@ import Route exposing (Route)
 import Route.Path
 import Shared
 import Utils.Ansi
-import Utils.Errors
+import Utils.Errors as Errors
 import Utils.Focus as Focus
 import Utils.Helpers as Util
 import Vela
@@ -34,7 +34,7 @@ import View exposing (View)
 
 {-| page : takes user, shared model, route, and returns a build's pipeline page.
 -}
-page : Auth.User -> Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> Page Model Msg
+page : Auth.User -> Shared.Model -> Route { org : String, repo : String, build : String } -> Page Model Msg
 page user shared route =
     Page.new
         { init = init shared route
@@ -53,7 +53,7 @@ page user shared route =
 
 {-| toLayout : takes user, route, model, and passes a pipeline page info to Layouts.
 -}
-toLayout : Auth.User -> Route { org : String, repo : String, buildNumber : String } -> Model -> Layouts.Layout Msg
+toLayout : Auth.User -> Route { org : String, repo : String, build : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Build
         { navButtons = []
@@ -66,7 +66,7 @@ toLayout user route model =
                         ++ " --repo "
                         ++ route.params.repo
                         ++ " --build "
-                        ++ route.params.buildNumber
+                        ++ route.params.build
               , docs = Just "cli/pipeline/validate"
               }
             , { name = "Restart Build"
@@ -76,7 +76,7 @@ toLayout user route model =
                         ++ " --repo "
                         ++ route.params.repo
                         ++ " --build "
-                        ++ route.params.buildNumber
+                        ++ route.params.build
               , docs = Just "build/restart"
               }
             , { name = "Cancel Build"
@@ -86,25 +86,25 @@ toLayout user route model =
                         ++ " --repo "
                         ++ route.params.repo
                         ++ " --build "
-                        ++ route.params.buildNumber
+                        ++ route.params.build
               , docs = Just "build/cancel"
               }
             ]
         , crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
-            , ( "#" ++ route.params.buildNumber, Nothing )
+            , ( route.params.repo, Just <| Route.Path.Org__Repo_ { org = route.params.org, repo = route.params.repo } )
+            , ( "#" ++ route.params.build, Nothing )
             ]
         , org = route.params.org
         , repo = route.params.repo
-        , buildNumber = route.params.buildNumber
+        , build = route.params.build
         , toBuildPath =
-            \buildNumber ->
-                Route.Path.Org_Repo_Build_Pipeline
+            \build ->
+                Route.Path.Org__Repo__Build__Pipeline
                     { org = route.params.org
                     , repo = route.params.repo
-                    , buildNumber = buildNumber
+                    , build = build
                     }
         }
 
@@ -128,7 +128,7 @@ type alias Model =
 
 {-| init : takes shared model, route, and initializes pipeline page input arguments.
 -}
-init : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> () -> ( Model, Effect Msg )
+init : Shared.Model -> Route { org : String, repo : String, build : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { build = RemoteData.Loading
       , pipeline = RemoteData.Loading
@@ -156,7 +156,7 @@ init shared route () =
                     }
             , org = route.params.org
             , repo = route.params.repo
-            , buildNumber = route.params.buildNumber
+            , build = route.params.build
             }
         ]
     )
@@ -190,7 +190,7 @@ type Msg
 
 {-| update : takes current models, route, message, and returns an updated model and effect.
 -}
-update : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> Msg -> Model -> ( Model, Effect Msg )
+update : Shared.Model -> Route { org : String, repo : String, build : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
         NoOp ->
@@ -237,7 +237,7 @@ update shared route msg model =
                                 , onResponse = GetBuildResponse { applyDomFocus = False }
                                 , org = route.params.org
                                 , repo = route.params.repo
-                                , buildNumber = route.params.buildNumber
+                                , build = route.params.build
                                 }
             in
             ( { model | expand = expand, expanding = expanding }
@@ -248,10 +248,10 @@ update shared route msg model =
             ( model
             , Effect.pushRoute
                 { path =
-                    Route.Path.Org_Repo_Build_Pipeline
+                    Route.Path.Org__Repo__Build__Pipeline
                         { org = route.params.org
                         , repo = route.params.repo
-                        , buildNumber = route.params.buildNumber
+                        , build = route.params.build
                         }
                 , query = Dict.insert options.key options.value route.query
                 , hash = route.hash
@@ -285,10 +285,10 @@ update shared route msg model =
             ( model
             , Effect.pushRoute
                 { path =
-                    Route.Path.Org_Repo_Build_Pipeline
+                    Route.Path.Org__Repo__Build__Pipeline
                         { org = route.params.org
                         , repo = route.params.repo
-                        , buildNumber = route.params.buildNumber
+                        , build = route.params.build
                         }
                 , query = route.query |> Dict.remove "focus"
                 , hash = Just options.hash
@@ -341,10 +341,10 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | build = Utils.Errors.toFailure error }
+                    ( { model | build = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -369,10 +369,10 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | pipeline = Utils.Errors.toFailure error, expanding = False }
+                    ( { model | pipeline = Errors.toFailure error, expanding = False }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -396,10 +396,10 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | pipeline = Utils.Errors.toFailure error, expanding = False }
+                    ( { model | pipeline = Errors.toFailure error, expanding = False }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -430,10 +430,10 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | templates = Utils.Errors.toFailure error }
+                    ( { model | templates = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -460,7 +460,7 @@ subscriptions model =
 
 {-| view : takes models, route, and creates the html for a build pipeline page.
 -}
-view : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> Model -> View Msg
+view : Shared.Model -> Route { org : String, repo : String, build : String } -> Model -> View Msg
 view shared route model =
     let
         viewExpandToggle =

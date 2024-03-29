@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Secrets.Engine_.Repo.Org_.Repo_ exposing (Model, Msg, page, view)
+module Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_ exposing (Model, Msg, page, view)
 
 import Api.Pagination
 import Auth
@@ -25,15 +25,13 @@ import Route.Path
 import Shared
 import Svg.Attributes
 import Time
-import Utils.Errors
+import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Utils.Interval as Interval
 import Vela
 import View exposing (View)
 
 
-{-| page : takes user, shared model, route, and returns a repo's secrets page.
--}
 page : Auth.User -> Shared.Model -> Route { engine : String, org : String, repo : String } -> Page Model Msg
 page user shared route =
     Page.new
@@ -49,8 +47,6 @@ page user shared route =
 -- LAYOUT
 
 
-{-| toLayout : takes user, route, model, and passes a repo's secrets page info to Layouts.
--}
 toLayout : Auth.User -> Route { engine : String, org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Repo
@@ -73,7 +69,7 @@ toLayout user route model =
               }
             ]
         , crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
             , ( route.params.repo, Nothing )
             ]
@@ -86,8 +82,6 @@ toLayout user route model =
 -- INIT
 
 
-{-| Model : alias for a model object.
--}
 type alias Model =
     { repoSecrets : WebData (List Vela.Secret)
     , orgSecrets : WebData (List Vela.Secret)
@@ -95,8 +89,6 @@ type alias Model =
     }
 
 
-{-| init : takes shared model, route, and initializes repo's secrets page input arguments.
--}
 init : Shared.Model -> Route { engine : String, org : String, repo : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { repoSecrets = RemoteData.Loading
@@ -131,8 +123,6 @@ init shared route () =
 -- UPDATE
 
 
-{-| Msg : a custom type with possible messages.
--}
 type Msg
     = -- SECRETS
       GetRepoSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Secret ))
@@ -144,8 +134,6 @@ type Msg
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
-{-| update : takes current models, route, message, and returns an updated model and effect.
--}
 update : Shared.Model -> Route { engine : String, org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
@@ -161,10 +149,10 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | repoSecrets = Utils.Errors.toFailure error }
+                    ( { model | repoSecrets = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertNon401
+                        , shouldShowAlertFn = Errors.showAlertNon401
                         }
                     )
 
@@ -178,7 +166,7 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | orgSecrets = Utils.Errors.toFailure error }
+                    ( { model | orgSecrets = Errors.toFailure error }
                     , Effect.none
                     )
 
@@ -245,8 +233,6 @@ update shared route msg model =
 -- SUBSCRIPTIONS
 
 
-{-| subscriptions : takes model and returns the subscriptions for auto refreshing the page.
--}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Interval.tickEveryFiveSeconds Tick
@@ -256,8 +242,6 @@ subscriptions model =
 -- VIEW
 
 
-{-| view : takes models, route, and creates the html for a repo's secrets page.
--}
 view : Shared.Model -> Route { engine : String, org : String, repo : String } -> Model -> View Msg
 view shared route model =
     { title = "Secrets" ++ Util.pageToString (Dict.get "page" route.query)
@@ -277,7 +261,7 @@ view shared route model =
                         , class "button-with-icon"
                         , Util.testAttribute "add-repo-secret"
                         , Route.Path.href <|
-                            Route.Path.SecretsEngine_RepoOrg_Repo_Add
+                            Route.Path.Dash_Secrets_Engine__Repo_Org__Repo__Add
                                 { engine = route.params.engine
                                 , org = route.params.org
                                 , repo = route.params.repo
@@ -309,7 +293,7 @@ view shared route model =
                         [ class "button"
                         , class "-outline"
                         , Route.Path.href <|
-                            Route.Path.SecretsEngine_OrgOrg_
+                            Route.Path.Dash_Secrets_Engine__Org_Org_
                                 { engine = route.params.engine
                                 , org = route.params.org
                                 }

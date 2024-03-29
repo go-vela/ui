@@ -22,14 +22,14 @@ if (!Cypress.env('CI')) {
 // Login helper (accepts initial path to visit)
 Cypress.Commands.add('login', (path = '/') => {
   cy.server();
-  cy.route('/token-refresh', 'fixture:auth.json');
+  cy.route('/token-refresh*', 'fixture:auth.json');
   cy.visit(path);
 });
 
 // Faking the act of logging in helper
 Cypress.Commands.add('loggingIn', (path = '/') => {
   cy.server();
-  cy.route('/token-refresh', 'fixture:auth.json');
+  cy.route('*/token-refresh', 'fixture:auth.json');
   cy.route('/authenticate*', 'fixture:auth.json');
 
   cy.visit('/account/authenticate?code=deadbeef&state=1337', {

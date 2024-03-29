@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 module Components.Footer exposing (view)
 
 import Components.Alerts as Alerts exposing (Alert)
-import Html exposing (Html, div)
+import Html exposing (Html, div, footer)
 import Html.Attributes exposing (class)
 import Toasty as Alerting exposing (Stack)
 import Utils.Helpers as Util
@@ -25,7 +25,7 @@ view :
     }
     -> Html msg
 view options =
-    Html.footer []
+    footer []
         [ div [ Util.testAttribute "alerts", class "alerts" ]
             [ Alerting.view Alerts.successConfig
                 (Alerts.view options.copyAlertMsg)

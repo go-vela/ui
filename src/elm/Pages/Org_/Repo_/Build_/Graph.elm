@@ -13,7 +13,7 @@ import Dict exposing (Dict)
 import Effect exposing (Effect)
 import FeatherIcons
 import Graph exposing (Edge, Node)
-import Html exposing (button, div, li, text, ul)
+import Html exposing (button, div, input, label, li, text, ul)
 import Html.Attributes exposing (checked, class, for, id, placeholder, title, type_, value)
 import Html.Events exposing (onCheck, onClick, onInput)
 import Http
@@ -29,7 +29,7 @@ import Shared
 import Svg
 import Svg.Attributes
 import Time
-import Utils.Errors
+import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Utils.Interval as Interval
 import Vela
@@ -39,7 +39,7 @@ import Visualization.DOT as DOT
 
 {-| page : takes user, shared model, route, and returns a build's graph (a.k.a. visualize) page.
 -}
-page : Auth.User -> Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> Page Model Msg
+page : Auth.User -> Shared.Model -> Route { org : String, repo : String, build : String } -> Page Model Msg
 page user shared route =
     Page.new
         { init = init shared route
@@ -56,7 +56,7 @@ page user shared route =
 
 {-| toLayout : takes user, route, model, and passes a build graph (a.k.a. visualize) page info to Layouts.
 -}
-toLayout : Auth.User -> Route { org : String, repo : String, buildNumber : String } -> Model -> Layouts.Layout Msg
+toLayout : Auth.User -> Route { org : String, repo : String, build : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Build
         { navButtons = []
@@ -69,7 +69,7 @@ toLayout user route model =
                         ++ " --repo "
                         ++ route.params.repo
                         ++ " --build "
-                        ++ route.params.buildNumber
+                        ++ route.params.build
               , docs = Just "cli/pipeline/validate"
               }
             , { name = "Restart Build"
@@ -79,7 +79,7 @@ toLayout user route model =
                         ++ " --repo "
                         ++ route.params.repo
                         ++ " --build "
-                        ++ route.params.buildNumber
+                        ++ route.params.build
               , docs = Just "build/restart"
               }
             , { name = "Cancel Build"
@@ -89,25 +89,25 @@ toLayout user route model =
                         ++ " --repo "
                         ++ route.params.repo
                         ++ " --build "
-                        ++ route.params.buildNumber
+                        ++ route.params.build
               , docs = Just "build/cancel"
               }
             ]
         , crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
-            , ( "#" ++ route.params.buildNumber, Nothing )
+            , ( route.params.repo, Just <| Route.Path.Org__Repo_ { org = route.params.org, repo = route.params.repo } )
+            , ( "#" ++ route.params.build, Nothing )
             ]
         , org = route.params.org
         , repo = route.params.repo
-        , buildNumber = route.params.buildNumber
+        , build = route.params.build
         , toBuildPath =
-            \buildNumber ->
-                Route.Path.Org_Repo_Build_Graph
+            \build ->
+                Route.Path.Org__Repo__Build__Graph
                     { org = route.params.org
                     , repo = route.params.repo
-                    , buildNumber = buildNumber
+                    , build = build
                     }
         }
 
@@ -131,7 +131,7 @@ type alias Model =
 
 {-| init : takes shared model, route, and initializes build graph (a.k.a. visualize) page input arguments.
 -}
-init : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> () -> ( Model, Effect Msg )
+init : Shared.Model -> Route { org : String, repo : String, build : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { build = RemoteData.Loading
       , graph = RemoteData.Loading
@@ -148,7 +148,7 @@ init shared route () =
             , onResponse = GetBuildGraphResponse { freshDraw = True }
             , org = route.params.org
             , repo = route.params.repo
-            , buildNumber = route.params.buildNumber
+            , build = route.params.build
             }
         , clearBuildGraph |> Effect.sendCmd
         ]
@@ -180,7 +180,7 @@ type Msg
 
 {-| update : takes current models, route info, message, and returns an updated model and effect.
 -}
-update : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> Msg -> Model -> ( Model, Effect Msg )
+update : Shared.Model -> Route { org : String, repo : String, build : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
         NoOp ->
@@ -216,11 +216,11 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | graph = Utils.Errors.toFailure error }
+                    ( { model | graph = Errors.toFailure error }
                     , Effect.batch
                         [ Effect.handleHttpError
                             { error = error
-                            , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                            , shouldShowAlertFn = Errors.showAlertAlways
                             }
                         , clearBuildGraph |> Effect.sendCmd
                         ]
@@ -242,7 +242,7 @@ update shared route msg model =
                     , onResponse = GetBuildGraphResponse { freshDraw = options.freshDraw }
                     , org = route.params.org
                     , repo = route.params.repo
-                    , buildNumber = route.params.buildNumber
+                    , build = route.params.build
                     }
                 , if options.clear then
                     Effect.sendCmd clearBuildGraph
@@ -299,10 +299,10 @@ update shared route msg model =
                                 |> String.replace hrefHandle ""
                                 |> Route.Path.fromString
                                 |> Maybe.withDefault
-                                    (Route.Path.Org_Repo_Build_Graph
+                                    (Route.Path.Org__Repo__Build__Graph
                                         { org = route.params.org
                                         , repo = route.params.repo
-                                        , buildNumber = route.params.buildNumber
+                                        , build = route.params.build
                                         }
                                     )
                                 |> Effect.pushPath
@@ -357,7 +357,7 @@ subscriptions model =
 
 {-| view : renders the elm build graph root. the graph root is selected by d3 and filled with graphviz content.
 -}
-view : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> Model -> View Msg
+view : Shared.Model -> Route { org : String, repo : String, build : String } -> Model -> View Msg
 view shared route model =
     { title = "Graph"
     , body =
@@ -382,7 +382,7 @@ view shared route model =
                             [ class "button"
                             , class "-icon"
                             , class "build-graph-action-refresh"
-                            , Html.Attributes.title "Refresh visualization"
+                            , title "Refresh visualization"
                             , onClick <| Refresh { freshDraw = True, setToLoading = True, clear = True }
                             ]
                             [ FeatherIcons.refreshCw
@@ -416,7 +416,7 @@ view shared route model =
                 , div [ class "elm-build-graph-action-toggles" ]
                     [ div [ class "form-control" ]
                         [ div []
-                            [ Html.input
+                            [ input
                                 [ type_ "checkbox"
                                 , checked model.showServices
                                 , onCheck ShowHideServices
@@ -424,7 +424,7 @@ view shared route model =
                                 , Util.testAttribute "build-graph-action-toggle-services"
                                 ]
                                 []
-                            , Html.label
+                            , label
                                 [ class "form-label"
                                 , for "checkbox-services-toggle"
                                 ]
@@ -434,7 +434,7 @@ view shared route model =
                         ]
                     , div [ class "form-control" ]
                         [ div []
-                            [ Html.input
+                            [ input
                                 [ type_ "checkbox"
                                 , checked model.showSteps
                                 , onCheck ShowHideSteps
@@ -442,7 +442,7 @@ view shared route model =
                                 , Util.testAttribute "build-graph-action-toggle-steps"
                                 ]
                                 []
-                            , Html.label
+                            , label
                                 [ class "form-label"
                                 , for "checkbox-steps-toggle"
                                 ]
@@ -455,7 +455,7 @@ view shared route model =
                         , class "elm-build-graph-search-filter"
                         ]
                         [ div [ class "elm-build-graph-search-filter-input" ]
-                            [ Html.input
+                            [ input
                                 [ type_ "input"
                                 , placeholder "type to highlight nodes..."
                                 , onInput UpdateFilter
@@ -464,7 +464,7 @@ view shared route model =
                                 , value model.filter
                                 ]
                                 []
-                            , Html.label
+                            , label
                                 [ class "elm-build-graph-search-filter-form-label"
                                 , for "build-graph-action-filter"
                                 ]
@@ -792,10 +792,10 @@ nodeLabel shared model graph node showSteps =
         link step =
             Route.toString <|
                 { path =
-                    Route.Path.Org_Repo_Build_
+                    Route.Path.Org__Repo__Build_
                         { org = graph.org
                         , repo = graph.repo
-                        , buildNumber = String.fromInt graph.buildNumber
+                        , build = String.fromInt graph.build
                         }
                 , hash = Just <| hrefHandle ++ String.fromInt step.number
                 , query = Dict.empty

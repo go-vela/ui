@@ -8,7 +8,16 @@ module Main.Pages.Model exposing (Model(..))
 import Pages.Account.Login
 import Pages.Account.Settings
 import Pages.Account.SourceRepos
-import Pages.Home
+import Pages.Dash.Secrets.Engine_.Org.Org_
+import Pages.Dash.Secrets.Engine_.Org.Org_.Add
+import Pages.Dash.Secrets.Engine_.Org.Org_.Name_
+import Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_
+import Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Add
+import Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Name_
+import Pages.Dash.Secrets.Engine_.Shared.Org_.Team_
+import Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Add
+import Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_
+import Pages.Home_
 import Pages.NotFound_
 import Pages.Org_
 import Pages.Org_.Builds
@@ -22,49 +31,41 @@ import Pages.Org_.Repo_.Deployments.Add
 import Pages.Org_.Repo_.Hooks
 import Pages.Org_.Repo_.Schedules
 import Pages.Org_.Repo_.Schedules.Add
-import Pages.Org_.Repo_.Schedules.Edit_
+import Pages.Org_.Repo_.Schedules.Name_
 import Pages.Org_.Repo_.Settings
-import Pages.Secrets.Engine_.Org.Org_
-import Pages.Secrets.Engine_.Org.Org_.Add
-import Pages.Secrets.Engine_.Org.Org_.Edit_
-import Pages.Secrets.Engine_.Repo.Org_.Repo_
-import Pages.Secrets.Engine_.Repo.Org_.Repo_.Add
-import Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_
-import Pages.Secrets.Engine_.Shared.Org_.Team_
-import Pages.Secrets.Engine_.Shared.Org_.Team_.Add
-import Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_
+import View exposing (View)
 
 
 {-| Model : The main model for the application.
 -}
 type Model
-    = AccountLogin Pages.Account.Login.Model
-    | AccountSettings Pages.Account.Settings.Model
-    | AccountSourceRepos Pages.Account.SourceRepos.Model
-    | Home Pages.Home.Model
+    = Home_ Pages.Home_.Model
+    | Account_Login Pages.Account.Login.Model
+    | Account_Settings Pages.Account.Settings.Model
+    | Account_SourceRepos Pages.Account.SourceRepos.Model
+    | Dash_Secrets_Engine__Org_Org_ { engine : String, org : String } Pages.Dash.Secrets.Engine_.Org.Org_.Model
+    | Dash_Secrets_Engine__Org_Org__Add { engine : String, org : String } Pages.Dash.Secrets.Engine_.Org.Org_.Add.Model
+    | Dash_Secrets_Engine__Org_Org__Name_ { engine : String, org : String, name : String } Pages.Dash.Secrets.Engine_.Org.Org_.Name_.Model
+    | Dash_Secrets_Engine__Repo_Org__Repo_ { engine : String, org : String, repo : String } Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Model
+    | Dash_Secrets_Engine__Repo_Org__Repo__Add { engine : String, org : String, repo : String } Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Add.Model
+    | Dash_Secrets_Engine__Repo_Org__Repo__Name_ { engine : String, org : String, repo : String, name : String } Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Name_.Model
+    | Dash_Secrets_Engine__Shared_Org__Team_ { engine : String, org : String, team : String } Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Model
+    | Dash_Secrets_Engine__Shared_Org__Team__Add { engine : String, org : String, team : String } Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Add.Model
+    | Dash_Secrets_Engine__Shared_Org__Team__Name_ { engine : String, org : String, team : String, name : String } Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_.Model
     | Org_ { org : String } Pages.Org_.Model
-    | Org_Builds { org : String } Pages.Org_.Builds.Model
-    | Org_Repo_ { org : String, repo : String } Pages.Org_.Repo_.Model
-    | Org_Repo_Deployments { org : String, repo : String } Pages.Org_.Repo_.Deployments.Model
-    | Org_Repo_DeploymentsAdd { org : String, repo : String } Pages.Org_.Repo_.Deployments.Add.Model
-    | Org_Repo_Schedules { org : String, repo : String } Pages.Org_.Repo_.Schedules.Model
-    | Org_Repo_SchedulesAdd { org : String, repo : String } Pages.Org_.Repo_.Schedules.Add.Model
-    | Org_Repo_SchedulesEdit_ { org : String, repo : String, name : String } Pages.Org_.Repo_.Schedules.Edit_.Model
-    | Org_Repo_Hooks { org : String, repo : String } Pages.Org_.Repo_.Hooks.Model
-    | Org_Repo_Settings { org : String, repo : String } Pages.Org_.Repo_.Settings.Model
-    | Org_Repo_Build_ { org : String, repo : String, buildNumber : String } Pages.Org_.Repo_.Build_.Model
-    | Org_Repo_Build_Services { org : String, repo : String, buildNumber : String } Pages.Org_.Repo_.Build_.Services.Model
-    | Org_Repo_Build_Pipeline { org : String, repo : String, buildNumber : String } Pages.Org_.Repo_.Build_.Pipeline.Model
-    | Org_Repo_Build_Graph { org : String, repo : String, buildNumber : String } Pages.Org_.Repo_.Build_.Graph.Model
-    | SecretsEngine_OrgOrg_ { engine : String, org : String } Pages.Secrets.Engine_.Org.Org_.Model
-    | SecretsEngine_OrgOrg_Add { engine : String, org : String } Pages.Secrets.Engine_.Org.Org_.Add.Model
-    | SecretsEngine_OrgOrg_Edit_ { engine : String, org : String, name : String } Pages.Secrets.Engine_.Org.Org_.Edit_.Model
-    | SecretsEngine_RepoOrg_Repo_ { engine : String, org : String, repo : String } Pages.Secrets.Engine_.Repo.Org_.Repo_.Model
-    | SecretsEngine_RepoOrg_Repo_Add { engine : String, org : String, repo : String } Pages.Secrets.Engine_.Repo.Org_.Repo_.Add.Model
-    | SecretsEngine_RepoOrg_Repo_Edit_ { engine : String, org : String, repo : String, name : String } Pages.Secrets.Engine_.Repo.Org_.Repo_.Edit_.Model
-    | SecretsEngine_SharedOrg_Team_ { engine : String, org : String, team : String } Pages.Secrets.Engine_.Shared.Org_.Team_.Model
-    | SecretsEngine_SharedOrg_Team_Add { engine : String, org : String, team : String } Pages.Secrets.Engine_.Shared.Org_.Team_.Add.Model
-    | SecretsEngine_SharedOrg_Team_Edit_ { engine : String, org : String, team : String, name : String } Pages.Secrets.Engine_.Shared.Org_.Team_.Edit_.Model
+    | Org__Builds { org : String } Pages.Org_.Builds.Model
+    | Org__Repo_ { org : String, repo : String } Pages.Org_.Repo_.Model
+    | Org__Repo__Deployments { org : String, repo : String } Pages.Org_.Repo_.Deployments.Model
+    | Org__Repo__Deployments_Add { org : String, repo : String } Pages.Org_.Repo_.Deployments.Add.Model
+    | Org__Repo__Hooks { org : String, repo : String } Pages.Org_.Repo_.Hooks.Model
+    | Org__Repo__Schedules { org : String, repo : String } Pages.Org_.Repo_.Schedules.Model
+    | Org__Repo__Schedules_Add { org : String, repo : String } Pages.Org_.Repo_.Schedules.Add.Model
+    | Org__Repo__Schedules_Name_ { org : String, repo : String, name : String } Pages.Org_.Repo_.Schedules.Name_.Model
+    | Org__Repo__Settings { org : String, repo : String } Pages.Org_.Repo_.Settings.Model
+    | Org__Repo__Build_ { org : String, repo : String, build : String } Pages.Org_.Repo_.Build_.Model
+    | Org__Repo__Build__Graph { org : String, repo : String, build : String } Pages.Org_.Repo_.Build_.Graph.Model
+    | Org__Repo__Build__Pipeline { org : String, repo : String, build : String } Pages.Org_.Repo_.Build_.Pipeline.Model
+    | Org__Repo__Build__Services { org : String, repo : String, build : String } Pages.Org_.Repo_.Build_.Services.Model
     | NotFound_ Pages.NotFound_.Model
     | Redirecting_
     | Loading_

@@ -22,7 +22,7 @@ import Route exposing (Route)
 import Route.Path
 import Shared
 import Time
-import Utils.Errors
+import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Utils.Interval as Interval
 import Vela exposing (defaultRepoPayload)
@@ -92,7 +92,7 @@ toLayout user route model =
               }
             ]
         , crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
             , ( route.params.repo, Nothing )
             ]
@@ -186,7 +186,7 @@ update shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -208,7 +208,7 @@ update shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -231,7 +231,7 @@ update shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -309,7 +309,7 @@ update shared route msg model =
                                       }
                                     , Effect.handleHttpError
                                         { error = error
-                                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                                        , shouldShowAlertFn = Errors.showAlertAlways
                                         }
                                     )
 
@@ -319,7 +319,7 @@ update shared route msg model =
                               }
                             , Effect.handleHttpError
                                 { error = error
-                                , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                                , shouldShowAlertFn = Errors.showAlertAlways
                                 }
                             )
 
@@ -394,7 +394,7 @@ update shared route msg model =
                       }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -445,7 +445,7 @@ update shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -484,7 +484,7 @@ update shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -801,7 +801,7 @@ viewForkPolicy repo msg =
                 , field = "fork-always"
                 , msg = msg "fork-always"
                 , disabled_ = False
-                , id_ = "fork-policy-always"
+                , id_ = "policy-fork-always"
                 }
             , Components.Form.viewRadio
                 { title = "Require Admin Approval When Contributor Is Read Only"
@@ -810,7 +810,7 @@ viewForkPolicy repo msg =
                 , field = "fork-no-write"
                 , msg = msg "fork-no-write"
                 , disabled_ = False
-                , id_ = "fork-no-write"
+                , id_ = "policy-fork-no-write"
                 }
             , Components.Form.viewRadio
                 { title = "Require Admin Approval for First Time Contributors"
@@ -819,7 +819,7 @@ viewForkPolicy repo msg =
                 , field = "first-time"
                 , msg = msg "first-time"
                 , disabled_ = False
-                , id_ = "first-time"
+                , id_ = "policy-first-time"
                 }
             , Components.Form.viewRadio
                 { title = "Never Require Admin Approval"
@@ -828,7 +828,7 @@ viewForkPolicy repo msg =
                 , field = "never"
                 , msg = msg "never"
                 , disabled_ = False
-                , id_ = "fork-policy-never"
+                , id_ = "policy-never"
                 }
             ]
         ]

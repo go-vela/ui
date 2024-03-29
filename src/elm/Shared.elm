@@ -30,7 +30,7 @@ import Task
 import Time
 import Toasty as Alerting
 import Url
-import Utils.Errors
+import Utils.Errors as Errors
 import Utils.Favicons as Favicons
 import Utils.Favorites as Favorites
 import Utils.Helpers as Util
@@ -302,9 +302,9 @@ update route msg model =
                             model.velaRedirect
 
                 redirectRoute =
-                    Route.Path.parsePath velaRedirect
+                    Route.parsePath velaRedirect
                         |> (\parsed ->
-                                { path = Maybe.withDefault Route.Path.Home <| Route.Path.fromString parsed.path
+                                { path = Maybe.withDefault Route.Path.Home_ <| Route.Path.fromString parsed.path
                                 , query = Route.Query.fromString <| Maybe.withDefault "" parsed.query
                                 , hash = parsed.hash
                                 }
@@ -347,11 +347,11 @@ update route msg model =
                     let
                         redirectToLogin =
                             case route.path of
-                                Route.Path.AccountLogin ->
+                                Route.Path.Account_Login ->
                                     Effect.none
 
                                 _ ->
-                                    Effect.replacePath Route.Path.AccountLogin
+                                    Effect.replacePath Route.Path.Account_Login
                     in
                     case error of
                         Http.Detailed.BadStatus meta _ ->
@@ -393,7 +393,7 @@ update route msg model =
                                         , Effect.setRedirect { redirect = velaRedirect }
                                         , Effect.handleHttpError
                                             { error = error
-                                            , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                                            , shouldShowAlertFn = Errors.showAlertAlways
                                             }
                                         ]
                                     )
@@ -408,7 +408,7 @@ update route msg model =
                                 , Effect.setRedirect { redirect = velaRedirect }
                                 , Effect.handleHttpError
                                     { error = error
-                                    , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                                    , shouldShowAlertFn = Errors.showAlertAlways
                                     }
                                 ]
                             )
@@ -438,7 +438,7 @@ update route msg model =
             in
             ( { model | session = Auth.Session.Unauthenticated, velaRedirect = from }
             , Effect.replaceRoute <|
-                { path = Route.Path.AccountLogin
+                { path = Route.Path.Account_Login
                 , query =
                     Dict.fromList
                         [ ( "from", from ) ]
@@ -463,10 +463,10 @@ update route msg model =
                     )
 
                 Err error ->
-                    ( { model | user = Utils.Errors.toFailure error }
+                    ( { model | user = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -522,10 +522,10 @@ update route msg model =
                     )
 
                 Err error ->
-                    ( { model | user = Utils.Errors.toFailure error }
+                    ( { model | user = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -559,10 +559,10 @@ update route msg model =
                     )
 
                 Err error ->
-                    ( { model | user = Utils.Errors.toFailure error }
+                    ( { model | user = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -583,10 +583,10 @@ update route msg model =
                     )
 
                 Err error ->
-                    ( { model | builds = Utils.Errors.toFailure error }
+                    ( { model | builds = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -607,10 +607,10 @@ update route msg model =
                     )
 
                 Err error ->
-                    ( { model | hooks = Utils.Errors.toFailure error }
+                    ( { model | hooks = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -675,7 +675,7 @@ update route msg model =
                         --                 | session = Auth.Session.Unauthenticated
                         --                 , velaRedirect = "/"
                         --               }
-                        --                      , Effect.replacePath <| Route.Path.AccountLogin
+                        --                      , Effect.replacePath <| Route.Path.Account_Login
                         --             )
                         --         _ ->
                         --             ( model, Effect.none )
@@ -686,7 +686,7 @@ update route msg model =
             , Effect.batch
                 [ if options.shouldShowAlertFn options.error then
                     Effect.addAlertError
-                        { content = Utils.Errors.detailedErrorToString options.error
+                        { content = Errors.detailedErrorToString options.error
                         , addToastIfUnique = True
                         , link = Nothing
                         }

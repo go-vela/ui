@@ -12,7 +12,7 @@ import Components.Pager
 import Components.Repo
 import Dict
 import Effect exposing (Effect)
-import Html exposing (Html, a, div, h1, p, text)
+import Html exposing (a, caption, div, h1, p, span, text)
 import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
@@ -24,7 +24,7 @@ import Route exposing (Route)
 import Route.Path
 import Shared
 import Time
-import Utils.Errors
+import Utils.Errors as Errors
 import Utils.Favorites as Favorites
 import Utils.Helpers as Util
 import Utils.Interval as Interval
@@ -63,7 +63,7 @@ toLayout user route model =
               }
             ]
         , crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Nothing )
             ]
         , org = route.params.org
@@ -133,10 +133,10 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | repos = Utils.Errors.toFailure error }
+                    ( { model | repos = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -201,10 +201,10 @@ view : Shared.Model -> Route { org : String } -> Model -> View Msg
 view shared route model =
     { title = "Repos" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
-        [ Html.caption
+        [ caption
             [ class "builds-caption"
             ]
-            [ Html.span [] []
+            [ span [] []
             , Components.Pager.view
                 { show = True
                 , links = model.pager
@@ -222,7 +222,7 @@ view shared route model =
                             [ class "button"
                             , class "-outline"
                             , Util.testAttribute "source-repos"
-                            , Route.Path.href Route.Path.AccountSourceRepos
+                            , Route.Path.href Route.Path.Account_SourceRepos
                             ]
                             [ text "Source Repositories" ]
                         ]

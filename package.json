@@ -36,7 +36,7 @@
     "stylelint-declaration-strict-value": "1.10.4",
     "stylelint-high-performance-animation": "1.10.0",
     "stylelint-order": "6.0.4",
-    "stylelint-scss": "6.2.0"
+    "stylelint-scss": "6.2.1"
   },
   "scripts": {
     "predev": "npm run clean",

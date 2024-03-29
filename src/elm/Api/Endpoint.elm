@@ -105,29 +105,29 @@ toUrl api endpoint =
         Builds maybePage maybePerPage maybeEvent org repo ->
             url api [ "repos", org, repo, "builds" ] <| Pagination.toQueryParams maybePage maybePerPage ++ [ UB.string "event" <| Maybe.withDefault "" maybeEvent ]
 
-        Build org repo buildNumber ->
-            url api [ "repos", org, repo, "builds", buildNumber ] []
+        Build org repo build ->
+            url api [ "repos", org, repo, "builds", build ] []
 
-        CancelBuild org repo buildNumber ->
-            url api [ "repos", org, repo, "builds", buildNumber, "cancel" ] []
+        CancelBuild org repo build ->
+            url api [ "repos", org, repo, "builds", build, "cancel" ] []
 
-        ApproveBuild org repo buildNumber ->
-            url api [ "repos", org, repo, "builds", buildNumber, "approve" ] []
+        ApproveBuild org repo build ->
+            url api [ "repos", org, repo, "builds", build, "approve" ] []
 
-        Services maybePage maybePerPage org repo buildNumber ->
-            url api [ "repos", org, repo, "builds", buildNumber, "services" ] <| Pagination.toQueryParams maybePage maybePerPage
+        Services maybePage maybePerPage org repo build ->
+            url api [ "repos", org, repo, "builds", build, "services" ] <| Pagination.toQueryParams maybePage maybePerPage
 
-        ServiceLogs org repo buildNumber serviceNumber ->
-            url api [ "repos", org, repo, "builds", buildNumber, "services", serviceNumber, "logs" ] []
+        ServiceLogs org repo build serviceNumber ->
+            url api [ "repos", org, repo, "builds", build, "services", serviceNumber, "logs" ] []
 
-        Steps maybePage maybePerPage org repo buildNumber ->
-            url api [ "repos", org, repo, "builds", buildNumber, "steps" ] <| Pagination.toQueryParams maybePage maybePerPage
+        Steps maybePage maybePerPage org repo build ->
+            url api [ "repos", org, repo, "builds", build, "steps" ] <| Pagination.toQueryParams maybePage maybePerPage
 
-        StepLogs org repo buildNumber stepNumber ->
-            url api [ "repos", org, repo, "builds", buildNumber, "steps", stepNumber, "logs" ] []
+        StepLogs org repo build stepNumber ->
+            url api [ "repos", org, repo, "builds", build, "steps", stepNumber, "logs" ] []
 
-        BuildGraph org repo buildNumber ->
-            url api [ "repos", org, repo, "builds", buildNumber, "graph" ] []
+        BuildGraph org repo build ->
+            url api [ "repos", org, repo, "builds", build, "graph" ] []
 
         Secrets maybePage maybePerPage engine type_ org key ->
             url api [ "secrets", engine, type_, org, key ] <| Pagination.toQueryParams maybePage maybePerPage

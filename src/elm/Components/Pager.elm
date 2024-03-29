@@ -27,6 +27,8 @@ type alias Labels =
     }
 
 
+{-| defaultLabels : default labels for the pager.
+-}
 defaultLabels : Labels
 defaultLabels =
     { previousLabel = "newer"
@@ -34,6 +36,8 @@ defaultLabels =
     }
 
 
+{-| prevNextLabels : navigation labels for the pager.
+-}
 prevNextLabels : Labels
 prevNextLabels =
     { previousLabel = "prev"
@@ -41,6 +45,8 @@ prevNextLabels =
     }
 
 
+{-| Props : alias for an object containing properties and msg.
+-}
 type alias Props msg =
     { show : Bool
     , links : List WebLink

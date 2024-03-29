@@ -15,7 +15,11 @@ context('Deployment', () => {
     });
 
     it('add parameter button should be disabled', () => {
+<<<<<<< HEAD
       cy.get('[data-test=add-parameter-button]')
+=======
+      cy.get('[data-test=button-parameter-add]')
+>>>>>>> de6be28dc258d28f72be0c65c37a940612fcf3ef
         .should('exist')
         .should('not.be.enabled')
         .contains('Add');
@@ -26,9 +30,15 @@ context('Deployment', () => {
         .children()
         .first()
         .should('contain.text', 'no parameters defined');
+<<<<<<< HEAD
       cy.get('[data-test=parameter-key]').should('exist').type('key1');
       cy.get('[data-test=parameter-value]').should('exist').type('val1');
       cy.get('[data-test=add-parameter-button]')
+=======
+      cy.get('[data-test=input-parameter-key]').should('exist').type('key1');
+      cy.get('[data-test=input-parameter-value]').should('exist').type('val1');
+      cy.get('[data-test=button-parameter-add]')
+>>>>>>> de6be28dc258d28f72be0c65c37a940612fcf3ef
         .should('exist')
         .should('be.enabled')
         .contains('Add')
@@ -43,10 +53,17 @@ context('Deployment', () => {
         .children()
         .last()
         .should('contain.text', 'remove');
+<<<<<<< HEAD
       cy.get('[data-test=parameter-key]')
         .should('exist')
         .should('have.value', '');
       cy.get('[data-test=parameter-value]')
+=======
+      cy.get('[data-test=input-parameter-key]')
+        .should('exist')
+        .should('have.value', '');
+      cy.get('[data-test=input-parameter-value]')
+>>>>>>> de6be28dc258d28f72be0c65c37a940612fcf3ef
         .should('exist')
         .should('have.value', '');
     });

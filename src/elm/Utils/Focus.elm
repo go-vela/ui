@@ -18,7 +18,7 @@ module Utils.Focus exposing
     )
 
 import Html
-import Html.Attributes
+import Html.Attributes exposing (id)
 import Maybe.Extra
 
 
@@ -194,11 +194,9 @@ toAttr focus =
         |> List.map String.fromInt
         |> (::) "focus"
         |> String.join "-"
-        |> Html.Attributes.id
+        |> id
 
 
-{-| canTarget : .
--}
 canTarget : Focus -> Bool
 canTarget focus =
     case ( focus.group, focus.a, focus.b ) of
@@ -212,7 +210,7 @@ canTarget focus =
             False
 
 
-{-| updateLineRange : .
+{-| updateLineRange : TODO.
 -}
 updateLineRange : Bool -> Maybe Int -> Int -> Focus -> Focus
 updateLineRange shiftKeyDown group lineNumber focus =
@@ -257,7 +255,7 @@ updateLineRange shiftKeyDown group lineNumber focus =
            )
 
 
-{-| lineRangeStyles : .
+{-| lineRangeStyles : TODO.
 -}
 lineRangeStyles : Maybe Int -> Int -> Focus -> String
 lineRangeStyles group lineNumber focus =
@@ -288,7 +286,7 @@ lineRangeStyles group lineNumber focus =
             ""
 
 
-{-| lineNumberChanged : .
+{-| lineNumberChanged : TODO.
 -}
 lineNumberChanged : Maybe Focus -> Focus -> Maybe Int
 lineNumberChanged maybeBefore after =

@@ -7,8 +7,8 @@ module Components.Alerts exposing (Alert(..), Link, errorConfig, successConfig, 
 
 import FeatherIcons
 import Html exposing (Html, a, button, div, h1, p, text)
-import Html.Attributes exposing (attribute, class, href)
-import Html.Events
+import Html.Attributes exposing (attribute, class)
+import Html.Events exposing (onClick)
 import Route.Path
 import Toasty as Alerting
 import Toasty.Defaults as Alerts
@@ -95,7 +95,7 @@ copyButton copyContent copy =
                 , attribute "aria-label" <| "copy error message '" ++ copyContent ++ "' to clipboard "
                 , class "button"
                 , class "-icon"
-                , Html.Events.onClick <| copyMsg copyContent
+                , onClick <| copyMsg copyContent
                 , attribute "data-clipboard-text" copyContent
                 ]
                 [ FeatherIcons.copy

@@ -45,7 +45,7 @@ import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Route.Path
 import Shared
-import Utils.Errors
+import Utils.Errors as Errors
 import Utils.Favorites as Favorites
 import Utils.Helpers as Util
 import Vela
@@ -171,11 +171,11 @@ update shared msg model =
 
                     Err error ->
                         ( { model
-                            | sourceRepos = Utils.Errors.toFailure error
+                            | sourceRepos = Errors.toFailure error
                           }
                         , Effect.handleHttpError
                             { error = error
-                            , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                            , shouldShowAlertFn = Errors.showAlertAlways
                             }
                         )
 
@@ -293,7 +293,7 @@ update shared msg model =
                                         ( Vela.Failed
                                         , Effect.handleHttpError
                                             { error = error
-                                            , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                                            , shouldShowAlertFn = Errors.showAlertAlways
                                             }
                                         )
 
@@ -301,7 +301,7 @@ update shared msg model =
                                 ( Vela.Failed
                                 , Effect.handleHttpError
                                     { error = error
-                                    , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                                    , shouldShowAlertFn = Errors.showAlertAlways
                                     }
                                 )
                         )
@@ -346,7 +346,7 @@ view : Shared.Model -> Route () -> Model -> View Msg
 view shared route model =
     let
         crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( "Account", Nothing )
             , ( "Source Repositories", Nothing )
             ]
@@ -618,7 +618,7 @@ enableRepoButton repo enableRepo toggleFavorite user =
                 , a
                     [ class "button"
                     , Util.testAttribute <| String.join "-" [ "view", repo.org, repo.name ]
-                    , Route.Path.href <| Route.Path.Org_Repo_ { org = repo.org, repo = repo.name }
+                    , Route.Path.href <| Route.Path.Org__Repo_ { org = repo.org, repo = repo.name }
                     ]
                     [ text "View" ]
                 ]
@@ -642,7 +642,7 @@ enableRepoButton repo enableRepo toggleFavorite user =
                 , a
                     [ class "button"
                     , Util.testAttribute <| String.join "-" [ "view", repo.org, repo.name ]
-                    , Route.Path.href <| Route.Path.Org_Repo_ { org = repo.org, repo = repo.name }
+                    , Route.Path.href <| Route.Path.Org__Repo_ { org = repo.org, repo = repo.name }
                     ]
                     [ text "View" ]
                 ]

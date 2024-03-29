@@ -21,7 +21,7 @@ import Route exposing (Route)
 import Route.Path
 import Shared
 import String.Extra
-import Utils.Errors
+import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Vela exposing (defaultSchedulePayload)
 import View exposing (View)
@@ -138,7 +138,7 @@ update shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -214,10 +214,10 @@ view shared route model =
             not model.repoSchedulesAllowed
 
         crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
-            , ( "Schedules", Just <| Route.Path.Org_Repo_Schedules { org = route.params.org, repo = route.params.repo } )
+            , ( route.params.repo, Just <| Route.Path.Org__Repo_ { org = route.params.org, repo = route.params.repo } )
+            , ( "Schedules", Just <| Route.Path.Org__Repo__Schedules { org = route.params.org, repo = route.params.repo } )
             , ( "Add", Nothing )
             ]
     in

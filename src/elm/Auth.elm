@@ -33,7 +33,7 @@ onPageLoad shared route =
 
         Unauthenticated ->
             Auth.Action.replaceRoute
-                { path = Route.Path.AccountLogin
+                { path = Route.Path.Account_Login
                 , query =
                     Dict.fromList
                         [ ( "from", Route.toString route ) ]

@@ -131,12 +131,12 @@ viewOrgTabs shared props =
               , show = True
               }
             , { name = "Builds"
-              , toPath = Route.Path.Org_Builds { org = props.org }
+              , toPath = Route.Path.Org__Builds { org = props.org }
               , isAlerting = False
               , show = True
               }
             , { name = "Secrets"
-              , toPath = Route.Path.SecretsEngine_OrgOrg_ { org = props.org, engine = "native" }
+              , toPath = Route.Path.Dash_Secrets_Engine__Org_Org_ { org = props.org, engine = "native" }
               , isAlerting = False
               , show = True
               }
@@ -200,7 +200,7 @@ viewRepoTabs shared props =
         tabs =
             [ { name = "Builds"
               , toPath =
-                    Route.Path.Org_Repo_
+                    Route.Path.Org__Repo_
                         { org = props.org
                         , repo = props.repo
                         }
@@ -209,7 +209,7 @@ viewRepoTabs shared props =
               }
             , { name = "Deployments"
               , toPath =
-                    Route.Path.Org_Repo_Deployments
+                    Route.Path.Org__Repo__Deployments
                         { org = props.org
                         , repo = props.repo
                         }
@@ -218,7 +218,7 @@ viewRepoTabs shared props =
               }
             , { name = "Secrets"
               , toPath =
-                    Route.Path.SecretsEngine_RepoOrg_Repo_
+                    Route.Path.Dash_Secrets_Engine__Repo_Org__Repo_
                         { org = props.org
                         , repo = props.repo
                         , engine = "native"
@@ -227,17 +227,17 @@ viewRepoTabs shared props =
               , show = True
               }
             , { name = "Schedules"
-              , toPath = Route.Path.Org_Repo_Schedules { org = props.org, repo = props.repo }
+              , toPath = Route.Path.Org__Repo__Schedules { org = props.org, repo = props.repo }
               , isAlerting = False
               , show = showSchedules
               }
             , { name = "Audit"
-              , toPath = Route.Path.Org_Repo_Hooks { org = props.org, repo = props.repo }
+              , toPath = Route.Path.Org__Repo__Hooks { org = props.org, repo = props.repo }
               , isAlerting = auditAlerting
               , show = True
               }
             , { name = "Settings"
-              , toPath = Route.Path.Org_Repo_Settings { org = props.org, repo = props.repo }
+              , toPath = Route.Path.Org__Repo__Settings { org = props.org, repo = props.repo }
               , isAlerting = False
               , show = True
               }
@@ -257,7 +257,7 @@ viewBuildTabs :
     ->
         { org : String
         , repo : String
-        , buildNumber : String
+        , build : String
         , currentPath : Route.Path.Path
         , tabHistory : Dict String Url
         }
@@ -267,40 +267,40 @@ viewBuildTabs shared props =
         tabs =
             [ { name = "Build"
               , toPath =
-                    Route.Path.Org_Repo_Build_
+                    Route.Path.Org__Repo__Build_
                         { org = props.org
                         , repo = props.repo
-                        , buildNumber = props.buildNumber
+                        , build = props.build
                         }
               , isAlerting = False
               , show = True
               }
             , { name = "Services"
               , toPath =
-                    Route.Path.Org_Repo_Build_Services
+                    Route.Path.Org__Repo__Build__Services
                         { org = props.org
                         , repo = props.repo
-                        , buildNumber = props.buildNumber
+                        , build = props.build
                         }
               , isAlerting = False
               , show = True
               }
             , { name = "Pipeline"
               , toPath =
-                    Route.Path.Org_Repo_Build_Pipeline
+                    Route.Path.Org__Repo__Build__Pipeline
                         { org = props.org
                         , repo = props.repo
-                        , buildNumber = props.buildNumber
+                        , build = props.build
                         }
               , isAlerting = False
               , show = True
               }
             , { name = "Visualize"
               , toPath =
-                    Route.Path.Org_Repo_Build_Graph
+                    Route.Path.Org__Repo__Build__Graph
                         { org = props.org
                         , repo = props.repo
-                        , buildNumber = props.buildNumber
+                        , build = props.build
                         }
               , isAlerting = False
               , show = True

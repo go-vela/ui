@@ -28,7 +28,7 @@ import Route exposing (Route)
 import Route.Path
 import Shared
 import Time
-import Utils.Errors
+import Utils.Errors as Errors
 import Utils.Focus as Focus
 import Utils.Helpers as Util
 import Utils.Interval as Interval exposing (Interval)
@@ -39,7 +39,7 @@ import View exposing (View)
 
 {-| page : takes user, shared model, route, and returns a build's services page.
 -}
-page : Auth.User -> Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> Page Model Msg
+page : Auth.User -> Shared.Model -> Route { org : String, repo : String, build : String } -> Page Model Msg
 page user shared route =
     Page.new
         { init = init shared route
@@ -57,7 +57,7 @@ page user shared route =
 
 {-| toLayout : takes user, route, model, and passes a services page info to Layouts.
 -}
-toLayout : Auth.User -> Route { org : String, repo : String, buildNumber : String } -> Model -> Layouts.Layout Msg
+toLayout : Auth.User -> Route { org : String, repo : String, build : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Build
         { navButtons = []
@@ -70,7 +70,7 @@ toLayout user route model =
                         ++ " --repo "
                         ++ route.params.repo
                         ++ " --build "
-                        ++ route.params.buildNumber
+                        ++ route.params.build
               , docs = Just "cli/pipeline/validate"
               }
             , { name = "Restart Build"
@@ -80,7 +80,7 @@ toLayout user route model =
                         ++ " --repo "
                         ++ route.params.repo
                         ++ " --build "
-                        ++ route.params.buildNumber
+                        ++ route.params.build
               , docs = Just "build/restart"
               }
             , { name = "Cancel Build"
@@ -90,7 +90,7 @@ toLayout user route model =
                         ++ " --repo "
                         ++ route.params.repo
                         ++ " --build "
-                        ++ route.params.buildNumber
+                        ++ route.params.build
               , docs = Just "build/cancel"
               }
             , { name = "List Services"
@@ -100,7 +100,7 @@ toLayout user route model =
                         ++ " --repo "
                         ++ route.params.repo
                         ++ " --build "
-                        ++ route.params.buildNumber
+                        ++ route.params.build
               , docs = Just "service/get"
               }
             , { name = "View Service"
@@ -110,26 +110,26 @@ toLayout user route model =
                         ++ " --repo "
                         ++ route.params.repo
                         ++ " --build "
-                        ++ route.params.buildNumber
+                        ++ route.params.build
                         ++ " --service 1"
               , docs = Just "service/view"
               }
             ]
         , crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
-            , ( "#" ++ route.params.buildNumber, Nothing )
+            , ( route.params.repo, Just <| Route.Path.Org__Repo_ { org = route.params.org, repo = route.params.repo } )
+            , ( "#" ++ route.params.build, Nothing )
             ]
         , org = route.params.org
         , repo = route.params.repo
-        , buildNumber = route.params.buildNumber
+        , build = route.params.build
         , toBuildPath =
-            \buildNumber ->
-                Route.Path.Org_Repo_Build_Services
+            \build ->
+                Route.Path.Org__Repo__Build__Services
                     { org = route.params.org
                     , repo = route.params.repo
-                    , buildNumber = buildNumber
+                    , build = build
                     }
         }
 
@@ -151,7 +151,7 @@ type alias Model =
 
 {-| init : takes shared model, route, and initializes services page input arguments.
 -}
-init : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> () -> ( Model, Effect Msg )
+init : Shared.Model -> Route { org : String, repo : String, build : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { services = RemoteData.Loading
       , logs = Dict.empty
@@ -168,7 +168,7 @@ init shared route () =
             , perPage = Just 100
             , org = route.params.org
             , repo = route.params.repo
-            , buildNumber = route.params.buildNumber
+            , build = route.params.build
             }
         ]
     )
@@ -205,7 +205,7 @@ type Msg
 
 {-| update : takes current models, route, message, and returns an updated model and effect.
 -}
-update : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> Msg -> Model -> ( Model, Effect Msg )
+update : Shared.Model -> Route { org : String, repo : String, build : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
         NoOp ->
@@ -231,10 +231,10 @@ update shared route msg model =
             ( model
             , Effect.pushRoute
                 { path =
-                    Route.Path.Org_Repo_Build_Services
+                    Route.Path.Org__Repo__Build__Services
                         { org = route.params.org
                         , repo = route.params.repo
-                        , buildNumber = route.params.buildNumber
+                        , build = route.params.build
                         }
                 , query = route.query
                 , hash = Just options.hash
@@ -265,10 +265,10 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | services = Utils.Errors.toFailure error }
+                    ( { model | services = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -286,7 +286,7 @@ update shared route msg model =
                                     , onResponse = GetBuildServiceLogRefreshResponse { service = service }
                                     , org = route.params.org
                                     , repo = route.params.repo
-                                    , buildNumber = route.params.buildNumber
+                                    , build = route.params.build
                                     , serviceNumber = String.fromInt service.number
                                     }
                             )
@@ -294,10 +294,10 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | services = Utils.Errors.toFailure error }
+                    ( { model | services = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -342,10 +342,10 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | services = Utils.Errors.toFailure error }
+                    ( { model | services = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -373,10 +373,10 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | services = Utils.Errors.toFailure error }
+                    ( { model | services = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -423,7 +423,7 @@ update shared route msg model =
                             }
                     , org = route.params.org
                     , repo = route.params.repo
-                    , buildNumber = route.params.buildNumber
+                    , build = route.params.build
                     , serviceNumber = String.fromInt options.service.number
                     }
                 , if options.applyDomFocus then
@@ -511,7 +511,7 @@ update shared route msg model =
                 , perPage = Just 100
                 , org = route.params.org
                 , repo = route.params.repo
-                , buildNumber = route.params.buildNumber
+                , build = route.params.build
                 }
             )
 
@@ -533,7 +533,7 @@ subscriptions model =
 
 {-| view : takes models, route, and creates the html for a build services page.
 -}
-view : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> Model -> View Msg
+view : Shared.Model -> Route { org : String, repo : String, build : String } -> Model -> View Msg
 view shared route model =
     { title = ""
     , body =
@@ -581,7 +581,7 @@ view shared route model =
 
 {-| viewService : renders a service component on the Services tab.
 -}
-viewService : Shared.Model -> Model -> Route { org : String, repo : String, buildNumber : String } -> Vela.Service -> Html Msg
+viewService : Shared.Model -> Model -> Route { org : String, repo : String, build : String } -> Vela.Service -> Html Msg
 viewService shared model route service =
     div
         [ classList
@@ -628,7 +628,7 @@ viewService shared model route service =
 
 {-| viewLogs : renders a log componenet for a build service.
 -}
-viewLogs : Shared.Model -> Model -> Route { org : String, repo : String, buildNumber : String } -> Vela.Service -> WebData Vela.Log -> Html Msg
+viewLogs : Shared.Model -> Model -> Route { org : String, repo : String, build : String } -> Vela.Service -> WebData Vela.Log -> Html Msg
 viewLogs shared model route service log =
     case service.status of
         Vela.Error ->
@@ -660,7 +660,7 @@ viewLogs shared model route service log =
                 , log = log
                 , org = route.params.org
                 , repo = route.params.repo
-                , buildNumber = route.params.buildNumber
+                , build = route.params.build
                 , resourceType = "service"
                 , resourceNumber = String.fromInt service.number
                 , focus = model.focus

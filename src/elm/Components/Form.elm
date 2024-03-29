@@ -34,18 +34,22 @@ viewInput :
     }
     -> Html msg
 viewInput { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, msg, disabled_ } =
+    let
+        target =
+            String.join "-" [ "input", id_ ]
+    in
     section
         [ class "form-control"
         , class "-stack"
         ]
         [ Maybe.Extra.unwrap (text "")
             (\l ->
-                label [ class "form-label", for <| id_ ]
+                label [ class "form-label", for target ]
                     [ strong [] [ text l ], viewSubtitle subtitle ]
             )
             title
         , input
-            [ id id_
+            [ id target
             , value val
             , placeholder placeholder_
             , classList classList_
@@ -53,7 +57,7 @@ viewInput { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, m
             , Maybe.Extra.unwrap Util.attrNone wrap wrap_
             , onInput msg
             , disabled disabled_
-            , Util.testAttribute id_
+            , Util.testAttribute target
             ]
             []
         ]
@@ -75,18 +79,22 @@ viewTextarea :
     }
     -> Html msg
 viewTextarea { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, msg, disabled_ } =
+    let
+        target =
+            String.join "-" [ "textarea", id_ ]
+    in
     section
         [ class "form-control"
         , class "-stack"
         ]
         [ Maybe.Extra.unwrap (text "")
             (\l ->
-                label [ class "form-label", for <| id_ ]
+                label [ class "form-label", for target ]
                     [ strong [] [ text l ], viewSubtitle subtitle ]
             )
             title
         , textarea
-            [ id id_
+            [ id target
             , value val
             , placeholder placeholder_
             , classList classList_
@@ -94,7 +102,7 @@ viewTextarea { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_
             , Maybe.Extra.unwrap Util.attrNone wrap wrap_
             , onInput msg
             , disabled disabled_
-            , Util.testAttribute id_
+            , Util.testAttribute target
             ]
             []
         ]
@@ -113,20 +121,24 @@ viewCheckbox :
     }
     -> Html msg
 viewCheckbox { id_, title, subtitle, field, state, msg, disabled_ } =
+    let
+        target =
+            String.join "-" [ "checkbox", id_, field ]
+    in
     div
         [ class "form-control"
-        , Util.testAttribute <| "checkbox-" ++ field
+        , Util.testAttribute target
         ]
         [ input
             [ type_ "checkbox"
-            , id <| "checkbox-" ++ field
+            , id target
             , checked state
             , onCheck msg
             , disabled disabled_
             , Util.testAttribute id_
             ]
             []
-        , label [ class "form-label", for <| "checkbox-" ++ field ]
+        , label [ class "form-label", for target ]
             [ text title, viewSubtitle subtitle ]
         ]
 
@@ -144,17 +156,21 @@ viewRadio :
     }
     -> Html msg
 viewRadio { id_, title, subtitle, value, field, msg, disabled_ } =
-    div [ class "form-control", Util.testAttribute <| "radio-" ++ field ]
+    let
+        target =
+            String.join "-" [ "radio", id_ ]
+    in
+    div [ class "form-control", Util.testAttribute target ]
         [ input
             [ type_ "radio"
-            , id <| "radio-" ++ field
+            , id target
             , checked (value == field)
             , onClick msg
             , disabled disabled_
-            , Util.testAttribute id_
+            , Util.testAttribute target
             ]
             []
-        , label [ class "form-label", for <| "radio-" ++ field ]
+        , label [ class "form-label", for target ]
             [ strong [] [ text title ], viewSubtitle subtitle ]
         ]
 
@@ -163,12 +179,16 @@ viewRadio { id_, title, subtitle, value, field, msg, disabled_ } =
 -}
 viewButton : { id_ : String, msg : msg, text_ : String, classList_ : List ( String, Bool ), disabled_ : Bool } -> Html msg
 viewButton { id_, msg, text_, classList_, disabled_ } =
+    let
+        target =
+            String.join "-" [ "button", id_ ]
+    in
     button
         [ class "button"
         , onClick msg
         , disabled disabled_
         , classList classList_
-        , Util.testAttribute id_
+        , Util.testAttribute target
         ]
         [ text text_ ]
 
@@ -177,7 +197,9 @@ viewButton { id_, msg, text_, classList_, disabled_ } =
 -}
 viewSubtitle : Maybe (Html msg) -> Html msg
 viewSubtitle subtitle =
-    Maybe.Extra.unwrap (text "") (\s -> span [] [ text <| " ", s ]) subtitle
+    Maybe.Extra.unwrap (text "")
+        (\s -> span [] [ text " ", s ])
+        subtitle
 
 
 {-| viewAllowEvents : takes in allowed events and renders checkboxes with finalized attributes and content for each event.
@@ -249,6 +271,24 @@ viewAllowEvents shared { msg, allowEvents } =
             , msg = msg { allowEvents = allowEvents, event = Vela.PullReopened }
             , disabled_ = False
             , id_ = "allow-events-pull-reopened"
+            }
+        , viewCheckbox
+            { title = "Labeled"
+            , subtitle = Nothing
+            , field = "allow_pull_labeled"
+            , state = allowEvents.pull.labeled
+            , msg = msg { allowEvents = allowEvents, event = Vela.PullLabeled }
+            , disabled_ = False
+            , id_ = "allow-events-pull-labeled"
+            }
+        , viewCheckbox
+            { title = "Unlabeled"
+            , subtitle = Nothing
+            , field = "allow_pull_unlabeled"
+            , state = allowEvents.pull.unlabeled
+            , msg = msg { allowEvents = allowEvents, event = Vela.PullUnlabeled }
+            , disabled_ = False
+            , id_ = "allow-events-pull-unlabeled"
             }
         ]
     , h3 [ class "settings-subtitle" ] [ text "Deployments" ]

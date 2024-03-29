@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Secrets.Engine_.Shared.Org_.Team_ exposing (Model, Msg, page, view)
+module Pages.Dash.Secrets.Engine_.Shared.Org_.Team_ exposing (Model, Msg, page, view)
 
 import Api.Pagination
 import Auth
@@ -27,15 +27,13 @@ import Route.Path
 import Shared
 import Svg.Attributes
 import Time
-import Utils.Errors
+import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Utils.Interval as Interval
 import Vela
 import View exposing (View)
 
 
-{-| page : takes user, shared model, route, and returns a team's shared secrets page.
--}
 page : Auth.User -> Shared.Model -> Route { engine : String, org : String, team : String } -> Page Model Msg
 page user shared route =
     Page.new
@@ -51,8 +49,6 @@ page user shared route =
 -- LAYOUT
 
 
-{-| toLayout : takes user, route, model, and passes a team's shared secrets page info to Layouts.
--}
 toLayout : Auth.User -> Route { engine : String, org : String, team : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
@@ -76,16 +72,12 @@ toLayout user route model =
 -- INIT
 
 
-{-| Model : alias for a model object.
--}
 type alias Model =
     { sharedSecrets : WebData (List Vela.Secret)
     , pager : List WebLink
     }
 
 
-{-| init : takes shared model, route, and initializes team's shared secrets page input arguments.
--}
 init : Shared.Model -> Route { engine : String, org : String, team : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { sharedSecrets = RemoteData.Loading
@@ -108,8 +100,6 @@ init shared route () =
 -- UPDATE
 
 
-{-| Msg : a custom type with possible messages.
--}
 type Msg
     = -- SECRETS
       GetSharedSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Secret ))
@@ -120,8 +110,6 @@ type Msg
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
-{-| update : takes current models, route, message, and returns an updated model and effect.
--}
 update : Shared.Model -> Route { engine : String, org : String, team : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
@@ -137,7 +125,7 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | sharedSecrets = Utils.Errors.toFailure error }
+                    ( { model | sharedSecrets = Errors.toFailure error }
                     , Effect.none
                     )
 
@@ -194,8 +182,6 @@ update shared route msg model =
 -- SUBSCRIPTIONS
 
 
-{-| subscriptions : takes model and returns the subscriptions for auto refreshing the page.
--}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Interval.tickEveryFiveSeconds Tick
@@ -205,13 +191,11 @@ subscriptions model =
 -- VIEW
 
 
-{-| view : takes models, route, and creates the html for the shared secrets page.
--}
 view : Shared.Model -> Route { engine : String, org : String, team : String } -> Model -> View Msg
 view shared route model =
     let
         crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
             , ( route.params.team, Nothing )
             , ( "Secrets", Nothing )
@@ -241,7 +225,7 @@ view shared route model =
                             , class "button-with-icon"
                             , Util.testAttribute "add-shared-secret"
                             , Route.Path.href <|
-                                Route.Path.SecretsEngine_SharedOrg_Team_Add { engine = route.params.engine, org = route.params.org, team = route.params.team }
+                                Route.Path.Dash_Secrets_Engine__Shared_Org__Team__Add { engine = route.params.engine, org = route.params.org, team = route.params.team }
                             ]
                             [ text "Add Shared Secret"
                             , FeatherIcons.plus

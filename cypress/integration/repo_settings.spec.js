@@ -52,6 +52,7 @@ context('Repo Settings', () => {
     });
 
     it('allow_push_branch checkbox should show', () => {
+<<<<<<< HEAD
       cy.get('[data-test=checkbox-allow_push_branch]').should('be.visible');
     });
 
@@ -59,27 +60,52 @@ context('Repo Settings', () => {
       cy.get('[data-test=checkbox-allow_push_branch] input').as(
         'allowPushCheckbox',
       );
+=======
+      cy.get(
+        '[data-test=checkbox-allow-events-push-branch-allow_push_branch]',
+      ).should('be.visible');
+    });
+
+    it('clicking allow_push_branch checkbox should toggle the value', () => {
+      cy.get(
+        '[data-test=checkbox-allow-events-push-branch-allow_push_branch] input',
+      ).as('allowPushCheckbox');
+>>>>>>> de6be28dc258d28f72be0c65c37a940612fcf3ef
       cy.get('@allowPushCheckbox').should('have.checked');
       cy.get('@allowPushCheckbox').click({ force: true });
       cy.get('@allowPushCheckbox').should('not.have.checked');
     });
 
     it('clicking access radio should toggle both values', () => {
+<<<<<<< HEAD
       cy.get('[data-test=radio-private] input').as('accessRadio');
+=======
+      cy.get('[data-test=radio-access-private] input').as('accessRadio');
+>>>>>>> de6be28dc258d28f72be0c65c37a940612fcf3ef
       cy.get('@accessRadio').should('not.have.checked');
       cy.get('@accessRadio').click({ force: true });
       cy.get('@accessRadio').should('have.checked');
     });
 
     it('clicking outside contributor approval policy should toggle', () => {
+<<<<<<< HEAD
       cy.get('[data-test=radio-fork-no-write] input').as('forkPolicyRadio');
+=======
+      cy.get('[data-test=radio-policy-fork-no-write] input').as(
+        'forkPolicyRadio',
+      );
+>>>>>>> de6be28dc258d28f72be0c65c37a940612fcf3ef
       cy.get('@forkPolicyRadio').should('not.have.checked');
       cy.get('@forkPolicyRadio').click({ force: true });
       cy.get('@forkPolicyRadio').should('have.checked');
     });
 
     it('clicking pipeline type radio should toggle all values', () => {
+<<<<<<< HEAD
       cy.get('[data-test=radio-private] input').as('pipelineTypeRadio');
+=======
+      cy.get('[data-test=radio-access-private] input').as('pipelineTypeRadio');
+>>>>>>> de6be28dc258d28f72be0c65c37a940612fcf3ef
       cy.get('@pipelineTypeRadio').should('not.have.checked');
       cy.get('@pipelineTypeRadio').click({ force: true });
       cy.get('@pipelineTypeRadio').should('have.checked');

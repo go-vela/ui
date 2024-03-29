@@ -11,8 +11,8 @@ import Components.Form
 import Components.Nav
 import Dict
 import Effect exposing (Effect)
-import Html exposing (button, code, div, em, h2, label, main_, p, section, span, strong, text)
-import Html.Attributes exposing (class, disabled, for, id)
+import Html exposing (a, button, code, div, em, h2, label, main_, p, section, span, strong, text)
+import Html.Attributes exposing (class, disabled, for, href, id)
 import Html.Events exposing (onClick)
 import Http
 import Http.Detailed
@@ -25,7 +25,7 @@ import Route.Path
 import Shared
 import String.Extra
 import Url
-import Utils.Errors
+import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Vela exposing (defaultDeploymentPayload)
 import View exposing (View)
@@ -168,7 +168,7 @@ update shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -176,15 +176,23 @@ update shared route msg model =
         AddDeploymentResponse response ->
             case response of
                 Ok ( _, deployment ) ->
+                    let
+                        ref =
+                            if String.trim model.ref == "" then
+                                RemoteData.unwrap "main" .branch model.repo
+
+                            else
+                                model.ref
+                    in
                     ( model
                     , Effect.batch
                         [ Effect.addAlertSuccess
-                            { content = "Added deployment for commit " ++ deployment.commit ++ "."
+                            { content = "Added deployment for ref " ++ ref ++ "."
                             , addToastIfUnique = True
                             , link = Nothing
                             }
                         , Effect.replacePath <|
-                            Route.Path.Org_Repo_Deployments { org = route.params.org, repo = route.params.repo }
+                            Route.Path.Org__Repo__Deployments { org = route.params.org, repo = route.params.repo }
                         ]
                     )
 
@@ -192,7 +200,7 @@ update shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -252,7 +260,7 @@ update shared route msg model =
                         , description = Just model.description
                         , ref =
                             Just <|
-                                if String.trim model.target == "" then
+                                if String.trim model.ref == "" then
                                     RemoteData.unwrap "main" .branch model.repo
 
                                 else
@@ -304,10 +312,10 @@ view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Ms
 view shared route model =
     let
         crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
-            , ( "Deployments", Just <| Route.Path.Org_Repo_Deployments { org = route.params.org, repo = route.params.repo } )
+            , ( route.params.repo, Just <| Route.Path.Org__Repo_ { org = route.params.org, repo = route.params.repo } )
+            , ( "Deployments", Just <| Route.Path.Org__Repo__Deployments { org = route.params.org, repo = route.params.repo } )
             , ( "Add", Nothing )
             ]
     in
@@ -434,9 +442,8 @@ view shared route model =
                                     , button
                                         [ class "button"
                                         , class "-outline"
-                                        , class "add-parameter"
                                         , onClick <| AddParameter
-                                        , Util.testAttribute "add-parameter-button"
+                                        , Util.testAttribute "button-parameter-add"
                                         , disabled <| String.length model.parameterKey == 0 || String.length model.parameterValue == 0
                                         ]
                                         [ text "Add"
@@ -471,8 +478,8 @@ view shared route model =
                             ]
                         , div [ class "help" ]
                             [ text "Need help? Visit our "
-                            , Html.a
-                                [ Html.Attributes.href <| shared.velaDocsURL ++ "/usage/deployments/"
+                            , a
+                                [ href <| shared.velaDocsURL ++ "/usage/deployments/"
                                 ]
                                 [ text "docs" ]
                             , text "!"

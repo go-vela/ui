@@ -5,7 +5,6 @@ SPDX-License-Identifier: Apache-2.0
 
 module Layouts.Default.Build exposing (Model, Msg, Props, layout, map)
 
-import Components.Alerts
 import Components.Build
 import Components.Crumbs
 import Components.Help
@@ -15,7 +14,7 @@ import Components.Tabs
 import Components.Util
 import Dict exposing (Dict)
 import Effect exposing (Effect)
-import Html exposing (Html, main_, p, text)
+import Html exposing (Html, div, main_, p, text)
 import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
@@ -27,7 +26,7 @@ import Route.Path
 import Shared
 import Time
 import Url exposing (Url)
-import Utils.Errors
+import Utils.Errors as Errors
 import Utils.Favicons as Favicons
 import Utils.Helpers as Util
 import Utils.Interval as Interval
@@ -44,7 +43,7 @@ type alias Props contentMsg =
     , crumbs : List Components.Crumbs.Crumb
     , org : String
     , repo : String
-    , buildNumber : String
+    , build : String
     , toBuildPath : String -> Route.Path.Path
     }
 
@@ -60,7 +59,7 @@ map fn props =
     , crumbs = props.crumbs
     , org = props.org
     , repo = props.repo
-    , buildNumber = props.buildNumber
+    , build = props.build
     , toBuildPath = props.toBuildPath
     }
 
@@ -115,7 +114,7 @@ init props shared route _ =
             , onResponse = GetBuildResponse
             , org = props.org
             , repo = props.repo
-            , buildNumber = props.buildNumber
+            , build = props.build
             }
         ]
     )
@@ -132,12 +131,12 @@ type Msg
       OnUrlChanged { from : Route (), to : Route () }
       -- BUILD
     | GetBuildResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
-    | RestartBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
-    | RestartBuildResponse { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
-    | CancelBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
-    | CancelBuildResponse { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
-    | ApproveBuild { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber }
-    | ApproveBuildResponse { org : Vela.Org, repo : Vela.Repo, buildNumber : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
+    | RestartBuild { org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber }
+    | RestartBuildResponse { org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
+    | CancelBuild { org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber }
+    | CancelBuildResponse { org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
+    | ApproveBuild { org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber }
+    | ApproveBuildResponse { org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
       -- REFRESH
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
@@ -167,7 +166,7 @@ update props shared route msg model =
                     , onResponse = GetBuildResponse
                     , org = props.org
                     , repo = props.repo
-                    , buildNumber = props.buildNumber
+                    , build = props.build
                     }
                 , Effect.replaceRouteRemoveTabHistorySkipDomFocus route
                 ]
@@ -184,11 +183,11 @@ update props shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | build = Utils.Errors.toFailure error }
+                    ( { model | build = Errors.toFailure error }
                     , Effect.batch
                         [ Effect.handleHttpError
                             { error = error
-                            , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                            , shouldShowAlertFn = Errors.showAlertAlways
                             }
                         , Effect.updateFavicon { favicon = Favicons.statusToFavicon Vela.Error }
                         ]
@@ -202,7 +201,7 @@ update props shared route msg model =
                 , onResponse = RestartBuildResponse options
                 , org = options.org
                 , repo = options.repo
-                , buildNumber = options.buildNumber
+                , build = options.build
                 }
             )
 
@@ -213,10 +212,10 @@ update props shared route msg model =
                         newBuildLink =
                             Just
                                 ( "View Build #" ++ String.fromInt build.number
-                                , Route.Path.Org_Repo_Build_
+                                , Route.Path.Org__Repo__Build_
                                     { org = options.org
                                     , repo = options.repo
-                                    , buildNumber = String.fromInt build.number
+                                    , build = String.fromInt build.number
                                     }
                                 )
                     in
@@ -230,7 +229,7 @@ update props shared route msg model =
                             , repo = props.repo
                             }
                         , Effect.addAlertSuccess
-                            { content = "Restarted build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ] ++ "."
+                            { content = "Restarted build " ++ String.join "/" [ options.org, options.repo, options.build ] ++ "."
                             , addToastIfUnique = True
                             , link = newBuildLink
                             }
@@ -241,7 +240,7 @@ update props shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -253,7 +252,7 @@ update props shared route msg model =
                 , onResponse = CancelBuildResponse options
                 , org = options.org
                 , repo = options.repo
-                , buildNumber = options.buildNumber
+                , build = options.build
                 }
             )
 
@@ -268,10 +267,10 @@ update props shared route msg model =
                             , onResponse = GetBuildResponse
                             , org = props.org
                             , repo = props.repo
-                            , buildNumber = props.buildNumber
+                            , build = props.build
                             }
                         , Effect.addAlertSuccess
-                            { content = "Canceled build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ] ++ "."
+                            { content = "Canceled build " ++ String.join "/" [ options.org, options.repo, options.build ] ++ "."
                             , addToastIfUnique = True
                             , link = Nothing
                             }
@@ -282,7 +281,7 @@ update props shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -294,7 +293,7 @@ update props shared route msg model =
                 , onResponse = ApproveBuildResponse options
                 , org = options.org
                 , repo = options.repo
-                , buildNumber = options.buildNumber
+                , build = options.build
                 }
             )
 
@@ -309,10 +308,10 @@ update props shared route msg model =
                             , onResponse = GetBuildResponse
                             , org = props.org
                             , repo = props.repo
-                            , buildNumber = props.buildNumber
+                            , build = props.build
                             }
                         , Effect.addAlertSuccess
-                            { content = "Approved build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ] ++ "."
+                            { content = "Approved build " ++ String.join "/" [ options.org, options.repo, options.build ] ++ "."
                             , addToastIfUnique = True
                             , link = Nothing
                             }
@@ -323,7 +322,7 @@ update props shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -344,7 +343,7 @@ update props shared route msg model =
                     , onResponse = GetBuildResponse
                     , org = props.org
                     , repo = props.repo
-                    , buildNumber = props.buildNumber
+                    , build = props.build
                     }
                 ]
             )
@@ -374,7 +373,7 @@ view props shared route { toContentMsg, model, content } =
                             text ""
 
                         _ ->
-                            Components.Build.viewRestartButton props.org props.repo props.buildNumber RestartBuild
+                            Components.Build.viewRestartButton props.org props.repo props.build RestartBuild
                                 |> Html.map toContentMsg
 
                 _ ->
@@ -385,15 +384,15 @@ view props shared route { toContentMsg, model, content } =
                 RemoteData.Success build ->
                     case build.status of
                         Vela.Pending ->
-                            Components.Build.viewCancelButton props.org props.repo props.buildNumber CancelBuild
+                            Components.Build.viewCancelButton props.org props.repo props.build CancelBuild
                                 |> Html.map toContentMsg
 
                         Vela.PendingApproval ->
-                            Components.Build.viewCancelButton props.org props.repo props.buildNumber CancelBuild
+                            Components.Build.viewCancelButton props.org props.repo props.build CancelBuild
                                 |> Html.map toContentMsg
 
                         Vela.Running ->
-                            Components.Build.viewCancelButton props.org props.repo props.buildNumber CancelBuild
+                            Components.Build.viewCancelButton props.org props.repo props.build CancelBuild
                                 |> Html.map toContentMsg
 
                         _ ->
@@ -407,7 +406,7 @@ view props shared route { toContentMsg, model, content } =
                 RemoteData.Success build ->
                     case build.status of
                         Vela.PendingApproval ->
-                            Components.Build.viewApproveButton props.org props.repo props.buildNumber ApproveBuild
+                            Components.Build.viewApproveButton props.org props.repo props.build ApproveBuild
                                 |> Html.map toContentMsg
 
                         _ ->
@@ -429,7 +428,7 @@ view props shared route { toContentMsg, model, content } =
                 _ ->
                     text ""
     in
-    { title = props.org ++ "/" ++ props.repo ++ " #" ++ props.buildNumber ++ " " ++ content.title
+    { title = props.org ++ "/" ++ props.repo ++ " #" ++ props.build ++ " " ++ content.title
     , body =
         [ Components.Nav.view shared
             route
@@ -452,7 +451,7 @@ view props shared route { toContentMsg, model, content } =
              , Components.Build.view shared
                 { build = model.build
                 , showFullTimestamps = False
-                , actionsMenu = Html.div [] []
+                , actionsMenu = div [] []
                 , showRepoLink = False
                 , linkBuildNumber = False
                 }
@@ -460,7 +459,7 @@ view props shared route { toContentMsg, model, content } =
              , Components.Tabs.viewBuildTabs shared
                 { org = props.org
                 , repo = props.repo
-                , buildNumber = props.buildNumber
+                , build = props.build
                 , currentPath = route.path
                 , tabHistory = model.tabHistory
                 }

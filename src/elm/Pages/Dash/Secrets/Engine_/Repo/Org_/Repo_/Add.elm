@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Secrets.Engine_.Repo.Org_.Repo_.Add exposing (Model, Msg, page, view)
+module Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Add exposing (Model, Msg, page, view)
 
 import Auth
 import Components.Crumbs
@@ -22,14 +22,12 @@ import Route exposing (Route)
 import Route.Path
 import Shared
 import String.Extra
-import Utils.Errors
+import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Vela exposing (defaultSecretPayload)
 import View exposing (View)
 
 
-{-| page : takes user, shared model, route, and returns an add repo secret page.
--}
 page : Auth.User -> Shared.Model -> Route { engine : String, org : String, repo : String } -> Page Model Msg
 page user shared route =
     Page.new
@@ -45,8 +43,6 @@ page user shared route =
 -- LAYOUT
 
 
-{-| toLayout : takes user, route, model, and passes an add repo secret page info to Layouts.
--}
 toLayout : Auth.User -> Route { engine : String, org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
@@ -72,29 +68,14 @@ toLayout user route model =
 -- INIT
 
 
-{-| Model : alias for a model object.
--}
 type alias Model =
-    { name : String
-    , value : String
-    , allowEvents : Vela.AllowEvents
-    , images : List String
-    , image : String
-    , allowCommand : Bool
+    { form : Components.SecretForm.Form
     }
 
 
-{-| init : takes shared model, route, and initializes add repo secret page input arguments.
--}
 init : Shared.Model -> () -> ( Model, Effect Msg )
 init shared () =
-    ( { name = ""
-      , value = ""
-      , allowEvents = Vela.defaultEnabledAllowEvents
-      , images = []
-      , image = ""
-      , allowCommand = True
-      }
+    ( { form = Components.SecretForm.defaultOrgRepoSecretForm }
     , Effect.none
     )
 
@@ -103,8 +84,6 @@ init shared () =
 -- UPDATE
 
 
-{-| Msg : a custom type with possible messages.
--}
 type Msg
     = -- SECRETS
       AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
@@ -114,26 +93,23 @@ type Msg
     | AddImage String
     | RemoveImage String
     | AllowCommandsOnClick String
+    | AllowSubstitutionOnClick String
     | AllowEventsUpdate { allowEvents : Vela.AllowEvents, event : Vela.AllowEventsField } Bool
     | SubmitForm
 
 
-{-| update : takes current models, route, message, and returns an updated model and effect.
--}
 update : Shared.Model -> Route { engine : String, org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
+    let
+        form =
+            model.form
+    in
     case msg of
         -- SECRETS
         AddSecretResponse response ->
             case response of
                 Ok ( _, secret ) ->
-                    ( { name = ""
-                      , value = ""
-                      , allowEvents = Vela.defaultEnabledAllowEvents
-                      , images = []
-                      , image = ""
-                      , allowCommand = True
-                      }
+                    ( { form = Components.SecretForm.defaultOrgRepoSecretForm }
                     , Effect.addAlertSuccess
                         { content = "Added repo secret '" ++ secret.name ++ "'."
                         , addToastIfUnique = True
@@ -145,53 +121,76 @@ update shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
         NameOnInput val ->
-            ( { model | name = val }
+            ( { model | form = { form | name = val } }
             , Effect.none
             )
 
         ValueOnInput val ->
-            ( { model | value = val }
+            ( { model | form = { form | value = val } }
             , Effect.none
             )
 
         ImageOnInput val ->
-            ( { model | image = val }
+            ( { model | form = { form | image = val } }
             , Effect.none
             )
 
         AddImage image ->
             ( { model
-                | images =
-                    model.images
-                        |> List.append [ image ]
-                        |> List.Extra.unique
-                , image = ""
+                | form =
+                    { form
+                        | images =
+                            form.images
+                                |> List.append [ image ]
+                                |> List.Extra.unique
+                        , image = ""
+                    }
               }
             , Effect.none
             )
 
         RemoveImage image ->
             ( { model
-                | images =
-                    model.images
-                        |> List.filter ((/=) image)
+                | form =
+                    { form
+                        | images =
+                            form.images
+                                |> List.filter ((/=) image)
+                    }
               }
             , Effect.none
             )
 
         AllowCommandsOnClick val ->
-            ( model
-                |> (\m -> { m | allowCommand = Util.yesNoToBool val })
+            ( { model
+                | form =
+                    { form
+                        | allowCommand = Util.yesNoToBool val
+                    }
+              }
+            , Effect.none
+            )
+
+        AllowSubstitutionOnClick val ->
+            ( { model
+                | form =
+                    { form
+                        | allowSubstitution = Util.yesNoToBool val
+                    }
+              }
             , Effect.none
             )
 
         AllowEventsUpdate options val ->
-            ( Vela.setAllowEvents model options.event val
+            ( { model
+                | form =
+                    Vela.setAllowEvents model.form options.event val
+              }
             , Effect.none
             )
 
@@ -203,11 +202,12 @@ update shared route msg model =
                         , org = Just route.params.org
                         , repo = Just route.params.repo
                         , team = Nothing
-                        , name = Util.stringToMaybe model.name
-                        , value = Util.stringToMaybe model.value
-                        , images = Just model.images
-                        , allowCommand = Just model.allowCommand
-                        , allowEvents = Just model.allowEvents
+                        , name = Util.stringToMaybe form.name
+                        , value = Util.stringToMaybe form.value
+                        , allowEvents = Just form.allowEvents
+                        , images = Just form.images
+                        , allowCommand = Just form.allowCommand
+                        , allowSubstitution = Just form.allowSubstitution
                     }
 
                 body =
@@ -230,8 +230,6 @@ update shared route msg model =
 -- SUBSCRIPTIONS
 
 
-{-| subscriptions : takes model and returns that there are no subscriptions.
--}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
@@ -241,16 +239,14 @@ subscriptions model =
 -- VIEW
 
 
-{-| view : takes models, route, and creates the html for an add repo secret page.
--}
 view : Shared.Model -> Route { engine : String, org : String, repo : String } -> Model -> View Msg
 view shared route model =
     let
         crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
-            , ( "Repo Secrets", Just <| Route.Path.SecretsEngine_RepoOrg_Repo_ { org = route.params.org, repo = route.params.repo, engine = route.params.engine } )
+            , ( route.params.repo, Just <| Route.Path.Org__Repo_ { org = route.params.org, repo = route.params.repo } )
+            , ( "Repo Secrets", Just <| Route.Path.Dash_Secrets_Engine__Repo_Org__Repo_ { org = route.params.org, repo = route.params.repo, engine = route.params.engine } )
             , ( "Add", Nothing )
             ]
     in
@@ -271,7 +267,7 @@ view shared route model =
                             { title = Just "Name"
                             , subtitle = Nothing
                             , id_ = "name"
-                            , val = model.name
+                            , val = model.form.name
                             , placeholder_ = "Secret Name"
                             , classList_ = [ ( "secret-name", True ) ]
                             , rows_ = Nothing
@@ -283,7 +279,7 @@ view shared route model =
                             { title = Just "Value"
                             , subtitle = Nothing
                             , id_ = "value"
-                            , val = model.value
+                            , val = model.form.value
                             , placeholder_ = "Secret Value"
                             , classList_ = [ ( "secret-value", True ) ]
                             , rows_ = Just 2
@@ -294,20 +290,25 @@ view shared route model =
                         , Components.SecretForm.viewAllowEventsSelect
                             shared
                             { msg = AllowEventsUpdate
-                            , allowEvents = model.allowEvents
+                            , allowEvents = model.form.allowEvents
                             , disabled_ = False
                             }
                         , Components.SecretForm.viewImagesInput
                             { onInput_ = ImageOnInput
                             , addImage = AddImage
                             , removeImage = RemoveImage
-                            , images = model.images
-                            , imageValue = model.image
+                            , images = model.form.images
+                            , imageValue = model.form.image
                             , disabled_ = False
                             }
                         , Components.SecretForm.viewAllowCommandsInput
                             { msg = AllowCommandsOnClick
-                            , value = model.allowCommand
+                            , value = model.form.allowCommand
+                            , disabled_ = False
+                            }
+                        , Components.SecretForm.viewAllowSubstitutionInput
+                            { msg = AllowSubstitutionOnClick
+                            , value = model.form.allowSubstitution
                             , disabled_ = False
                             }
                         , Components.SecretForm.viewHelp shared.velaDocsURL

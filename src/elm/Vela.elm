@@ -542,6 +542,12 @@ repoFieldUpdateToResponseConfig field =
                                     PullReopened ->
                                         "Pull reopened events for $ "
 
+                                    PullLabeled ->
+                                        "Pull labeled events for $ "
+
+                                    PullUnlabeled ->
+                                        "Pull unlabeled events for $ "
+
                                     PushBranch ->
                                         "Push branch events for $ "
 
@@ -639,6 +645,8 @@ type alias PullActions =
     , synchronize : Bool
     , edited : Bool
     , reopened : Bool
+    , labeled : Bool
+    , unlabeled : Bool
     }
 
 
@@ -671,6 +679,8 @@ defaultAllowEvents =
         , synchronize = False
         , edited = False
         , reopened = False
+        , labeled = False
+        , unlabeled = False
         }
     , deploy =
         { created = False
@@ -698,6 +708,8 @@ defaultEnabledAllowEvents =
         , synchronize = False
         , edited = False
         , reopened = False
+        , labeled = False
+        , unlabeled = False
         }
     , deploy =
         { created = True
@@ -728,6 +740,8 @@ decodePullActions =
         |> required "synchronize" bool
         |> required "edited" bool
         |> required "reopened" bool
+        |> required "labeled" bool
+        |> required "unlabeled" bool
 
 
 decodeDeployActions : Decoder DeployActions
@@ -787,6 +801,8 @@ encodePullActions pull =
         , ( "synchronize", Json.Encode.bool <| pull.synchronize )
         , ( "edited", Json.Encode.bool <| pull.edited )
         , ( "reopened", Json.Encode.bool <| pull.reopened )
+        , ( "labeled", Json.Encode.bool <| pull.labeled )
+        , ( "unlabeled", Json.Encode.bool <| pull.unlabeled )
         ]
 
 
@@ -817,6 +833,8 @@ type AllowEventsField
     | PullSynchronize
     | PullEdited
     | PullReopened
+    | PullLabeled
+    | PullUnlabeled
     | PushBranch
     | PushTag
     | PushDeleteBranch
@@ -881,6 +899,16 @@ setAllowEvents payload field val =
                 | allowEvents = { events | pull = { pull | reopened = val } }
             }
 
+        PullLabeled ->
+            { payload
+                | allowEvents = { events | pull = { pull | labeled = val } }
+            }
+
+        PullUnlabeled ->
+            { payload
+                | allowEvents = { events | pull = { pull | unlabeled = val } }
+            }
+
         DeployCreated ->
             { payload
                 | allowEvents = { events | deploy = { deploy | created = val } }
@@ -932,6 +960,12 @@ getAllowEventField field events =
         PullReopened ->
             events.pull.reopened
 
+        PullLabeled ->
+            events.pull.labeled
+
+        PullUnlabeled ->
+            events.pull.unlabeled
+
         DeployCreated ->
             events.deploy.created
 
@@ -955,6 +989,8 @@ allowEventsToList events =
     , ( events.pull.synchronize, "pull_request:synchronize" )
     , ( events.pull.edited, "pull_request:edited" )
     , ( events.pull.reopened, "pull_request:reopened" )
+    , ( events.pull.labeled, "pull_request:labeled" )
+    , ( events.pull.unlabeled, "pull_request:unlabeled" )
     , ( events.deploy.created, "deployment" )
     , ( events.comment.created, "comment:created" )
     , ( events.comment.edited, "comment:edited" )
@@ -1118,7 +1154,7 @@ encodeBuildGraphRenderData graphData =
 
 type alias BuildGraph =
     { buildID : Int
-    , buildNumber : Int
+    , build : Int
     , org : Org
     , repo : Repo
     , nodes : Dict Int BuildGraphNode
@@ -1597,6 +1633,7 @@ type alias Secret =
     , type_ : SecretType
     , images : List String
     , allowCommand : Bool
+    , allowSubstitution : Bool
     , allowEvents : AllowEvents
     }
 
@@ -1682,6 +1719,7 @@ decodeSecret =
         |> optional "type" secretTypeDecoder RepoSecret
         |> optional "images" (Json.Decode.list string) []
         |> optional "allow_command" bool False
+        |> optional "allow_substitution" bool False
         |> optional "allow_events" decodeAllowEvents defaultAllowEvents
 
 
@@ -1700,6 +1738,7 @@ type alias SecretPayload =
     , events : Maybe (List String)
     , images : Maybe (List String)
     , allowCommand : Maybe Bool
+    , allowSubstitution : Maybe Bool
     , allowEvents : Maybe AllowEvents
     }
 
@@ -1715,6 +1754,7 @@ defaultSecretPayload =
     , events = Nothing
     , images = Nothing
     , allowCommand = Nothing
+    , allowSubstitution = Nothing
     , allowEvents = Nothing
     }
 
@@ -1730,6 +1770,7 @@ encodeSecretPayload secret =
         , ( "value", encodeOptional Json.Encode.string secret.value )
         , ( "images", encodeOptionalList Json.Encode.string secret.images )
         , ( "allow_command", encodeOptional Json.Encode.bool secret.allowCommand )
+        , ( "allow_substitution", encodeOptional Json.Encode.bool secret.allowSubstitution )
         , ( "allow_events", encodeOptional encodeAllowEvents secret.allowEvents )
         ]
 

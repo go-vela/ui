@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Org_.Repo_.Schedules.Edit_ exposing (Model, Msg, page, view)
+module Pages.Org_.Repo_.Schedules.Name_ exposing (Model, Msg, page, view)
 
 import Auth
 import Components.Crumbs
@@ -22,14 +22,12 @@ import Route exposing (Route)
 import Route.Path
 import Shared
 import String.Extra
-import Utils.Errors
+import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Vela exposing (defaultSchedulePayload)
 import View exposing (View)
 
 
-{-| page : takes user, shared model, route, and returns an edit schedule page.
--}
 page : Auth.User -> Shared.Model -> Route { org : String, repo : String, name : String } -> Page Model Msg
 page user shared route =
     Page.new
@@ -45,8 +43,6 @@ page user shared route =
 -- LAYOUT
 
 
-{-| toLayout : takes user, route, model, and passes an edit schedule page info to Layouts.
--}
 toLayout : Auth.User -> Route { org : String, repo : String, name : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
@@ -89,8 +85,6 @@ toLayout user route model =
 -- INIT
 
 
-{-| Model : alias for a model object.
--}
 type alias Model =
     { schedule : WebData Vela.Schedule
     , name : String
@@ -102,8 +96,6 @@ type alias Model =
     }
 
 
-{-| init : takes shared model, route, and initializes edit schedule page input arguments.
--}
 init : Shared.Model -> Route { org : String, repo : String, name : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { schedule = RemoteData.Loading
@@ -133,8 +125,6 @@ init shared route () =
 -- UPDATE
 
 
-{-| Msg : a custom type with possible messages.
--}
 type Msg
     = NoOp
       -- SCHEDULES
@@ -150,8 +140,6 @@ type Msg
     | ConfirmDelete
 
 
-{-| update : takes current models, route, message, and returns an updated model and effect.
--}
 update : Shared.Model -> Route { org : String, repo : String, name : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
@@ -178,7 +166,7 @@ update shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -197,7 +185,7 @@ update shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -212,7 +200,7 @@ update shared route msg model =
                             , link = Nothing
                             }
                         , Effect.pushPath <|
-                            Route.Path.Org_Repo_Schedules
+                            Route.Path.Org__Repo__Schedules
                                 { org = route.params.org
                                 , repo = route.params.repo
                                 }
@@ -223,7 +211,7 @@ update shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -297,8 +285,6 @@ update shared route msg model =
 -- SUBSCRIPTIONS
 
 
-{-| subscriptions : takes model and returns that there are no subscriptions.
--}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
@@ -308,8 +294,6 @@ subscriptions model =
 -- VIEW
 
 
-{-| view : takes models, route, and creates the html for an edit schedule page.
--}
 view : Shared.Model -> Route { org : String, repo : String, name : String } -> Model -> View Msg
 view shared route model =
     let
@@ -320,14 +304,14 @@ view shared route model =
             not schedulesAllowed || (not <| RemoteData.isSuccess model.schedule)
 
         crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
-            , ( route.params.repo, Just <| Route.Path.Org_Repo_ { org = route.params.org, repo = route.params.repo } )
-            , ( "Schedules", Just <| Route.Path.Org_Repo_Schedules { org = route.params.org, repo = route.params.repo } )
+            , ( route.params.repo, Just <| Route.Path.Org__Repo_ { org = route.params.org, repo = route.params.repo } )
+            , ( "Schedules", Just <| Route.Path.Org__Repo__Schedules { org = route.params.org, repo = route.params.repo } )
             , ( "Edit", Nothing )
             , ( route.params.name
               , Just <|
-                    Route.Path.Org_Repo_SchedulesEdit_
+                    Route.Path.Org__Repo__Schedules_Name_
                         { org = route.params.org
                         , repo = route.params.repo
                         , name = route.params.name

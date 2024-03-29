@@ -44,7 +44,7 @@ import Shared
 import Svg.Attributes
 import Time
 import Url
-import Utils.Errors
+import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Utils.Interval as Interval
 import Vela
@@ -95,7 +95,7 @@ toLayout user route model =
               }
             ]
         , crumbs =
-            [ ( "Overview", Just Route.Path.Home )
+            [ ( "Overview", Just Route.Path.Home_ )
             , ( route.params.org, Just <| Route.Path.Org_ { org = route.params.org } )
             , ( route.params.repo, Nothing )
             ]
@@ -179,10 +179,10 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | deployments = Utils.Errors.toFailure error }
+                    ( { model | deployments = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -218,10 +218,10 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | repo = Utils.Errors.toFailure error }
+                    ( { model | repo = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Utils.Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertAlways
                         }
                     )
 
@@ -286,7 +286,7 @@ viewDeployments shared model route =
                         , class "button-with-icon"
                         , Util.testAttribute "add-deployment"
                         , Route.Path.href <|
-                            Route.Path.Org_Repo_DeploymentsAdd { org = route.params.org, repo = route.params.repo }
+                            Route.Path.Org__Repo__Deployments_Add { org = route.params.org, repo = route.params.repo }
                         ]
                         [ text "Add Deployment"
                         , FeatherIcons.plus
@@ -465,7 +465,7 @@ viewDeployment shared repo deployment =
                     [ class "redeploy-link"
                     , attribute "aria-label" <| "redeploy deployment " ++ String.fromInt deployment.id
                     , Route.href <|
-                        { path = Route.Path.Org_Repo_DeploymentsAdd { org = repo.org, repo = repo.name }
+                        { path = Route.Path.Org__Repo__Deployments_Add { org = repo.org, repo = repo.name }
                         , query =
                             Dict.fromList <|
                                 [ ( "target", deployment.target )

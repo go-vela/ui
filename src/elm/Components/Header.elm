@@ -59,7 +59,7 @@ view shared props =
     header []
         [ div [ class "identity", id "identity", Util.testAttribute "identity" ]
             [ a
-                [ Route.Path.href Route.Path.Home
+                [ Route.Path.href Route.Path.Home_
                 , class "identity-logo-link"
                 , attribute "aria-label" "Home"
                 ]
@@ -75,7 +75,7 @@ view shared props =
                             [ li [ class "identity-menu-item" ]
                                 [ a
                                     [ Util.testAttribute "settings-link"
-                                    , Route.Path.href Route.Path.AccountSettings
+                                    , Route.Path.href Route.Path.Account_Settings
                                     , attribute "role" "menuitem"
                                     , onClick (props.showHideIdentity (Just False))
                                     ]
@@ -85,7 +85,7 @@ view shared props =
                                 [ a
                                     [ Util.testAttribute "logout-link"
                                     , Route.href
-                                        { path = Route.Path.AccountLogout
+                                        { path = Route.Path.Account_Logout
                                         , query =
                                             Dict.fromList
                                                 [ ( "from", props.from ) ]

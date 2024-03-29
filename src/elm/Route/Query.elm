@@ -30,7 +30,7 @@ fromUrl url =
                     |> Dict.fromList
 
 
-{-| fromString :
+{-| fromString : takes in a query string and returns a dictionary of query parameters.
 -}
 fromString : String -> Dict String String
 fromString query =
