@@ -25,11 +25,7 @@ context('Secrets', () => {
     });
 
     it('delete button should show', () => {
-<<<<<<< HEAD
-      cy.get('[data-test=delete]').should('exist').contains('Delete');
-=======
       cy.get('[data-test=button-delete]').should('exist').contains('Delete');
->>>>>>> de6be28dc258d28f72be0c65c37a940612fcf3ef
     });
 
     context(
@@ -41,11 +37,7 @@ context('Secrets', () => {
       },
       () => {
         it('submit button should show', () => {
-<<<<<<< HEAD
-          cy.get('[data-test=submit]').should('exist');
-=======
           cy.get('[data-test=button-submit]').should('exist');
->>>>>>> de6be28dc258d28f72be0c65c37a940612fcf3ef
         });
       },
     );
@@ -66,24 +58,11 @@ context('Secrets', () => {
 
     context('click Delete', () => {
       beforeEach(() => {
-<<<<<<< HEAD
-        cy.get('[data-test=delete]').click();
-=======
         cy.get('[data-test=button-delete]').click();
->>>>>>> de6be28dc258d28f72be0c65c37a940612fcf3ef
       });
 
       it('delete button should show when going to another secrets page', () => {
         cy.visit('/-/secrets/native/org/github/password');
-<<<<<<< HEAD
-        cy.get('[data-test=delete]').should('exist').contains('Delete');
-      });
-      it('Cancel button should show', () => {
-        cy.get('[data-test=delete-cancel]').should('exist').contains('Cancel');
-      });
-      it('Confirm button should show', () => {
-        cy.get('[data-test=delete-confirm]')
-=======
         cy.get('[data-test=button-delete]').should('exist').contains('Delete');
       });
       it('Cancel button should show', () => {
@@ -93,22 +72,11 @@ context('Secrets', () => {
       });
       it('Confirm button should show', () => {
         cy.get('[data-test=button-delete-confirm]')
->>>>>>> de6be28dc258d28f72be0c65c37a940612fcf3ef
           .should('exist')
           .contains('Confirm');
       });
       context('click Cancel', () => {
         beforeEach(() => {
-<<<<<<< HEAD
-          cy.get('[data-test=delete-cancel]').click();
-        });
-
-        it('should revert Confirm to Delete', () => {
-          cy.get('[data-test=delete]').should('exist').contains('Delete');
-        });
-        it('Cancel should not show', () => {
-          cy.get('[data-test=delete-cancel]').should('not.exist');
-=======
           cy.get('[data-test=button-delete-cancel]').click();
         });
 
@@ -119,16 +87,11 @@ context('Secrets', () => {
         });
         it('Cancel should not show', () => {
           cy.get('[data-test=button-delete-cancel]').should('not.exist');
->>>>>>> de6be28dc258d28f72be0c65c37a940612fcf3ef
         });
       });
       context('click Confirm', () => {
         beforeEach(() => {
-<<<<<<< HEAD
-          cy.get('[data-test=delete-confirm]').click();
-=======
           cy.get('[data-test=button-delete-confirm]').click();
->>>>>>> de6be28dc258d28f72be0c65c37a940612fcf3ef
         });
 
         it('Confirm should redirect to repo secrets page', () => {
@@ -177,13 +140,8 @@ context('Secrets', () => {
         response: { error: 'server error could not remove' },
       });
       cy.login('/-/secrets/native/repo/github/octocat/password');
-<<<<<<< HEAD
-      cy.get('[data-test=delete]').click();
-      cy.get('[data-test=delete-confirm]').click();
-=======
       cy.get('[data-test=button-delete]').click();
       cy.get('[data-test=button-delete-confirm]').click();
->>>>>>> de6be28dc258d28f72be0c65c37a940612fcf3ef
     });
 
     it('error should show', () => {
