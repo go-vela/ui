@@ -6,24 +6,9 @@ SPDX-License-Identifier: Apache-2.0
 module Api.Endpoint exposing (Endpoint(..), toUrl)
 
 import Api.Pagination as Pagination
+import Auth.Session
 import Url.Builder as UB exposing (QueryParameter)
 import Vela
-    exposing
-        ( AuthParams
-        , BuildNumber
-        , DeploymentId
-        , Engine
-        , Event
-        , HookNumber
-        , Name
-        , Org
-        , Ref
-        , Repo
-        , ScheduleName
-        , ServiceNumber
-        , StepNumber
-        , Type
-        )
 
 
 {-| apiBase : is the versioned base of all API paths
@@ -36,37 +21,38 @@ apiBase =
 {-| Endpoint : represents any one unique API endpoint
 -}
 type Endpoint
-    = Authenticate AuthParams
+    = Authenticate Auth.Session.AuthParams
     | Login
     | Logout
     | CurrentUser
-    | Deployment Org Repo (Maybe DeploymentId)
-    | Deployments (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo
+    | Deployment Vela.Org Vela.Repo (Maybe String)
+    | Deployments (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Org Vela.Repo
     | Token
     | Repositories (Maybe Pagination.Page) (Maybe Pagination.PerPage)
-    | Repository Org Repo
-    | OrgRepositories (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org
-    | RepositoryChown Org Repo
-    | RepositoryRepair Org Repo
+    | Repository Vela.Org Vela.Repo
+    | OrgRepositories (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Org
+    | RepositoryChown Vela.Org Vela.Repo
+    | RepositoryRepair Vela.Org Vela.Repo
     | UserSourceRepositories
-    | Hooks (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo
-    | Hook Org Repo HookNumber
-    | OrgBuilds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event) Org
-    | Builds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event) Org Repo
-    | Build Org Repo BuildNumber
-    | CancelBuild Org Repo BuildNumber
-    | ApproveBuild Org Repo BuildNumber
-    | Services (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo BuildNumber
-    | ServiceLogs Org Repo BuildNumber ServiceNumber
-    | Steps (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo BuildNumber
-    | StepLogs Org Repo BuildNumber StepNumber
-    | BuildGraph Org Repo BuildNumber
-    | Schedule Org Repo (Maybe ScheduleName) (Maybe Pagination.Page) (Maybe Pagination.PerPage)
-    | Secrets (Maybe Pagination.Page) (Maybe Pagination.PerPage) Engine Type Org Name
-    | Secret Engine Type Org String Name
-    | PipelineConfig Org Repo Ref
-    | ExpandPipelineConfig Org Repo Ref
-    | PipelineTemplates Org Repo Ref
+    | Hooks (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Org Vela.Repo
+    | Hook Vela.Org Vela.Repo Vela.HookNumber
+    | OrgBuilds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Vela.Event) Vela.Org
+    | Builds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Vela.Event) Vela.Org Vela.Repo
+    | Build Vela.Org Vela.Repo Vela.BuildNumber
+    | CancelBuild Vela.Org Vela.Repo Vela.BuildNumber
+    | ApproveBuild Vela.Org Vela.Repo Vela.BuildNumber
+    | Services (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Org Vela.Repo Vela.BuildNumber
+    | ServiceLogs Vela.Org Vela.Repo Vela.BuildNumber Vela.ServiceNumber
+    | Steps (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Org Vela.Repo Vela.BuildNumber
+    | StepLogs Vela.Org Vela.Repo Vela.BuildNumber Vela.StepNumber
+    | BuildGraph Vela.Org Vela.Repo Vela.BuildNumber
+    | Schedule Vela.Org Vela.Repo String
+    | Schedules (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Org Vela.Repo
+    | Secrets (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Engine Vela.Type Vela.Org Vela.Name
+    | Secret Vela.Engine Vela.Type Vela.Org String Vela.Name
+    | PipelineConfig Vela.Org Vela.Repo Vela.Ref
+    | ExpandPipelineConfig Vela.Org Vela.Repo Vela.Ref
+    | PipelineTemplates Vela.Org Vela.Repo Vela.Ref
 
 
 {-| toUrl : turns and Endpoint into a URL string
@@ -119,40 +105,38 @@ toUrl api endpoint =
         Builds maybePage maybePerPage maybeEvent org repo ->
             url api [ "repos", org, repo, "builds" ] <| Pagination.toQueryParams maybePage maybePerPage ++ [ UB.string "event" <| Maybe.withDefault "" maybeEvent ]
 
-        Build org repo buildNumber ->
-            url api [ "repos", org, repo, "builds", buildNumber ] []
+        Build org repo build ->
+            url api [ "repos", org, repo, "builds", build ] []
 
-        CancelBuild org repo buildNumber ->
-            url api [ "repos", org, repo, "builds", buildNumber, "cancel" ] []
+        CancelBuild org repo build ->
+            url api [ "repos", org, repo, "builds", build, "cancel" ] []
 
-        ApproveBuild org repo buildNumber ->
-            url api [ "repos", org, repo, "builds", buildNumber, "approve" ] []
+        ApproveBuild org repo build ->
+            url api [ "repos", org, repo, "builds", build, "approve" ] []
 
-        Services maybePage maybePerPage org repo buildNumber ->
-            url api [ "repos", org, repo, "builds", buildNumber, "services" ] <| Pagination.toQueryParams maybePage maybePerPage
+        Services maybePage maybePerPage org repo build ->
+            url api [ "repos", org, repo, "builds", build, "services" ] <| Pagination.toQueryParams maybePage maybePerPage
 
-        ServiceLogs org repo buildNumber serviceNumber ->
-            url api [ "repos", org, repo, "builds", buildNumber, "services", serviceNumber, "logs" ] []
+        ServiceLogs org repo build serviceNumber ->
+            url api [ "repos", org, repo, "builds", build, "services", serviceNumber, "logs" ] []
 
-        Steps maybePage maybePerPage org repo buildNumber ->
-            url api [ "repos", org, repo, "builds", buildNumber, "steps" ] <| Pagination.toQueryParams maybePage maybePerPage
+        Steps maybePage maybePerPage org repo build ->
+            url api [ "repos", org, repo, "builds", build, "steps" ] <| Pagination.toQueryParams maybePage maybePerPage
 
-        StepLogs org repo buildNumber stepNumber ->
-            url api [ "repos", org, repo, "builds", buildNumber, "steps", stepNumber, "logs" ] []
+        StepLogs org repo build stepNumber ->
+            url api [ "repos", org, repo, "builds", build, "steps", stepNumber, "logs" ] []
 
-        BuildGraph org repo buildNumber ->
-            url api [ "repos", org, repo, "builds", buildNumber, "graph" ] []
+        BuildGraph org repo build ->
+            url api [ "repos", org, repo, "builds", build, "graph" ] []
 
         Secrets maybePage maybePerPage engine type_ org key ->
             url api [ "secrets", engine, type_, org, key ] <| Pagination.toQueryParams maybePage maybePerPage
 
-        Schedule org repo name maybePage maybePerPage ->
-            case name of
-                Just id ->
-                    url api [ "schedules", org, repo, id ] []
+        Schedules maybePage maybePerPage org repo ->
+            url api [ "schedules", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage
 
-                Nothing ->
-                    url api [ "schedules", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage
+        Schedule org repo name ->
+            url api [ "schedules", org, repo, name ] []
 
         Secret engine type_ org key name ->
             url api [ "secrets", engine, type_, org, key, name ] []
@@ -197,4 +181,4 @@ url api segments params =
             UB.crossOrigin api segments params
 
         _ ->
-            UB.crossOrigin api (apiBase :: segments) params
+            UB.crossOrigin api (apiBase :: List.filter (\s -> not <| String.isEmpty s) segments) params

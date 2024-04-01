@@ -8,6 +8,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -41,9 +42,14 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     },
-    "pipeline_type": "yaml"
+    "pipeline_type": "yaml",
+    "previous_name": "",
+    "approve_build": "fork-always"
   },
   {
     "id": 102,
@@ -54,6 +60,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -87,9 +94,14 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     },
-    "pipeline_type": "yaml"
+    "pipeline_type": "yaml",
+    "previous_name": "",
+    "approve_build": "fork-always"
   },
   {
     "id": 103,
@@ -100,6 +112,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -133,9 +146,14 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     },
-    "pipeline_type": "yaml"
+    "pipeline_type": "yaml",
+    "previous_name": "",
+    "approve_build": "fork-always"
   },
   {
     "id": 104,
@@ -146,6 +164,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -179,9 +198,14 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     },
-    "pipeline_type": "yaml"
+    "pipeline_type": "yaml",
+    "previous_name": "",
+    "approve_build": "fork-always"
   },
   {
     "id": 105,
@@ -192,6 +216,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -225,8 +250,13 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     },
-    "pipeline_type": "yaml"
+    "pipeline_type": "yaml",
+    "previous_name": "",
+    "approve_build": "fork-always"
   }
 ]
