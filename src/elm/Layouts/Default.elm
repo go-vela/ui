@@ -19,6 +19,7 @@ import Layout exposing (Layout)
 import Route exposing (Route)
 import Shared
 import Toasty as Alerting
+import Utils.Favicons as Favicons
 import Utils.Helpers as Util
 import Utils.Theme as Theme
 import View exposing (View)
@@ -54,7 +55,7 @@ init shared _ =
     ( { showIdentity = False
       , showHelp = False
       }
-    , Effect.none
+    , Effect.updateFavicon { favicon = Favicons.defaultFavicon }
     )
 
 
