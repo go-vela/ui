@@ -93,24 +93,6 @@ view shared props =
                                     ]
                                     [ text "Logout" ]
                                 ]
-                            , case shared.user of
-                                RemoteData.Success user ->
-                                    if user.admin then
-                                        li [ class "identity-menu-item" ]
-                                            [ a
-                                                [ Util.testAttribute "admin-link"
-                                                , Route.Path.href Route.Path.Admin_Workers
-                                                , attribute "role" "menuitem"
-                                                , onClick (props.showHideIdentity (Just False))
-                                                ]
-                                                [ text "Admin" ]
-                                            ]
-
-                                    else
-                                        text ""
-
-                                _ ->
-                                    text ""
                             ]
                         ]
 
@@ -120,7 +102,24 @@ view shared props =
             ]
         , nav [ class "help-links" ]
             [ ul []
-                [ li []
+                [ case shared.user of
+                    RemoteData.Success user ->
+                        if user.admin then
+                            li [ class "identity-menu-item" ]
+                                [ a
+                                    [ Util.testAttribute "admin-link"
+                                    , Route.Path.href Route.Path.Admin_Workers
+                                    ]
+                                    [ text "site admin"
+                                    ]
+                                ]
+
+                        else
+                            text ""
+
+                    _ ->
+                        text ""
+                , li []
                     [ viewThemeToggle props.theme props.setTheme
                     ]
                 , li []
