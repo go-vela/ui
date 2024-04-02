@@ -109,6 +109,14 @@ view shared props =
                             , text <| ")"
                             ]
 
+                        "schedule" ->
+                            [ repoLink
+                            , text <| String.replace "_" " " build.event
+                            , text " ("
+                            , a [ href <| Util.buildRefURL build.clone build.commit ] [ text <| Util.trimCommitHash build.commit ]
+                            , text <| ")"
+                            ]
+
                         _ ->
                             [ repoLink
                             , text <| String.replace "_" " " build.event
