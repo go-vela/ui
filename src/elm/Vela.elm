@@ -82,6 +82,7 @@ module Vela exposing
     , defaultRepoPayload
     , defaultSchedulePayload
     , defaultSecretPayload
+    , defaultSettingsPayload
     , defaultUpdateUserPayload
     , enableUpdate
     , encodeBuildGraphRenderData
@@ -90,6 +91,7 @@ module Vela exposing
     , encodeRepoPayload
     , encodeSchedulePayload
     , encodeSecretPayload
+    , encodeSettingsPayload
     , encodeUpdateUser
     , getAllowEventField
     , repoFieldUpdateToResponseConfig
@@ -1907,6 +1909,7 @@ decodeWorkers =
 
 type alias Settings =
     { id : Int
+    , cloneImage : String
     }
 
 
@@ -1914,21 +1917,28 @@ decodeSettings : Decoder Settings
 decodeSettings =
     Json.Decode.succeed Settings
         |> optional "id" int -1
+        |> optional "clone_image" string ""
 
 
 type alias SettingsPayload =
-    {}
+    { id : Int
+    , cloneImage : Maybe String
+    }
 
 
 defaultSettingsPayload : SettingsPayload
 defaultSettingsPayload =
-    {}
+    { id = -1
+    , cloneImage = Nothing
+    }
 
 
 encodeSettingsPayload : SettingsPayload -> Json.Encode.Value
 encodeSettingsPayload settings =
     Json.Encode.object
-        []
+        [ ( "id", Json.Encode.int settings.id )
+        , ( "clone_image", encodeOptional Json.Encode.string settings.cloneImage )
+        ]
 
 
 type alias KeyValuePair =

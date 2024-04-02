@@ -56,6 +56,7 @@ module Api.Operations exposing
     , updateRepo
     , updateRepoSchedule
     , updateRepoSecret
+    , updateSettings
     , updateSharedSecret
     )
 
@@ -320,6 +321,21 @@ getSettings :
 getSettings baseUrl session options =
     get baseUrl
         Api.Endpoint.Settings
+        Vela.decodeSettings
+        |> withAuth session
+
+
+{-| updateSettings : updates the active settings record for the platform
+-}
+updateSettings :
+    String
+    -> Session
+    -> { a | body : Http.Body }
+    -> Request Vela.Settings
+updateSettings baseUrl session options =
+    put baseUrl
+        Api.Endpoint.Settings
+        options.body
         Vela.decodeSettings
         |> withAuth session
 
