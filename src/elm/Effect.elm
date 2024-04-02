@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, addDeployment, addFavorites, addOrgSecret, addRepoSchedule, addRepoSecret, addSharedSecret, alertsUpdate, approveBuild, cancelBuild, chownRepo, clearRedirect, deleteOrgSecret, deleteRepoSchedule, deleteRepoSecret, deleteSharedSecret, disableRepo, downloadFile, enableRepo, expandPipelineConfig, finishAuthentication, focusOn, getBuild, getBuildGraph, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getCurrentUserShared, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoBuildsShared, getRepoDeployments, getRepoHooks, getRepoHooksShared, getRepoSchedule, getRepoSchedules, getRepoSecret, getRepoSecrets, getSharedSecret, getSharedSecrets, getWorkers, handleHttpError, logout, pushPath, redeliverHook, repairRepo, replacePath, replaceRouteRemoveTabHistorySkipDomFocus, restartBuild, setRedirect, setTheme, updateFavicon, updateFavorite, updateOrgSecret, updateRepo, updateRepoSchedule, updateRepoSecret, updateSharedSecret, updateSourceReposShared
+    , addAlertError, addAlertSuccess, addDeployment, addFavorites, addOrgSecret, addRepoSchedule, addRepoSecret, addSharedSecret, alertsUpdate, approveBuild, cancelBuild, chownRepo, clearRedirect, deleteOrgSecret, deleteRepoSchedule, deleteRepoSecret, deleteSharedSecret, disableRepo, downloadFile, enableRepo, expandPipelineConfig, finishAuthentication, focusOn, getBuild, getBuildGraph, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getCurrentUserShared, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoBuildsShared, getRepoDeployments, getRepoHooks, getRepoHooksShared, getRepoSchedule, getRepoSchedules, getRepoSecret, getRepoSecrets, getSettings, getSharedSecret, getSharedSecrets, getWorkers, handleHttpError, logout, pushPath, redeliverHook, repairRepo, replacePath, replaceRouteRemoveTabHistorySkipDomFocus, restartBuild, setRedirect, setTheme, updateFavicon, updateFavorite, updateOrgSecret, updateRepo, updateRepoSchedule, updateRepoSecret, updateSharedSecret, updateSourceReposShared
     )
 
 {-|
@@ -483,6 +483,23 @@ getWorkers options =
     Api.try
         options.onResponse
         (Api.Operations.getWorkers
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+getSettings :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Settings ) -> msg
+    }
+    -> Effect msg
+getSettings options =
+    Api.try
+        options.onResponse
+        (Api.Operations.getSettings
             options.baseUrl
             options.session
             options

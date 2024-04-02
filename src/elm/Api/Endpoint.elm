@@ -54,6 +54,7 @@ type Endpoint
     | ExpandPipelineConfig Vela.Org Vela.Repo Vela.Ref
     | PipelineTemplates Vela.Org Vela.Repo Vela.Ref
     | Workers (Maybe Pagination.Page) (Maybe Pagination.PerPage)
+    | Settings
 
 
 {-| toUrl : turns and Endpoint into a URL string
@@ -164,6 +165,9 @@ toUrl api endpoint =
 
         Workers maybePage maybePerPage ->
             url api [ "workers" ] <| Pagination.toQueryParams maybePage maybePerPage
+
+        Settings ->
+            url api [ "admin", "settings" ] []
 
 
 {-| url : creates a URL string with the given path segments and query parameters

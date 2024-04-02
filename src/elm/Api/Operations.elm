@@ -41,6 +41,7 @@ module Api.Operations exposing
     , getRepoSchedules
     , getRepoSecret
     , getRepoSecrets
+    , getSettings
     , getSharedSecret
     , getSharedSecrets
     , getToken
@@ -306,6 +307,20 @@ getWorkers baseUrl session options =
             options.perPage
         )
         Vela.decodeWorkers
+        |> withAuth session
+
+
+{-| getSettings : retrieves the active settings record for the platform
+-}
+getSettings :
+    String
+    -> Session
+    -> a
+    -> Request Vela.Settings
+getSettings baseUrl session options =
+    get baseUrl
+        Api.Endpoint.Settings
+        Vela.decodeSettings
         |> withAuth session
 
 

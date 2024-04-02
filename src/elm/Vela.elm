@@ -40,6 +40,7 @@ module Vela exposing
     , SecretType(..)
     , Service
     , ServiceNumber
+    , Settings
     , SourceRepositories
     , Status(..)
     , Step
@@ -71,6 +72,7 @@ module Vela exposing
     , decodeSecret
     , decodeSecrets
     , decodeServices
+    , decodeSettings
     , decodeSourceRepositories
     , decodeSteps
     , decodeWorkers
@@ -1901,6 +1903,32 @@ decodeWorker =
 decodeWorkers : Decoder (List Worker)
 decodeWorkers =
     Json.Decode.list decodeWorker
+
+
+type alias Settings =
+    { id : Int
+    }
+
+
+decodeSettings : Decoder Settings
+decodeSettings =
+    Json.Decode.succeed Settings
+        |> optional "id" int -1
+
+
+type alias SettingsPayload =
+    {}
+
+
+defaultSettingsPayload : SettingsPayload
+defaultSettingsPayload =
+    {}
+
+
+encodeSettingsPayload : SettingsPayload -> Json.Encode.Value
+encodeSettingsPayload settings =
+    Json.Encode.object
+        []
 
 
 type alias KeyValuePair =

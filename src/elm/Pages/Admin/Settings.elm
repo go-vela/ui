@@ -8,17 +8,22 @@ module Pages.Admin.Settings exposing (Model, Msg, page)
 import Auth
 import Effect exposing (Effect)
 import Html
+import Http
+import Http.Detailed
 import Layouts
 import Page exposing (Page)
+import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
+import Utils.Errors as Errors
+import Vela
 import View exposing (View)
 
 
 page : Auth.User -> Shared.Model -> Route () -> Page Model Msg
 page user shared route =
     Page.new
-        { init = init
+        { init = init shared
         , update = update
         , subscriptions = subscriptions
         , view = view
@@ -52,13 +57,19 @@ toLayout user model =
 
 
 type alias Model =
-    {}
+    { settings : WebData Vela.Settings
+    }
 
 
-init : () -> ( Model, Effect Msg )
-init () =
-    ( {}
-    , Effect.none
+init : Shared.Model -> () -> ( Model, Effect Msg )
+init shared () =
+    ( { settings = RemoteData.NotAsked
+      }
+    , Effect.getSettings
+        { baseUrl = shared.velaAPIBaseURL
+        , session = shared.session
+        , onResponse = GetSettingsResponse
+        }
     )
 
 
@@ -67,16 +78,29 @@ init () =
 
 
 type Msg
-    = NoOp
+    = -- SETTINGS
+      GetSettingsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Settings ))
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
-        NoOp ->
-            ( model
-            , Effect.none
-            )
+        GetSettingsResponse response ->
+            case response of
+                Ok ( meta, settings ) ->
+                    ( { model
+                        | settings = RemoteData.Success settings
+                      }
+                    , Effect.none
+                    )
+
+                Err error ->
+                    ( { model | settings = Errors.toFailure error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Errors.showAlertAlways
+                        }
+                    )
 
 
 
@@ -95,5 +119,5 @@ subscriptions model =
 view : Model -> View Msg
 view model =
     { title = "Pages.Admin.Settings"
-    , body = [ Html.text "/admin/settings" ]
+    , body = [ Html.text <| Debug.toString model.settings ]
     }
