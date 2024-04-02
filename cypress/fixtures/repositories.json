@@ -16,11 +16,6 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
@@ -66,11 +61,6 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
@@ -116,11 +106,6 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "allow_events": {
       "push": {
         "branch": true,
@@ -165,11 +150,6 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
