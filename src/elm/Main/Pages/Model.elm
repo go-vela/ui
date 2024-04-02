@@ -11,6 +11,7 @@ import Pages.Account.Logout
 import Pages.Account.Settings
 import Pages.Account.SourceRepos
 import Pages.Admin
+import Pages.Admin.Settings
 import Pages.Admin.Workers
 import Pages.Dash.Secrets.Engine_.Org.Org_
 import Pages.Dash.Secrets.Engine_.Org.Org_.Add
@@ -50,6 +51,7 @@ type Model
     | Account_Settings Pages.Account.Settings.Model
     | Account_SourceRepos Pages.Account.SourceRepos.Model
     | Admin Pages.Admin.Model
+    | Admin_Settings Pages.Admin.Settings.Model
     | Admin_Workers Pages.Admin.Workers.Model
     | Dash_Secrets_Engine__Org_Org_ { engine : String, org : String } Pages.Dash.Secrets.Engine_.Org.Org_.Model
     | Dash_Secrets_Engine__Org_Org__Add { engine : String, org : String } Pages.Dash.Secrets.Engine_.Org.Org_.Add.Model

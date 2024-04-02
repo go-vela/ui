@@ -12,23 +12,19 @@ import Components.Pager
 import Components.Table
 import Dict
 import Effect exposing (Effect)
-import FeatherIcons
 import Html
     exposing
         ( Html
         , a
         , div
         , span
-        , td
         , text
         , tr
         )
 import Html.Attributes
     exposing
-        ( attribute
-        , class
+        ( class
         , href
-        , scope
         )
 import Http
 import Http.Detailed
@@ -37,11 +33,8 @@ import LinkHeader exposing (WebLink)
 import Page exposing (Page)
 import RemoteData exposing (WebData)
 import Route exposing (Route)
-import Route.Path
 import Shared
-import String.Extra
-import Time exposing (Posix)
-import Url exposing (Protocol, Url)
+import Time
 import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Utils.Interval as Interval

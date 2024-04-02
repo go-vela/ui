@@ -11,6 +11,7 @@ import Pages.Account.Logout
 import Pages.Account.Settings
 import Pages.Account.SourceRepos
 import Pages.Admin
+import Pages.Admin.Settings
 import Pages.Admin.Workers
 import Pages.Dash.Secrets.Engine_.Org.Org_
 import Pages.Dash.Secrets.Engine_.Org.Org_.Add
@@ -49,6 +50,7 @@ type Msg
     | Account_Settings Pages.Account.Settings.Msg
     | Account_SourceRepos Pages.Account.SourceRepos.Msg
     | Admin Pages.Admin.Msg
+    | Admin_Settings Pages.Admin.Settings.Msg
     | Admin_Workers Pages.Admin.Workers.Msg
     | Dash_Secrets_Engine__Org_Org_ Pages.Dash.Secrets.Engine_.Org.Org_.Msg
     | Dash_Secrets_Engine__Org_Org__Add Pages.Dash.Secrets.Engine_.Org.Org_.Add.Msg

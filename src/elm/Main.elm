@@ -34,6 +34,7 @@ import Pages.Account.Logout
 import Pages.Account.Settings
 import Pages.Account.SourceRepos
 import Pages.Admin
+import Pages.Admin.Settings
 import Pages.Admin.Workers
 import Pages.Dash.Secrets.Engine_.Org.Org_
 import Pages.Dash.Secrets.Engine_.Org.Org_.Add
@@ -697,6 +698,30 @@ initPageAndLayout model =
                     |> Maybe.map (Layouts.map (Main.Pages.Msg.Admin >> Page))
                     |> Maybe.map (initLayout model)
             }
+
+        Route.Path.Admin_Settings ->
+            runWhenAuthenticatedWithLayout
+                model
+                (\user ->
+                    let
+                        page : Page.Page Pages.Admin.Settings.Model Pages.Admin.Settings.Msg
+                        page =
+                            Pages.Admin.Settings.page user model.shared (Route.fromUrl () model.url)
+
+                        ( pageModel, pageEffect ) =
+                            Page.init page ()
+                    in
+                    { page =
+                        Tuple.mapBoth
+                            Main.Pages.Model.Admin_Settings
+                            (Effect.map Main.Pages.Msg.Admin_Settings >> fromPageEffect model)
+                            ( pageModel, pageEffect )
+                    , layout =
+                        Page.layout pageModel page
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Admin_Settings >> Page))
+                            |> Maybe.map (initLayout model)
+                    }
+                )
 
         Route.Path.Admin_Workers ->
             runWhenAuthenticatedWithLayout
@@ -1608,6 +1633,16 @@ updateFromPage msg model =
                 (Effect.map Main.Pages.Msg.Admin >> fromPageEffect model)
                 (Page.update (Pages.Admin.page model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
 
+        ( Main.Pages.Msg.Admin_Settings pageMsg, Main.Pages.Model.Admin_Settings pageModel ) ->
+            runWhenAuthenticated
+                model
+                (\user ->
+                    Tuple.mapBoth
+                        Main.Pages.Model.Admin_Settings
+                        (Effect.map Main.Pages.Msg.Admin_Settings >> fromPageEffect model)
+                        (Page.update (Pages.Admin.Settings.page user model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
+                )
+
         ( Main.Pages.Msg.Admin_Workers pageMsg, Main.Pages.Model.Admin_Workers pageModel ) ->
             runWhenAuthenticated
                 model
@@ -2005,6 +2040,12 @@ toLayoutFromPage model =
                 |> Page.layout pageModel
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.Admin >> Page))
 
+        Main.Pages.Model.Admin_Settings pageModel ->
+            Route.fromUrl () model.url
+                |> toAuthProtectedPage model Pages.Admin.Settings.page
+                |> Maybe.andThen (Page.layout pageModel)
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.Admin_Settings >> Page))
+
         Main.Pages.Model.Admin_Workers pageModel ->
             Route.fromUrl () model.url
                 |> toAuthProtectedPage model Pages.Admin.Workers.page
@@ -2258,6 +2299,15 @@ subscriptions model =
                     Page.subscriptions (Pages.Admin.page model.shared (Route.fromUrl () model.url)) pageModel
                         |> Sub.map Main.Pages.Msg.Admin
                         |> Sub.map Page
+
+                Main.Pages.Model.Admin_Settings pageModel ->
+                    Auth.Action.subscriptions
+                        (\user ->
+                            Page.subscriptions (Pages.Admin.Settings.page user model.shared (Route.fromUrl () model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.Admin_Settings
+                                |> Sub.map Page
+                        )
+                        (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
                 Main.Pages.Model.Admin_Workers pageModel ->
                     Auth.Action.subscriptions
@@ -2747,6 +2797,15 @@ viewPage model =
                 |> View.map Main.Pages.Msg.Admin
                 |> View.map Page
 
+        Main.Pages.Model.Admin_Settings pageModel ->
+            Auth.Action.view
+                (\user ->
+                    Page.view (Pages.Admin.Settings.page user model.shared (Route.fromUrl () model.url)) pageModel
+                        |> View.map Main.Pages.Msg.Admin_Settings
+                        |> View.map Page
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
         Main.Pages.Model.Admin_Workers pageModel ->
             Auth.Action.view
                 (\user ->
@@ -3095,6 +3154,16 @@ toPageUrlHookCmd model routes =
                 |> List.map Main.Pages.Msg.Admin
                 |> List.map Page
                 |> toCommands
+
+        Main.Pages.Model.Admin_Settings pageModel ->
+            Auth.Action.command
+                (\user ->
+                    Page.toUrlMessages routes (Pages.Admin.Settings.page user model.shared (Route.fromUrl () model.url))
+                        |> List.map Main.Pages.Msg.Admin_Settings
+                        |> List.map Page
+                        |> toCommands
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Admin_Workers pageModel ->
             Auth.Action.command
@@ -3525,6 +3594,9 @@ isAuthProtected routePath =
 
         Route.Path.Admin ->
             False
+
+        Route.Path.Admin_Settings ->
+            True
 
         Route.Path.Admin_Workers ->
             True

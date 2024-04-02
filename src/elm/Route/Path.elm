@@ -19,6 +19,7 @@ type Path
     | Account_Settings
     | Account_SourceRepos
     | Admin
+    | Admin_Settings
     | Admin_Workers
     | Dash_Secrets_Engine__Org_Org_ { engine : String, org : String }
     | Dash_Secrets_Engine__Org_Org__Add { engine : String, org : String }
@@ -84,6 +85,9 @@ fromString urlPath =
 
         "admin" :: [] ->
             Just Admin
+
+        "admin" :: "settings" :: [] ->
+            Just Admin_Settings
 
         "admin" :: "workers" :: [] ->
             Just Admin_Workers
@@ -310,6 +314,9 @@ toString path =
 
                 Admin ->
                     [ "admin" ]
+
+                Admin_Settings ->
+                    [ "admin", "settings" ]
 
                 Admin_Workers ->
                     [ "admin", "workers" ]
