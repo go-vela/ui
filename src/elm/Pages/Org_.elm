@@ -206,7 +206,7 @@ view shared route model =
             ]
             [ span [] []
             , Components.Pager.view
-                { show = True
+                { show = RemoteData.unwrap 0 List.length model.repos > 0
                 , links = model.pager
                 , labels = Components.Pager.prevNextLabels
                 , msg = GotoPage
@@ -255,7 +255,7 @@ view shared route model =
                         ]
                     ]
         , Components.Pager.view
-            { show = True
+            { show = RemoteData.unwrap 0 List.length model.repos > 0
             , links = model.pager
             , labels = Components.Pager.prevNextLabels
             , msg = GotoPage
