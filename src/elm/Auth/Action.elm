@@ -92,7 +92,7 @@ loadExternalUrl =
 -- USED INTERNALLY BY ELM LAND
 
 
-{-| view : .
+{-| view : takes in a function, that converts a user to a view msg, an Action user, and returns a view msg.
 Used by Elm-Land; do not modify.
 -}
 view : (user -> View msg) -> Action user -> View msg

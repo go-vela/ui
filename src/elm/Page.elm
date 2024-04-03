@@ -29,8 +29,6 @@ import Route exposing (Route)
 import View exposing (View)
 
 
-{-| Page : takes in a model and a message type and returns a page object.
--}
 type Page model msg
     = Page
         { init : () -> ( model, Effect msg )
@@ -44,8 +42,6 @@ type Page model msg
         }
 
 
-{-| new : constructs a new page object with provided options and defaults.
--}
 new :
     { init : () -> ( model, Effect msg )
     , update : msg -> model -> ( model, Effect msg )
@@ -66,10 +62,6 @@ new options =
         }
 
 
-{-| sandbox : constructs a new page object with provided options and defaults.
-This is an Elm-Land learning construct, and is not used in this application.
-<https://elm.land/concepts/pages.html#adding-pages>
--}
 sandbox :
     { init : model
     , update : msg -> model -> model
@@ -89,10 +81,6 @@ sandbox options =
         }
 
 
-{-| element : constructs a new page object with provided options and defaults.
-This is an Elm-Land learning construct, and is not used in this application.
-<https://elm.land/concepts/pages.html#adding-pages>
--}
 element :
     { init : ( model, Cmd msg )
     , update : msg -> model -> ( model, Cmd msg )
@@ -123,8 +111,6 @@ element options =
 -- LAYOUTS
 
 
-{-| withLayout : takes in a function that returns a layout and a page object and returns a page object.
--}
 withLayout : (model -> Layout msg) -> Page model msg -> Page model msg
 withLayout toLayout_ (Page page) =
     Page { page | toLayout = Just toLayout_ }
@@ -134,8 +120,6 @@ withLayout toLayout_ (Page page) =
 -- URL CHANGES
 
 
-{-| withOnUrlChanged : takes in a function, that returns a message, a page object, and returns a page object.
--}
 withOnUrlChanged :
     ({ from : Route ()
      , to : Route ()
@@ -148,8 +132,6 @@ withOnUrlChanged onChange (Page page) =
     Page { page | onUrlChanged = Just onChange }
 
 
-{-| withOnHashChanged : takes in a function, that returns a message, a page object, and returns a page object.
--}
 withOnHashChanged :
     ({ from : Maybe String
      , to : Maybe String
@@ -162,8 +144,6 @@ withOnHashChanged onChange (Page page) =
     Page { page | onHashChanged = Just onChange }
 
 
-{-| withOnQueryParameterChanged : takes in a key and a function, that returns a message, a page object, and returns a page object.
--}
 withOnQueryParameterChanged :
     { key : String
     , onChange :
@@ -182,49 +162,31 @@ withOnQueryParameterChanged { key, onChange } (Page page) =
 -- USED INTERNALLY BY ELM LAND
 
 
-{-| init : takes in a page object and returns a model and an effect.
-Used by Elm-Land; do not modify.
--}
 init : Page model msg -> () -> ( model, Effect msg )
 init (Page page) =
     page.init
 
 
-{-| update : takes in a page object, message, model, and returns a new model and effect.
-Used by Elm-Land; do not modify.
--}
 update : Page model msg -> msg -> model -> ( model, Effect msg )
 update (Page page) =
     page.update
 
 
-{-| view : takes in a page object, model, and returns a view.
-Used by Elm-Land; do not modify.
--}
 view : Page model msg -> model -> View msg
 view (Page page) =
     page.view
 
 
-{-| subscriptions : takes in a page object and returns a subscription.
-Used by Elm-Land; do not modify.
--}
 subscriptions : Page model msg -> model -> Sub msg
 subscriptions (Page page) =
     page.subscriptions
 
 
-{-| layout : takes in model, page, and returns a default org layout.
-Used by Elm-Land; do not modify.
--}
 layout : model -> Page model msg -> Maybe (Layouts.Layout msg)
 layout model (Page page) =
     Maybe.map (\fn -> fn model) page.toLayout
 
 
-{-| toUrlMessages : takes in routes and a page object and returns a list of messages.
-Used by Elm-Land; do not modify.
--}
 toUrlMessages : { from : Route (), to : Route () } -> Page model msg -> List msg
 toUrlMessages routes (Page page) =
     List.concat

@@ -28,8 +28,6 @@ import Route exposing (Route)
 import View exposing (View)
 
 
-{-| Layout : defines the main layout used by the application.
--}
 type Layout parentProps model msg contentMsg
     = Layout
         { init : () -> ( model, Effect msg )
@@ -43,8 +41,6 @@ type Layout parentProps model msg contentMsg
         }
 
 
-{-| new : constructs a new layout object with provided options and defaults.
--}
 new :
     { init : () -> ( model, Effect msg )
     , update : msg -> model -> ( model, Effect msg )
@@ -65,8 +61,6 @@ new options =
         }
 
 
-{-| withParentProps : takes in properties, a layout, and returns a layout.
--}
 withParentProps :
     parentProps
     -> Layout () model msg contentMsg
@@ -88,8 +82,6 @@ withParentProps props (Layout layout) =
 -- URL CHANGES
 
 
-{-| withOnUrlChanged : takes in a function, that returns a message, a layout object, and returns a layout object.
--}
 withOnUrlChanged :
     ({ from : Route ()
      , to : Route ()
@@ -102,8 +94,6 @@ withOnUrlChanged onChange (Layout layout) =
     Layout { layout | onUrlChanged = Just onChange }
 
 
-{-| withOnHashChanged : takes in a function, that returns a message, a layout object, and returns a layout object.
--}
 withOnHashChanged :
     ({ from : Maybe String
      , to : Maybe String
@@ -116,8 +106,6 @@ withOnHashChanged onChange (Layout layout) =
     Layout { layout | onHashChanged = Just onChange }
 
 
-{-| withOnQueryParameterChanged : takes in a key and a function, that returns a message, a layout object, and returns a layout object.
--}
 withOnQueryParameterChanged :
     { key : String
     , onChange :
@@ -136,25 +124,16 @@ withOnQueryParameterChanged { key, onChange } (Layout layout) =
 -- USED INTERNALLY BY ELM LAND
 
 
-{-| init : takes in a layout object and returns a model and an effect.
-Used by Elm-Land; do not modify.
--}
 init : Layout parentProps model msg contentMsg -> () -> ( model, Effect msg )
 init (Layout layout) =
     layout.init
 
 
-{-| update : takes in a layout object, message, model, and returns a new model and effect.
-Used by Elm-Land; do not modify.
--}
 update : Layout parentProps model msg contentMsg -> msg -> model -> ( model, Effect msg )
 update (Layout layout) =
     layout.update
 
 
-{-| view : takes in a layout object, model, and returns a view.
-Used by Elm-Land; do not modify.
--}
 view :
     Layout parentProps model msg contentMsg
     -> { model : model, toContentMsg : msg -> contentMsg, content : View contentMsg }
@@ -163,25 +142,16 @@ view (Layout layout) =
     layout.view
 
 
-{-| subscriptions : takes in a layout object and returns a subscription.
-Used by Elm-Land; do not modify.
--}
 subscriptions : Layout parentProps model msg contentMsg -> model -> Sub msg
 subscriptions (Layout layout) =
     layout.subscriptions
 
 
-{-| parentProps : takes in a layout object and returns layout properties.
-Used by Elm-Land; do not modify.
--}
 parentProps : Layout parentProps model msg contentMsg -> parentProps
 parentProps (Layout layout) =
     layout.parentProps
 
 
-{-| toUrlMessages : takes in routes and a layout object and returns a list of messages.
-Used by Elm-Land; do not modify.
--}
 toUrlMessages :
     { from : Route (), to : Route () }
     -> Layout parentProps model msg contentMsg

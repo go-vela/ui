@@ -197,6 +197,8 @@ toAttr focus =
         |> id
 
 
+{-| canTarget : returns true if the focus can be targeted.
+-}
 canTarget : Focus -> Bool
 canTarget focus =
     case ( focus.group, focus.a, focus.b ) of

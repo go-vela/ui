@@ -13,8 +13,6 @@ import Route.Query
 import Url exposing (Url)
 
 
-{-| Route : an alias for a route object.
--}
 type alias Route params =
     { path : Route.Path.Path
     , params : params
@@ -24,8 +22,6 @@ type alias Route params =
     }
 
 
-{-| fromUrl : takes in parameters and a url and returns a route object.
--}
 fromUrl : params -> Url -> Route params
 fromUrl params url =
     { path = Route.Path.fromUrl url
@@ -36,15 +32,11 @@ fromUrl params url =
     }
 
 
-{-| href : takes in specific route information and returns an Html.Attribute.
--}
 href : { path : Route.Path.Path, query : Dict String String, hash : Maybe String } -> Html.Attribute msg
 href route =
     Html.Attributes.href (toString route)
 
 
-{-| toString : takes in specific route information and returns a string.
--}
 toString : { route | path : Route.Path.Path, query : Dict String String, hash : Maybe String } -> String
 toString route =
     String.join
@@ -57,8 +49,6 @@ toString route =
         ]
 
 
-{-| strip : takes in a route object and returns a partial object.
--}
 strip : Route params -> { path : Route.Path.Path, query : Dict String String, hash : Maybe String }
 strip route =
     { path = route.path

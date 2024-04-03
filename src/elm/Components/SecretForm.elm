@@ -41,6 +41,8 @@ import Vela
 -- TYPES
 
 
+{-| Form : an alias for a secrets form.
+-}
 type alias Form =
     { team : String
     , name : String
@@ -53,6 +55,8 @@ type alias Form =
     }
 
 
+{-| defaultOrgRepoSecretForm : returns a default form for org and repo secrets.
+-}
 defaultOrgRepoSecretForm : Form
 defaultOrgRepoSecretForm =
     { team = ""
@@ -66,6 +70,8 @@ defaultOrgRepoSecretForm =
     }
 
 
+{-| defaultSharedSecretForm : returns a default form for shared secrets.
+-}
 defaultSharedSecretForm : String -> Form
 defaultSharedSecretForm team =
     { team =
@@ -84,6 +90,8 @@ defaultSharedSecretForm team =
     }
 
 
+{-| toForm : converts a secret to a form.
+-}
 toForm : Vela.Secret -> Form
 toForm secret =
     { team = secret.team
@@ -101,6 +109,8 @@ toForm secret =
 -- VIEW
 
 
+{-| viewImagesInput : renders input for images.
+-}
 viewImagesInput :
     { onInput_ : String -> msg
     , addImage : String -> msg
@@ -225,6 +235,8 @@ viewAllowCommandsInput { msg, value, disabled_ } =
         ]
 
 
+{-| viewAllowSubstitutionInput : renders radio buttons to control access to secret via substitution.
+-}
 viewAllowSubstitutionInput : { msg : String -> msg, value : Bool, disabled_ : Bool } -> Html msg
 viewAllowSubstitutionInput { msg, value, disabled_ } =
     section [ Util.testAttribute "allow-substitution" ]

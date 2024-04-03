@@ -11,8 +11,6 @@ import Layouts.Default.Org
 import Layouts.Default.Repo
 
 
-{-| Layout : defines the sub layouts.
--}
 type Layout msg
     = Default Layouts.Default.Props
     | Default_Build (Layouts.Default.Build.Props msg)
