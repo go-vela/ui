@@ -212,7 +212,7 @@ canTarget focus =
             False
 
 
-{-| updateLineRange : TODO.
+{-| updateLineRange : takes a focus, group, line number, boolean, and returns a new focus.
 -}
 updateLineRange : Bool -> Maybe Int -> Int -> Focus -> Focus
 updateLineRange shiftKeyDown group lineNumber focus =
@@ -257,7 +257,7 @@ updateLineRange shiftKeyDown group lineNumber focus =
            )
 
 
-{-| lineRangeStyles : TODO.
+{-| lineRangeStyles : takes a group, line number, focus, and returns a string.
 -}
 lineRangeStyles : Maybe Int -> Int -> Focus -> String
 lineRangeStyles group lineNumber focus =
@@ -288,7 +288,7 @@ lineRangeStyles group lineNumber focus =
             ""
 
 
-{-| lineNumberChanged : TODO.
+{-| lineNumberChanged : compares focuses, and might return an int.
 -}
 lineNumberChanged : Maybe Focus -> Focus -> Maybe Int
 lineNumberChanged maybeBefore after =

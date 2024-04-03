@@ -27,7 +27,7 @@ type UpdateType
     | Toggle
 
 
-{-| isFavorited : takes current user and favorite key and returns if the repo is favorited by that user
+{-| isFavorited : takes current user and favorite key and returns if the repo is favorited by that user.
 -}
 isFavorited : String -> String -> WebData Vela.CurrentUser -> Bool
 isFavorited org repo user =
@@ -39,7 +39,7 @@ isFavorited org repo user =
             False
 
 
-{-| toggleFavorite : takes current user and favorite key and updates/returns that user's list of favorites
+{-| toggleFavorite : takes current user and favorite key and updates/returns that user's list of favorites.
 -}
 toggleFavorite : WebData Vela.CurrentUser -> String -> ( List String, Bool )
 toggleFavorite user favorite =
@@ -62,7 +62,7 @@ toggleFavorite user favorite =
             ( [], False )
 
 
-{-| addFavorite : takes current user and favorite key and adds favorite to list of favorites
+{-| addFavorite : takes current user and favorite key and adds favorite to list of favorites.
 -}
 addFavorite : WebData Vela.CurrentUser -> String -> ( List String, Bool )
 addFavorite user favorite =
@@ -78,7 +78,7 @@ addFavorite user favorite =
             ( [], False )
 
 
-{-| addFavorites : takes current user and adds favorites to the current list of favorites
+{-| addFavorites : takes current user and adds favorites to the current list of favorites.
 -}
 addFavorites : WebData Vela.CurrentUser -> List { org : String, maybeRepo : Maybe String } -> List String
 addFavorites user favorites =
@@ -92,7 +92,7 @@ addFavorites user favorites =
             []
 
 
-{-| toFavorite : takes org and maybe repo and builds the appropriate favorites key
+{-| toFavorite : takes org and maybe repo and builds the appropriate favorites key.
 -}
 toFavorite : Vela.Org -> Maybe Vela.Repo -> String
 toFavorite org repo =

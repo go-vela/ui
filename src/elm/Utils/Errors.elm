@@ -26,7 +26,7 @@ type alias Error =
 -- HELPERS
 
 
-{-| errorDecoder : decodes error field from json
+{-| errorDecoder : decodes error field from json.
 -}
 errorDecoder : Decode.Decoder String
 errorDecoder =
@@ -34,7 +34,7 @@ errorDecoder =
         Decode.at [ "error" ] Decode.string
 
 
-{-| detailedErrorToString : extract metadata and convert a Http.Detailed.Error to string value
+{-| detailedErrorToString : extract metadata and convert a Http.Detailed.Error to string value.
 -}
 detailedErrorToString : Http.Detailed.Error String -> String
 detailedErrorToString error =
@@ -55,7 +55,7 @@ detailedErrorToString error =
             "Invalid Body" ++ wrapErrorContent str
 
 
-{-| detailedErrorToError : convert a Http.Detailed.Error to a default Http.Error
+{-| detailedErrorToError : convert a Http.Detailed.Error to a default Http.Error.
 -}
 detailedErrorToError : Http.Detailed.Error String -> Http.Error
 detailedErrorToError error =
@@ -76,7 +76,7 @@ detailedErrorToError error =
             Http.BadBody body
 
 
-{-| errorBodyToString : extracts/converts the "error" field from an api json error message to string
+{-| errorBodyToString : extracts/converts the "error" field from an api json error message to string.
 -}
 errorBodyToString : String -> String
 errorBodyToString body =
@@ -106,14 +106,14 @@ wrapErrorContent content =
         " (" ++ content ++ ")"
 
 
-{-| toFailure : maps a detailed error into a WebData Failure value
+{-| toFailure : maps a detailed error into a WebData Failure value.
 -}
 toFailure : Http.Detailed.Error String -> WebData a
 toFailure error =
     RemoteData.Failure <| detailedErrorToError error
 
 
-{-| addError : takes a detailed http error and produces a Cmd Msg that invokes an action in the Errors module
+{-| addError : takes a detailed http error and produces a Cmd Msg that invokes an action in the Errors module.
 -}
 addError : (String -> msg) -> Http.Detailed.Error String -> Cmd msg
 addError m error =
@@ -122,7 +122,7 @@ addError m error =
         |> perform identity
 
 
-{-| addErrorString : takes a string and produces a Cmd Msg that invokes an action in the Errors module
+{-| addErrorString : takes a string and produces a Cmd Msg that invokes an action in the Errors module.
 -}
 addErrorString : String -> (String -> msg) -> Cmd msg
 addErrorString error m =
@@ -131,14 +131,14 @@ addErrorString error m =
         |> perform identity
 
 
-{-| showAlertAlways : returns an http error predicate that always returns true
+{-| showAlertAlways : returns an http error predicate that always returns true.
 -}
 showAlertAlways : Http.Detailed.Error String -> Bool
 showAlertAlways error =
     True
 
 
-{-| showAlertNon401 : returns an http error predicate that returns true when the error status code anything but 401
+{-| showAlertNon401 : returns an http error predicate that returns true when the error status code anything but 401.
 -}
 showAlertNon401 : Http.Detailed.Error String -> Bool
 showAlertNon401 error =

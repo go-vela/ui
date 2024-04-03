@@ -29,8 +29,7 @@ decodeJwtAccessToken =
     field "token" string
 
 
-{-| JwtAccessTokenClaims : defines the shape
-of the access token claims.
+{-| JwtAccessTokenClaims : defines the shape of the access token claims.
 -}
 type alias JwtAccessTokenClaims =
     { is_admin : Bool
@@ -60,15 +59,15 @@ defaultJwtAccessTokenClaims =
     JwtAccessTokenClaims False False (Time.millisToPosix 0) (Time.millisToPosix 0) ""
 
 
-{-| posixFromInt converts the incoming time (formatted as epoch in seconds)
-to Elm's Time.Posix format
+{-| posixFromInt : converts the incoming time (formatted as epoch in seconds)
+to Elm's Time.Posix format.
 -}
 posixFromInt : Decoder Time.Posix
 posixFromInt =
     int |> Decode.map (\time -> Time.millisToPosix <| time * 1000)
 
 
-{-| extractJwtClaims attempts to extract the token claims from the access token
+{-| extractJwtClaims : attempts to extract the token claims from the access token.
 -}
 extractJwtClaims : JwtAccessToken -> JwtAccessTokenClaims
 extractJwtClaims token =
