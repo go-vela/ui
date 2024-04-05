@@ -26,11 +26,6 @@
     "private": false,
     "trusted": false,
     "active": true,
-    "allow_pull": true,
-    "allow_push": true,
-    "allow_deploy": true,
-    "allow_tag": true,
-    "allow_comment": true,
     "pipeline_type": "yaml",
     "previous_name": ""
   }
