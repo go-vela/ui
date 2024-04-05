@@ -223,7 +223,7 @@ view shared route model =
                       else
                         text ""
                     , div [ class "schedule-form" ]
-                        [ Components.Form.viewInput
+                        [ Components.Form.viewInputSection
                             { title = Just "Name"
                             , subtitle = Nothing
                             , id_ = "name"
@@ -235,7 +235,7 @@ view shared route model =
                             , msg = NameOnInput
                             , disabled_ = formDisabled
                             }
-                        , Components.Form.viewTextarea
+                        , Components.Form.viewTextareaSection
                             { title = Just "Cron Expression"
                             , subtitle = Just <| Components.ScheduleForm.viewCronHelp shared.time
                             , id_ = "entry"
@@ -252,7 +252,7 @@ view shared route model =
                             , value = model.enabled
                             , disabled_ = formDisabled
                             }
-                        , Components.Form.viewInput
+                        , Components.Form.viewInputSection
                             { title = Just "Branch"
                             , subtitle =
                                 Just <|

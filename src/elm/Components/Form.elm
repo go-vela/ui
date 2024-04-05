@@ -3,10 +3,11 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.Form exposing (viewAllowEvents, viewButton, viewCheckbox, viewInput, viewRadio, viewSubtitle, viewTextarea)
+module Components.Form exposing (viewAllowEvents, viewButton, viewCheckbox, viewCopyButton, viewInput, viewInputSection, viewRadio, viewSubtitle, viewTextarea, viewTextareaSection)
 
+import FeatherIcons
 import Html exposing (Html, button, div, h3, input, label, section, span, strong, text, textarea)
-import Html.Attributes exposing (checked, class, classList, disabled, for, id, placeholder, rows, type_, value, wrap)
+import Html.Attributes exposing (attribute, checked, class, classList, disabled, for, id, placeholder, rows, type_, value, wrap)
 import Html.Events exposing (onCheck, onClick, onInput)
 import Maybe.Extra
 import Shared
@@ -18,7 +19,7 @@ import Vela
 -- VIEW
 
 
-viewInput :
+viewInputSection :
     { id_ : String
     , title : Maybe String
     , subtitle : Maybe (Html msg)
@@ -31,7 +32,7 @@ viewInput :
     , disabled_ : Bool
     }
     -> Html msg
-viewInput { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, msg, disabled_ } =
+viewInputSection { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, msg, disabled_ } =
     let
         target =
             String.join "-" [ "input", id_ ]
@@ -61,7 +62,7 @@ viewInput { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, m
         ]
 
 
-viewTextarea :
+viewInput :
     { id_ : String
     , title : Maybe String
     , subtitle : Maybe (Html msg)
@@ -74,7 +75,44 @@ viewTextarea :
     , disabled_ : Bool
     }
     -> Html msg
-viewTextarea { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, msg, disabled_ } =
+viewInput { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, msg, disabled_ } =
+    let
+        target =
+            String.join "-" [ "input", id_ ]
+    in
+    div
+        [ class "form-control"
+        , Util.testAttribute target
+        ]
+        [ input
+            [ id target
+            , value val
+            , placeholder placeholder_
+            , classList <| classList_
+            , Maybe.Extra.unwrap Util.attrNone rows rows_
+            , Maybe.Extra.unwrap Util.attrNone wrap wrap_
+            , onInput msg
+            , disabled disabled_
+            , Util.testAttribute target
+            ]
+            []
+        ]
+
+
+viewTextareaSection :
+    { id_ : String
+    , title : Maybe String
+    , subtitle : Maybe (Html msg)
+    , val : String
+    , placeholder_ : String
+    , classList_ : List ( String, Bool )
+    , rows_ : Maybe Int
+    , wrap_ : Maybe String
+    , msg : String -> msg
+    , disabled_ : Bool
+    }
+    -> Html msg
+viewTextareaSection { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, msg, disabled_ } =
     let
         target =
             String.join "-" [ "textarea", id_ ]
@@ -90,6 +128,38 @@ viewTextarea { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_
             )
             title
         , textarea
+            [ id target
+            , value val
+            , placeholder placeholder_
+            , classList classList_
+            , Maybe.Extra.unwrap Util.attrNone rows rows_
+            , Maybe.Extra.unwrap Util.attrNone wrap wrap_
+            , onInput msg
+            , disabled disabled_
+            , Util.testAttribute target
+            ]
+            []
+        ]
+
+
+viewTextarea :
+    { id_ : String
+    , val : String
+    , placeholder_ : String
+    , classList_ : List ( String, Bool )
+    , rows_ : Maybe Int
+    , wrap_ : Maybe String
+    , msg : String -> msg
+    , disabled_ : Bool
+    }
+    -> Html msg
+viewTextarea { id_, val, placeholder_, classList_, rows_, wrap_, msg, disabled_ } =
+    let
+        target =
+            String.join "-" [ "textarea", id_ ]
+    in
+    div [ class "form-control" ]
+        [ textarea
             [ id target
             , value val
             , placeholder placeholder_
@@ -181,6 +251,31 @@ viewButton { id_, msg, text_, classList_, disabled_ } =
         , Util.testAttribute target
         ]
         [ text text_ ]
+
+
+viewCopyButton : { id_ : String, msg : String -> msg, text_ : String, classList_ : List ( String, Bool ), disabled_ : Bool, content : String } -> Html msg
+viewCopyButton { id_, msg, text_, classList_, disabled_, content } =
+    let
+        target =
+            String.join "-" [ "copy", id_ ]
+    in
+    div []
+        [ button
+            [ class "copy-button"
+            , attribute "aria-label" ("copy " ++ id_ ++ "content to clipboard")
+            , class "button"
+            , class "-icon"
+            , disabled disabled_
+            , classList classList_
+            , onClick <| msg content
+            , attribute "data-clipboard-text" content
+            , Util.testAttribute target
+            ]
+            [ FeatherIcons.copy
+                |> FeatherIcons.withSize 18
+                |> FeatherIcons.toHtml []
+            ]
+        ]
 
 
 viewSubtitle : Maybe (Html msg) -> Html msg

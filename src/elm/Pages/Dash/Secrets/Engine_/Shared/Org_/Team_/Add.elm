@@ -267,7 +267,7 @@ view shared route model =
                 [ div []
                     [ h2 [] [ text <| String.Extra.toTitleCase "add shared secret" ]
                     , div [ class "secret-form" ]
-                        [ Components.Form.viewInput
+                        [ Components.Form.viewInputSection
                             { title = Just "Team"
                             , subtitle = Nothing
                             , id_ = "team"
@@ -279,7 +279,7 @@ view shared route model =
                             , msg = TeamOnInput
                             , disabled_ = False
                             }
-                        , Components.Form.viewInput
+                        , Components.Form.viewInputSection
                             { title = Just "Name"
                             , subtitle = Nothing
                             , id_ = "name"
@@ -291,7 +291,7 @@ view shared route model =
                             , msg = NameOnInput
                             , disabled_ = False
                             }
-                        , Components.Form.viewTextarea
+                        , Components.Form.viewTextareaSection
                             { title = Just "Value"
                             , subtitle = Nothing
                             , id_ = "value"

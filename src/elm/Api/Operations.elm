@@ -42,6 +42,7 @@ module Api.Operations exposing
     , getRepoSecret
     , getRepoSecrets
     , getSettings
+    , getSettingsString
     , getSharedSecret
     , getSharedSecrets
     , getToken
@@ -320,7 +321,7 @@ getSettings :
     -> Request Vela.Settings
 getSettings baseUrl session options =
     get baseUrl
-        Api.Endpoint.Settings
+        (Api.Endpoint.Settings Nothing)
         Vela.decodeSettings
         |> withAuth session
 
@@ -334,9 +335,23 @@ updateSettings :
     -> Request Vela.Settings
 updateSettings baseUrl session options =
     put baseUrl
-        Api.Endpoint.Settings
+        (Api.Endpoint.Settings Nothing)
         options.body
         Vela.decodeSettings
+        |> withAuth session
+
+
+{-| getSettingsString : retrieves the active settings record for the platform in string format.
+-}
+getSettingsString :
+    String
+    -> Session
+    -> { a | output : Maybe String }
+    -> Request String
+getSettingsString baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.Settings options.output)
+        Json.Decode.string
         |> withAuth session
 
 

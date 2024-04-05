@@ -263,7 +263,7 @@ view shared route model =
                 [ div []
                     [ h2 [] [ text <| String.Extra.toTitleCase "add repo secret" ]
                     , div [ class "secret-form" ]
-                        [ Components.Form.viewInput
+                        [ Components.Form.viewInputSection
                             { title = Just "Name"
                             , subtitle = Nothing
                             , id_ = "name"
@@ -275,7 +275,7 @@ view shared route model =
                             , msg = NameOnInput
                             , disabled_ = False
                             }
-                        , Components.Form.viewTextarea
+                        , Components.Form.viewTextareaSection
                             { title = Just "Value"
                             , subtitle = Nothing
                             , id_ = "value"
