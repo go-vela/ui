@@ -15,11 +15,7 @@
     "visibility": "public",
     "private": false,
     "trusted": true,
-    "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false
+    "active": true
   },
   {
     "id": 18,
@@ -37,11 +33,7 @@
     "visibility": "public",
     "private": false,
     "trusted": true,
-    "active": false,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false
+    "active": false
   },
   {
     "id": 17,
@@ -59,11 +51,7 @@
     "visibility": "public",
     "private": false,
     "trusted": true,
-    "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false
+    "active": true
   },
   {
     "id": 16,
@@ -81,10 +69,6 @@
     "visibility": "public",
     "private": false,
     "trusted": true,
-    "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false
+    "active": true
   }
 ]
