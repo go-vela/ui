@@ -318,7 +318,7 @@ view shared route model =
                     , div [ class "deployment-form" ]
                         [ case model.repo of
                             RemoteData.Success repo ->
-                                if not repo.allow_deploy then
+                                if not repo.allowEvents.deploy.created then
                                     p [ class "notice" ]
                                         [ strong []
                                             [ text "Deploy webhook for this repo must be enabled in settings"
