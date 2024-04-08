@@ -22,6 +22,7 @@ import Route.Path
 import Shared
 import Time
 import Url exposing (Url)
+import Utils.Favicons as Favicons
 import Utils.Favorites as Favorites
 import Utils.Interval as Interval
 import View exposing (View)
@@ -86,7 +87,8 @@ init props shared route _ =
     ( { tabHistory = Dict.empty
       }
     , Effect.batch
-        [ Effect.getCurrentUser {}
+        [ Effect.updateFavicon { favicon = Favicons.defaultFavicon }
+        , Effect.getCurrentUser {}
         , Effect.getRepoBuildsShared
             { pageNumber = Nothing
             , perPage = Nothing
