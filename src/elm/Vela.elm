@@ -183,6 +183,11 @@ decodeUser =
         |> required "admin" bool
 
 
+emptyUser : User
+emptyUser =
+    { id = -1, name = "", favorites = [], active = False, admin = False }
+
+
 type alias UpdateUserPayload =
     { name : Maybe String
     , favorites : Maybe (List String)
@@ -357,7 +362,7 @@ decodeRepository =
     Json.Decode.succeed Repository
         |> optional "id" int -1
         |> optional "user_id" int -1
-        |> required "owner" decodeUser
+        |> optional "owner" decodeUser emptyUser
         |> required "org" string
         |> required "name" string
         |> optional "full_name" string ""
