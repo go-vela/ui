@@ -31,7 +31,7 @@ port setRedirect : Json.Encode.Value -> Cmd msg
 -- THEME
 
 
-{-| onThemeChange: inbound.
+{-| onThemeChange : inbound.
 -}
 port onThemeChange : (Json.Decode.Value -> msg) -> Sub msg
 

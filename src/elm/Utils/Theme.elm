@@ -43,7 +43,7 @@ decodeTheme =
             )
 
 
-{-| encodeTheme : a value to capture which theme is set.
+{-| encodeTheme : value to capture which theme is set.
 -}
 encodeTheme : Theme -> Json.Encode.Value
 encodeTheme theme =

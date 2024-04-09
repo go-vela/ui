@@ -25,8 +25,6 @@ import Route.Path
 import View exposing (View)
 
 
-{-| Action : a type that represents the possible actions that can be taken in the application.
--}
 type Action user
     = LoadPageWithUser user
     | ShowLoadingPage (View Never)
@@ -43,22 +41,16 @@ type Action user
     | LoadExternalUrl String
 
 
-{-| loadPageWithUser : takes a user and returns an Action user.
--}
 loadPageWithUser : user -> Action user
 loadPageWithUser =
     LoadPageWithUser
 
 
-{-| showLoadingPage : takes a view that never produces messages and returns an Action user.
--}
 showLoadingPage : View Never -> Action user
 showLoadingPage =
     ShowLoadingPage
 
 
-{-| replaceRoute : takes a record with route info and returns an Action user.
--}
 replaceRoute :
     { path : Route.Path.Path
     , query : Dict String String
@@ -69,8 +61,6 @@ replaceRoute =
     ReplaceRoute
 
 
-{-| pushRoute : takes a record with route info and returns an Action user.
--}
 pushRoute :
     { path : Route.Path.Path
     , query : Dict String String
@@ -81,8 +71,6 @@ pushRoute =
     PushRoute
 
 
-{-| loadExternalUrl : takes a URL
--}
 loadExternalUrl : String -> Action user
 loadExternalUrl =
     LoadExternalUrl
@@ -92,9 +80,6 @@ loadExternalUrl =
 -- USED INTERNALLY BY ELM LAND
 
 
-{-| view : takes in a function, that converts a user to a view msg, an Action user, and returns a view msg.
-Used by Elm-Land; do not modify.
--}
 view : (user -> View msg) -> Action user -> View msg
 view toView authAction =
     case authAction of
@@ -114,9 +99,6 @@ view toView authAction =
             View.none
 
 
-{-| subscriptions : takes in a function, that converts a user to a subscription msg, an Action user, and returns a subscription msg.
-Used by Elm-Land; do not modify.
--}
 subscriptions : (user -> Sub msg) -> Action user -> Sub msg
 subscriptions toSub authAction =
     case authAction of
@@ -136,9 +118,6 @@ subscriptions toSub authAction =
             Sub.none
 
 
-{-| command : takes in a function, that converts a user to a command msg, an Action user, and returns a command msg.
-Used by Elm-Land; do not modify.
--}
 command : (user -> Cmd msg) -> Action user -> Cmd msg
 command toCmd authAction =
     case authAction of

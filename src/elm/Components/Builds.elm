@@ -162,7 +162,7 @@ view shared props =
                 ]
 
 
-{-| viewHeader: renders builds header including filter and timestamp toggle.
+{-| viewHeader : renders builds header including filter and timestamp toggle.
 -}
 viewHeader :
     { show : Bool
@@ -183,7 +183,7 @@ viewHeader props =
         text ""
 
 
-{-| viewFilter: renders filter values to filter build list.
+{-| viewFilter : renders filter values to filter build list.
 -}
 viewFilter : Maybe String -> (Maybe String -> msg) -> Html msg
 viewFilter maybeEvent filterByEventMsg =
@@ -221,7 +221,7 @@ viewFilter maybeEvent filterByEventMsg =
                 Vela.allowEventsFilterQueryKeys
 
 
-{-| viewTimeToggle: renders checkbox to toggle between relative time and absolute time.
+{-| viewTimeToggle : renders checkbox to toggle between relative time and absolute time.
 -}
 viewTimeToggle : Bool -> msg -> Html msg
 viewTimeToggle showTimestamp showHideFullTimestampMsg =

@@ -9,14 +9,14 @@ import Time
 import Utils.Helpers as Util
 
 
-{-| Interval : a type to represent the interval at which a message is sent.
+{-| Interval : type to represent the interval at which a message is sent.
 -}
 type Interval
     = OneSecond
     | FiveSeconds
 
 
-{-| tickEveryOneSecond : a message to be sent every second.
+{-| tickEveryOneSecond : message to be sent every second.
 -}
 tickEveryOneSecond : ({ time : Time.Posix, interval : Interval } -> msg) -> Sub msg
 tickEveryOneSecond msg =
@@ -24,7 +24,7 @@ tickEveryOneSecond msg =
         \time -> msg { time = time, interval = OneSecond }
 
 
-{-| tickEveryFiveSeconds : a message to be sent every five seconds.
+{-| tickEveryFiveSeconds : message to be sent every five seconds.
 -}
 tickEveryFiveSeconds : ({ time : Time.Posix, interval : Interval } -> msg) -> Sub msg
 tickEveryFiveSeconds msg =

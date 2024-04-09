@@ -47,7 +47,7 @@ import Vela
 -- VIEW
 
 
-{-| velaLogo: produces the svg for the Vela logo.
+{-| velaLogo : produces the svg for the Vela logo.
 -}
 velaLogo : Int -> Html msg
 velaLogo size =
@@ -403,7 +403,7 @@ stepSkipped =
         ]
 
 
-{-| hookSuccess: produces the svg for the hook status success.
+{-| hookSuccess : produces the svg for the hook status success.
 -}
 hookSuccess : Html msg
 hookSuccess =
@@ -421,7 +421,7 @@ hookSuccess =
         ]
 
 
-{-| hookSkipped: produces the svg for the hook status skipped.
+{-| hookSkipped : produces the svg for the hook status skipped.
 -}
 hookSkipped : Html msg
 hookSkipped =
@@ -481,7 +481,7 @@ hookSkipped =
         ]
 
 
-{-| hookFailure: produces the svg for the hook status failure.
+{-| hookFailure : produces the svg for the hook status failure.
 -}
 hookFailure : Html msg
 hookFailure =
@@ -688,7 +688,7 @@ hookStatusToIcon status =
             hookFailure
 
 
-{-| star: produces the svg for the favorites star.
+{-| star : produces the svg for the favorites star.
 -}
 star : Bool -> Html msg
 star favorited =
@@ -714,7 +714,7 @@ star favorited =
         ]
 
 
-{-| terminal: produces the svg for the contextual help terminal icon.
+{-| terminal : produces the svg for the contextual help terminal icon.
 -}
 terminal : Html msg
 terminal =

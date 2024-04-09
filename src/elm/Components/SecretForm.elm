@@ -41,7 +41,7 @@ import Vela
 -- TYPES
 
 
-{-| Form : an alias for a secrets form.
+{-| Form : alias for a secrets form.
 -}
 type alias Form =
     { team : String

@@ -67,7 +67,7 @@ init () =
 -- UPDATE
 
 
-{-| Msg : a custom type with no messages.
+{-| Msg : custom type with no messages.
 -}
 type Msg
     = NoOp

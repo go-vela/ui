@@ -43,7 +43,7 @@ type alias Search msg =
     Vela.Org -> String -> msg
 
 
-{-| Search : takes input and searches/filters favorites displayed on the home page.
+{-| SimpleSearch : takes input and searches/filters favorites displayed on the home page.
 -}
 type alias SimpleSearch msg =
     String -> msg

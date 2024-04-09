@@ -398,7 +398,7 @@ open isOpen =
         []
 
 
-{-| ariaHidden: returns the html attribute for setting aria-hidden=true.
+{-| ariaHidden : returns the html attribute for setting aria-hidden=true.
 -}
 ariaHidden : Html.Attribute msg
 ariaHidden =

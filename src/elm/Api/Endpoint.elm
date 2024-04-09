@@ -11,7 +11,7 @@ import Url.Builder as UB exposing (QueryParameter)
 import Vela
 
 
-{-| apiBase : is the versioned base of all API paths.
+{-| apiBase : the versioned base of all API paths.
 -}
 apiBase : String
 apiBase =

@@ -108,7 +108,7 @@ init shared route () =
 -- UPDATE
 
 
-{-| Msg : a custom type with possible messages.
+{-| Msg : custom type with possible messages.
 -}
 type Msg
     = -- SECRETS

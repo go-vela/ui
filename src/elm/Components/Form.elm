@@ -108,7 +108,7 @@ viewTextarea { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_
         ]
 
 
-{-| viewCheckbox : renders a checkbox with with temporary attributes and content.
+{-| viewCheckbox : renders a checkbox with temporary attributes and content.
 -}
 viewCheckbox :
     { id_ : String
@@ -143,7 +143,7 @@ viewCheckbox { id_, title, subtitle, field, state, msg, disabled_ } =
         ]
 
 
-{-| viewRadio : renders a radio button with with temporary attributes and content.
+{-| viewRadio : renders a radio button with temporary attributes and content.
 -}
 viewRadio :
     { id_ : String
@@ -175,7 +175,7 @@ viewRadio { id_, title, subtitle, value, field, msg, disabled_ } =
         ]
 
 
-{-| viewButton : renders a button with with temporary attributes and content.
+{-| viewButton : renders a button with temporary attributes and content.
 -}
 viewButton : { id_ : String, msg : msg, text_ : String, classList_ : List ( String, Bool ), disabled_ : Bool } -> Html msg
 viewButton { id_, msg, text_, classList_, disabled_ } =
@@ -193,7 +193,7 @@ viewButton { id_, msg, text_, classList_, disabled_ } =
         [ text text_ ]
 
 
-{-| viewSubtitle : renders a subtitle with with temporary content.
+{-| viewSubtitle : renders a subtitle with temporary content.
 -}
 viewSubtitle : Maybe (Html msg) -> Html msg
 viewSubtitle subtitle =

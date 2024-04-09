@@ -29,7 +29,7 @@ import Task exposing (Task)
 -- TYPES
 
 
-{-| RequestConfig : a basic configuration record for an API request.
+{-| RequestConfig : basic configuration record for an API request.
 -}
 type alias RequestConfig a =
     { method : String
@@ -46,7 +46,7 @@ type Request a
     = Request (RequestConfig a)
 
 
-{-| ListResponse : a custom response type to be used in conjunction
+{-| ListResponse : custom response type to be used in conjunction
 with API pagination response headers to discern between
 a response that has more pages to fetch vs a response that has
 no further pages.
@@ -173,7 +173,7 @@ recurse originalRequest =
             )
 
 
-{-| update: aggregates the results from two responses as needed.
+{-| update : aggregates the results from two responses as needed.
 -}
 update : ( Http.Metadata, ListResponse a ) -> ( Http.Metadata, ListResponse a ) -> ( Http.Metadata, ListResponse a )
 update old new =

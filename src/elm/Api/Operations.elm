@@ -72,7 +72,7 @@ import Vela
 -- OPERATIONS
 
 
-{-| getToken attempts to retrieve a new access token.
+{-| getToken : attempts to retrieve a new access token.
 -}
 getToken : String -> Request JwtAccessToken
 getToken baseUrl =
@@ -91,7 +91,7 @@ finishAuthentication baseUrl { code, state } =
         Auth.Jwt.decodeJwtAccessToken
 
 
-{-| logout: logs the user out by deleting the refresh token cookie.
+{-| logout : logs the user out by deleting the refresh token cookie.
 -}
 logout : String -> Session -> Request String
 logout baseUrl session =
@@ -627,7 +627,7 @@ getBuildSteps baseUrl session options =
         |> withAuth session
 
 
-{-| getBuildServices: retrieves services for a build.
+{-| getBuildServices : retrieves services for a build.
 -}
 getBuildServices :
     String
@@ -654,7 +654,7 @@ getBuildServices baseUrl session options =
         |> withAuth session
 
 
-{-| getBuildStepLog: retrieves a log for a step.
+{-| getBuildStepLog : retrieves a log for a step.
 -}
 getBuildStepLog :
     String
@@ -679,7 +679,7 @@ getBuildStepLog baseUrl session options =
         |> withAuth session
 
 
-{-| getBuildServiceLog: retrieves a log for a service.
+{-| getBuildServiceLog : retrieves a log for a service.
 -}
 getBuildServiceLog :
     String
@@ -704,7 +704,7 @@ getBuildServiceLog baseUrl session options =
         |> withAuth session
 
 
-{-| getPipelineConfig: retrieves a pipeline config for a ref.
+{-| getPipelineConfig : retrieves a pipeline config for a ref.
 -}
 getPipelineConfig :
     String
@@ -727,7 +727,7 @@ getPipelineConfig baseUrl session options =
         |> withAuth session
 
 
-{-| expandPipelineConfig: retrieves an expanded pipeline config for a ref.
+{-| expandPipelineConfig : retrieves an expanded pipeline config for a ref.
 -}
 expandPipelineConfig :
     String
@@ -751,7 +751,7 @@ expandPipelineConfig baseUrl session options =
         |> withAuth session
 
 
-{-| getPipelineTemplates: retrieves templates for a pipeline ref.
+{-| getPipelineTemplates : retrieves templates for a pipeline ref.
 -}
 getPipelineTemplates :
     String
@@ -774,7 +774,7 @@ getPipelineTemplates baseUrl session options =
         |> withAuth session
 
 
-{-| getBuildGraph: retrieves a graph for a build.
+{-| getBuildGraph : retrieves a graph for a build.
 -}
 getBuildGraph :
     String
