@@ -12,7 +12,6 @@ module Vela exposing
     , BuildGraphInteraction
     , BuildGraphNode
     , BuildNumber
-    , CurrentUser
     , Deployment
     , DeploymentPayload
     , EnableRepoPayload
@@ -47,13 +46,13 @@ module Vela exposing
     , Template
     , Templates
     , Type
+    , User
     , allowEventsFilterQueryKeys
     , allowEventsToList
     , buildRepoPayload
     , decodeBuild
     , decodeBuildGraph
     , decodeBuilds
-    , decodeCurrentUser
     , decodeDeployment
     , decodeDeployments
     , decodeGraphInteraction
@@ -72,6 +71,7 @@ module Vela exposing
     , decodeServices
     , decodeSourceRepositories
     , decodeSteps
+    , decodeUser
     , defaultAllowEvents
     , defaultDeploymentPayload
     , defaultEnabledAllowEvents
@@ -164,7 +164,7 @@ type alias Ref =
 -- USER
 
 
-type alias CurrentUser =
+type alias User =
     { id : Int
     , name : String
     , favorites : List String
@@ -173,9 +173,9 @@ type alias CurrentUser =
     }
 
 
-decodeCurrentUser : Decoder CurrentUser
-decodeCurrentUser =
-    Json.Decode.succeed CurrentUser
+decodeUser : Decoder User
+decodeUser =
+    Json.Decode.succeed User
         |> required "id" int
         |> required "name" string
         |> optional "favorites" (Json.Decode.list string) []
@@ -331,6 +331,7 @@ toEnabled active =
 type alias Repository =
     { id : Int
     , user_id : Int
+    , owner : User
     , org : String
     , name : String
     , full_name : String
@@ -356,6 +357,7 @@ decodeRepository =
     Json.Decode.succeed Repository
         |> optional "id" int -1
         |> optional "user_id" int -1
+        |> required "owner" decodeUser
         |> required "org" string
         |> required "name" string
         |> optional "full_name" string ""
