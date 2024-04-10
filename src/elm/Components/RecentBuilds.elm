@@ -141,7 +141,7 @@ buildInfo build =
             viewTooltipField "" ""
 
 
-{-| viewTooltipField : formats a list to be populated with build metadata.
+{-| viewTooltipField : renders the HTML for a line item in the tool tip component.
 -}
 viewTooltipField : String -> String -> Html msg
 viewTooltipField key value =
