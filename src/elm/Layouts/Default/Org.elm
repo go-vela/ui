@@ -20,6 +20,7 @@ import Route exposing (Route)
 import Route.Path
 import Shared
 import Url exposing (Url)
+import Utils.Favicons as Favicons
 import Utils.Helpers as Util
 import View exposing (View)
 
@@ -69,7 +70,10 @@ init : Shared.Model -> Route () -> () -> ( Model, Effect Msg )
 init shared route _ =
     ( { tabHistory = Dict.empty
       }
-    , Effect.getCurrentUserShared {}
+    , Effect.batch
+        [ Effect.updateFavicon { favicon = Favicons.defaultFavicon }
+        , Effect.getCurrentUserShared {}
+        ]
     )
 
 

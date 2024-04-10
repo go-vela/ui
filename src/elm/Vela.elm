@@ -226,11 +226,6 @@ buildRepoPayload repo =
         repo.private
         repo.trusted
         repo.active
-        repo.allow_pull
-        repo.allow_push
-        repo.allow_deploy
-        repo.allow_tag
-        repo.allow_comment
         repo.allowEvents
 
 
@@ -245,11 +240,6 @@ encodeEnableRepository repo =
         , ( "private", Json.Encode.bool <| repo.private )
         , ( "trusted", Json.Encode.bool <| repo.trusted )
         , ( "active", Json.Encode.bool <| repo.active )
-        , ( "allow_pull", Json.Encode.bool <| repo.allow_pull )
-        , ( "allow_push", Json.Encode.bool <| repo.allow_push )
-        , ( "allow_deploy", Json.Encode.bool <| repo.allow_deploy )
-        , ( "allow_tag", Json.Encode.bool <| repo.allow_tag )
-        , ( "allow_comment", Json.Encode.bool <| repo.allow_comment )
         , ( "allow_events", encodeAllowEvents repo.allowEvents )
         ]
 
@@ -313,11 +303,6 @@ type alias EnableRepoPayload =
     , private : Bool
     , trusted : Bool
     , active : Bool
-    , allow_pull : Bool
-    , allow_push : Bool
-    , allow_deploy : Bool
-    , allow_tag : Bool
-    , allow_comment : Bool
     , allowEvents : AllowEvents
     }
 
@@ -366,11 +351,6 @@ type alias Repository =
     , private : Bool
     , trusted : Bool
     , active : Bool
-    , allow_pull : Bool
-    , allow_push : Bool
-    , allow_deploy : Bool
-    , allow_tag : Bool
-    , allow_comment : Bool
     , allowEvents : AllowEvents
     , enabled : Enabled
     , pipeline_type : String
@@ -396,11 +376,6 @@ decodeRepository =
         |> optional "private" bool False
         |> optional "trusted" bool False
         |> optional "active" bool False
-        |> optional "allow_pull" bool False
-        |> optional "allow_push" bool False
-        |> optional "allow_deploy" bool False
-        |> optional "allow_tag" bool False
-        |> optional "allow_comment" bool False
         |> optional "allow_events" decodeAllowEvents defaultAllowEvents
         -- "enabled"
         |> optional "active" enabledDecoder Disabled
@@ -420,11 +395,6 @@ type alias RepoPayload =
     { private : Maybe Bool
     , trusted : Maybe Bool
     , active : Maybe Bool
-    , allow_pull : Maybe Bool
-    , allow_push : Maybe Bool
-    , allow_deploy : Maybe Bool
-    , allow_tag : Maybe Bool
-    , allow_comment : Maybe Bool
     , allowEvents : Maybe AllowEvents
     , visibility : Maybe String
     , approve_build : Maybe String
@@ -441,11 +411,6 @@ encodeRepoPayload repo =
         [ ( "active", encodeOptional Json.Encode.bool repo.active )
         , ( "private", encodeOptional Json.Encode.bool repo.private )
         , ( "trusted", encodeOptional Json.Encode.bool repo.trusted )
-        , ( "allow_pull", encodeOptional Json.Encode.bool repo.allow_pull )
-        , ( "allow_push", encodeOptional Json.Encode.bool repo.allow_push )
-        , ( "allow_deploy", encodeOptional Json.Encode.bool repo.allow_deploy )
-        , ( "allow_tag", encodeOptional Json.Encode.bool repo.allow_tag )
-        , ( "allow_comment", encodeOptional Json.Encode.bool repo.allow_comment )
         , ( "allow_events", encodeOptional encodeAllowEvents repo.allowEvents )
         , ( "visibility", encodeOptional Json.Encode.string repo.visibility )
         , ( "approve_build", encodeOptional Json.Encode.string repo.approve_build )
@@ -461,11 +426,6 @@ defaultRepoPayload =
     { private = Nothing
     , trusted = Nothing
     , active = Nothing
-    , allow_pull = Nothing
-    , allow_push = Nothing
-    , allow_deploy = Nothing
-    , allow_tag = Nothing
-    , allow_comment = Nothing
     , allowEvents = Nothing
     , visibility = Nothing
     , approve_build = Nothing
@@ -1741,7 +1701,6 @@ type alias SecretPayload =
     , team : Maybe Team
     , name : Maybe Name
     , value : Maybe String
-    , events : Maybe (List String)
     , images : Maybe (List String)
     , allowCommand : Maybe Bool
     , allowSubstitution : Maybe Bool
@@ -1757,7 +1716,6 @@ defaultSecretPayload =
     , team = Nothing
     , name = Nothing
     , value = Nothing
-    , events = Nothing
     , images = Nothing
     , allowCommand = Nothing
     , allowSubstitution = Nothing
