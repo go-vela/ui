@@ -78,7 +78,7 @@ toLayout user route model =
 -- INIT
 
 
-{-| Model : alias for a model object.
+{-| Model : alias for a model object for an org's team shared secrets add secret page.
 -}
 type alias Model =
     { secret : WebData Vela.Secret

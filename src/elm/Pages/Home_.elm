@@ -82,7 +82,7 @@ toLayout user model =
 -- INIT
 
 
-{-| Model : alias for a model object.
+{-| Model : alias for a model object for the home page.
 -}
 type alias Model =
     { favoritesFilter : String

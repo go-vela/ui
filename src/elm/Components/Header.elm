@@ -24,7 +24,7 @@ import Utils.Theme as Theme
 -- TYPES
 
 
-{-| Props : alias for an object containing properties and msg.
+{-| Props : alias for an object representing properties for the header component.
 -}
 type alias Props msg =
     { from : String

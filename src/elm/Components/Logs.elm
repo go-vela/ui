@@ -28,7 +28,7 @@ import Vela
 -- TYPES
 
 
-{-| Msgs : alias for an object containing multiple msg.
+{-| Msgs : alias for an object representing the possible log messages.
 -}
 type alias Msgs msg =
     { pushUrlHash : { hash : String } -> msg
@@ -38,7 +38,7 @@ type alias Msgs msg =
     }
 
 
-{-| Props : alias for an object containing properties and msg.
+{-| Props : alias for an object representing the properties for a build's logs component.
 -}
 type alias Props msg =
     { msgs : Msgs msg
@@ -54,7 +54,7 @@ type alias Props msg =
     }
 
 
-{-| LogLine : alias for an object containing a msg.
+{-| LogLine : alias for an object representing the data necessary to render a log line.
 -}
 type alias LogLine msg =
     { view : Html msg

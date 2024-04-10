@@ -108,7 +108,7 @@ toLayout user route model =
 -- INIT
 
 
-{-| Model : alias for a model object.
+{-| Model : alias for a model object for a deployments page.
 -}
 type alias Model =
     { repo : WebData Vela.Repository
@@ -117,7 +117,7 @@ type alias Model =
     }
 
 
-{-| init : takes shared model, route, and initializes deployments page input arguments.
+{-| init : takes shared model, route, and initializes a deployments page input arguments.
 -}
 init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
 init shared route () =

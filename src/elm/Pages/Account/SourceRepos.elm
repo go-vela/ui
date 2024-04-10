@@ -87,7 +87,7 @@ toLayout user shared model =
 -- INIT
 
 
-{-| Model : alias for a model object.
+{-| Model : alias for a model object for the source repos page.
 -}
 type alias Model =
     { searchFilters : Dict Vela.Org String

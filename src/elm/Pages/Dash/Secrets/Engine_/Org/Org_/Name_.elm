@@ -46,7 +46,7 @@ page user shared route =
 -- LAYOUT
 
 
-{-| toLayout : takes user, route, model, and passes an an org's secret's info to Layouts.
+{-| toLayout : takes user, route, model, and passes an org's secret's info to Layouts.
 -}
 toLayout : Auth.User -> Route { engine : String, org : String, name : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
@@ -89,7 +89,7 @@ toLayout user route model =
 -- INIT
 
 
-{-| Model : alias for a model object.
+{-| Model : alias for a model object for an org's secret's info.
 -}
 type alias Model =
     { secret : WebData Vela.Secret

@@ -55,7 +55,7 @@ page user shared route =
 -- LAYOUT
 
 
-{-| toLayout : takes user, route, model, and passes a services page info to Layouts.
+{-| toLayout : takes user, route, model, and passes a build's services page info to Layouts.
 -}
 toLayout : Auth.User -> Route { org : String, repo : String, build : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
@@ -138,7 +138,7 @@ toLayout user route model =
 -- INIT
 
 
-{-| Model : alias for a model object.
+{-| Model : alias for a model object for a build's services page.
 -}
 type alias Model =
     { services : WebData (List Vela.Service)

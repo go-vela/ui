@@ -113,7 +113,7 @@ toLayout user route model =
 -- INIT
 
 
-{-| Model : alias for a model object.
+{-| Model : alias for a model object for a hooks (a.k.a. audit) page.
 -}
 type alias Model =
     { hooks : WebData (List Vela.Hook)

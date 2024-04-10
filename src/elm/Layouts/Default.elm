@@ -25,7 +25,7 @@ import Utils.Theme as Theme
 import View exposing (View)
 
 
-{-| Props : alias for an object containing properties.
+{-| Props : alias for an object representing properties for default layouts.
 -}
 type alias Props =
     { helpCommands : List Components.Help.Command
@@ -48,7 +48,7 @@ layout props shared route =
 -- MODEL
 
 
-{-| Model : alias for a model object.
+{-| Model : alias for a model object for the default layout.
 -}
 type alias Model =
     { showIdentity : Bool

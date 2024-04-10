@@ -20,7 +20,7 @@ import Utils.Helpers as Util
 import Vela
 
 
-{-| Props : alias for an object containing properties and msg.
+{-| Props : alias for an object representing properties for a build component.
 -}
 type alias Props msg =
     { build : WebData Vela.Build

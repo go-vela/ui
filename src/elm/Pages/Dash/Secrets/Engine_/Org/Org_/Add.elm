@@ -70,7 +70,7 @@ toLayout user route model =
 -- INIT
 
 
-{-| Model : alias for a model object.
+{-| Model : alias for a model object an org's secret add page.
 -}
 type alias Model =
     { form : Components.SecretForm.Form

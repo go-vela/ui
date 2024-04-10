@@ -89,7 +89,7 @@ toLayout user route model =
 -- INIT
 
 
-{-| Model : alias for a model object.
+{-| Model : alias for a model object for a specific schedule page.
 -}
 type alias Model =
     { schedule : WebData Vela.Schedule

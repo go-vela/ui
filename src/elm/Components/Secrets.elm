@@ -31,7 +31,7 @@ type alias Msgs msg =
     }
 
 
-{-| Props : alias for an object containing properties and msg.
+{-| Props : alias for an object representing properties for a secrets component.
 -}
 type alias Props msg =
     { msgs : Msgs msg

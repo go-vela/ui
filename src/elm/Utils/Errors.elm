@@ -16,7 +16,7 @@ import Task exposing (perform, succeed)
 -- TYPES
 
 
-{-| Error : type alias for string error messages.
+{-| Error : alias for string error messages.
 -}
 type alias Error =
     String

@@ -47,7 +47,7 @@ import Vela
 -- TYPES
 
 
-{-| Msgs : alias for an object containing multiple msg.
+{-| Msgs : alias for an object representing multiple messages.
 -}
 type alias Msgs msg =
     { approveBuild : { org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } -> msg
@@ -57,7 +57,7 @@ type alias Msgs msg =
     }
 
 
-{-| Props : alias for an object containing properties and msg.
+{-| Props : alias for an object representing properties for a builds component.
 -}
 type alias Props msg =
     { msgs : Msgs msg

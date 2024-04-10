@@ -18,7 +18,7 @@ import Utils.Helpers as Util
 -- TYPES
 
 
-{-| Props : alias for an object containing properties and msg.
+{-| Props : alias for an object representing properties for a repo component.
 -}
 type alias Props msg =
     { toggleFavoriteMsg : Favorites.UpdateFavorites msg

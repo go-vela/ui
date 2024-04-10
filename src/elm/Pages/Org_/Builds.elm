@@ -76,7 +76,7 @@ toLayout user route model =
 -- INIT
 
 
-{-| Model : alias for a model object.
+{-| Model : alias for a model object for a user's sourced repositories page.
 -}
 type alias Model =
     { builds : WebData (List Vela.Build)

@@ -116,7 +116,7 @@ toLayout user route model =
 -- INIT
 
 
-{-| Model : alias for a model object.
+{-| Model : alias for a model object for a build's graph (a.k.a. visualize) page.
 -}
 type alias Model =
     { build : WebData Vela.Build

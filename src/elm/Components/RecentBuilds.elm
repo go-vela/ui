@@ -20,7 +20,7 @@ import Vela
 --TYPES
 
 
-{-| Props : alias for an object containing properties.
+{-| Props : alias for an object representing properties for the recent builds component.
 -}
 type alias Props =
     { builds : WebData (List Vela.Build)

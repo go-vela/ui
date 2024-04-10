@@ -19,7 +19,7 @@ import Utils.Helpers as Util
 -- TYPES
 
 
-{-| Label : alias for an object containing label strings.
+{-| Label : alias for an object representing the possible labels for a pager component.
 -}
 type alias Labels =
     { previousLabel : String
@@ -45,7 +45,7 @@ prevNextLabels =
     }
 
 
-{-| Props : alias for an object containing properties and msg.
+{-| Props : alias for an object representing properties for the pager component.
 -}
 type alias Props msg =
     { show : Bool

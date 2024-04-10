@@ -71,7 +71,7 @@ toLayout user route model =
 -- INIT
 
 
-{-| Model : alias for a model object.
+{-| Model : alias for a model object for an add schedule page.
 -}
 type alias Model =
     { name : String

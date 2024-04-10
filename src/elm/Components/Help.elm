@@ -18,7 +18,7 @@ import Utils.Helpers as Util
 -- TYPES
 
 
-{-| Props : alias for an object containing properties and msg.
+{-| Props : alias for an object representing properties for the contextual help component.
 -}
 type alias Props msg =
     { show : Bool
@@ -28,7 +28,7 @@ type alias Props msg =
     }
 
 
-{-| Command : alias for an object containing strings.
+{-| Command : alias for an object representing the attributes of a command.
 -}
 type alias Command =
     { name : String

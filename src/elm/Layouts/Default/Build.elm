@@ -34,7 +34,7 @@ import Vela
 import View exposing (View)
 
 
-{-| Props : alias for an object containing properties with a contentMsg.
+{-| Props : alias for an object representing properties for the default build layout.
 -}
 type alias Props contentMsg =
     { navButtons : List (Html contentMsg)
@@ -84,7 +84,7 @@ layout props shared route =
 -- MODEL
 
 
-{-| Model : alias for a model object.
+{-| Model : alias for a model object for the default build layout.
 -}
 type alias Model =
     { build : WebData Vela.Build

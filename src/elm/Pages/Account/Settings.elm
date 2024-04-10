@@ -83,7 +83,7 @@ toLayout user model =
 -- INIT
 
 
-{-| Model : alias for a model object.
+{-| Model : alias for a model object for the settings page.
 -}
 type alias Model =
     {}

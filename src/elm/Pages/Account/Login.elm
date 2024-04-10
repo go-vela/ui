@@ -70,7 +70,7 @@ toLayout model =
 -- INIT
 
 
-{-| Model : alias for a model object.
+{-| Model : alias for a model object for the login page.
 -}
 type alias Model =
     {}

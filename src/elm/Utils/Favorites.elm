@@ -14,7 +14,7 @@ import Vela
 -- TYPES
 
 
-{-| UpdateFavorites : an alias for a function that takes an organization and a maybe repo and returns a message.
+{-| UpdateFavorites : alias for a function that takes an organization and a maybe repo and returns a message.
 -}
 type alias UpdateFavorites msg =
     Vela.Org -> Maybe Vela.Repo -> msg

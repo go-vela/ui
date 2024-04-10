@@ -17,7 +17,7 @@ import LinkHeader exposing (WebLink, parse)
 import Url.Builder as UB exposing (QueryParameter)
 
 
-{-| Page : alias for an int indicating a page.
+{-| Page : alias for an int indicating a page number.
 -}
 type alias Page =
     Int

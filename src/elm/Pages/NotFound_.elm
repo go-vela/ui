@@ -48,7 +48,7 @@ toLayout model =
 -- INIT
 
 
-{-| Model : alias for a model object.
+{-| Model : alias for a model object for the Not Found page.
 -}
 type alias Model =
     {}
