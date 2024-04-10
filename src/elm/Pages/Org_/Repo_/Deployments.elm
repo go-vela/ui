@@ -320,7 +320,7 @@ viewDeployments shared model route =
 
         cfg =
             Components.Table.Config
-                "Deployments"
+                (Just "Deployments")
                 "deployments"
                 noRowsView
                 tableHeaders

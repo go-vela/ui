@@ -240,7 +240,7 @@ viewWorkers shared model route =
 
         cfg =
             Components.Table.Config
-                "Workers"
+                (Just "Workers")
                 "workers"
                 noRowsView
                 tableHeaders

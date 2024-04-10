@@ -82,7 +82,7 @@ viewOrgSecrets shared props =
 
         cfg =
             Components.Table.Config
-                "Org Secrets"
+                (Just "Org Secrets")
                 "org-secrets"
                 noRowsView
                 tableHeaders
@@ -132,7 +132,7 @@ viewRepoSecrets shared props =
 
         cfg =
             Components.Table.Config
-                "Repo Secrets"
+                (Just "Repo Secrets")
                 "repo-secrets"
                 noRowsView
                 tableHeaders
@@ -182,7 +182,7 @@ viewSharedSecrets shared props =
 
         cfg =
             Components.Table.Config
-                "Shared Secrets"
+                (Just "Shared Secrets")
                 "shared-secrets"
                 noRowsView
                 tableHeaders

@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.Form exposing (viewAllowEvents, viewButton, viewCheckbox, viewCopyButton, viewInput, viewInputSection, viewRadio, viewSubtitle, viewTextarea, viewTextareaSection)
+module Components.Form exposing (viewAllowEvents, viewButton, viewCheckbox, viewCopyButton, viewInput, viewInputSection, viewNumberInput, viewRadio, viewSubtitle, viewTextarea, viewTextareaSection)
 
 import FeatherIcons
 import Html exposing (Html, button, div, h3, input, label, section, span, strong, text, textarea)
@@ -87,6 +87,48 @@ viewInput { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, m
         [ input
             [ id target
             , value val
+            , placeholder placeholder_
+            , classList <| classList_
+            , Maybe.Extra.unwrap Util.attrNone rows rows_
+            , Maybe.Extra.unwrap Util.attrNone wrap wrap_
+            , onInput msg
+            , disabled disabled_
+            , Util.testAttribute target
+            ]
+            []
+        ]
+
+
+viewNumberInput :
+    { id_ : String
+    , title : Maybe String
+    , subtitle : Maybe (Html msg)
+    , val : Maybe Int
+    , placeholder_ : String
+    , classList_ : List ( String, Bool )
+    , rows_ : Maybe Int
+    , wrap_ : Maybe String
+    , msg : String -> msg
+    , disabled_ : Bool
+    , min : Int
+    , max : Int
+    }
+    -> Html msg
+viewNumberInput { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, msg, disabled_, min, max } =
+    let
+        target =
+            String.join "-" [ "input", id_ ]
+    in
+    div
+        [ class "form-control"
+        , Util.testAttribute target
+        ]
+        [ input
+            [ id target
+            , type_ "number"
+            , Html.Attributes.min <| String.fromInt min
+            , Html.Attributes.max <| String.fromInt max
+            , value <| String.fromInt <| Maybe.withDefault -1 val
             , placeholder placeholder_
             , classList <| classList_
             , Maybe.Extra.unwrap Util.attrNone rows rows_

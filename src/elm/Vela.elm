@@ -1868,6 +1868,8 @@ decodeWorkers =
 type alias Settings =
     { id : Int
     , cloneImage : String
+    , workerRoutes : List String
+    , starlarkExecLimit : Int
     }
 
 
@@ -1876,26 +1878,31 @@ decodeSettings =
     Json.Decode.succeed Settings
         |> optional "id" int -1
         |> optional "clone_image" string ""
+        |> optional "worker_routes" (Json.Decode.list string) []
+        |> optional "starklark_exec_limit" int -1
 
 
 type alias SettingsPayload =
-    { id : Int
-    , cloneImage : Maybe String
+    { cloneImage : Maybe String
+    , workerRoutes : Maybe (List String)
+    , starlarkExecLimit : Maybe Int
     }
 
 
 defaultSettingsPayload : SettingsPayload
 defaultSettingsPayload =
-    { id = -1
-    , cloneImage = Nothing
+    { cloneImage = Nothing
+    , workerRoutes = Nothing
+    , starlarkExecLimit = Nothing
     }
 
 
 encodeSettingsPayload : SettingsPayload -> Json.Encode.Value
 encodeSettingsPayload settings =
     Json.Encode.object
-        [ ( "id", Json.Encode.int settings.id )
-        , ( "clone_image", encodeOptional Json.Encode.string settings.cloneImage )
+        [ ( "clone_image", encodeOptional Json.Encode.string settings.cloneImage )
+        , ( "worker_routes", encodeOptional (Json.Encode.list Json.Encode.string) settings.workerRoutes )
+        , ( "starlark_exec_limit", encodeOptional Json.Encode.int settings.starlarkExecLimit )
         ]
 
 
