@@ -5,11 +5,11 @@ SPDX-License-Identifier: Apache-2.0
 
 module Pages.Admin.Settings exposing (Model, Msg, page)
 
-import Array exposing (set)
 import Auth
 import Components.Form
 import Components.Loading
 import Components.Table
+import Dict exposing (Dict)
 import Effect exposing (Effect)
 import FeatherIcons
 import Html exposing (Html, button, div, h2, p, section, span, td, text, tr)
@@ -19,8 +19,8 @@ import Http
 import Http.Detailed
 import Layouts
 import List.Extra
+import Maybe.Extra
 import Page exposing (Page)
-import Platform exposing (worker)
 import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
@@ -71,8 +71,14 @@ type alias Model =
     , exported : WebData String
     , cloneImage : String
     , starlarkExecLimit : Maybe Int
-    , workerRoute : String
+    , queueRoutes : ListInputForm
     , exportType : ExportType
+    }
+
+
+type alias ListInputForm =
+    { val : String
+    , editing : Dict String String
     }
 
 
@@ -100,29 +106,13 @@ exportTypeToString exportType =
             "yaml"
 
 
-stringToExportType : String -> ExportType
-stringToExportType str =
-    case str of
-        "env" ->
-            Env
-
-        "json" ->
-            Json
-
-        "yaml" ->
-            Yaml
-
-        _ ->
-            defaultSettingsExportType
-
-
 init : Shared.Model -> () -> ( Model, Effect Msg )
 init shared () =
     ( { settings = RemoteData.Loading
       , exported = RemoteData.Loading
       , cloneImage = ""
       , starlarkExecLimit = Nothing
-      , workerRoute = ""
+      , queueRoutes = { val = "", editing = Dict.empty }
       , exportType = defaultSettingsExportType
       }
     , Effect.batch
@@ -154,9 +144,12 @@ type Msg
     | CloneImageUpdate String
     | StarlarkExecLimitOnInput String
     | StarlarkExecLimitOnUpdate (Maybe Int)
-    | WorkerRoutesOnInput String
-    | WorkerRoutesOnAdd String
-    | WorkerRoutesOnRemove String
+    | QueueRoutesOnInput String
+    | QueueRoutesAddOnClick String
+    | QueueRoutesEditOnClick { id : String }
+    | QueueRoutesSaveOnClick { id : String, val : String }
+    | QueueRoutesEditOnInput { id : String } String
+    | QueueRoutesRemoveOnClick String
     | ExportTypeOnClick ExportType
 
 
@@ -276,27 +269,31 @@ update shared route msg model =
                 }
             )
 
-        WorkerRoutesOnInput val ->
+        QueueRoutesOnInput val ->
+            let
+                queueRoutes =
+                    model.queueRoutes
+            in
             ( { model
-                | workerRoute = val
+                | queueRoutes = { queueRoutes | val = val }
               }
             , Effect.none
             )
 
-        WorkerRoutesOnAdd val ->
+        QueueRoutesAddOnClick val ->
             let
-                workerRoutes =
-                    RemoteData.unwrap [] .workerRoutes model.settings
+                queueRoutes =
+                    model.queueRoutes
 
                 payload =
                     { defaultSettingsPayload
-                        | workerRoutes = Just <| List.Extra.unique <| val :: workerRoutes
+                        | queueRoutes = Just <| List.Extra.unique <| val :: RemoteData.unwrap [] .queueRoutes model.settings
                     }
 
                 body =
                     Http.jsonBody <| Vela.encodeSettingsPayload payload
             in
-            ( { model | workerRoute = "" }
+            ( { model | queueRoutes = { queueRoutes | val = "" } }
             , Effect.updateSettings
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
@@ -305,14 +302,11 @@ update shared route msg model =
                 }
             )
 
-        WorkerRoutesOnRemove val ->
+        QueueRoutesRemoveOnClick val ->
             let
-                workerRoutes =
-                    RemoteData.unwrap [] .workerRoutes model.settings
-
                 payload =
                     { defaultSettingsPayload
-                        | workerRoutes = Just <| List.Extra.remove val workerRoutes
+                        | queueRoutes = Just <| List.Extra.remove val <| RemoteData.unwrap [] .queueRoutes model.settings
                     }
 
                 body =
@@ -325,6 +319,65 @@ update shared route msg model =
                 , onResponse = UpdateSettingsResponse {}
                 , body = body
                 }
+            )
+
+        QueueRoutesEditOnClick options ->
+            let
+                queueRoutes =
+                    model.queueRoutes
+            in
+            ( { model
+                | queueRoutes =
+                    { queueRoutes
+                        | editing = Dict.insert options.id options.id model.queueRoutes.editing
+                    }
+              }
+            , Effect.none
+            )
+
+        QueueRoutesSaveOnClick options ->
+            let
+                queueRoutes =
+                    model.queueRoutes
+
+                payload =
+                    { defaultSettingsPayload
+                        | queueRoutes =
+                            model.settings
+                                |> RemoteData.unwrap [] .queueRoutes
+                                |> List.Extra.updateIf (\item -> item == options.id) (\_ -> options.val)
+                                |> Just
+                    }
+
+                body =
+                    Http.jsonBody <| Vela.encodeSettingsPayload payload
+            in
+            ( { model
+                | queueRoutes =
+                    { queueRoutes
+                        | editing = Dict.remove options.id model.queueRoutes.editing
+                    }
+              }
+            , Effect.updateSettings
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse = UpdateSettingsResponse {}
+                , body = body
+                }
+            )
+
+        QueueRoutesEditOnInput options val ->
+            let
+                queueRoutes =
+                    model.queueRoutes
+            in
+            ( { model
+                | queueRoutes =
+                    { queueRoutes
+                        | editing = Dict.insert options.id val model.queueRoutes.editing
+                    }
+              }
+            , Effect.none
             )
 
         ExportTypeOnClick val ->
@@ -363,17 +416,6 @@ view shared route model =
 
                 -- , Util.testAttribute "repo-settings-events"
                 ]
-                [ h2 [ class "settings-title" ] [ text "Table" ]
-                , p [ class "settings-description" ]
-                    [ text "View all platform settings."
-                    ]
-                , viewSettingsTable shared model
-                ]
-            , section
-                [ class "settings"
-
-                -- , Util.testAttribute "repo-settings-events"
-                ]
                 [ h2 [ class "settings-title" ] [ text "Clone Image" ]
                 , p [ class "settings-description" ]
                     [ text "Which image to use with the embedded clone step."
@@ -386,6 +428,7 @@ view shared route model =
                         , val = model.cloneImage
                         , placeholder_ = "docker.io/target/vela-git:latest"
                         , classList_ = []
+                        , wrapperClassList = [ ( "-wide", True ) ]
                         , rows_ = Nothing
                         , wrap_ = Nothing
                         , msg = CloneImageOnInput
@@ -440,9 +483,9 @@ view shared route model =
                 ]
                 [ h2 [ class "settings-title" ] [ text "Queue Routes" ]
                 , p [ class "settings-description" ]
-                    [ text "The worker routes used when queuing builds."
+                    [ text "The queue routes used when queuing builds."
                     ]
-                , viewWorkerRoutesTable shared model
+                , viewQueueRoutesTable shared model
                 ]
             , section [ class "settings", Util.testAttribute "admin-settings-export-type" ]
                 [ h2 [ class "settings-title" ] [ text "Import/Export" ]
@@ -501,6 +544,17 @@ view shared route model =
                         }
                     ]
                 ]
+            , section
+                [ class "settings"
+
+                -- , Util.testAttribute "repo-settings-events"
+                ]
+                [ h2 [ class "settings-title" ] [ text "Table" ]
+                , p [ class "settings-description" ]
+                    [ text "View all platform settings."
+                    ]
+                , viewSettingsTable shared model
+                ]
             ]
         ]
     }
@@ -521,19 +575,19 @@ viewSettingsTable shared model =
         ( noRowsView, rows ) =
             let
                 viewHttpError e =
-                    span [ Util.testAttribute "workers-error" ]
+                    span [ Util.testAttribute "settings-error" ]
                         [ text <|
                             case e of
                                 Http.BadStatus statusCode ->
                                     case statusCode of
                                         401 ->
-                                            "No workers found"
+                                            "No settings found"
 
                                         _ ->
-                                            "No workers found, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+                                            "No settings found, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
 
                                 _ ->
-                                    "No workers found"
+                                    "No settings found"
                         ]
             in
             case model.settings of
@@ -593,7 +647,7 @@ settingsToRows shared settings =
                 }
             )
         )
-    , Components.Table.Row "worker_routes"
+    , Components.Table.Row "queue_routes"
         (viewSettingsRow shared
             "VELA_QUEUE_ROUTES"
             (td
@@ -603,8 +657,8 @@ settingsToRows shared settings =
                 ]
                 [ Components.Table.viewListCell
                     { dataLabel = "routes"
-                    , items = settings.workerRoutes
-                    , none = "no routes"
+                    , items = settings.queueRoutes
+                    , none = "no queue routes"
                     , itemWrapperClassList = []
                     }
                 ]
@@ -650,13 +704,13 @@ viewSettingsRow shared envKey viewValue field =
 
 
 
--- WORKER ROUTES
+-- queue routeS
 
 
-{-| viewWorkerRoutesTable : renders a list of workers
+{-| viewQueueRoutesTable : renders a list of queue routes
 -}
-viewWorkerRoutesTable : Shared.Model -> Model -> Html Msg
-viewWorkerRoutesTable shared model =
+viewQueueRoutesTable : Shared.Model -> Model -> Html Msg
+viewQueueRoutesTable shared model =
     let
         actions =
             Nothing
@@ -664,25 +718,25 @@ viewWorkerRoutesTable shared model =
         ( noRowsView, rows ) =
             let
                 viewHttpError e =
-                    span [ Util.testAttribute "workers-error" ]
+                    span [ Util.testAttribute "queue-routes-error" ]
                         [ text <|
                             case e of
                                 Http.BadStatus statusCode ->
                                     case statusCode of
                                         401 ->
-                                            "No workers found"
+                                            "No settings found"
 
                                         _ ->
-                                            "No workers found, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+                                            "No settings found, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
 
                                 _ ->
-                                    "No workers found"
+                                    "No settings found"
                         ]
             in
             case model.settings of
                 RemoteData.Success s ->
-                    ( text "No settings found"
-                    , workerRoutesToRows shared s.workerRoutes
+                    ( text "No queue routes found"
+                    , queueRoutesToRows shared model s.queueRoutes
                     )
 
                 RemoteData.Failure error ->
@@ -696,7 +750,7 @@ viewWorkerRoutesTable shared model =
                 Nothing
                 "routes"
                 noRowsView
-                workerRoutesTableHeaders
+                []
                 rows
                 actions
     in
@@ -705,13 +759,16 @@ viewWorkerRoutesTable shared model =
             [ Components.Form.viewInput
                 { title = Nothing
                 , subtitle = Nothing
-                , id_ = "worker-route"
-                , val = model.workerRoute
+                , id_ = "queue-route"
+                , val = model.queueRoutes.val
                 , placeholder_ = "vela"
                 , classList_ = []
+                , wrapperClassList =
+                    [ ( "-wide", True )
+                    ]
                 , rows_ = Nothing
                 , wrap_ = Nothing
-                , msg = WorkerRoutesOnInput
+                , msg = QueueRoutesOnInput
                 , disabled_ = False
                 }
             , Html.button
@@ -719,8 +776,8 @@ viewWorkerRoutesTable shared model =
                     [ ( "button", True )
                     , ( "-outline", True )
                     ]
-                , onClick <| WorkerRoutesOnAdd model.workerRoute
-                , disabled <| (String.length model.workerRoute == 0) || (not <| RemoteData.isSuccess model.settings)
+                , onClick <| QueueRoutesAddOnClick model.queueRoutes.val
+                , disabled <| (String.length model.queueRoutes.val == 0) || (not <| RemoteData.isSuccess model.settings)
                 ]
                 [ text "add" ]
             ]
@@ -728,33 +785,54 @@ viewWorkerRoutesTable shared model =
         ]
 
 
-{-| workerRoutesToRows : takes list of worker routes and produces list of Table rows
+{-| queueRoutesToRows : takes list of queue routes and produces list of Table rows
 -}
-workerRoutesToRows : Shared.Model -> List String -> Components.Table.Rows String Msg
-workerRoutesToRows shared items =
-    List.map (\item -> Components.Table.Row item (viewWorkerRouteRow shared)) items
+queueRoutesToRows : Shared.Model -> Model -> List String -> Components.Table.Rows String Msg
+queueRoutesToRows shared model items =
+    List.map (\item -> Components.Table.Row item (viewqueueRouteRow shared model)) items
 
 
-{-| workerRoutesTableHeaders : returns table headers for worker routes table
+{-| queueRoutesTableHeaders : returns table headers for queue routes table
 -}
-workerRoutesTableHeaders : Components.Table.Columns
-workerRoutesTableHeaders =
+queueRoutesTableHeaders : Components.Table.Columns
+queueRoutesTableHeaders =
     [ ( Nothing, "Route" )
     , ( Just "table-icon", "Remove" )
     ]
 
 
-{-| viewWorkerRouteRow : takes item and renders a table row
+{-| viewqueueRouteRow : takes item and renders a table row
 -}
-viewWorkerRouteRow : Shared.Model -> String -> Html Msg
-viewWorkerRouteRow shared item =
+viewqueueRouteRow : Shared.Model -> Model -> String -> Html Msg
+viewqueueRouteRow shared model item =
+    let
+        editing =
+            Maybe.Extra.unwrap Nothing (\e -> Just e) <| Dict.get item model.queueRoutes.editing
+    in
     tr [ Util.testAttribute <| "item-row" ]
         [ Components.Table.viewItemCell
             { dataLabel = "item"
             , parentClassList = []
             , itemClassList = []
             , children =
-                [ text item
+                [ case editing of
+                    Just val ->
+                        Components.Form.viewInput
+                            { title = Nothing
+                            , subtitle = Nothing
+                            , id_ = "queue-route"
+                            , val = val
+                            , placeholder_ = "vela"
+                            , wrapperClassList = []
+                            , classList_ = []
+                            , rows_ = Nothing
+                            , wrap_ = Nothing
+                            , msg = QueueRoutesEditOnInput { id = item }
+                            , disabled_ = False
+                            }
+
+                    Nothing ->
+                        text item
                 ]
             }
         , Components.Table.viewIconCell
@@ -764,15 +842,43 @@ viewWorkerRouteRow shared item =
             , itemClassList = []
             , children =
                 [ div []
-                    [ button
+                    [ case editing of
+                        Just val ->
+                            button
+                                [ class "remove-button"
+                                , attribute "aria-label" "remove queue route "
+                                , class "button"
+                                , class "-icon"
+                                , onClick <| QueueRoutesSaveOnClick { id = item, val = val }
+                                , Util.testAttribute "remove-route"
+                                ]
+                                [ FeatherIcons.save
+                                    |> FeatherIcons.withSize 18
+                                    |> FeatherIcons.toHtml []
+                                ]
+
+                        _ ->
+                            button
+                                [ class "remove-button"
+                                , attribute "aria-label" "remove queue route "
+                                , class "button"
+                                , class "-icon"
+                                , onClick <| QueueRoutesEditOnClick { id = item }
+                                , Util.testAttribute "remove-route"
+                                ]
+                                [ FeatherIcons.edit2
+                                    |> FeatherIcons.withSize 18
+                                    |> FeatherIcons.toHtml []
+                                ]
+                    , button
                         [ class "remove-button"
-                        , attribute "aria-label" "remove worker route "
+                        , attribute "aria-label" "remove queue route "
                         , class "button"
                         , class "-icon"
-                        , onClick <| WorkerRoutesOnRemove item
+                        , onClick <| QueueRoutesRemoveOnClick item
                         , Util.testAttribute "remove-route"
                         ]
-                        [ FeatherIcons.minusCircle
+                        [ FeatherIcons.minusSquare
                             |> FeatherIcons.withSize 18
                             |> FeatherIcons.toHtml []
                         ]

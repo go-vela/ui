@@ -68,6 +68,7 @@ viewInput :
     , subtitle : Maybe (Html msg)
     , val : String
     , placeholder_ : String
+    , wrapperClassList : List ( String, Bool )
     , classList_ : List ( String, Bool )
     , rows_ : Maybe Int
     , wrap_ : Maybe String
@@ -75,13 +76,14 @@ viewInput :
     , disabled_ : Bool
     }
     -> Html msg
-viewInput { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, msg, disabled_ } =
+viewInput { id_, title, subtitle, val, placeholder_, classList_, wrapperClassList, rows_, wrap_, msg, disabled_ } =
     let
         target =
             String.join "-" [ "input", id_ ]
     in
     div
         [ class "form-control"
+        , classList <| wrapperClassList
         , Util.testAttribute target
         ]
         [ input

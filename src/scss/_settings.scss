@@ -72,6 +72,13 @@
   }
 }
 
+.form-control.-wide {
+  flex: 1;
+  input {
+    flex: 1;
+  }
+}
+
 .admin-settings-export-textarea-container {
   display: flex;
   .form-control {
