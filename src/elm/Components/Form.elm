@@ -18,7 +18,7 @@ import Vela
 -- VIEW
 
 
-{-| viewInput : renders an input field with temporary attributes and content.
+{-| viewInput : renders the HTML for an input field.
 -}
 viewInput :
     { id_ : String
@@ -63,7 +63,7 @@ viewInput { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, m
         ]
 
 
-{-| viewTextarea : renders a text area field with temporary attributes and content.
+{-| viewTextarea : renders the HTML for a text area field.
 -}
 viewTextarea :
     { id_ : String
@@ -108,7 +108,7 @@ viewTextarea { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_
         ]
 
 
-{-| viewCheckbox : renders a checkbox with temporary attributes and content.
+{-| viewCheckbox : renders the HTML for a checkbox.
 -}
 viewCheckbox :
     { id_ : String
@@ -143,7 +143,7 @@ viewCheckbox { id_, title, subtitle, field, state, msg, disabled_ } =
         ]
 
 
-{-| viewRadio : renders a radio button with temporary attributes and content.
+{-| viewRadio : renders the HTML for a radio button.
 -}
 viewRadio :
     { id_ : String
@@ -175,7 +175,7 @@ viewRadio { id_, title, subtitle, value, field, msg, disabled_ } =
         ]
 
 
-{-| viewButton : renders a button with temporary attributes and content.
+{-| viewButton : renders the HTML for a button.
 -}
 viewButton : { id_ : String, msg : msg, text_ : String, classList_ : List ( String, Bool ), disabled_ : Bool } -> Html msg
 viewButton { id_, msg, text_, classList_, disabled_ } =
@@ -193,7 +193,7 @@ viewButton { id_, msg, text_, classList_, disabled_ } =
         [ text text_ ]
 
 
-{-| viewSubtitle : renders a subtitle with temporary content.
+{-| viewSubtitle : renders the HTML for a subtitle.
 -}
 viewSubtitle : Maybe (Html msg) -> Html msg
 viewSubtitle subtitle =
@@ -202,7 +202,7 @@ viewSubtitle subtitle =
         subtitle
 
 
-{-| viewAllowEvents : takes in allowed events and renders checkboxes with finalized attributes and content for each event.
+{-| viewAllowEvents : takes in allowed events and renders the HTML for events.
 -}
 viewAllowEvents :
     Shared.Model
