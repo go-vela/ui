@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module RoutesTest exposing (testHref, testMatch, testPathFromString, testRouteToUrl)
+module RoutesTest exposing (testHref, testMatch, testPathFromString, testPathFromStringWithHash, testPathFromStringWithQuery, testPathFromStringWithQueryAndHash, testRouteToUrl)
 
 import Expect
 import Route.Path
@@ -79,3 +79,27 @@ testPathFromString =
         \_ ->
             Utils.Routes.pathFromString "/account/login"
                 |> Expect.equal { path = "/account/login", query = Nothing, hash = Nothing }
+
+
+testPathFromStringWithQuery : Test
+testPathFromStringWithQuery =
+    test "/account/login?foo=bar -> { path }" <|
+        \_ ->
+            Utils.Routes.pathFromString "/account/login?foo=bar"
+                |> Expect.equal { path = "/account/login", query = Just "foo=bar", hash = Nothing }
+
+
+testPathFromStringWithHash : Test
+testPathFromStringWithHash =
+    test "/account/login#foo:bar:baz -> { path }" <|
+        \_ ->
+            Utils.Routes.pathFromString "/account/login#foo:bar:baz"
+                |> Expect.equal { path = "/account/login", query = Nothing, hash = Just "foo:bar:baz" }
+
+
+testPathFromStringWithQueryAndHash : Test
+testPathFromStringWithQueryAndHash =
+    test "/account/login?foo=bar#foo:bar:baz -> { path }" <|
+        \_ ->
+            Utils.Routes.pathFromString "/account/login?foo=bar#foo:bar:baz"
+                |> Expect.equal { path = "/account/login", query = Just "foo=bar", hash = Just "foo:bar:baz" }
