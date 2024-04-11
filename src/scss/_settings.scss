@@ -99,3 +99,13 @@
     margin-left: 1rem;
   }
 }
+
+.env-key-value {
+  font-family: var(--font-code);
+  padding: 0.2rem 0.4rem;
+  background-color: var(--color-bg-dark);
+}
+
+.settings-env-key {
+  font-size: 1rem;
+}

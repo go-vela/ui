@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.Tabs exposing (Tab, view, viewAdminTabs, viewBuildTabs, viewOrgTabs, viewRepoTabs)
+module Components.Tabs exposing (Tab, view, viewAdminTabs, viewAdminSettingsTabs,viewBuildTabs, viewOrgTabs, viewRepoTabs)
 
 import Dict exposing (Dict)
 import Html exposing (Html, a, div, span, text)
@@ -318,16 +318,41 @@ viewAdminTabs :
 viewAdminTabs shared props =
     let
         tabs =
-            [ { name = "Workers"
-              , toPath = Route.Path.Admin_Workers
+            [ { name = "Settings"
+              , toPath = Route.Path.Admin_Settings
               , isAlerting = False
               , show = True
               }
-            , { name = "Settings"
-              , toPath = Route.Path.Admin_Settings
+            , { name = "Workers"
+              , toPath = Route.Path.Admin_Workers
               , isAlerting = False
               , show = True
               }
             ]
     in
     view props.tabHistory props.currentPath tabs "jump-bar-admin"
+
+
+viewAdminSettingsTabs :
+    Shared.Model
+    ->
+        { currentPath : Route.Path.Path
+        , tabHistory : Dict String Url
+        }
+    -> Html msg
+viewAdminSettingsTabs shared props =
+    let
+        tabs =
+            [ { name = "Import/Export"
+              , toPath = Route.Path.Admin_Settings
+              , isAlerting = False
+              , show = True
+              }
+            , { name = "Edit"
+              , toPath = Route.Path.Admin_Settings
+              , isAlerting = False
+              , show = True
+              }
+            ]
+    in
+    view props.tabHistory props.currentPath tabs "jump-bar-admin-settings"

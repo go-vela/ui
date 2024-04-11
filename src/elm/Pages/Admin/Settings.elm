@@ -9,10 +9,11 @@ import Auth
 import Components.Form
 import Components.Loading
 import Components.Table
+import Components.Tabs
 import Dict exposing (Dict)
 import Effect exposing (Effect)
 import FeatherIcons
-import Html exposing (Html, button, div, h2, p, section, span, td, text, tr)
+import Html exposing (Html, button, details, div, h2, p, section, span, summary, td, text, tr)
 import Html.Attributes exposing (attribute, class, disabled, scope)
 import Html.Events exposing (onClick)
 import Http
@@ -402,6 +403,27 @@ subscriptions model =
     Sub.none
 
 
+viewTemplatesDetails : Model -> Html Msg -> Html Msg
+viewTemplatesDetails model body =
+    details
+        (class "details"
+            :: class "admin-settings-details"
+            :: Util.testAttribute "pipeline-templates"
+            :: []
+         -- :: Util.open model.showTemplates
+        )
+        [ summary
+            [ class "summary"
+
+            -- , Util.onClickPreventDefault ShowHideTemplates
+            ]
+            [ div [] [ text "Import/Export" ]
+            , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
+            ]
+        , body
+        ]
+
+
 
 -- VIEW
 
@@ -410,15 +432,23 @@ view : Shared.Model -> Route () -> Model -> View Msg
 view shared route model =
     { title = "Pages.Admin.Settings"
     , body =
-        [ Html.div [ class "admin-settings" ]
-            [ section
+        [ 
+            -- viewImport model,
+        
+        Html.div [ class "admin-settings" ]
+            [ 
+              section
                 [ class "settings"
 
                 -- , Util.testAttribute "repo-settings-events"
                 ]
-                [ h2 [ class "settings-title" ] [ text "Clone Image" ]
+                [ Html.h2 [ class "settings-title" ] [ text "Compiler" ]
                 , p [ class "settings-description" ]
                     [ text "Which image to use with the embedded clone step."
+                    ]
+                , p [ class "settings-env-key" ]
+                    [ Html.strong [] [ text "Env: " ]
+                    , span [ class "env-key-value" ] [ text "VELA_CLONE_IMAGE" ]
                     ]
                 , div [ class "form-controls" ]
                     [ Components.Form.viewInput
@@ -453,6 +483,10 @@ view shared route model =
                 , p [ class "settings-description" ]
                     [ text "Exec limit provided to Starlark compiler."
                     ]
+                , p [ class "settings-env-key" ]
+                    [ Html.strong [] [ text "Env: " ]
+                    , span [ class "env-key-value" ] [ text "VELA_COMPILER_STARLARK_EXEC_LIMIT" ]
+                    ]
                 , div [ class "form-controls" ]
                     [ Components.Form.viewNumberInput
                         { title = Nothing
@@ -485,11 +519,90 @@ view shared route model =
                 , p [ class "settings-description" ]
                     [ text "The queue routes used when queuing builds."
                     ]
+                , p [ class "settings-env-key" ]
+                    [ Html.strong [] [ text "Env: " ]
+                    , span [ class "env-key-value" ] [ text "VELA_QUEUE_ROUTES" ]
+                    ]
                 , viewQueueRoutesTable shared model
                 ]
-            , section [ class "settings", Util.testAttribute "admin-settings-export-type" ]
-                [ h2 [ class "settings-title" ] [ text "Import/Export" ]
-                , p [ class "settings-description" ]
+
+            -- , section [ class "settings", Util.testAttribute "admin-settings-export-type" ]
+            --     [ h2 [ class "settings-title" ] [ text "Import/Export" ]
+            --     , p [ class "settings-description" ]
+            --         [ text "Update or export platform settings via file."
+            --         ]
+            --     , div [ class "admin-settings-export-container" ]
+            --         [ div [ class "form-controls", class "-stack" ]
+            --             [ Components.Form.viewRadio
+            --                 { value = exportTypeToString model.exportType
+            --                 , field = exportTypeToString Env
+            --                 , title = ".env"
+            --                 , subtitle = Nothing
+            --                 , msg = ExportTypeOnClick Env
+            --                 , disabled_ = False
+            --                 , id_ = "type-" ++ exportTypeToString Env
+            --                 }
+            --             , Components.Form.viewRadio
+            --                 { value = exportTypeToString model.exportType
+            --                 , field = exportTypeToString Json
+            --                 , title = "JSON"
+            --                 , subtitle = Nothing
+            --                 , msg = ExportTypeOnClick Json
+            --                 , disabled_ = False
+            --                 , id_ = "type-" ++ exportTypeToString Json
+            --                 }
+            --             , Components.Form.viewRadio
+            --                 { value = exportTypeToString model.exportType
+            --                 , field = exportTypeToString Yaml
+            --                 , title = "YAML"
+            --                 , subtitle = Nothing
+            --                 , msg = ExportTypeOnClick Yaml
+            --                 , disabled_ = False
+            --                 , id_ = "type-" ++ exportTypeToString Yaml
+            --                 }
+            --             ]
+            --         ]
+            --     , div [ class "admin-settings-export-textarea-container" ]
+            --         [ Components.Form.viewTextarea
+            --             { id_ = "settings-export"
+            --             , val = RemoteData.withDefault "" model.exported
+            --             , placeholder_ = ""
+            --             , classList_ = [ ( "admin-settings-export-textarea", True ) ]
+            --             , rows_ = Nothing
+            --             , wrap_ = Nothing
+            --             , msg = CloneImageOnInput
+            --             , disabled_ = False
+            --             }
+            --         , Components.Form.viewCopyButton
+            --             { id_ = "copy settings"
+            --             , msg = CloneImageOnInput
+            --             , text_ = "Copy Settings"
+            --             , classList_ = []
+            --             , disabled_ = False
+            --             , content = RemoteData.withDefault "" model.exported
+            --             }
+            --         ]
+            --     ]
+            -- , section
+            --     [ class "settings"
+            --     -- , Util.testAttribute "repo-settings-events"
+            --     ]
+            --     [ h2 [ class "settings-title" ] [ text "Table" ]
+            --     , p [ class "settings-description" ]
+            --         [ text "View all platform settings."
+            --         ]
+            --     , viewSettingsTable shared model
+            --     ]
+
+
+            ]
+                       
+        ]
+    }
+
+viewImport model = 
+    viewTemplatesDetails model (section [ class "settings", Util.testAttribute "admin-settings-export-type" ]
+                [  p [ class "settings-description" ]
                     [ text "Update or export platform settings via file."
                     ]
                 , div [ class "admin-settings-export-container" ]
@@ -543,22 +656,7 @@ view shared route model =
                         , content = RemoteData.withDefault "" model.exported
                         }
                     ]
-                ]
-            , section
-                [ class "settings"
-
-                -- , Util.testAttribute "repo-settings-events"
-                ]
-                [ h2 [ class "settings-title" ] [ text "Table" ]
-                , p [ class "settings-description" ]
-                    [ text "View all platform settings."
-                    ]
-                , viewSettingsTable shared model
-                ]
-            ]
-        ]
-    }
-
+                ])
 
 
 -- SETTINGS TABLE
@@ -604,7 +702,7 @@ viewSettingsTable shared model =
 
         cfg =
             Components.Table.Config
-                Nothing
+                (Just "Table View")
                 "settings"
                 noRowsView
                 settingsTableHeaders
