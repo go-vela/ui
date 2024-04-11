@@ -3,12 +3,13 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module RoutesTest exposing (testHref, testMatch, testRouteToUrl)
+module RoutesTest exposing (testHref, testMatch, testPathFromString, testRouteToUrl)
 
 import Expect
 import Route.Path
 import Test exposing (..)
 import Url exposing (Url)
+import Utils.Routes
 
 
 
@@ -66,3 +67,17 @@ testRouteToUrl =
         \_ ->
             Route.Path.toString Route.Path.Account_Login
                 |> Expect.equal "/account/login"
+
+
+
+-- Utils.Routes.pathFromString
+
+
+testPathFromString : Test
+testPathFromString =
+    test "/account/login -> { path }" <|
+        \_ ->
+            Utils.Routes.pathFromString "/account/login"
+                |> Expect.equal { path = "/account/login", query = Nothing, hash = Nothing }
+
+
