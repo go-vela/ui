@@ -79,5 +79,3 @@ testPathFromString =
         \_ ->
             Utils.Routes.pathFromString "/account/login"
                 |> Expect.equal { path = "/account/login", query = Nothing, hash = Nothing }
-
-
