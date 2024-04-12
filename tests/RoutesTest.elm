@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module RoutesTest exposing (testHref, testMatch, testPathFromString, testPathFromStringFullUrl, testPathFromStringNoLeadingSlash, testPathFromStringNoScheme, testPathFromStringWithHash, testPathFromStringWithQuery, testPathFromStringWithQueryAndHash, testRouteToUrl)
+module RoutesTest exposing (testHref, testMatch, testPathFromString, testPathFromStringFullUrl, testPathFromStringNoScheme, testPathFromStringWithHash, testPathFromStringWithQuery, testPathFromStringWithQueryAndHash, testRouteToUrl)
 
 import Expect
 import Route.Path
