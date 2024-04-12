@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module RoutesTest exposing (testHref, testMatch, testPathFromString, testPathFromStringWithHash, testPathFromStringWithQuery, testPathFromStringWithQueryAndHash, testRouteToUrl)
+module RoutesTest exposing (testHref, testMatch, testPathFromString, testPathFromStringFullUrl, testPathFromStringNoLeadingSlash, testPathFromStringNoScheme, testPathFromStringWithHash, testPathFromStringWithQuery, testPathFromStringWithQueryAndHash, testRouteToUrl)
 
 import Expect
 import Route.Path
@@ -78,6 +78,22 @@ testPathFromString =
     test "/account/login -> { path }" <|
         \_ ->
             Utils.Routes.pathFromString "/account/login"
+                |> Expect.equal { path = "/account/login", query = Nothing, hash = Nothing }
+
+
+testPathFromStringFullUrl : Test
+testPathFromStringFullUrl =
+    test "http://example.com/account/login -> { path }" <|
+        \_ ->
+            Utils.Routes.pathFromString "http://example.com/account/login"
+                |> Expect.equal { path = "/account/login", query = Nothing, hash = Nothing }
+
+
+testPathFromStringNoScheme : Test
+testPathFromStringNoScheme =
+    test "example.com/account/login -> { path }" <|
+        \_ ->
+            Utils.Routes.pathFromString "example.com/account/login"
                 |> Expect.equal { path = "/account/login", query = Nothing, hash = Nothing }
 
 

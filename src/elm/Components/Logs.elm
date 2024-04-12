@@ -16,7 +16,7 @@ import Html.Events exposing (onClick)
 import Html.Lazy exposing (lazy6)
 import RemoteData exposing (WebData)
 import Shared
-import Url
+import Url exposing (Url)
 import Utils.Ansi
 import Utils.Focus as Focus
 import Utils.Helpers as Util
@@ -308,7 +308,7 @@ viewLogLinks chunk =
 
 {-| viewLogLink : takes a url and label and renders a link
 -}
-viewLogLink : Url.Url -> String -> Html msg
+viewLogLink : Url -> String -> Html msg
 viewLogLink link txt =
     -- use toString in href to make the link safe
     a [ Util.testAttribute "log-line-link", href <| Url.toString link ] [ text txt ]
