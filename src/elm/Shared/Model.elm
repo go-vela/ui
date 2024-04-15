@@ -35,7 +35,7 @@ type alias Model =
     , session : Session
 
     -- USER
-    , user : WebData Vela.CurrentUser
+    , user : WebData Vela.User
 
     -- TIME
     , zone : Zone

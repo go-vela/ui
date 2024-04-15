@@ -45,14 +45,14 @@ type Msg
     | LogoutResponse { from : Maybe String } (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
       -- USER
     | GetCurrentUser
-    | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.CurrentUser ))
+    | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.User ))
       -- SOURCE REPOS
     | UpdateSourceRepos { sourceRepos : WebData Vela.SourceRepositories }
       -- FAVORITES
     | UpdateFavorite { org : String, maybeRepo : Maybe String, updateType : Favorites.UpdateType }
-    | UpdateFavoriteResponse { favorite : String, favorited : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.CurrentUser ))
+    | UpdateFavoriteResponse { favorite : String, favorited : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.User ))
     | AddFavorites { favorites : List { org : String, maybeRepo : Maybe String } }
-    | AddFavoritesResponse { favorites : List { org : String, maybeRepo : Maybe String } } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.CurrentUser ))
+    | AddFavoritesResponse { favorites : List { org : String, maybeRepo : Maybe String } } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.User ))
       -- BUILDS
     | GetRepoBuilds { org : String, repo : String, pageNumber : Maybe Int, perPage : Maybe Int, maybeEvent : Maybe String }
     | GetRepoBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))

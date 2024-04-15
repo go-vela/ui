@@ -23,7 +23,7 @@ import Vela
 -}
 viewStarToggle :
     { msg : Vela.Org -> Maybe Vela.Repo -> msg
-    , user : WebData Vela.CurrentUser
+    , user : WebData Vela.User
     , org : Vela.Org
     , repo : Vela.Repo
     }
