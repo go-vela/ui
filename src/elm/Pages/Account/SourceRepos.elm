@@ -472,7 +472,7 @@ viewErrorSourceOrg =
 {-| viewSourceOrg : renders the source repositories available to a user by org.
 -}
 viewSourceOrg :
-    WebData Vela.CurrentUser
+    WebData Vela.User
     -> Dict Vela.Org String
     -> Vela.Org
     -> List Vela.Repository
@@ -533,7 +533,7 @@ viewSourceOrgSummary filters org repos filtered content search enableRepos =
 viewSourceRepo uses model.sourceRepos and enableRepoButton to determine the state of each specific 'Enable' button
 -}
 viewSourceRepo :
-    WebData Vela.CurrentUser
+    WebData Vela.User
     -> ({ repo : Vela.Repository, showAlertOnResponse : Bool, addFavoriteOnResponse : Bool } -> msg)
     -> Favorites.UpdateFavorites msg
     -> Vela.Repository
@@ -547,7 +547,7 @@ viewSourceRepo user enableRepo toggleFavorite repo =
 
 {-| viewSearchedSourceRepo : renders single repo when searching across all repos.
 -}
-viewSearchedSourceRepo : ({ repo : Vela.Repository, showAlertOnResponse : Bool, addFavoriteOnResponse : Bool } -> msg) -> Favorites.UpdateFavorites msg -> Vela.Repository -> WebData Vela.CurrentUser -> Html msg
+viewSearchedSourceRepo : ({ repo : Vela.Repository, showAlertOnResponse : Bool, addFavoriteOnResponse : Bool } -> msg) -> Favorites.UpdateFavorites msg -> Vela.Repository -> WebData Vela.User -> Html msg
 viewSearchedSourceRepo enableRepo toggleFavorite repo user =
     div [ class "item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div []
@@ -579,7 +579,7 @@ enableReposButton org repos filtered enableRepos =
 
 {-| enableRepoButton : builds action button for enabling single repos.
 -}
-enableRepoButton : Vela.Repository -> ({ repo : Vela.Repository, showAlertOnResponse : Bool, addFavoriteOnResponse : Bool } -> msg) -> Favorites.UpdateFavorites msg -> WebData Vela.CurrentUser -> Html msg
+enableRepoButton : Vela.Repository -> ({ repo : Vela.Repository, showAlertOnResponse : Bool, addFavoriteOnResponse : Bool } -> msg) -> Favorites.UpdateFavorites msg -> WebData Vela.User -> Html msg
 enableRepoButton repo enableRepo toggleFavorite user =
     case repo.enabled of
         Vela.Disabled ->
@@ -694,7 +694,7 @@ searchReposGlobal shared model repos enableRepo toggleFavorite =
 {-| searchReposLocal : takes repo search filters, the org, and repos and renders a list of repos based on user-entered text.
 -}
 searchReposLocal :
-    WebData Vela.CurrentUser
+    WebData Vela.User
     -> Vela.Org
     -> Dict Vela.Org String
     -> List Vela.Repository

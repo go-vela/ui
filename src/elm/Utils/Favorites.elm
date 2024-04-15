@@ -29,7 +29,7 @@ type UpdateType
 
 {-| isFavorited : takes current user and favorite key and returns if the repo is favorited by that user.
 -}
-isFavorited : String -> String -> WebData Vela.CurrentUser -> Bool
+isFavorited : String -> String -> WebData Vela.User -> Bool
 isFavorited org repo user =
     case user of
         RemoteData.Success u ->
@@ -41,7 +41,7 @@ isFavorited org repo user =
 
 {-| toggleFavorite : takes current user and favorite key and updates/returns that user's list of favorites.
 -}
-toggleFavorite : WebData Vela.CurrentUser -> String -> ( List String, Bool )
+toggleFavorite : WebData Vela.User -> String -> ( List String, Bool )
 toggleFavorite user favorite =
     case user of
         RemoteData.Success u ->
@@ -64,7 +64,7 @@ toggleFavorite user favorite =
 
 {-| addFavorite : takes current user and favorite key and adds favorite to list of favorites.
 -}
-addFavorite : WebData Vela.CurrentUser -> String -> ( List String, Bool )
+addFavorite : WebData Vela.User -> String -> ( List String, Bool )
 addFavorite user favorite =
     case user of
         RemoteData.Success u ->
@@ -80,7 +80,7 @@ addFavorite user favorite =
 
 {-| addFavorites : takes current user and adds favorites to the current list of favorites.
 -}
-addFavorites : WebData Vela.CurrentUser -> List { org : String, maybeRepo : Maybe String } -> List String
+addFavorites : WebData Vela.User -> List { org : String, maybeRepo : Maybe String } -> List String
 addFavorites user favorites =
     case user of
         RemoteData.Success u ->
