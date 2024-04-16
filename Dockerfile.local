@@ -1,5 +1,10 @@
 FROM fholzer/nginx-brotli:v1.24.0@sha256:55b6e7e04fa7eaf1bb0be210b9ea106292686deab6349a6efb9b52d229b0e940
 
+ARG ALPINE_PROXY="http://dl-cdn.alpinelinux.org/alpine/edge"
+RUN rm -rf /etc/apk/repositories && \
+    echo "${ALPINE_PROXY}/main" >> /etc/apk/repositories && \
+    echo "${ALPINE_PROXY}/community" >> /etc/apk/repositories
+
 RUN apk update && \
     apk add --no-cache ca-certificates && \
     rm -rf /var/cache/apk/*
