@@ -4,6 +4,8 @@ import Maybe.Extra
 import Url
 
 
+{-| pathFromString : takes a string and returns a curated path record using path query and fragment (hash)
+-}
 pathFromString :
     String
     ->
