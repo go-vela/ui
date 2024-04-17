@@ -103,7 +103,7 @@ type Msg
     = -- BROWSER
       OnUrlChanged { from : Route (), to : Route () }
       -- USER
-    | GetCurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.CurrentUser ))
+    | GetCurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.User ))
       -- REFRESH
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
