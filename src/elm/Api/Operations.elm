@@ -107,22 +107,22 @@ logout baseUrl session =
 
 {-| getCurrentUser : retrieves the currently authenticated user with the current user endpoint
 -}
-getCurrentUser : String -> Session -> Request Vela.CurrentUser
+getCurrentUser : String -> Session -> Request Vela.User
 getCurrentUser baseUrl session =
     get baseUrl
         Api.Endpoint.CurrentUser
-        Vela.decodeCurrentUser
+        Vela.decodeUser
         |> withAuth session
 
 
 {-| updateCurrentUser : updates the currently authenticated user with the current user endpoint
 -}
-updateCurrentUser : String -> Session -> Http.Body -> Request Vela.CurrentUser
+updateCurrentUser : String -> Session -> Http.Body -> Request Vela.User
 updateCurrentUser baseUrl session body =
     put baseUrl
         Api.Endpoint.CurrentUser
         body
-        Vela.decodeCurrentUser
+        Vela.decodeUser
         |> withAuth session
 
 

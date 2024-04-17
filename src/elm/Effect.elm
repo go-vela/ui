@@ -250,7 +250,7 @@ logout options =
 getCurrentUser :
     { baseUrl : String
     , session : Auth.Session.Session
-    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.CurrentUser ) -> msg
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.User ) -> msg
     }
     -> Effect msg
 getCurrentUser options =

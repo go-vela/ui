@@ -432,12 +432,9 @@ view : Shared.Model -> Route () -> Model -> View Msg
 view shared route model =
     { title = "Pages.Admin.Settings"
     , body =
-        [ 
-            -- viewImport model,
-        
-        Html.div [ class "admin-settings" ]
-            [ 
-              section
+        [ -- viewImport model,
+          Html.div [ class "admin-settings" ]
+            [ section
                 [ class "settings"
 
                 -- , Util.testAttribute "repo-settings-events"
@@ -593,70 +590,71 @@ view shared route model =
             --         ]
             --     , viewSettingsTable shared model
             --     ]
-
-
             ]
-                       
         ]
     }
 
-viewImport model = 
-    viewTemplatesDetails model (section [ class "settings", Util.testAttribute "admin-settings-export-type" ]
-                [  p [ class "settings-description" ]
-                    [ text "Update or export platform settings via file."
-                    ]
-                , div [ class "admin-settings-export-container" ]
-                    [ div [ class "form-controls", class "-stack" ]
-                        [ Components.Form.viewRadio
-                            { value = exportTypeToString model.exportType
-                            , field = exportTypeToString Env
-                            , title = ".env"
-                            , subtitle = Nothing
-                            , msg = ExportTypeOnClick Env
-                            , disabled_ = False
-                            , id_ = "type-" ++ exportTypeToString Env
-                            }
-                        , Components.Form.viewRadio
-                            { value = exportTypeToString model.exportType
-                            , field = exportTypeToString Json
-                            , title = "JSON"
-                            , subtitle = Nothing
-                            , msg = ExportTypeOnClick Json
-                            , disabled_ = False
-                            , id_ = "type-" ++ exportTypeToString Json
-                            }
-                        , Components.Form.viewRadio
-                            { value = exportTypeToString model.exportType
-                            , field = exportTypeToString Yaml
-                            , title = "YAML"
-                            , subtitle = Nothing
-                            , msg = ExportTypeOnClick Yaml
-                            , disabled_ = False
-                            , id_ = "type-" ++ exportTypeToString Yaml
-                            }
-                        ]
-                    ]
-                , div [ class "admin-settings-export-textarea-container" ]
-                    [ Components.Form.viewTextarea
-                        { id_ = "settings-export"
-                        , val = RemoteData.withDefault "" model.exported
-                        , placeholder_ = ""
-                        , classList_ = [ ( "admin-settings-export-textarea", True ) ]
-                        , rows_ = Nothing
-                        , wrap_ = Nothing
-                        , msg = CloneImageOnInput
+
+viewImport model =
+    viewTemplatesDetails model
+        (section [ class "settings", Util.testAttribute "admin-settings-export-type" ]
+            [ p [ class "settings-description" ]
+                [ text "Update or export platform settings via file."
+                ]
+            , div [ class "admin-settings-export-container" ]
+                [ div [ class "form-controls", class "-stack" ]
+                    [ Components.Form.viewRadio
+                        { value = exportTypeToString model.exportType
+                        , field = exportTypeToString Env
+                        , title = ".env"
+                        , subtitle = Nothing
+                        , msg = ExportTypeOnClick Env
                         , disabled_ = False
+                        , id_ = "type-" ++ exportTypeToString Env
                         }
-                    , Components.Form.viewCopyButton
-                        { id_ = "copy settings"
-                        , msg = CloneImageOnInput
-                        , text_ = "Copy Settings"
-                        , classList_ = []
+                    , Components.Form.viewRadio
+                        { value = exportTypeToString model.exportType
+                        , field = exportTypeToString Json
+                        , title = "JSON"
+                        , subtitle = Nothing
+                        , msg = ExportTypeOnClick Json
                         , disabled_ = False
-                        , content = RemoteData.withDefault "" model.exported
+                        , id_ = "type-" ++ exportTypeToString Json
+                        }
+                    , Components.Form.viewRadio
+                        { value = exportTypeToString model.exportType
+                        , field = exportTypeToString Yaml
+                        , title = "YAML"
+                        , subtitle = Nothing
+                        , msg = ExportTypeOnClick Yaml
+                        , disabled_ = False
+                        , id_ = "type-" ++ exportTypeToString Yaml
                         }
                     ]
-                ])
+                ]
+            , div [ class "admin-settings-export-textarea-container" ]
+                [ Components.Form.viewTextarea
+                    { id_ = "settings-export"
+                    , val = RemoteData.withDefault "" model.exported
+                    , placeholder_ = ""
+                    , classList_ = [ ( "admin-settings-export-textarea", True ) ]
+                    , rows_ = Nothing
+                    , wrap_ = Nothing
+                    , msg = CloneImageOnInput
+                    , disabled_ = False
+                    }
+                , Components.Form.viewCopyButton
+                    { id_ = "copy settings"
+                    , msg = CloneImageOnInput
+                    , text_ = "Copy Settings"
+                    , classList_ = []
+                    , disabled_ = False
+                    , content = RemoteData.withDefault "" model.exported
+                    }
+                ]
+            ]
+        )
+
 
 
 -- SETTINGS TABLE

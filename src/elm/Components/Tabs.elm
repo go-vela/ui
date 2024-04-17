@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.Tabs exposing (Tab, view, viewAdminTabs, viewAdminSettingsTabs,viewBuildTabs, viewOrgTabs, viewRepoTabs)
+module Components.Tabs exposing (Tab, view, viewAdminSettingsTabs, viewAdminTabs, viewBuildTabs, viewOrgTabs, viewRepoTabs)
 
 import Dict exposing (Dict)
 import Html exposing (Html, a, div, span, text)
