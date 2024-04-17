@@ -12,7 +12,8 @@ module Vela exposing
     , BuildGraphInteraction
     , BuildGraphNode
     , BuildNumber
-    , Deployment
+    , Deployment, defaultCompilerPayload
+    , defaultQueuePayload
     , DeploymentPayload
     , EnableRepoPayload
     , Enabled(..)
@@ -26,6 +27,7 @@ module Vela exposing
     , Name
     , Org
     , PipelineConfig
+    , PlatformSettings
     , Ref
     , Repo
     , RepoFieldUpdate(..)
@@ -39,7 +41,6 @@ module Vela exposing
     , SecretType(..)
     , Service
     , ServiceNumber
-    , Settings
     , SourceRepositories
     , Status(..)
     , Step
@@ -1872,44 +1873,116 @@ decodeWorkers =
     Json.Decode.list decodeWorker
 
 
-type alias Settings =
+type alias PlatformSettings =
     { id : Int
-    , cloneImage : String
-    , queueRoutes : List String
+    , compiler : Compiler
+    , queue : Queue
+    , repoAllowlist : List String
+    , scheduleAllowlist : List String
+    }
+
+
+decodeSettings : Decoder PlatformSettings
+decodeSettings =
+    Json.Decode.succeed PlatformSettings
+        |> optional "id" int -1
+        |> required "compiler" decodeCompiler
+        |> required "queue" decodeQueue
+        |> required "repo_allowlist" (Json.Decode.list Json.Decode.string)
+        |> required "schedule_allowlist" (Json.Decode.list Json.Decode.string)
+
+
+type alias Compiler =
+    { cloneImage : String
+    , templateDepth : Int
     , starlarkExecLimit : Int
     }
 
 
-decodeSettings : Decoder Settings
-decodeSettings =
-    Json.Decode.succeed Settings
-        |> optional "id" int -1
+decodeCompiler : Decoder Compiler
+decodeCompiler =
+    Json.Decode.succeed Compiler
         |> optional "clone_image" string ""
-        |> optional "queue_routes" (Json.Decode.list string) []
-        |> optional "starklark_exec_limit" int -1
+        |> optional "template_depth" int -1
+        |> optional "starlark_exec_limit" int -1
+
+
+type alias CompilerPayload =
+    { cloneImage : Maybe String
+    , templateDepth : Maybe Int
+    , starlarkExecLimit : Maybe Int
+    }
+
+
+defaultCompilerPayload : CompilerPayload
+defaultCompilerPayload =
+    { cloneImage = Nothing
+    , templateDepth = Nothing
+    , starlarkExecLimit = Nothing
+    }
+
+encodeCompilerPayload : CompilerPayload -> Json.Encode.Value
+encodeCompilerPayload compiler =
+    Json.Encode.object
+        [ ( "clone_image", encodeOptional Json.Encode.string compiler.cloneImage )
+        , ( "template_depth", encodeOptional Json.Encode.int compiler.templateDepth )
+        , ( "starlark_exec_limit", encodeOptional Json.Encode.int compiler.starlarkExecLimit )
+        ]
+
+
+type alias Queue =
+    { routes : List String
+    }
+
+
+decodeQueue : Decoder Queue
+decodeQueue =
+    Json.Decode.succeed Queue
+        |> optional "routes" (Json.Decode.list Json.Decode.string) []
+
+
+type alias QueuePayload =
+    { routes : Maybe (List String)
+    }
+
+
+defaultQueuePayload : QueuePayload
+defaultQueuePayload =
+    { routes = Nothing
+    }
+
+
+encodeQueuePayload : QueuePayload -> Json.Encode.Value
+encodeQueuePayload queue =
+    Json.Encode.object
+        [ ( "routes", encodeOptional (Json.Encode.list Json.Encode.string) queue.routes )
+        ]
 
 
 type alias SettingsPayload =
-    { cloneImage : Maybe String
-    , queueRoutes : Maybe (List String)
-    , starlarkExecLimit : Maybe Int
+    { compiler : Maybe CompilerPayload
+    , queue : Maybe QueuePayload
+    , repoAllowlist : Maybe (List String)
+    , scheduleAllowlist : Maybe (List String)
     }
 
 
 defaultSettingsPayload : SettingsPayload
 defaultSettingsPayload =
-    { cloneImage = Nothing
-    , queueRoutes = Nothing
-    , starlarkExecLimit = Nothing
+    { compiler = Nothing
+    , queue = Nothing
+    , repoAllowlist = Nothing
+    , scheduleAllowlist = Nothing
     }
 
 
 encodeSettingsPayload : SettingsPayload -> Json.Encode.Value
 encodeSettingsPayload settings =
     Json.Encode.object
-        [ ( "clone_image", encodeOptional Json.Encode.string settings.cloneImage )
-        , ( "queue_routes", encodeOptional (Json.Encode.list Json.Encode.string) settings.queueRoutes )
-        , ( "starlark_exec_limit", encodeOptional Json.Encode.int settings.starlarkExecLimit )
+        [ ( "compiler", encodeOptional encodeCompilerPayload settings.compiler )
+        , ( "queue", encodeOptional encodeQueuePayload settings.queue )
+        , ( "repo_allowlist", encodeOptional (Json.Encode.list Json.Encode.string) settings.repoAllowlist )
+        , ( "schedule_allowlist", encodeOptional (Json.Encode.list Json.Encode.string) settings.repoAllowlist )
         ]
 
 

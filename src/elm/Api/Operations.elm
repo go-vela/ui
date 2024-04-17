@@ -318,7 +318,7 @@ getSettings :
     String
     -> Session
     -> a
-    -> Request Vela.Settings
+    -> Request Vela.PlatformSettings
 getSettings baseUrl session options =
     get baseUrl
         (Api.Endpoint.Settings Nothing)
@@ -332,7 +332,7 @@ updateSettings :
     String
     -> Session
     -> { a | body : Http.Body }
-    -> Request Vela.Settings
+    -> Request Vela.PlatformSettings
 updateSettings baseUrl session options =
     put baseUrl
         (Api.Endpoint.Settings Nothing)

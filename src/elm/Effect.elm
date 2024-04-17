@@ -493,7 +493,7 @@ getWorkers options =
 getSettings :
     { baseUrl : String
     , session : Auth.Session.Session
-    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Settings ) -> msg
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.PlatformSettings ) -> msg
     }
     -> Effect msg
 getSettings options =
@@ -510,7 +510,7 @@ getSettings options =
 updateSettings :
     { baseUrl : String
     , session : Auth.Session.Session
-    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Settings ) -> msg
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.PlatformSettings ) -> msg
     , body : Http.Body
     }
     -> Effect msg

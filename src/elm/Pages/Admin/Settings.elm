@@ -9,7 +9,6 @@ import Auth
 import Components.Form
 import Components.Loading
 import Components.Table
-import Components.Tabs
 import Dict exposing (Dict)
 import Effect exposing (Effect)
 import FeatherIcons
@@ -27,7 +26,7 @@ import Route exposing (Route)
 import Shared
 import Utils.Errors as Errors
 import Utils.Helpers as Util
-import Vela exposing (defaultSettingsPayload)
+import Vela exposing (defaultCompilerPayload, defaultQueuePayload, defaultSettingsPayload)
 import View exposing (View)
 
 
@@ -68,7 +67,7 @@ toLayout user model =
 
 
 type alias Model =
-    { settings : WebData Vela.Settings
+    { settings : WebData Vela.PlatformSettings
     , exported : WebData String
     , cloneImage : String
     , starlarkExecLimit : Maybe Int
@@ -138,9 +137,9 @@ init shared () =
 
 type Msg
     = -- SETTINGS
-      GetSettingsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Settings ))
+      GetSettingsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.PlatformSettings ))
     | GetSettingsStringResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | UpdateSettingsResponse {} (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Settings ))
+    | UpdateSettingsResponse {} (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.PlatformSettings ))
     | CloneImageOnInput String
     | CloneImageUpdate String
     | StarlarkExecLimitOnInput String
@@ -162,7 +161,10 @@ update shared route msg model =
                 Ok ( meta, settings ) ->
                     ( { model
                         | settings = RemoteData.Success settings
-                        , cloneImage = settings.cloneImage
+                        , cloneImage = settings.compiler.cloneImage
+                        , starlarkExecLimit = Just settings.compiler.starlarkExecLimit
+
+                        -- , templateDepth = Just settings.compiler.templateDepth
                       }
                     , Effect.none
                     )
@@ -223,9 +225,14 @@ update shared route msg model =
 
         CloneImageUpdate val ->
             let
+                compilerPayload =
+                    { defaultCompilerPayload
+                        | cloneImage = Just val
+                    }
+
                 payload =
                     { defaultSettingsPayload
-                        | cloneImage = Just val
+                        | compiler = Just compilerPayload
                     }
 
                 body =
@@ -253,9 +260,14 @@ update shared route msg model =
 
         StarlarkExecLimitOnUpdate val ->
             let
+                compilerPayload =
+                    { defaultCompilerPayload
+                        | starlarkExecLimit = val
+                    }
+
                 payload =
                     { defaultSettingsPayload
-                        | starlarkExecLimit = val
+                        | compiler = Just compilerPayload
                     }
 
                 body =
@@ -286,9 +298,14 @@ update shared route msg model =
                 queueRoutes =
                     model.queueRoutes
 
+                queuePayload =
+                    { defaultQueuePayload
+                        | routes = Just <| List.Extra.unique <| val :: RemoteData.unwrap [] (.queue >> .routes) model.settings
+                    }
+
                 payload =
                     { defaultSettingsPayload
-                        | queueRoutes = Just <| List.Extra.unique <| val :: RemoteData.unwrap [] .queueRoutes model.settings
+                        | queue = Just queuePayload
                     }
 
                 body =
@@ -305,9 +322,14 @@ update shared route msg model =
 
         QueueRoutesRemoveOnClick val ->
             let
+                queuePayload =
+                    { defaultQueuePayload
+                        | routes = Just <| List.Extra.remove val <| RemoteData.unwrap [] (.queue >> .routes) model.settings
+                    }
+
                 payload =
                     { defaultSettingsPayload
-                        | queueRoutes = Just <| List.Extra.remove val <| RemoteData.unwrap [] .queueRoutes model.settings
+                        | queue = Just queuePayload
                     }
 
                 body =
@@ -341,13 +363,18 @@ update shared route msg model =
                 queueRoutes =
                     model.queueRoutes
 
-                payload =
-                    { defaultSettingsPayload
-                        | queueRoutes =
+                queuePayload =
+                    { defaultQueuePayload
+                        | routes =
                             model.settings
-                                |> RemoteData.unwrap [] .queueRoutes
+                                |> RemoteData.unwrap [] (.queue >> .routes)
                                 |> List.Extra.updateIf (\item -> item == options.id) (\_ -> options.val)
                                 |> Just
+                    }
+
+                payload =
+                    { defaultSettingsPayload
+                        | queue = Just queuePayload
                     }
 
                 body =
@@ -714,7 +741,7 @@ viewSettingsTable shared model =
 
 {-| settingsToRows : takes settings object and produces list of Table rows
 -}
-settingsToRows : Shared.Model -> Vela.Settings -> Components.Table.Rows String Msg
+settingsToRows : Shared.Model -> Vela.PlatformSettings -> Components.Table.Rows String Msg
 settingsToRows shared settings =
     [ Components.Table.Row "clone_image"
         (viewSettingsRow shared
@@ -725,7 +752,7 @@ settingsToRows shared settings =
                 , itemWrapperClassList = []
                 , itemClassList = []
                 , children =
-                    [ text settings.cloneImage
+                    [ text settings.compiler.cloneImage
                     ]
                 }
             )
@@ -738,7 +765,7 @@ settingsToRows shared settings =
                 , parentClassList = []
                 , itemClassList = []
                 , children =
-                    [ text <| String.fromInt settings.starlarkExecLimit
+                    [ text <| String.fromInt settings.compiler.starlarkExecLimit
                     ]
                 }
             )
@@ -753,7 +780,7 @@ settingsToRows shared settings =
                 ]
                 [ Components.Table.viewListCell
                     { dataLabel = "routes"
-                    , items = settings.queueRoutes
+                    , items = settings.queue.routes
                     , none = "no queue routes"
                     , itemWrapperClassList = []
                     }
@@ -832,7 +859,7 @@ viewQueueRoutesTable shared model =
             case model.settings of
                 RemoteData.Success s ->
                     ( text "No queue routes found"
-                    , queueRoutesToRows shared model s.queueRoutes
+                    , queueRoutesToRows shared model s.queue.routes
                     )
 
                 RemoteData.Failure error ->
