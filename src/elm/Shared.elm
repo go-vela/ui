@@ -35,6 +35,7 @@ import Utils.Favicons as Favicons
 import Utils.Favorites as Favorites
 import Utils.Helpers as Util
 import Utils.Interval as Interval
+import Utils.Routes as Routes
 import Utils.Theme as Theme
 import Vela exposing (defaultUpdateUserPayload)
 
@@ -289,11 +290,20 @@ update route msg model =
                         _ ->
                             model.velaRedirect
 
+                queryURL query =
+                    { protocol = Url.Http
+                    , host = ""
+                    , port_ = Nothing
+                    , path = ""
+                    , query = query
+                    , fragment = Nothing
+                    }
+
                 redirectRoute =
-                    Route.parsePath velaRedirect
+                    Routes.pathFromString velaRedirect
                         |> (\parsed ->
                                 { path = Maybe.withDefault Route.Path.Home_ <| Route.Path.fromString parsed.path
-                                , query = Route.Query.fromString <| Maybe.withDefault "" parsed.query
+                                , query = Route.Query.fromUrl <| queryURL parsed.query
                                 , hash = parsed.hash
                                 }
                            )
