@@ -12,8 +12,7 @@ module Vela exposing
     , BuildGraphInteraction
     , BuildGraphNode
     , BuildNumber
-    , Deployment, defaultCompilerPayload
-    , defaultQueuePayload
+    , Deployment
     , DeploymentPayload
     , EnableRepoPayload
     , Enabled(..)
@@ -78,8 +77,10 @@ module Vela exposing
     , decodeUser
     , decodeWorkers
     , defaultAllowEvents
+    , defaultCompilerPayload
     , defaultDeploymentPayload
     , defaultEnabledAllowEvents
+    , defaultQueuePayload
     , defaultRepoPayload
     , defaultSchedulePayload
     , defaultSecretPayload
@@ -1920,6 +1921,7 @@ defaultCompilerPayload =
     , templateDepth = Nothing
     , starlarkExecLimit = Nothing
     }
+
 
 encodeCompilerPayload : CompilerPayload -> Json.Encode.Value
 encodeCompilerPayload compiler =

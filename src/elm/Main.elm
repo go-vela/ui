@@ -2802,7 +2802,7 @@ viewPage model =
                 |> View.map Page
 
         Main.Pages.Model.Admin_Settings pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Admin.Settings.page user model.shared (Route.fromUrl () model.url)) pageModel
                         |> View.map Main.Pages.Msg.Admin_Settings
@@ -2811,7 +2811,7 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Admin_Workers pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Admin.Workers.page user model.shared (Route.fromUrl () model.url)) pageModel
                         |> View.map Main.Pages.Msg.Admin_Workers
