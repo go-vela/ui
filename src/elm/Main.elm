@@ -1391,7 +1391,7 @@ runWhenAuthenticatedWithLayout model toRecord =
         Auth.Action.LoadPageWithUser user ->
             toRecord user
 
-        Auth.Action.ShowLoadingPage loadingView ->
+        Auth.Action.LoadCustomPage ->
             { page =
                 ( Main.Pages.Model.Loading_
                 , Cmd.none
@@ -1458,9 +1458,13 @@ update msg model =
             )
 
         UrlRequested (Browser.External url) ->
-            ( model
-            , Browser.Navigation.load url
-            )
+            if String.isEmpty (String.trim url) then
+                ( model, Cmd.none )
+
+            else
+                ( model
+                , Browser.Navigation.load url
+                )
 
         UrlChanged url ->
             if Route.Path.fromUrl url == Route.Path.fromUrl model.url then
@@ -2231,7 +2235,7 @@ hasActionTypeChanged oldAction newAction =
         ( Auth.Action.LoadPageWithUser _, Auth.Action.LoadPageWithUser _ ) ->
             False
 
-        ( Auth.Action.ShowLoadingPage _, Auth.Action.ShowLoadingPage _ ) ->
+        ( Auth.Action.LoadCustomPage, Auth.Action.LoadCustomPage ) ->
             False
 
         ( Auth.Action.ReplaceRoute _, Auth.Action.ReplaceRoute _ ) ->
@@ -2751,7 +2755,7 @@ viewPage : Model -> View Msg
 viewPage model =
     case model.page of
         Main.Pages.Model.Home_ pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Home_.page user model.shared (Route.fromUrl () model.url)) pageModel
                         |> View.map Main.Pages.Msg.Home_
@@ -2775,7 +2779,7 @@ viewPage model =
                 |> View.map Page
 
         Main.Pages.Model.Account_Settings pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Account.Settings.page user model.shared (Route.fromUrl () model.url)) pageModel
                         |> View.map Main.Pages.Msg.Account_Settings
@@ -2784,7 +2788,7 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Account_SourceRepos pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Account.SourceRepos.page user model.shared (Route.fromUrl () model.url)) pageModel
                         |> View.map Main.Pages.Msg.Account_SourceRepos
@@ -2816,7 +2820,7 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Dash_Secrets_Engine__Org_Org_ params pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Dash.Secrets.Engine_.Org.Org_.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Dash_Secrets_Engine__Org_Org_
@@ -2825,7 +2829,7 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Dash_Secrets_Engine__Org_Org__Add params pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Dash.Secrets.Engine_.Org.Org_.Add.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Dash_Secrets_Engine__Org_Org__Add
@@ -2834,7 +2838,7 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Dash_Secrets_Engine__Org_Org__Name_ params pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Dash.Secrets.Engine_.Org.Org_.Name_.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Dash_Secrets_Engine__Org_Org__Name_
@@ -2843,7 +2847,7 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Dash_Secrets_Engine__Repo_Org__Repo_ params pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Dash_Secrets_Engine__Repo_Org__Repo_
@@ -2852,7 +2856,7 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Dash_Secrets_Engine__Repo_Org__Repo__Add params pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Add.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Dash_Secrets_Engine__Repo_Org__Repo__Add
@@ -2861,7 +2865,7 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Dash_Secrets_Engine__Repo_Org__Repo__Name_ params pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Name_.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Dash_Secrets_Engine__Repo_Org__Repo__Name_
@@ -2870,7 +2874,7 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Dash_Secrets_Engine__Shared_Org__Team_ params pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Dash_Secrets_Engine__Shared_Org__Team_
@@ -2879,7 +2883,7 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Dash_Secrets_Engine__Shared_Org__Team__Add params pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Add.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Dash_Secrets_Engine__Shared_Org__Team__Add
@@ -2888,7 +2892,7 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Dash_Secrets_Engine__Shared_Org__Team__Name_ params pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Dash_Secrets_Engine__Shared_Org__Team__Name_
@@ -2897,7 +2901,7 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Org_ params pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Org_.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Org_
@@ -2906,7 +2910,7 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Org__Builds params pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Org_.Builds.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Org__Builds
@@ -2915,7 +2919,7 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Org__Repo_ params pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Org_.Repo_.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Org__Repo_
@@ -2924,7 +2928,7 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Org__Repo__Deployments params pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Org_.Repo_.Deployments.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Org__Repo__Deployments
@@ -2933,7 +2937,7 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Org__Repo__Deployments_Add params pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Org_.Repo_.Deployments.Add.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Org__Repo__Deployments_Add
@@ -2942,7 +2946,7 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Org__Repo__Hooks params pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Org_.Repo_.Hooks.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Org__Repo__Hooks
@@ -2956,7 +2960,7 @@ viewPage model =
                 |> View.map Page
 
         Main.Pages.Model.Org__Repo__Schedules params pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Org_.Repo_.Schedules.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Org__Repo__Schedules
@@ -2965,7 +2969,7 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Org__Repo__Schedules_Add params pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Org_.Repo_.Schedules.Add.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Org__Repo__Schedules_Add
@@ -2974,7 +2978,7 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Org__Repo__Schedules_Name_ params pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Org_.Repo_.Schedules.Name_.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Org__Repo__Schedules_Name_
@@ -2983,7 +2987,7 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Org__Repo__Settings params pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Org_.Repo_.Settings.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Org__Repo__Settings
@@ -2997,7 +3001,7 @@ viewPage model =
                 |> View.map Page
 
         Main.Pages.Model.Org__Repo__Build_ params pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Org_.Repo_.Build_.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Org__Repo__Build_
@@ -3006,7 +3010,7 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Org__Repo__Build__Graph params pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Org_.Repo_.Build_.Graph.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Org__Repo__Build__Graph
@@ -3015,7 +3019,7 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Org__Repo__Build__Pipeline params pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Org_.Repo_.Build_.Pipeline.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Org__Repo__Build__Pipeline
@@ -3024,7 +3028,7 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Org__Repo__Build__Services params pageModel ->
-            Auth.Action.view
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
                     Page.view (Pages.Org_.Repo_.Build_.Services.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Org__Repo__Build__Services
@@ -3041,7 +3045,7 @@ viewPage model =
             View.none
 
         Main.Pages.Model.Loading_ ->
-            Auth.viewLoadingPage model.shared (Route.fromUrl () model.url)
+            Auth.viewCustomPage model.shared (Route.fromUrl () model.url)
                 |> View.map never
 
 
