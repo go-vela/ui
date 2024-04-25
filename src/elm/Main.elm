@@ -746,24 +746,28 @@ initPageAndLayout model =
                 )
 
         Route.Path.Dashboards_Dashboard_ params ->
-            let
-                page : Page.Page Pages.Dashboards.Dashboard_.Model Pages.Dashboards.Dashboard_.Msg
-                page =
-                    Pages.Dashboards.Dashboard_.page model.shared (Route.fromUrl params model.url)
+            runWhenAuthenticatedWithLayout
+                model
+                (\user ->
+                    let
+                        page : Page.Page Pages.Dashboards.Dashboard_.Model Pages.Dashboards.Dashboard_.Msg
+                        page =
+                            Pages.Dashboards.Dashboard_.page user model.shared (Route.fromUrl params model.url)
 
-                ( pageModel, pageEffect ) =
-                    Page.init page ()
-            in
-            { page =
-                Tuple.mapBoth
-                    (Main.Pages.Model.Dashboards_Dashboard_ params)
-                    (Effect.map Main.Pages.Msg.Dashboards_Dashboard_ >> fromPageEffect model)
-                    ( pageModel, pageEffect )
-            , layout =
-                Page.layout pageModel page
-                    |> Maybe.map (Layouts.map (Main.Pages.Msg.Dashboards_Dashboard_ >> Page))
-                    |> Maybe.map (initLayout model)
-            }
+                        ( pageModel, pageEffect ) =
+                            Page.init page ()
+                    in
+                    { page =
+                        Tuple.mapBoth
+                            (Main.Pages.Model.Dashboards_Dashboard_ params)
+                            (Effect.map Main.Pages.Msg.Dashboards_Dashboard_ >> fromPageEffect model)
+                            ( pageModel, pageEffect )
+                    , layout =
+                        Page.layout pageModel page
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Dashboards_Dashboard_ >> Page))
+                            |> Maybe.map (initLayout model)
+                    }
+                )
 
         Route.Path.Org_ params ->
             runWhenAuthenticatedWithLayout
@@ -1524,10 +1528,14 @@ updateFromPage msg model =
                 )
 
         ( Main.Pages.Msg.Dashboards_Dashboard_ pageMsg, Main.Pages.Model.Dashboards_Dashboard_ params pageModel ) ->
-            Tuple.mapBoth
-                (Main.Pages.Model.Dashboards_Dashboard_ params)
-                (Effect.map Main.Pages.Msg.Dashboards_Dashboard_ >> fromPageEffect model)
-                (Page.update (Pages.Dashboards.Dashboard_.page model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
+            runWhenAuthenticated
+                model
+                (\user ->
+                    Tuple.mapBoth
+                        (Main.Pages.Model.Dashboards_Dashboard_ params)
+                        (Effect.map Main.Pages.Msg.Dashboards_Dashboard_ >> fromPageEffect model)
+                        (Page.update (Pages.Dashboards.Dashboard_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
+                )
 
         ( Main.Pages.Msg.Org_ pageMsg, Main.Pages.Model.Org_ params pageModel ) ->
             runWhenAuthenticated
@@ -1859,8 +1867,8 @@ toLayoutFromPage model =
 
         Main.Pages.Model.Dashboards_Dashboard_ params pageModel ->
             Route.fromUrl params model.url
-                |> Pages.Dashboards.Dashboard_.page model.shared
-                |> Page.layout pageModel
+                |> toAuthProtectedPage model Pages.Dashboards.Dashboard_.page
+                |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.Dashboards_Dashboard_ >> Page))
 
         Main.Pages.Model.Org_ params pageModel ->
@@ -2134,9 +2142,13 @@ subscriptions model =
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
                 Main.Pages.Model.Dashboards_Dashboard_ params pageModel ->
-                    Page.subscriptions (Pages.Dashboards.Dashboard_.page model.shared (Route.fromUrl params model.url)) pageModel
-                        |> Sub.map Main.Pages.Msg.Dashboards_Dashboard_
-                        |> Sub.map Page
+                    Auth.Action.subscriptions
+                        (\user ->
+                            Page.subscriptions (Pages.Dashboards.Dashboard_.page user model.shared (Route.fromUrl params model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.Dashboards_Dashboard_
+                                |> Sub.map Page
+                        )
+                        (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
                 Main.Pages.Model.Org_ params pageModel ->
                     Auth.Action.subscriptions
@@ -2579,9 +2591,13 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Dashboards_Dashboard_ params pageModel ->
-            Page.view (Pages.Dashboards.Dashboard_.page model.shared (Route.fromUrl params model.url)) pageModel
-                |> View.map Main.Pages.Msg.Dashboards_Dashboard_
-                |> View.map Page
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
+                (\user ->
+                    Page.view (Pages.Dashboards.Dashboard_.page user model.shared (Route.fromUrl params model.url)) pageModel
+                        |> View.map Main.Pages.Msg.Dashboards_Dashboard_
+                        |> View.map Page
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Org_ params pageModel ->
             Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
@@ -2927,10 +2943,14 @@ toPageUrlHookCmd model routes =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Dashboards_Dashboard_ params pageModel ->
-            Page.toUrlMessages routes (Pages.Dashboards.Dashboard_.page model.shared (Route.fromUrl params model.url))
-                |> List.map Main.Pages.Msg.Dashboards_Dashboard_
-                |> List.map Page
-                |> toCommands
+            Auth.Action.command
+                (\user ->
+                    Page.toUrlMessages routes (Pages.Dashboards.Dashboard_.page user model.shared (Route.fromUrl params model.url))
+                        |> List.map Main.Pages.Msg.Dashboards_Dashboard_
+                        |> List.map Page
+                        |> toCommands
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Org_ params pageModel ->
             Auth.Action.command

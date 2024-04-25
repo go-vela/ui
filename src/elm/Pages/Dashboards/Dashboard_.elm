@@ -5,21 +5,40 @@ SPDX-License-Identifier: Apache-2.0
 
 module Pages.Dashboards.Dashboard_ exposing (Model, Msg, page)
 
+import Auth
 import Effect exposing (Effect)
 import Html
+import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
 import Shared
 import View exposing (View)
 
 
-page : Shared.Model -> Route { dashboard : String } -> Page Model Msg
-page shared route =
+page : Auth.User -> Shared.Model -> Route { dashboard : String } -> Page Model Msg
+page user shared route =
     Page.new
-        { init = init
+        { init = init shared
         , update = update
         , subscriptions = subscriptions
-        , view = view
+        , view = view shared route
+        }
+        |> Page.withLayout (toLayout user)
+
+
+
+-- LAYOUT
+
+
+toLayout : Auth.User -> Model -> Layouts.Layout Msg
+toLayout user model =
+    Layouts.Default
+        { helpCommands =
+            [ { name = ""
+              , content = "resources on this page not yet supported via the CLI"
+              , docs = Nothing
+              }
+            ]
         }
 
 
@@ -31,8 +50,8 @@ type alias Model =
     {}
 
 
-init : () -> ( Model, Effect Msg )
-init () =
+init : Shared.Model -> () -> ( Model, Effect Msg )
+init shared () =
     ( {}
     , Effect.none
     )
@@ -68,8 +87,8 @@ subscriptions model =
 -- VIEW
 
 
-view : Model -> View Msg
-view model =
+view : Shared.Model -> Route { dashboard : String } -> Model -> View Msg
+view shared route model =
     { title = "Pages.Dashboards.Dashboard_"
     , body = [ Html.text "/dashboards/:dashboard" ]
     }
