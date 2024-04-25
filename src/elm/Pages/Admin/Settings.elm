@@ -12,8 +12,8 @@ import Components.Table
 import Dict exposing (Dict)
 import Effect exposing (Effect)
 import FeatherIcons
-import Html exposing (Html, button, details, div, h2, p, section, span, summary, td, text, tr)
-import Html.Attributes exposing (attribute, class, disabled, scope)
+import Html exposing (Html, button, div, h2, p, section, span, strong, text, tr)
+import Html.Attributes exposing (attribute, class, classList, disabled)
 import Html.Events exposing (onClick)
 import Http
 import Http.Detailed
@@ -71,8 +71,8 @@ type alias Model =
     , exported : WebData String
     , cloneImage : String
     , starlarkExecLimit : Maybe Int
+    , templateDepth : Maybe Int
     , queueRoutes : ListInputForm
-    , exportType : ExportType
     }
 
 
@@ -82,38 +82,14 @@ type alias ListInputForm =
     }
 
 
-type ExportType
-    = Env
-    | Json
-    | Yaml
-
-
-defaultSettingsExportType : ExportType
-defaultSettingsExportType =
-    Env
-
-
-exportTypeToString : ExportType -> String
-exportTypeToString exportType =
-    case exportType of
-        Env ->
-            "env"
-
-        Json ->
-            "json"
-
-        Yaml ->
-            "yaml"
-
-
 init : Shared.Model -> () -> ( Model, Effect Msg )
 init shared () =
     ( { settings = RemoteData.Loading
       , exported = RemoteData.Loading
       , cloneImage = ""
       , starlarkExecLimit = Nothing
+      , templateDepth = Nothing
       , queueRoutes = { val = "", editing = Dict.empty }
-      , exportType = defaultSettingsExportType
       }
     , Effect.batch
         [ Effect.getSettings
@@ -125,7 +101,7 @@ init shared () =
             { baseUrl = shared.velaAPIBaseURL
             , session = shared.session
             , onResponse = GetSettingsStringResponse
-            , output = Just <| exportTypeToString defaultSettingsExportType
+            , output = Nothing
             }
         ]
     )
@@ -144,13 +120,14 @@ type Msg
     | CloneImageUpdate String
     | StarlarkExecLimitOnInput String
     | StarlarkExecLimitOnUpdate (Maybe Int)
+    | TemplateDepthOnInput String
+    | TemplateDepthOnUpdate (Maybe Int)
     | QueueRoutesOnInput String
     | QueueRoutesAddOnClick String
     | QueueRoutesEditOnClick { id : String }
     | QueueRoutesSaveOnClick { id : String, val : String }
     | QueueRoutesEditOnInput { id : String } String
     | QueueRoutesRemoveOnClick String
-    | ExportTypeOnClick ExportType
 
 
 update : Shared.Model -> Route () -> Msg -> Model -> ( Model, Effect Msg )
@@ -163,8 +140,7 @@ update shared route msg model =
                         | settings = RemoteData.Success settings
                         , cloneImage = settings.compiler.cloneImage
                         , starlarkExecLimit = Just settings.compiler.starlarkExecLimit
-
-                        -- , templateDepth = Just settings.compiler.templateDepth
+                        , templateDepth = Just settings.compiler.templateDepth
                       }
                     , Effect.none
                     )
@@ -204,7 +180,7 @@ update shared route msg model =
                         { baseUrl = shared.velaAPIBaseURL
                         , session = shared.session
                         , onResponse = GetSettingsStringResponse
-                        , output = Just <| exportTypeToString model.exportType
+                        , output = Nothing
                         }
                     )
 
@@ -263,6 +239,41 @@ update shared route msg model =
                 compilerPayload =
                     { defaultCompilerPayload
                         | starlarkExecLimit = val
+                    }
+
+                payload =
+                    { defaultSettingsPayload
+                        | compiler = Just compilerPayload
+                    }
+
+                body =
+                    Http.jsonBody <| Vela.encodeSettingsPayload payload
+            in
+            ( model
+            , Effect.updateSettings
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse = UpdateSettingsResponse {}
+                , body = body
+                }
+            )
+
+        TemplateDepthOnInput val ->
+            let
+                limit =
+                    Maybe.withDefault 5 <| String.toInt val
+            in
+            ( { model
+                | templateDepth = Just <| Maybe.withDefault limit <| String.toInt val
+              }
+            , Effect.none
+            )
+
+        TemplateDepthOnUpdate val ->
+            let
+                compilerPayload =
+                    { defaultCompilerPayload
+                        | templateDepth = val
                     }
 
                 payload =
@@ -408,18 +419,6 @@ update shared route msg model =
             , Effect.none
             )
 
-        ExportTypeOnClick val ->
-            ( { model
-                | exportType = val
-              }
-            , Effect.getSettingsString
-                { baseUrl = shared.velaAPIBaseURL
-                , session = shared.session
-                , onResponse = GetSettingsStringResponse
-                , output = Just <| exportTypeToString val
-                }
-            )
-
 
 
 -- SUBSCRIPTIONS
@@ -430,27 +429,6 @@ subscriptions model =
     Sub.none
 
 
-viewTemplatesDetails : Model -> Html Msg -> Html Msg
-viewTemplatesDetails model body =
-    details
-        (class "details"
-            :: class "admin-settings-details"
-            :: Util.testAttribute "pipeline-templates"
-            :: []
-         -- :: Util.open model.showTemplates
-        )
-        [ summary
-            [ class "summary"
-
-            -- , Util.onClickPreventDefault ShowHideTemplates
-            ]
-            [ div [] [ text "Import/Export" ]
-            , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
-            ]
-        , body
-        ]
-
-
 
 -- VIEW
 
@@ -459,19 +437,16 @@ view : Shared.Model -> Route () -> Model -> View Msg
 view shared route model =
     { title = "Pages.Admin.Settings"
     , body =
-        [ -- viewImport model,
-          Html.div [ class "admin-settings" ]
+        [ div [ class "admin-settings" ]
             [ section
                 [ class "settings"
-
-                -- , Util.testAttribute "repo-settings-events"
                 ]
-                [ Html.h2 [ class "settings-title" ] [ text "Compiler" ]
+                [ h2 [ class "settings-title" ] [ text "Compiler" ]
                 , p [ class "settings-description" ]
                     [ text "Which image to use with the embedded clone step."
                     ]
                 , p [ class "settings-env-key" ]
-                    [ Html.strong [] [ text "Env: " ]
+                    [ strong [] [ text "Env: " ]
                     , span [ class "env-key-value" ] [ text "VELA_CLONE_IMAGE" ]
                     ]
                 , div [ class "form-controls" ]
@@ -488,8 +463,8 @@ view shared route model =
                         , msg = CloneImageOnInput
                         , disabled_ = False
                         }
-                    , Html.button
-                        [ Html.Attributes.classList
+                    , button
+                        [ classList
                             [ ( "button", True )
                             , ( "-outline", True )
                             ]
@@ -500,15 +475,13 @@ view shared route model =
                 ]
             , section
                 [ class "settings"
-
-                -- , Util.testAttribute "repo-settings-events"
                 ]
                 [ h2 [ class "settings-title" ] [ text "Starlark" ]
                 , p [ class "settings-description" ]
                     [ text "Exec limit provided to Starlark compiler."
                     ]
                 , p [ class "settings-env-key" ]
-                    [ Html.strong [] [ text "Env: " ]
+                    [ strong [] [ text "Env: " ]
                     , span [ class "env-key-value" ] [ text "VELA_COMPILER_STARLARK_EXEC_LIMIT" ]
                     ]
                 , div [ class "form-controls" ]
@@ -526,12 +499,48 @@ view shared route model =
                         , min = 1
                         , max = 10000
                         }
-                    , Html.button
-                        [ Html.Attributes.classList
+                    , button
+                        [ classList
                             [ ( "button", True )
                             , ( "-outline", True )
                             ]
                         , onClick <| StarlarkExecLimitOnUpdate model.starlarkExecLimit
+                        ]
+                        [ text "update" ]
+                    ]
+                ]
+            , section
+                [ class "settings"
+                ]
+                [ h2 [ class "settings-title" ] [ text "Template Depth" ]
+                , p [ class "settings-description" ]
+                    [ text "The depth allowed for nested template references."
+                    ]
+                , p [ class "settings-env-key" ]
+                    [ strong [] [ text "Env: " ]
+                    , span [ class "env-key-value" ] [ text "VELA_TEMPLATE_DEPTH" ]
+                    ]
+                , div [ class "form-controls" ]
+                    [ Components.Form.viewNumberInput
+                        { title = Nothing
+                        , subtitle = Nothing
+                        , id_ = "template-depth"
+                        , val = model.templateDepth
+                        , placeholder_ = "5"
+                        , classList_ = []
+                        , rows_ = Nothing
+                        , wrap_ = Nothing
+                        , msg = TemplateDepthOnInput
+                        , disabled_ = False
+                        , min = 1
+                        , max = 100
+                        }
+                    , button
+                        [ classList
+                            [ ( "button", True )
+                            , ( "-outline", True )
+                            ]
+                        , onClick <| TemplateDepthOnUpdate model.templateDepth
                         ]
                         [ text "update" ]
                     ]
@@ -544,290 +553,14 @@ view shared route model =
                     [ text "The queue routes used when queuing builds."
                     ]
                 , p [ class "settings-env-key" ]
-                    [ Html.strong [] [ text "Env: " ]
+                    [ strong [] [ text "Env: " ]
                     , span [ class "env-key-value" ] [ text "VELA_QUEUE_ROUTES" ]
                     ]
                 , viewQueueRoutesTable shared model
                 ]
-
-            -- , section [ class "settings", Util.testAttribute "admin-settings-export-type" ]
-            --     [ h2 [ class "settings-title" ] [ text "Import/Export" ]
-            --     , p [ class "settings-description" ]
-            --         [ text "Update or export platform settings via file."
-            --         ]
-            --     , div [ class "admin-settings-export-container" ]
-            --         [ div [ class "form-controls", class "-stack" ]
-            --             [ Components.Form.viewRadio
-            --                 { value = exportTypeToString model.exportType
-            --                 , field = exportTypeToString Env
-            --                 , title = ".env"
-            --                 , subtitle = Nothing
-            --                 , msg = ExportTypeOnClick Env
-            --                 , disabled_ = False
-            --                 , id_ = "type-" ++ exportTypeToString Env
-            --                 }
-            --             , Components.Form.viewRadio
-            --                 { value = exportTypeToString model.exportType
-            --                 , field = exportTypeToString Json
-            --                 , title = "JSON"
-            --                 , subtitle = Nothing
-            --                 , msg = ExportTypeOnClick Json
-            --                 , disabled_ = False
-            --                 , id_ = "type-" ++ exportTypeToString Json
-            --                 }
-            --             , Components.Form.viewRadio
-            --                 { value = exportTypeToString model.exportType
-            --                 , field = exportTypeToString Yaml
-            --                 , title = "YAML"
-            --                 , subtitle = Nothing
-            --                 , msg = ExportTypeOnClick Yaml
-            --                 , disabled_ = False
-            --                 , id_ = "type-" ++ exportTypeToString Yaml
-            --                 }
-            --             ]
-            --         ]
-            --     , div [ class "admin-settings-export-textarea-container" ]
-            --         [ Components.Form.viewTextarea
-            --             { id_ = "settings-export"
-            --             , val = RemoteData.withDefault "" model.exported
-            --             , placeholder_ = ""
-            --             , classList_ = [ ( "admin-settings-export-textarea", True ) ]
-            --             , rows_ = Nothing
-            --             , wrap_ = Nothing
-            --             , msg = CloneImageOnInput
-            --             , disabled_ = False
-            --             }
-            --         , Components.Form.viewCopyButton
-            --             { id_ = "copy settings"
-            --             , msg = CloneImageOnInput
-            --             , text_ = "Copy Settings"
-            --             , classList_ = []
-            --             , disabled_ = False
-            --             , content = RemoteData.withDefault "" model.exported
-            --             }
-            --         ]
-            --     ]
-            -- , section
-            --     [ class "settings"
-            --     -- , Util.testAttribute "repo-settings-events"
-            --     ]
-            --     [ h2 [ class "settings-title" ] [ text "Table" ]
-            --     , p [ class "settings-description" ]
-            --         [ text "View all platform settings."
-            --         ]
-            --     , viewSettingsTable shared model
-            --     ]
             ]
         ]
     }
-
-
-viewImport model =
-    viewTemplatesDetails model
-        (section [ class "settings", Util.testAttribute "admin-settings-export-type" ]
-            [ p [ class "settings-description" ]
-                [ text "Update or export platform settings via file."
-                ]
-            , div [ class "admin-settings-export-container" ]
-                [ div [ class "form-controls", class "-stack" ]
-                    [ Components.Form.viewRadio
-                        { value = exportTypeToString model.exportType
-                        , field = exportTypeToString Env
-                        , title = ".env"
-                        , subtitle = Nothing
-                        , msg = ExportTypeOnClick Env
-                        , disabled_ = False
-                        , id_ = "type-" ++ exportTypeToString Env
-                        }
-                    , Components.Form.viewRadio
-                        { value = exportTypeToString model.exportType
-                        , field = exportTypeToString Json
-                        , title = "JSON"
-                        , subtitle = Nothing
-                        , msg = ExportTypeOnClick Json
-                        , disabled_ = False
-                        , id_ = "type-" ++ exportTypeToString Json
-                        }
-                    , Components.Form.viewRadio
-                        { value = exportTypeToString model.exportType
-                        , field = exportTypeToString Yaml
-                        , title = "YAML"
-                        , subtitle = Nothing
-                        , msg = ExportTypeOnClick Yaml
-                        , disabled_ = False
-                        , id_ = "type-" ++ exportTypeToString Yaml
-                        }
-                    ]
-                ]
-            , div [ class "admin-settings-export-textarea-container" ]
-                [ Components.Form.viewTextarea
-                    { id_ = "settings-export"
-                    , val = RemoteData.withDefault "" model.exported
-                    , placeholder_ = ""
-                    , classList_ = [ ( "admin-settings-export-textarea", True ) ]
-                    , rows_ = Nothing
-                    , wrap_ = Nothing
-                    , msg = CloneImageOnInput
-                    , disabled_ = False
-                    }
-                , Components.Form.viewCopyButton
-                    { id_ = "copy settings"
-                    , msg = CloneImageOnInput
-                    , text_ = "Copy Settings"
-                    , classList_ = []
-                    , disabled_ = False
-                    , content = RemoteData.withDefault "" model.exported
-                    }
-                ]
-            ]
-        )
-
-
-
--- SETTINGS TABLE
-
-
-{-| viewSettingsTable : renders a settings record as a table
--}
-viewSettingsTable : Shared.Model -> Model -> Html Msg
-viewSettingsTable shared model =
-    let
-        actions =
-            Nothing
-
-        ( noRowsView, rows ) =
-            let
-                viewHttpError e =
-                    span [ Util.testAttribute "settings-error" ]
-                        [ text <|
-                            case e of
-                                Http.BadStatus statusCode ->
-                                    case statusCode of
-                                        401 ->
-                                            "No settings found"
-
-                                        _ ->
-                                            "No settings found, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
-
-                                _ ->
-                                    "No settings found"
-                        ]
-            in
-            case model.settings of
-                RemoteData.Success s ->
-                    ( text "No settings found"
-                    , settingsToRows shared s
-                    )
-
-                RemoteData.Failure error ->
-                    ( viewHttpError error, [] )
-
-                _ ->
-                    ( Components.Loading.viewSmallLoader, [] )
-
-        cfg =
-            Components.Table.Config
-                (Just "Table View")
-                "settings"
-                noRowsView
-                settingsTableHeaders
-                rows
-                actions
-    in
-    div []
-        [ Components.Table.view cfg
-        ]
-
-
-{-| settingsToRows : takes settings object and produces list of Table rows
--}
-settingsToRows : Shared.Model -> Vela.PlatformSettings -> Components.Table.Rows String Msg
-settingsToRows shared settings =
-    [ Components.Table.Row "clone_image"
-        (viewSettingsRow shared
-            "VELA_CLONE_IMAGE"
-            (Components.Table.viewListItemCell
-                { dataLabel = "settings-table-field-clone-image"
-                , parentClassList = []
-                , itemWrapperClassList = []
-                , itemClassList = []
-                , children =
-                    [ text settings.compiler.cloneImage
-                    ]
-                }
-            )
-        )
-    , Components.Table.Row "starlark_exec_limit"
-        (viewSettingsRow shared
-            "VELA_COMPILER_EXEC_STARLARK_LIMIT"
-            (Components.Table.viewItemCell
-                { dataLabel = "settings-table-field-starlark-limit"
-                , parentClassList = []
-                , itemClassList = []
-                , children =
-                    [ text <| String.fromInt settings.compiler.starlarkExecLimit
-                    ]
-                }
-            )
-        )
-    , Components.Table.Row "queue_routes"
-        (viewSettingsRow shared
-            "VELA_QUEUE_ROUTES"
-            (td
-                [ attribute "data-label" "events"
-                , scope "row"
-                , class "break-word"
-                ]
-                [ Components.Table.viewListCell
-                    { dataLabel = "routes"
-                    , items = settings.queue.routes
-                    , none = "no queue routes"
-                    , itemWrapperClassList = []
-                    }
-                ]
-            )
-        )
-    ]
-
-
-{-| settingsTableHeaders : returns table headers for settings table
--}
-settingsTableHeaders : Components.Table.Columns
-settingsTableHeaders =
-    [ ( Nothing, "Field" )
-    , ( Nothing, "Env Key" )
-    , ( Nothing, "Value" )
-    ]
-
-
-{-| viewSettingsRow : takes item and renders a table row
--}
-viewSettingsRow : Shared.Model -> String -> Html Msg -> String -> Html Msg
-viewSettingsRow shared envKey viewValue field =
-    tr [ Util.testAttribute <| "item-row" ]
-        [ Components.Table.viewItemCell
-            { dataLabel = "item"
-            , parentClassList = []
-            , itemClassList = []
-            , children =
-                [ text field
-                ]
-            }
-        , Components.Table.viewListItemCell
-            { dataLabel = "settings-table-field-clone-image"
-            , parentClassList = []
-            , itemWrapperClassList = []
-            , itemClassList = []
-            , children =
-                [ text envKey
-                ]
-            }
-        , viewValue
-        ]
-
-
-
--- queue routeS
 
 
 {-| viewQueueRoutesTable : renders a list of queue routes
@@ -894,8 +627,8 @@ viewQueueRoutesTable shared model =
                 , msg = QueueRoutesOnInput
                 , disabled_ = False
                 }
-            , Html.button
-                [ Html.Attributes.classList
+            , button
+                [ classList
                     [ ( "button", True )
                     , ( "-outline", True )
                     ]
@@ -913,15 +646,6 @@ viewQueueRoutesTable shared model =
 queueRoutesToRows : Shared.Model -> Model -> List String -> Components.Table.Rows String Msg
 queueRoutesToRows shared model items =
     List.map (\item -> Components.Table.Row item (viewqueueRouteRow shared model)) items
-
-
-{-| queueRoutesTableHeaders : returns table headers for queue routes table
--}
-queueRoutesTableHeaders : Components.Table.Columns
-queueRoutesTableHeaders =
-    [ ( Nothing, "Route" )
-    , ( Just "table-icon", "Remove" )
-    ]
 
 
 {-| viewqueueRouteRow : takes item and renders a table row

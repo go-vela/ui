@@ -108,7 +108,7 @@ view shared props =
                             li [ class "identity-menu-item" ]
                                 [ a
                                     [ Util.testAttribute "admin-link"
-                                    , Route.Path.href Route.Path.Admin_Workers
+                                    , Route.Path.href Route.Path.Admin_Settings
                                     ]
                                     [ text "site admin"
                                     ]
