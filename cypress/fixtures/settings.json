@@ -6,14 +6,8 @@
     "starlark_exec_limit": 500
   },
   "queue": {
-    "routes": [
-      "vela"
-    ]
+    "routes": ["vela"]
   },
-  "repo_allowlist": [
-    "octocat/hello-world"
-  ],
-  "schedule_allowlist": [
-    "*"
-  ]
+  "repo_allowlist": ["octocat/hello-world"],
+  "schedule_allowlist": ["*"]
 }
