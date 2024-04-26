@@ -16,8 +16,8 @@ import Components.Table
 import Dict
 import Effect exposing (Effect)
 import FeatherIcons
-import Html exposing (Html, a, code, div, span, text, td, tr)
-import Html.Attributes exposing (class, attribute)
+import Html exposing (Html, a, code, div, span, td, text, tr)
+import Html.Attributes exposing (attribute, class)
 import Http
 import Http.Detailed
 import Layouts
@@ -296,6 +296,7 @@ schedulesToRows zone org repo schedules =
         |> List.concatMap (\s -> [ Just <| Components.Table.Row (addKey s) (viewSchedule zone org repo), scheduleErrorRow s ])
         |> List.filterMap identity
 
+
 {-| tableHeaders : returns table headers for schedules table
 -}
 tableHeaders : Components.Table.Columns
@@ -403,14 +404,15 @@ viewScheduleError schedule =
                 |> List.filterMap identity
 
         msgRow =
-                tr [ class "error-data", Util.testAttribute "schedules-error" ]
-                    [ td [ attribute "colspan" "6" ]
-                        [ code [ class "error-content" ]
-                            lines
-                        ]
+            tr [ class "error-data", Util.testAttribute "schedules-error" ]
+                [ td [ attribute "colspan" "6" ]
+                    [ code [ class "error-content" ]
+                        lines
                     ]
+                ]
     in
     msgRow
+
 
 {-| addKey : helper to create Vela.Schedule key
 -}
