@@ -37,11 +37,9 @@ context('Workers', () => {
   context('server returning 5 workers', () => {
     beforeEach(() => {
       cy.server();
-      cy.route(
-        'GET',
-        '*api/v1/workers*',
-        'fixture:workers_5.json',
-      ).as('workers');
+      cy.route('GET', '*api/v1/workers*', 'fixture:workers_5.json').as(
+        'workers',
+      );
       cy.loginAdmin('/admin/workers');
     });
     it('workers table should show', () => {

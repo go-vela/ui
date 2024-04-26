@@ -628,7 +628,6 @@ Cypress.Commands.add('redeliverHookError', () => {
   });
 });
 
-
 Cypress.Commands.add('workerPages', () => {
   cy.server();
   cy.fixture('workers_10a.json').as('workersPage1');
@@ -650,7 +649,6 @@ Cypress.Commands.add('workerPages', () => {
     response: '@workersPage2',
   });
 });
-
 
 Cypress.Commands.add('checkA11yForPage', (path = '/', opts = {}) => {
   cy.login(path);

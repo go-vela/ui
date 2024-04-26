@@ -3,11 +3,7 @@
     "id": 1,
     "hostname": "worker_1",
     "address": "http://vela:8080",
-    "routes": [
-      "large",
-      "docker",
-      "large:docker"
-    ],
+    "routes": ["large", "docker", "large:docker"],
     "active": true,
     "last_checked_in": 1602612590,
     "status": "busy",
@@ -51,11 +47,7 @@
     "id": 2,
     "hostname": "worker_2",
     "address": "http://vela:8082",
-    "routes": [
-      "large",
-      "docker",
-      "large:docker"
-    ],
+    "routes": ["large", "docker", "large:docker"],
     "active": true,
     "last_checked_in": 1602612590,
     "status": "available",
@@ -69,11 +61,7 @@
     "id": 3,
     "hostname": "worker_3",
     "address": "http://vela:8083",
-    "routes": [
-      "large",
-      "docker",
-      "large:docker"
-    ],
+    "routes": ["large", "docker", "large:docker"],
     "active": true,
     "last_checked_in": 1602612590,
     "status": "idle",
@@ -87,11 +75,7 @@
     "id": 4,
     "hostname": "worker_4",
     "address": "http://vela:8084",
-    "routes": [
-      "large",
-      "docker",
-      "large:docker"
-    ],
+    "routes": ["large", "docker", "large:docker"],
     "active": true,
     "last_checked_in": 1602612590,
     "status": "idle",
@@ -105,11 +89,7 @@
     "id": 5,
     "hostname": "worker_5",
     "address": "http://vela:8085",
-    "routes": [
-      "large",
-      "docker",
-      "large:docker"
-    ],
+    "routes": ["large", "docker", "large:docker"],
     "active": true,
     "last_checked_in": 1602612590,
     "status": "error",
@@ -123,11 +103,7 @@
     "id": 6,
     "hostname": "worker_6",
     "address": "http://vela:8086",
-    "routes": [
-      "large",
-      "docker",
-      "large:docker"
-    ],
+    "routes": ["large", "docker", "large:docker"],
     "active": true,
     "last_checked_in": 1602612590,
     "status": "idle",
@@ -141,11 +117,7 @@
     "id": 7,
     "hostname": "worker_7",
     "address": "http://vela:8087",
-    "routes": [
-      "large",
-      "docker",
-      "large:docker"
-    ],
+    "routes": ["large", "docker", "large:docker"],
     "active": true,
     "last_checked_in": 1602612590,
     "status": "idle",
@@ -159,11 +131,7 @@
     "id": 8,
     "hostname": "worker_8",
     "address": "http://vela:8088",
-    "routes": [
-      "large",
-      "docker",
-      "large:docker"
-    ],
+    "routes": ["large", "docker", "large:docker"],
     "active": true,
     "last_checked_in": 1602612590,
     "status": "idle",
@@ -177,11 +145,7 @@
     "id": 9,
     "hostname": "worker_9",
     "address": "http://vela:8089",
-    "routes": [
-      "large",
-      "docker",
-      "large:docker"
-    ],
+    "routes": ["large", "docker", "large:docker"],
     "active": true,
     "last_checked_in": 1602612590,
     "status": "idle",
@@ -195,11 +159,7 @@
     "id": 10,
     "hostname": "worker_10",
     "address": "http://vela:8090",
-    "routes": [
-      "large",
-      "docker",
-      "large:docker"
-    ],
+    "routes": ["large", "docker", "large:docker"],
     "active": true,
     "last_checked_in": 1602612590,
     "status": "idle",
