@@ -319,9 +319,9 @@ getSettings :
     -> Session
     -> a
     -> Request Vela.PlatformSettings
-getSettings baseUrl session options =
+getSettings baseUrl session _ =
     get baseUrl
-        (Api.Endpoint.Settings Nothing)
+        Api.Endpoint.Settings
         Vela.decodeSettings
         |> withAuth session
 
@@ -335,7 +335,7 @@ updateSettings :
     -> Request Vela.PlatformSettings
 updateSettings baseUrl session options =
     put baseUrl
-        (Api.Endpoint.Settings Nothing)
+        Api.Endpoint.Settings
         options.body
         Vela.decodeSettings
         |> withAuth session
@@ -346,11 +346,11 @@ updateSettings baseUrl session options =
 getSettingsString :
     String
     -> Session
-    -> { a | output : Maybe String }
+    -> a
     -> Request String
-getSettingsString baseUrl session options =
+getSettingsString baseUrl session _ =
     get baseUrl
-        (Api.Endpoint.Settings options.output)
+        Api.Endpoint.Settings
         Json.Decode.string
         |> withAuth session
 

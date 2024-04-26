@@ -491,10 +491,12 @@ viewAllowEvents shared { msg, allowEvents } =
     ]
 
 
-type alias EditableListProps a msg =
+type alias EditableListProps a b msg =
     { id_ : String
     , webdata : WebData a
-    , toItems : a -> List String
+    , toItems : a -> List b
+    , toId : b -> String
+    , toLabel : b -> String
     , addProps :
         Maybe
             { placeholder_ : String
@@ -517,7 +519,7 @@ type alias EditableListForm =
     }
 
 
-viewEditableList : EditableListProps a msg -> Html msg
+viewEditableList : EditableListProps a b msg -> Html msg
 viewEditableList props =
     div []
         [ case props.addProps of
@@ -579,11 +581,14 @@ viewEditableList props =
         ]
 
 
-viewEditableListItem : EditableListProps a msg -> String -> Html msg
+viewEditableListItem : EditableListProps a b msg -> b -> Html msg
 viewEditableListItem props item =
     let
+        itemId =
+            props.toId item
+
         editing =
-            Maybe.Extra.unwrap Nothing (\e -> Just e) <| Dict.get item props.form.editing
+            Maybe.Extra.unwrap Nothing (\e -> Just e) <| Dict.get itemId props.form.editing
     in
     li []
         [ case editing of
@@ -591,19 +596,19 @@ viewEditableListItem props item =
                 viewInput
                     { title = Nothing
                     , subtitle = Nothing
-                    , id_ = props.id_ ++ "-modify-" ++ item
+                    , id_ = props.id_ ++ "-modify-" ++ itemId
                     , val = val
-                    , placeholder_ = item
+                    , placeholder_ = props.toLabel item
                     , wrapperClassList = []
                     , classList_ = []
                     , rows_ = Nothing
                     , wrap_ = Nothing
-                    , msg = props.itemEditOnInputMsg { id = item }
+                    , msg = props.itemEditOnInputMsg { id = itemId }
                     , disabled_ = False
                     }
 
             Nothing ->
-                span [] [ text item ]
+                span [] [ text <| props.toLabel item ]
         , span []
             [ case editing of
                 Just val ->
@@ -613,8 +618,8 @@ viewEditableListItem props item =
                             , attribute "aria-label" "remove queue route "
                             , class "button"
                             , class "-icon"
-                            , onClick <| props.itemRemoveOnClickMsg item
-                            , id <| props.id_ ++ "-remove-" ++ item
+                            , onClick <| props.itemRemoveOnClickMsg <| itemId
+                            , id <| props.id_ ++ "-remove-" ++ itemId
                             ]
                             [ FeatherIcons.minusSquare
                                 |> FeatherIcons.withSize 18
@@ -625,9 +630,9 @@ viewEditableListItem props item =
                             , attribute "aria-label" "save queue route "
                             , class "button"
                             , class "-icon"
-                            , onClick <| props.itemSaveOnClickMsg { id = item, val = val }
+                            , onClick <| props.itemSaveOnClickMsg { id = itemId, val = val }
                             , Util.testAttribute "save-route"
-                            , id <| props.id_ ++ "-save-" ++ item
+                            , id <| props.id_ ++ "-save-" ++ itemId
                             ]
                             [ FeatherIcons.save
                                 |> FeatherIcons.withSize 18
@@ -642,9 +647,9 @@ viewEditableListItem props item =
                             , attribute "aria-label" "edit queue route "
                             , class "button"
                             , class "-icon"
-                            , onClick <| props.itemEditOnClickMsg { id = item }
+                            , onClick <| props.itemEditOnClickMsg { id = itemId }
                             , Util.testAttribute "edit-route"
-                            , id <| props.id_ ++ "-edit-" ++ item
+                            , id <| props.id_ ++ "-edit-" ++ itemId
                             ]
                             [ FeatherIcons.edit2
                                 |> FeatherIcons.withSize 18

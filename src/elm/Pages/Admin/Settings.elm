@@ -857,6 +857,8 @@ view shared route model =
                     { id_ = queueRoutesId
                     , webdata = model.settings
                     , toItems = .queue >> .routes
+                    , toId = identity
+                    , toLabel = identity
                     , addProps =
                         Just
                             { placeholder_ = "vela"
@@ -879,7 +881,7 @@ view shared route model =
                                         _ ->
                                             "No settings found"
                                 ]
-                    , viewNoItems = text "no routes found"
+                    , viewNoItems = text "No routes set"
                     , form = model.queueRoutes
                     , itemEditOnClickMsg = QueueRoutesEditOnClick
                     , itemSaveOnClickMsg = QueueRoutesSaveOnClick
@@ -897,6 +899,14 @@ view shared route model =
                     { id_ = repoAllowlistId
                     , webdata = model.settings
                     , toItems = .repoAllowlist
+                    , toId = \r -> r
+                    , toLabel =
+                        \r ->
+                            if r == "*" then
+                                r ++ " (all repos)"
+
+                            else
+                                r
                     , addProps =
                         Just
                             { placeholder_ = "octocat/hello-world"
@@ -919,7 +929,7 @@ view shared route model =
                                         _ ->
                                             "No settings found"
                                 ]
-                    , viewNoItems = text "no repos found"
+                    , viewNoItems = text "No repos allowed"
                     , form = model.repoAllowlist
                     , itemEditOnClickMsg = RepoAllowlistEditOnClick
                     , itemSaveOnClickMsg = RepoAllowlistSaveOnClick
@@ -937,6 +947,14 @@ view shared route model =
                     { id_ = scheduleAllowlistId
                     , webdata = model.settings
                     , toItems = .scheduleAllowlist
+                    , toId = \r -> r
+                    , toLabel =
+                        \r ->
+                            if r == "*" then
+                                r ++ " (all repos)"
+
+                            else
+                                r
                     , addProps =
                         Just
                             { placeholder_ = "octocat/hello-world"
@@ -959,7 +977,7 @@ view shared route model =
                                         _ ->
                                             "No settings found"
                                 ]
-                    , viewNoItems = text "no repos found"
+                    , viewNoItems = text "No repos allowed"
                     , form = model.scheduleAllowlist
                     , itemEditOnClickMsg = ScheduleAllowlistEditOnClick
                     , itemSaveOnClickMsg = ScheduleAllowlistSaveOnClick
