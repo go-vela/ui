@@ -1151,6 +1151,8 @@ viewAdminActions repo disableRepoMsg enableRepoMsg chownRepoMsg repairRepoMsg =
                 [ text "Chown Repository"
                 , small []
                     [ em [] [ text "This will make you the owner of the webhook for this repository." ] ]
+                , small []
+                    [ em [] [ text <| "Current owner: " ++ repo.owner.name ] ]
                 ]
             , button
                 [ class "button"
