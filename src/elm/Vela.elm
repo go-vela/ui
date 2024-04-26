@@ -1523,6 +1523,7 @@ type alias Schedule =
     , updated_at : Int
     , updated_by : String
     , branch : String
+    , error : String
     }
 
 
@@ -1533,6 +1534,7 @@ type alias SchedulePayload =
     , entry : Maybe String
     , enabled : Maybe Bool
     , branch : Maybe String
+    , error : Maybe String
     }
 
 
@@ -1544,6 +1546,7 @@ defaultSchedulePayload =
     , entry = Nothing
     , enabled = Nothing
     , branch = Nothing
+    , error = Nothing
     }
 
 
@@ -1562,6 +1565,7 @@ decodeSchedule =
         |> optional "updated_at" int 0
         |> optional "updated_by" string ""
         |> optional "branch" string ""
+        |> optional "error" string ""
 
 
 decodeSchedules : Decoder (List Schedule)

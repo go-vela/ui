@@ -5,7 +5,9 @@ SPDX-License-Identifier: Apache-2.0
 
 module Pages.Org_.Repo_.Schedules exposing (Model, Msg, page, view)
 
+import Ansi.Log
 import Api.Pagination
+import Array
 import Auth
 import Components.Loading
 import Components.Pager
@@ -14,8 +16,8 @@ import Components.Table
 import Dict
 import Effect exposing (Effect)
 import FeatherIcons
-import Html exposing (Html, a, div, span, text, tr)
-import Html.Attributes exposing (class)
+import Html exposing (Html, a, code, div, span, text, td, tr)
+import Html.Attributes exposing (class, attribute)
 import Http
 import Http.Detailed
 import Layouts
@@ -27,6 +29,7 @@ import Route.Path
 import Shared
 import Svg.Attributes
 import Time
+import Utils.Ansi
 import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Utils.Interval as Interval
@@ -289,8 +292,9 @@ viewRepoSchedules shared model org repo =
 -}
 schedulesToRows : Time.Zone -> String -> String -> List Vela.Schedule -> Components.Table.Rows Vela.Schedule msg
 schedulesToRows zone org repo schedules =
-    List.map (\s -> Components.Table.Row (addKey s) (viewSchedule zone org repo)) schedules
-
+    schedules
+        |> List.concatMap (\s -> [ Just <| Components.Table.Row (addKey s) (viewSchedule zone org repo), scheduleErrorRow s ])
+        |> List.filterMap identity
 
 {-| tableHeaders : returns table headers for schedules table
 -}
@@ -375,6 +379,38 @@ viewSchedule zone org repo schedule =
             }
         ]
 
+
+scheduleErrorRow : Vela.Schedule -> Maybe (Components.Table.Row Vela.Schedule msg)
+scheduleErrorRow schedule =
+    if not <| String.isEmpty schedule.error then
+        Just <| Components.Table.Row schedule viewScheduleError
+
+    else
+        Nothing
+
+
+viewScheduleError : Vela.Schedule -> Html msg
+viewScheduleError schedule =
+    let
+        lines =
+            Utils.Ansi.decodeAnsi schedule.error
+                |> Array.map
+                    (\line ->
+                        Just <|
+                            Ansi.Log.viewLine line
+                    )
+                |> Array.toList
+                |> List.filterMap identity
+
+        msgRow =
+                tr [ class "error-data", Util.testAttribute "schedules-error" ]
+                    [ td [ attribute "colspan" "6" ]
+                        [ code [ class "error-content" ]
+                            lines
+                        ]
+                    ]
+    in
+    msgRow
 
 {-| addKey : helper to create Vela.Schedule key
 -}
