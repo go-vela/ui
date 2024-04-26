@@ -3,13 +3,17 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.Form exposing (viewAllowEvents, viewButton, viewCheckbox, viewCopyButton, viewInput, viewInputSection, viewNumberInput, viewRadio, viewSubtitle, viewTextarea, viewTextareaSection)
+module Components.Form exposing (EditableListForm, viewAllowEvents, viewButton, viewCheckbox, viewCopyButton, viewEditableList, viewInput, viewInputSection, viewNumberInput, viewRadio, viewSubtitle, viewTextarea, viewTextareaSection)
 
+import Components.Loading
+import Dict exposing (Dict)
 import FeatherIcons
-import Html exposing (Html, button, div, h3, input, label, section, span, strong, text, textarea)
+import Html exposing (Html, button, div, h3, input, label, li, section, span, strong, text, textarea, ul)
 import Html.Attributes exposing (attribute, checked, class, classList, disabled, for, id, placeholder, rows, type_, value, wrap)
 import Html.Events exposing (onCheck, onClick, onInput)
+import Http
 import Maybe.Extra
+import RemoteData exposing (WebData)
 import Shared
 import Utils.Helpers as Util
 import Vela
@@ -83,7 +87,7 @@ viewInput { id_, title, subtitle, val, placeholder_, classList_, wrapperClassLis
     in
     div
         [ class "form-control"
-        , classList <| wrapperClassList
+        , classList wrapperClassList
         , Util.testAttribute target
         ]
         [ input
@@ -107,6 +111,7 @@ viewNumberInput :
     , subtitle : Maybe (Html msg)
     , val : Maybe Int
     , placeholder_ : String
+    , wrapperClassList : List ( String, Bool )
     , classList_ : List ( String, Bool )
     , rows_ : Maybe Int
     , wrap_ : Maybe String
@@ -116,13 +121,14 @@ viewNumberInput :
     , max : Int
     }
     -> Html msg
-viewNumberInput { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, msg, disabled_, min, max } =
+viewNumberInput { id_, title, subtitle, val, placeholder_, wrapperClassList, classList_, rows_, wrap_, msg, disabled_, min, max } =
     let
         target =
             String.join "-" [ "input", id_ ]
     in
     div
         [ class "form-control"
+        , classList wrapperClassList
         , Util.testAttribute target
         ]
         [ input
@@ -483,3 +489,167 @@ viewAllowEvents shared { msg, allowEvents } =
             }
         ]
     ]
+
+
+type alias EditableListProps a msg =
+    { id_ : String
+    , webdata : WebData a
+    , toItems : a -> List String
+    , addProps :
+        Maybe
+            { placeholder_ : String
+            , addOnInputMsg : String -> msg
+            , addOnClickMsg : String -> msg
+            }
+    , viewHttpError : Http.Error -> Html msg
+    , viewNoItems : Html msg
+    , form : EditableListForm
+    , itemEditOnClickMsg : { id : String } -> msg
+    , itemSaveOnClickMsg : { id : String, val : String } -> msg
+    , itemEditOnInputMsg : { id : String } -> String -> msg
+    , itemRemoveOnClickMsg : String -> msg
+    }
+
+
+type alias EditableListForm =
+    { val : String
+    , editing : Dict String String
+    }
+
+
+viewEditableList : EditableListProps a msg -> Html msg
+viewEditableList props =
+    div []
+        [ case props.addProps of
+            Just addProps ->
+                div [ class "form-controls" ]
+                    [ viewInput
+                        { title = Nothing
+                        , subtitle = Nothing
+                        , id_ = props.id_ ++ "-add"
+                        , val = props.form.val
+                        , placeholder_ = addProps.placeholder_
+                        , classList_ = []
+                        , wrapperClassList =
+                            [ ( "-wide", True )
+                            ]
+                        , rows_ = Nothing
+                        , wrap_ = Nothing
+                        , msg = addProps.addOnInputMsg
+                        , disabled_ = False
+                        }
+                    , button
+                        [ classList
+                            [ ( "button", True )
+                            , ( "-outline", True )
+                            ]
+                        , onClick <| addProps.addOnClickMsg props.form.val
+                        , disabled <| (String.length props.form.val == 0) || (not <| RemoteData.isSuccess props.webdata)
+                        ]
+                        [ text "add" ]
+                    ]
+
+            _ ->
+                text ""
+        , div [ class "editable-list" ]
+            [ ul [] <|
+                case props.webdata of
+                    RemoteData.Success data ->
+                        let
+                            items =
+                                props.toItems data
+                        in
+                        if List.isEmpty items then
+                            [ li [] [ props.viewNoItems ] ]
+
+                        else
+                            List.map (viewEditableListItem props) items
+
+                    RemoteData.Failure error ->
+                        [ li []
+                            [ span [ Util.testAttribute "editable-list-error" ]
+                                [ props.viewHttpError error
+                                ]
+                            ]
+                        ]
+
+                    _ ->
+                        [ li [] [ Components.Loading.viewSmallLoader ] ]
+            ]
+        ]
+
+
+viewEditableListItem : EditableListProps a msg -> String -> Html msg
+viewEditableListItem props item =
+    let
+        editing =
+            Maybe.Extra.unwrap Nothing (\e -> Just e) <| Dict.get item props.form.editing
+    in
+    li []
+        [ case editing of
+            Just val ->
+                viewInput
+                    { title = Nothing
+                    , subtitle = Nothing
+                    , id_ = props.id_ ++ "-modify-" ++ item
+                    , val = val
+                    , placeholder_ = item
+                    , wrapperClassList = []
+                    , classList_ = []
+                    , rows_ = Nothing
+                    , wrap_ = Nothing
+                    , msg = props.itemEditOnInputMsg { id = item }
+                    , disabled_ = False
+                    }
+
+            Nothing ->
+                span [] [ text item ]
+        , span []
+            [ case editing of
+                Just val ->
+                    span []
+                        [ button
+                            [ class "remove-button"
+                            , attribute "aria-label" "remove queue route "
+                            , class "button"
+                            , class "-icon"
+                            , onClick <| props.itemRemoveOnClickMsg item
+                            , id <| props.id_ ++ "-remove-" ++ item
+                            ]
+                            [ FeatherIcons.minusSquare
+                                |> FeatherIcons.withSize 18
+                                |> FeatherIcons.toHtml []
+                            ]
+                        , button
+                            [ class "save-button"
+                            , attribute "aria-label" "save queue route "
+                            , class "button"
+                            , class "-icon"
+                            , onClick <| props.itemSaveOnClickMsg { id = item, val = val }
+                            , Util.testAttribute "save-route"
+                            , id <| props.id_ ++ "-save-" ++ item
+                            ]
+                            [ FeatherIcons.save
+                                |> FeatherIcons.withSize 18
+                                |> FeatherIcons.toHtml []
+                            ]
+                        ]
+
+                _ ->
+                    span []
+                        [ button
+                            [ class "edit-button"
+                            , attribute "aria-label" "edit queue route "
+                            , class "button"
+                            , class "-icon"
+                            , onClick <| props.itemEditOnClickMsg { id = item }
+                            , Util.testAttribute "edit-route"
+                            , id <| props.id_ ++ "-edit-" ++ item
+                            ]
+                            [ FeatherIcons.edit2
+                                |> FeatherIcons.withSize 18
+                                |> FeatherIcons.toHtml []
+                            ]
+                        ]
+            ]
+        ]

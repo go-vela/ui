@@ -179,7 +179,7 @@ subscriptions model =
 
 view : Shared.Model -> Route () -> Model -> View Msg
 view shared route model =
-    { title = "Workers" ++ Util.pageToString (Dict.get "page" route.query)
+    { title = ""
     , body =
         [ viewWorkers shared model route
         , Components.Pager.view
@@ -284,7 +284,7 @@ tableHeaders =
 -}
 viewWorker : Shared.Model -> Vela.Worker -> Html Msg
 viewWorker shared worker =
-    tr [ Util.testAttribute <| "workers-row", class "-success" ]
+    tr [ Util.testAttribute <| "workers-row", statusToRowClass worker.status ]
         [ Components.Table.viewItemCell
             { dataLabel = "address"
             , parentClassList = []
@@ -388,3 +388,22 @@ viewWorkerBuildsLinks worker =
             )
         |> List.intersperse (text ", ")
         |> div []
+
+
+statusToRowClass : String -> Html.Attribute msg
+statusToRowClass status =
+    case status of
+        "idle" ->
+            class "-idle"
+
+        "available" ->
+            class "-available"
+
+        "busy" ->
+            class "-busy"
+
+        "error" ->
+            class "-error"
+
+        _ ->
+            class "-success"

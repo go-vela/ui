@@ -50,35 +50,7 @@
   margin-right: 0.8em;
 }
 
-// todo: move this to a more appropriate file
-// for the admin settings page
-.admin-settings-export {
-  max-width: 45rem;
-}
-
-.admin-settings-export-container {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  .form-controls {
-    margin-right: 1rem;
-  }
-  textarea {
-    min-height: 10rem;
-    max-height: 20rem;
-
-    min-width: 30rem;
-    max-width: 45rem;
-  }
-}
-
-.form-control.-wide {
-  flex: 1;
-  input {
-    flex: 1;
-  }
-}
-
+// site admin platform settings
 .admin-settings-export-textarea-container {
   display: flex;
   .form-control {

@@ -33,7 +33,7 @@
     // if this has a label associated with it,
     // make it back off a bit
     /* stylelint-disable */
-    + .form-label {
+    +.form-label {
       margin-left: 0.5rem;
     }
 
@@ -63,7 +63,7 @@
     // if this has a label associated with it,
     // make it back off a bit
     /* stylelint-disable */
-    + .form-label {
+    +.form-label {
       margin-left: 0.5rem;
     }
 
@@ -111,6 +111,13 @@
       flex: 1 0 100%;
     }
   }
+
+  &.-wide {
+    flex: 1;
+    input {
+      flex: 1;
+    }
+  }
 }
 
 // radio & checkbox
@@ -120,7 +127,7 @@
   @include visually-hidden;
 
   // making room for custom styled checkbox indicators
-  + .form-label {
+  +.form-label {
     display: inline-block;
     padding-left: 2rem;
 
@@ -129,9 +136,9 @@
 }
 
 // base for the replacement controls, just squares here
-.form-control [type='checkbox'] + .form-label::before,
-.form-control [type='radio'] + .form-label::before,
-.form-control [type='radio'] + .form-label::after {
+.form-control [type='checkbox']+.form-label::before,
+.form-control [type='radio']+.form-label::before,
+.form-control [type='radio']+.form-label::after {
   position: absolute;
   top: 4px;
   left: 0;
@@ -145,14 +152,14 @@
 }
 
 // radio controls are round, m'kay.. well, at least these ones
-.form-control [type='radio'] + .form-label::before {
+.form-control [type='radio']+.form-label::before {
   background-color: var(--color-bg);
   border: var(--line-width) solid var(--color-primary);
   border-radius: 50%;
 }
 
 // render checkmark for checkbox, invisible initially
-.form-control [type='checkbox'] + .form-label::after {
+.form-control [type='checkbox']+.form-label::after {
   position: absolute;
   top: 10px;
   left: 3px;
@@ -171,7 +178,7 @@
 }
 
 // render selected radio mark, invisible initially
-.form-control [type='radio'] + .form-label::after {
+.form-control [type='radio']+.form-label::after {
   background-color: var(--color-primary);
   border-radius: 50%;
   transform: scale(0.4);
@@ -179,14 +186,14 @@
 }
 
 // reveal check mark or selected radio when selected
-.form-control [type='checkbox']:checked + .form-label::after,
-.form-control [type='radio']:checked + .form-label::after {
+.form-control [type='checkbox']:checked+.form-label::after,
+.form-control [type='radio']:checked+.form-label::after {
   opacity: 1;
 }
 
 // focus styles
-.form-control [type='checkbox']:focus + .form-label::before,
-.form-control [type='radio']:focus + .form-label::before,
+.form-control [type='checkbox']:focus+.form-label::before,
+.form-control [type='radio']:focus+.form-label::before,
 .form-control input:focus:not([type='checkbox']):not([type='radio']),
 .form-control textarea:focus {
   outline: var(--color-secondary) dotted var(--line-width);
@@ -196,22 +203,22 @@
 // disabled styles
 .form-control [type='checkbox']:disabled,
 .form-control [type='radio']:disabled {
-  + .form-label {
+  +.form-label {
     color: var(--color-bg-light);
 
     cursor: not-allowed;
   }
 }
 
-.form-control [type='checkbox']:disabled + .form-label::before {
+.form-control [type='checkbox']:disabled+.form-label::before {
   background-color: var(--color-bg-light);
 }
 
-.form-control [type='radio']:disabled + .form-label::before {
+.form-control [type='radio']:disabled+.form-label::before {
   border-color: var(--color-bg-light);
 }
 
-.form-control [type='radio']:disabled + .form-label::after {
+.form-control [type='radio']:disabled+.form-label::after {
   background-color: var(--color-bg-light);
 }
 
@@ -220,7 +227,7 @@
   border-color: var(--color-bg-light);
 
   // stylelint-disable-next-line
-  + .form-label {
+  +.form-label {
     color: var(--color-bg-light);
   }
 }
@@ -287,4 +294,24 @@
   &.-no-x-pad {
     padding: 0.5rem 0;
   }
+}
+
+.editable-list ul {
+  list-style: none;
+  padding: 0;
+  background: var(--color-bg-dark);
+  border-top: 2px solid var(--color-secondary);
+
+  .save-button {
+    margin-left: 0.6rem;
+  }
+}
+
+.editable-list li {
+  padding: 0.6rem 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-bg);
+  min-height: 3.6rem;
+  align-items: center;
 }

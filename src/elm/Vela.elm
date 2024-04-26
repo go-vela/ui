@@ -27,6 +27,7 @@ module Vela exposing
     , Org
     , PipelineConfig
     , PlatformSettings
+    , PlatformSettingsFieldUpdate(..)
     , Ref
     , Repo
     , RepoFieldUpdate(..)
@@ -96,6 +97,7 @@ module Vela exposing
     , encodeSettingsPayload
     , encodeUpdateUser
     , getAllowEventField
+    , platformSettingsFieldUpdateToResponseConfig
     , repoFieldUpdateToResponseConfig
     , secretToKey
     , secretTypeToString
@@ -1984,8 +1986,110 @@ encodeSettingsPayload settings =
         [ ( "compiler", encodeOptional encodeCompilerPayload settings.compiler )
         , ( "queue", encodeOptional encodeQueuePayload settings.queue )
         , ( "repo_allowlist", encodeOptional (Json.Encode.list Json.Encode.string) settings.repoAllowlist )
-        , ( "schedule_allowlist", encodeOptional (Json.Encode.list Json.Encode.string) settings.repoAllowlist )
+        , ( "schedule_allowlist", encodeOptional (Json.Encode.list Json.Encode.string) settings.scheduleAllowlist )
         ]
+
+
+type PlatformSettingsFieldUpdate
+    = CompilerCloneImage
+    | CompilerTemplateDepth
+    | CompilerStarlarkExecLimit
+    | QueueRouteAdd String
+    | QueueRouteUpdate String String
+    | QueueRouteRemove String
+    | RepoAllowlistAdd String
+    | RepoAllowlistUpdate String String
+    | RepoAllowlistRemove String
+    | ScheduleAllowlistAdd String
+    | ScheduleAllowlistUpdate String String
+    | ScheduleAllowlistRemove String
+
+
+type alias PlatformSettingsUpdateResponseConfig =
+    { successAlert : PlatformSettings -> String
+    }
+
+
+platformSettingsFieldUpdateToResponseConfig : PlatformSettingsFieldUpdate -> PlatformSettingsUpdateResponseConfig
+platformSettingsFieldUpdateToResponseConfig field =
+    case field of
+        CompilerCloneImage ->
+            { successAlert =
+                \settings ->
+                    "Compiler clone image set to '"
+                        ++ settings.compiler.cloneImage
+                        ++ "'."
+            }
+
+        CompilerTemplateDepth ->
+            { successAlert =
+                \settings ->
+                    "Compiler template depth set to '"
+                        ++ String.fromInt settings.compiler.templateDepth
+                        ++ "'."
+            }
+
+        CompilerStarlarkExecLimit ->
+            { successAlert =
+                \settings ->
+                    "Compiler Starlark exec limit set to '"
+                        ++ String.fromInt settings.compiler.starlarkExecLimit
+                        ++ "'."
+            }
+
+        QueueRouteAdd added ->
+            { successAlert =
+                \_ ->
+                    "Queue route '" ++ added ++ "' added."
+            }
+
+        QueueRouteUpdate from to ->
+            { successAlert =
+                \_ ->
+                    "Queue route '" ++ from ++ "' updated to'" ++ to ++ "'."
+            }
+
+        QueueRouteRemove route ->
+            { successAlert =
+                \_ ->
+                    "Queue route '" ++ route ++ "' removed."
+            }
+
+        RepoAllowlistAdd added ->
+            { successAlert =
+                \_ ->
+                    "Repo '" ++ added ++ "' added to the overall allowlist."
+            }
+
+        RepoAllowlistUpdate from to ->
+            { successAlert =
+                \_ ->
+                    "Repo '" ++ from ++ "' updated to'" ++ to ++ "' in the overall allowlist."
+            }
+
+        RepoAllowlistRemove route ->
+            { successAlert =
+                \_ ->
+                    "Repo '" ++ route ++ "' removed from the overall allowlist."
+            }
+
+        ScheduleAllowlistAdd added ->
+            { successAlert =
+                \_ ->
+                    "Repo '" ++ added ++ "' added to the schedules allowlist."
+            }
+
+        ScheduleAllowlistUpdate from to ->
+            { successAlert =
+                \_ ->
+                    "Repo '" ++ from ++ "' updated to'" ++ to ++ "' in the schedules allowlist."
+            }
+
+        ScheduleAllowlistRemove route ->
+            { successAlert =
+                \_ ->
+                    "Repo '" ++ route ++ "' removed from the schedules allowlist."
+            }
 
 
 type alias KeyValuePair =

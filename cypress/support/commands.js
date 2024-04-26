@@ -26,6 +26,13 @@ Cypress.Commands.add('login', (path = '/') => {
   cy.visit(path);
 });
 
+// Login helper for site admin auth (accepts initial path to visit)
+Cypress.Commands.add('loginAdmin', (path = '/') => {
+  cy.server();
+  cy.route('/token-refresh*', 'fixture:auth_admin.json');
+  cy.visit(path);
+});
+
 // Faking the act of logging in helper
 Cypress.Commands.add('loggingIn', (path = '/') => {
   cy.server();
@@ -620,6 +627,30 @@ Cypress.Commands.add('redeliverHookError', () => {
     response: 'unable to redeliver hook',
   });
 });
+
+
+Cypress.Commands.add('workerPages', () => {
+  cy.server();
+  cy.fixture('workers_10a.json').as('workersPage1');
+  cy.fixture('workers_10b.json').as('workersPage2');
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/workers*',
+    headers: {
+      link: `<http://localhost:8888/api/v1/workers?page=2&per_page=10>; rel="next", <http://localhost:8888/api/v1/workers?page=2&per_page=10>; rel="last",`,
+    },
+    response: '@workersPage1',
+  });
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/workers?page=2*',
+    headers: {
+      link: `<http://localhost:8888/api/v1/workers?page=1&per_page=10>; rel="first", <http://localhost:8888/api/v1/workers?page=1&per_page=10>; rel="prev",`,
+    },
+    response: '@workersPage2',
+  });
+});
+
 
 Cypress.Commands.add('checkA11yForPage', (path = '/', opts = {}) => {
   cy.login(path);

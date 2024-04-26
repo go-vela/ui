@@ -142,6 +142,18 @@ td .key .list-item {
   border-left: 2px solid var(--color-lavender);
 }
 
+// workers
+.table-base tr.-busy {
+  border-bottom: none;
+  border-left: 2px solid var(--color-yellow);
+}
+
+.table-base tr.-available,
+.table-base tr.-idle {
+  border-bottom: none;
+  border-left: 2px solid var(--color-green);
+}
+
 .table-base .error-content {
   color: var(--color-red-light);
   font-size: 0.8em;

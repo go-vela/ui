@@ -7,19 +7,16 @@ module Pages.Admin.Settings exposing (Model, Msg, page)
 
 import Auth
 import Components.Form
-import Components.Loading
-import Components.Table
-import Dict exposing (Dict)
+import Dict
 import Effect exposing (Effect)
-import FeatherIcons
-import Html exposing (Html, button, div, h2, p, section, span, strong, text, tr)
-import Html.Attributes exposing (attribute, class, classList, disabled)
+import Html exposing (Html, button, div, h2, p, section, span, strong, text)
+import Html.Attributes exposing (class, classList, disabled)
 import Html.Events exposing (onClick)
 import Http
 import Http.Detailed
+import Json.Decode exposing (Error(..))
 import Layouts
 import List.Extra
-import Maybe.Extra
 import Page exposing (Page)
 import RemoteData exposing (WebData)
 import Route exposing (Route)
@@ -72,13 +69,9 @@ type alias Model =
     , cloneImage : String
     , starlarkExecLimit : Maybe Int
     , templateDepth : Maybe Int
-    , queueRoutes : ListInputForm
-    }
-
-
-type alias ListInputForm =
-    { val : String
-    , editing : Dict String String
+    , queueRoutes : Components.Form.EditableListForm
+    , repoAllowlist : Components.Form.EditableListForm
+    , scheduleAllowlist : Components.Form.EditableListForm
     }
 
 
@@ -90,20 +83,14 @@ init shared () =
       , starlarkExecLimit = Nothing
       , templateDepth = Nothing
       , queueRoutes = { val = "", editing = Dict.empty }
+      , repoAllowlist = { val = "", editing = Dict.empty }
+      , scheduleAllowlist = { val = "", editing = Dict.empty }
       }
-    , Effect.batch
-        [ Effect.getSettings
-            { baseUrl = shared.velaAPIBaseURL
-            , session = shared.session
-            , onResponse = GetSettingsResponse
-            }
-        , Effect.getSettingsString
-            { baseUrl = shared.velaAPIBaseURL
-            , session = shared.session
-            , onResponse = GetSettingsStringResponse
-            , output = Nothing
-            }
-        ]
+    , Effect.getSettings
+        { baseUrl = shared.velaAPIBaseURL
+        , session = shared.session
+        , onResponse = GetSettingsResponse
+        }
     )
 
 
@@ -114,20 +101,35 @@ init shared () =
 type Msg
     = -- SETTINGS
       GetSettingsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.PlatformSettings ))
-    | GetSettingsStringResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | UpdateSettingsResponse {} (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.PlatformSettings ))
+    | UpdateSettingsResponse { field : Vela.PlatformSettingsFieldUpdate } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.PlatformSettings ))
+      -- COMPILER
     | CloneImageOnInput String
     | CloneImageUpdate String
     | StarlarkExecLimitOnInput String
     | StarlarkExecLimitOnUpdate (Maybe Int)
     | TemplateDepthOnInput String
     | TemplateDepthOnUpdate (Maybe Int)
+      -- QUEUE
     | QueueRoutesOnInput String
     | QueueRoutesAddOnClick String
     | QueueRoutesEditOnClick { id : String }
     | QueueRoutesSaveOnClick { id : String, val : String }
     | QueueRoutesEditOnInput { id : String } String
     | QueueRoutesRemoveOnClick String
+      -- REPOS
+    | RepoAllowlistOnInput String
+    | RepoAllowlistAddOnClick String
+    | RepoAllowlistEditOnClick { id : String }
+    | RepoAllowlistSaveOnClick { id : String, val : String }
+    | RepoAllowlistEditOnInput { id : String } String
+    | RepoAllowlistRemoveOnClick String
+      -- SCHEDULES
+    | ScheduleAllowlistOnInput String
+    | ScheduleAllowlistAddOnClick String
+    | ScheduleAllowlistEditOnClick { id : String }
+    | ScheduleAllowlistSaveOnClick { id : String, val : String }
+    | ScheduleAllowlistEditOnInput { id : String } String
+    | ScheduleAllowlistRemoveOnClick String
 
 
 update : Shared.Model -> Route () -> Msg -> Model -> ( Model, Effect Msg )
@@ -153,34 +155,20 @@ update shared route msg model =
                         }
                     )
 
-        GetSettingsStringResponse response ->
-            case response of
-                Ok ( meta, exported ) ->
-                    ( { model
-                        | exported = RemoteData.Success exported
-                      }
-                    , Effect.none
-                    )
-
-                Err error ->
-                    ( { model | settings = Errors.toFailure error }
-                    , Effect.handleHttpError
-                        { error = error
-                        , shouldShowAlertFn = Errors.showAlertAlways
-                        }
-                    )
-
-        UpdateSettingsResponse _ response ->
+        UpdateSettingsResponse options response ->
             case response of
                 Ok ( meta, settings ) ->
+                    let
+                        responseConfig =
+                            Vela.platformSettingsFieldUpdateToResponseConfig options.field
+                    in
                     ( { model
                         | settings = RemoteData.Success settings
                       }
-                    , Effect.getSettingsString
-                        { baseUrl = shared.velaAPIBaseURL
-                        , session = shared.session
-                        , onResponse = GetSettingsStringResponse
-                        , output = Nothing
+                    , Effect.addAlertSuccess
+                        { content = responseConfig.successAlert settings
+                        , addToastIfUnique = False
+                        , link = Nothing
                         }
                     )
 
@@ -192,6 +180,7 @@ update shared route msg model =
                         }
                     )
 
+        -- COMPILER
         CloneImageOnInput val ->
             ( { model
                 | cloneImage = val
@@ -218,19 +207,23 @@ update shared route msg model =
             , Effect.updateSettings
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
-                , onResponse = UpdateSettingsResponse {}
+                , onResponse =
+                    UpdateSettingsResponse
+                        { field = Vela.CompilerCloneImage
+                        }
                 , body = body
                 }
             )
 
         StarlarkExecLimitOnInput val ->
-            let
-                limit =
-                    Maybe.withDefault 5000 <| String.toInt val
-            in
-            ( { model
-                | starlarkExecLimit = Just <| Maybe.withDefault limit <| String.toInt val
-              }
+            ( case String.toInt val of
+                Just val_ ->
+                    { model
+                        | starlarkExecLimit = Just val_
+                    }
+
+                Nothing ->
+                    model
             , Effect.none
             )
 
@@ -253,19 +246,23 @@ update shared route msg model =
             , Effect.updateSettings
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
-                , onResponse = UpdateSettingsResponse {}
+                , onResponse =
+                    UpdateSettingsResponse
+                        { field = Vela.CompilerStarlarkExecLimit
+                        }
                 , body = body
                 }
             )
 
         TemplateDepthOnInput val ->
-            let
-                limit =
-                    Maybe.withDefault 5 <| String.toInt val
-            in
-            ( { model
-                | templateDepth = Just <| Maybe.withDefault limit <| String.toInt val
-              }
+            ( case String.toInt val of
+                Just val_ ->
+                    { model
+                        | templateDepth = Just val_
+                    }
+
+                Nothing ->
+                    model
             , Effect.none
             )
 
@@ -288,27 +285,28 @@ update shared route msg model =
             , Effect.updateSettings
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
-                , onResponse = UpdateSettingsResponse {}
+                , onResponse =
+                    UpdateSettingsResponse
+                        { field = Vela.CompilerTemplateDepth
+                        }
                 , body = body
                 }
             )
 
+        -- QUEUE
         QueueRoutesOnInput val ->
             let
-                queueRoutes =
+                editableListForm =
                     model.queueRoutes
             in
             ( { model
-                | queueRoutes = { queueRoutes | val = val }
+                | queueRoutes = { editableListForm | val = val }
               }
             , Effect.none
             )
 
         QueueRoutesAddOnClick val ->
             let
-                queueRoutes =
-                    model.queueRoutes
-
                 queuePayload =
                     { defaultQueuePayload
                         | routes = Just <| List.Extra.unique <| val :: RemoteData.unwrap [] (.queue >> .routes) model.settings
@@ -321,12 +319,18 @@ update shared route msg model =
 
                 body =
                     Http.jsonBody <| Vela.encodeSettingsPayload payload
+
+                editableListForm =
+                    model.queueRoutes
             in
-            ( { model | queueRoutes = { queueRoutes | val = "" } }
+            ( { model | queueRoutes = { editableListForm | val = "" } }
             , Effect.updateSettings
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
-                , onResponse = UpdateSettingsResponse {}
+                , onResponse =
+                    UpdateSettingsResponse
+                        { field = Vela.QueueRouteAdd val
+                        }
                 , body = body
                 }
             )
@@ -345,12 +349,18 @@ update shared route msg model =
 
                 body =
                     Http.jsonBody <| Vela.encodeSettingsPayload payload
+
+                editableListForm =
+                    model.queueRoutes
             in
-            ( model
+            ( { model | queueRoutes = { editableListForm | editing = Dict.remove val editableListForm.editing } }
             , Effect.updateSettings
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
-                , onResponse = UpdateSettingsResponse {}
+                , onResponse =
+                    UpdateSettingsResponse
+                        { field = Vela.QueueRouteRemove val
+                        }
                 , body = body
                 }
             )
@@ -366,54 +376,329 @@ update shared route msg model =
                         | editing = Dict.insert options.id options.id model.queueRoutes.editing
                     }
               }
-            , Effect.none
+            , Effect.focusOn { target = saveButtonId queueRoutesId options.id }
             )
 
         QueueRoutesSaveOnClick options ->
             let
-                queueRoutes =
+                effect =
+                    if options.id /= options.val && String.length options.val > 0 then
+                        let
+                            queuePayload =
+                                { defaultQueuePayload
+                                    | routes =
+                                        model.settings
+                                            |> RemoteData.unwrap [] (.queue >> .routes)
+                                            |> List.Extra.updateIf (\item -> item == options.id) (\_ -> options.val)
+                                            |> Just
+                                }
+
+                            payload =
+                                { defaultSettingsPayload
+                                    | queue = Just queuePayload
+                                }
+
+                            body =
+                                Http.jsonBody <| Vela.encodeSettingsPayload payload
+                        in
+                        Effect.updateSettings
+                            { baseUrl = shared.velaAPIBaseURL
+                            , session = shared.session
+                            , onResponse =
+                                UpdateSettingsResponse
+                                    { field = Vela.QueueRouteUpdate options.id options.val
+                                    }
+                            , body = body
+                            }
+
+                    else
+                        Effect.none
+
+                editableListForm =
                     model.queueRoutes
-
-                queuePayload =
-                    { defaultQueuePayload
-                        | routes =
-                            model.settings
-                                |> RemoteData.unwrap [] (.queue >> .routes)
-                                |> List.Extra.updateIf (\item -> item == options.id) (\_ -> options.val)
-                                |> Just
-                    }
-
-                payload =
-                    { defaultSettingsPayload
-                        | queue = Just queuePayload
-                    }
-
-                body =
-                    Http.jsonBody <| Vela.encodeSettingsPayload payload
             in
             ( { model
                 | queueRoutes =
-                    { queueRoutes
+                    { editableListForm
                         | editing = Dict.remove options.id model.queueRoutes.editing
                     }
               }
-            , Effect.updateSettings
-                { baseUrl = shared.velaAPIBaseURL
-                , session = shared.session
-                , onResponse = UpdateSettingsResponse {}
-                , body = body
-                }
+            , effect
             )
 
         QueueRoutesEditOnInput options val ->
             let
-                queueRoutes =
+                editableListForm =
                     model.queueRoutes
             in
             ( { model
                 | queueRoutes =
-                    { queueRoutes
+                    { editableListForm
                         | editing = Dict.insert options.id val model.queueRoutes.editing
+                    }
+              }
+            , Effect.none
+            )
+
+        -- REPOS
+        RepoAllowlistOnInput val ->
+            let
+                editableListForm =
+                    model.repoAllowlist
+            in
+            ( { model
+                | repoAllowlist = { editableListForm | val = val }
+              }
+            , Effect.none
+            )
+
+        RepoAllowlistAddOnClick val ->
+            let
+                payload =
+                    { defaultSettingsPayload
+                        | repoAllowlist = Just <| List.Extra.unique <| val :: RemoteData.unwrap [] .repoAllowlist model.settings
+                    }
+
+                body =
+                    Http.jsonBody <| Vela.encodeSettingsPayload payload
+
+                editableListForm =
+                    model.repoAllowlist
+            in
+            ( { model | repoAllowlist = { editableListForm | val = "" } }
+            , Effect.updateSettings
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse =
+                    UpdateSettingsResponse
+                        { field = Vela.RepoAllowlistAdd val
+                        }
+                , body = body
+                }
+            )
+
+        RepoAllowlistRemoveOnClick val ->
+            let
+                payload =
+                    { defaultSettingsPayload
+                        | repoAllowlist = Just <| List.Extra.remove val <| RemoteData.unwrap [] .repoAllowlist model.settings
+                    }
+
+                body =
+                    Http.jsonBody <| Vela.encodeSettingsPayload payload
+
+                editableListForm =
+                    model.repoAllowlist
+            in
+            ( { model | repoAllowlist = { editableListForm | editing = Dict.remove val editableListForm.editing } }
+            , Effect.updateSettings
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse =
+                    UpdateSettingsResponse
+                        { field = Vela.RepoAllowlistRemove val
+                        }
+                , body = body
+                }
+            )
+
+        RepoAllowlistEditOnClick options ->
+            let
+                editableListForm =
+                    model.repoAllowlist
+            in
+            ( { model
+                | repoAllowlist =
+                    { editableListForm
+                        | editing = Dict.insert options.id options.id model.repoAllowlist.editing
+                    }
+              }
+            , Effect.focusOn { target = saveButtonId repoAllowlistId options.id }
+            )
+
+        RepoAllowlistSaveOnClick options ->
+            let
+                effect =
+                    if options.id /= options.val && String.length options.val > 0 then
+                        let
+                            payload =
+                                { defaultSettingsPayload
+                                    | repoAllowlist =
+                                        model.settings
+                                            |> RemoteData.unwrap [] .repoAllowlist
+                                            |> List.Extra.updateIf (\item -> item == options.id) (\_ -> options.val)
+                                            |> Just
+                                }
+
+                            body =
+                                Http.jsonBody <| Vela.encodeSettingsPayload payload
+                        in
+                        Effect.updateSettings
+                            { baseUrl = shared.velaAPIBaseURL
+                            , session = shared.session
+                            , onResponse =
+                                UpdateSettingsResponse
+                                    { field = Vela.RepoAllowlistUpdate options.id options.val
+                                    }
+                            , body = body
+                            }
+
+                    else
+                        Effect.none
+
+                editableListForm =
+                    model.repoAllowlist
+            in
+            ( { model
+                | repoAllowlist =
+                    { editableListForm
+                        | editing = Dict.remove options.id model.repoAllowlist.editing
+                    }
+              }
+            , effect
+            )
+
+        RepoAllowlistEditOnInput options val ->
+            let
+                editableListForm =
+                    model.repoAllowlist
+            in
+            ( { model
+                | repoAllowlist =
+                    { editableListForm
+                        | editing = Dict.insert options.id val model.repoAllowlist.editing
+                    }
+              }
+            , Effect.none
+            )
+
+        -- SCHEDULES
+        ScheduleAllowlistOnInput val ->
+            let
+                editableListForm =
+                    model.scheduleAllowlist
+            in
+            ( { model
+                | scheduleAllowlist = { editableListForm | val = val }
+              }
+            , Effect.none
+            )
+
+        ScheduleAllowlistAddOnClick val ->
+            let
+                payload =
+                    { defaultSettingsPayload
+                        | scheduleAllowlist = Just <| List.Extra.unique <| val :: RemoteData.unwrap [] .scheduleAllowlist model.settings
+                    }
+
+                body =
+                    Http.jsonBody <| Vela.encodeSettingsPayload payload
+
+                editableListForm =
+                    model.scheduleAllowlist
+            in
+            ( { model | scheduleAllowlist = { editableListForm | val = "" } }
+            , Effect.updateSettings
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse =
+                    UpdateSettingsResponse
+                        { field = Vela.ScheduleAllowlistAdd val
+                        }
+                , body = body
+                }
+            )
+
+        ScheduleAllowlistRemoveOnClick val ->
+            let
+                payload =
+                    { defaultSettingsPayload
+                        | scheduleAllowlist = Just <| List.Extra.remove val <| RemoteData.unwrap [] .scheduleAllowlist model.settings
+                    }
+
+                body =
+                    Http.jsonBody <| Vela.encodeSettingsPayload payload
+
+                editableListForm =
+                    model.scheduleAllowlist
+            in
+            ( { model | scheduleAllowlist = { editableListForm | editing = Dict.remove val editableListForm.editing } }
+            , Effect.updateSettings
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse =
+                    UpdateSettingsResponse
+                        { field = Vela.ScheduleAllowlistRemove val
+                        }
+                , body = body
+                }
+            )
+
+        ScheduleAllowlistEditOnClick options ->
+            let
+                editableListForm =
+                    model.scheduleAllowlist
+            in
+            ( { model
+                | scheduleAllowlist =
+                    { editableListForm
+                        | editing = Dict.insert options.id options.id model.scheduleAllowlist.editing
+                    }
+              }
+            , Effect.focusOn { target = saveButtonId scheduleAllowlistId options.id }
+            )
+
+        ScheduleAllowlistSaveOnClick options ->
+            let
+                effect =
+                    if options.id /= options.val && String.length options.val > 0 then
+                        let
+                            payload =
+                                { defaultSettingsPayload
+                                    | scheduleAllowlist =
+                                        model.settings
+                                            |> RemoteData.unwrap [] .scheduleAllowlist
+                                            |> List.Extra.updateIf (\item -> item == options.id) (\_ -> options.val)
+                                            |> Just
+                                }
+
+                            body =
+                                Http.jsonBody <| Vela.encodeSettingsPayload payload
+                        in
+                        Effect.updateSettings
+                            { baseUrl = shared.velaAPIBaseURL
+                            , session = shared.session
+                            , onResponse =
+                                UpdateSettingsResponse
+                                    { field = Vela.ScheduleAllowlistUpdate options.id options.val
+                                    }
+                            , body = body
+                            }
+
+                    else
+                        Effect.none
+
+                editableListForm =
+                    model.scheduleAllowlist
+            in
+            ( { model
+                | scheduleAllowlist =
+                    { editableListForm
+                        | editing = Dict.remove options.id model.scheduleAllowlist.editing
+                    }
+              }
+            , effect
+            )
+
+        ScheduleAllowlistEditOnInput options val ->
+            let
+                editableListForm =
+                    model.scheduleAllowlist
+            in
+            ( { model
+                | scheduleAllowlist =
+                    { editableListForm
+                        | editing = Dict.insert options.id val model.scheduleAllowlist.editing
                     }
               }
             , Effect.none
@@ -435,20 +720,15 @@ subscriptions model =
 
 view : Shared.Model -> Route () -> Model -> View Msg
 view shared route model =
-    { title = "Pages.Admin.Settings"
+    { title = ""
     , body =
         [ div [ class "admin-settings" ]
             [ section
                 [ class "settings"
                 ]
-                [ h2 [ class "settings-title" ] [ text "Compiler" ]
-                , p [ class "settings-description" ]
-                    [ text "Which image to use with the embedded clone step."
-                    ]
-                , p [ class "settings-env-key" ]
-                    [ strong [] [ text "Env: " ]
-                    , span [ class "env-key-value" ] [ text "VELA_CLONE_IMAGE" ]
-                    ]
+                [ viewFieldHeader "Clone Image"
+                , viewFieldDescription "The image to use with the embedded clone step."
+                , viewFieldEnvKeyValue "VELA_CLONE_IMAGE"
                 , div [ class "form-controls" ]
                     [ Components.Form.viewInput
                         { title = Nothing
@@ -469,6 +749,14 @@ view shared route model =
                             , ( "-outline", True )
                             ]
                         , onClick <| CloneImageUpdate model.cloneImage
+                        , disabled <|
+                            RemoteData.unwrap True
+                                (\s ->
+                                    String.isEmpty model.cloneImage
+                                        || s.compiler.cloneImage
+                                        == model.cloneImage
+                                )
+                                model.settings
                         ]
                         [ text "update" ]
                     ]
@@ -476,21 +764,17 @@ view shared route model =
             , section
                 [ class "settings"
                 ]
-                [ h2 [ class "settings-title" ] [ text "Starlark" ]
-                , p [ class "settings-description" ]
-                    [ text "Exec limit provided to Starlark compiler."
-                    ]
-                , p [ class "settings-env-key" ]
-                    [ strong [] [ text "Env: " ]
-                    , span [ class "env-key-value" ] [ text "VELA_COMPILER_STARLARK_EXEC_LIMIT" ]
-                    ]
+                [ viewFieldHeader "Starlark Exec Limit"
+                , viewFieldDescription "The number of executions allowed for Starlark scripts."
+                , viewFieldEnvKeyValue "VELA_COMPILER_STARLARK_EXEC_LIMIT"
                 , div [ class "form-controls" ]
                     [ Components.Form.viewNumberInput
                         { title = Nothing
                         , subtitle = Nothing
                         , id_ = "starlark-exec-limit"
                         , val = model.starlarkExecLimit
-                        , placeholder_ = "5000"
+                        , placeholder_ = ""
+                        , wrapperClassList = [ ( "-wide", True ) ]
                         , classList_ = []
                         , rows_ = Nothing
                         , wrap_ = Nothing
@@ -505,6 +789,17 @@ view shared route model =
                             , ( "-outline", True )
                             ]
                         , onClick <| StarlarkExecLimitOnUpdate model.starlarkExecLimit
+                        , disabled <|
+                            RemoteData.unwrap True
+                                (\s ->
+                                    case model.starlarkExecLimit of
+                                        Just limit ->
+                                            limit == s.compiler.starlarkExecLimit
+
+                                        Nothing ->
+                                            True
+                                )
+                                model.settings
                         ]
                         [ text "update" ]
                     ]
@@ -512,21 +807,17 @@ view shared route model =
             , section
                 [ class "settings"
                 ]
-                [ h2 [ class "settings-title" ] [ text "Template Depth" ]
-                , p [ class "settings-description" ]
-                    [ text "The depth allowed for nested template references."
-                    ]
-                , p [ class "settings-env-key" ]
-                    [ strong [] [ text "Env: " ]
-                    , span [ class "env-key-value" ] [ text "VELA_TEMPLATE_DEPTH" ]
-                    ]
+                [ viewFieldHeader "Template Depth"
+                , viewFieldDescription "The depth allowed for nested template references."
+                , viewFieldEnvKeyValue "VELA_TEMPLATE_DEPTH"
                 , div [ class "form-controls" ]
                     [ Components.Form.viewNumberInput
                         { title = Nothing
                         , subtitle = Nothing
                         , id_ = "template-depth"
                         , val = model.templateDepth
-                        , placeholder_ = "5"
+                        , placeholder_ = ""
+                        , wrapperClassList = [ ( "-wide", True ) ]
                         , classList_ = []
                         , rows_ = Nothing
                         , wrap_ = Nothing
@@ -541,6 +832,17 @@ view shared route model =
                             , ( "-outline", True )
                             ]
                         , onClick <| TemplateDepthOnUpdate model.templateDepth
+                        , disabled <|
+                            RemoteData.unwrap True
+                                (\s ->
+                                    case model.templateDepth of
+                                        Just limit ->
+                                            limit == s.compiler.templateDepth
+
+                                        Nothing ->
+                                            True
+                                )
+                                model.settings
                         ]
                         [ text "update" ]
                     ]
@@ -548,188 +850,178 @@ view shared route model =
             , section
                 [ class "settings"
                 ]
-                [ h2 [ class "settings-title" ] [ text "Queue Routes" ]
-                , p [ class "settings-description" ]
-                    [ text "The queue routes used when queuing builds."
-                    ]
-                , p [ class "settings-env-key" ]
-                    [ strong [] [ text "Env: " ]
-                    , span [ class "env-key-value" ] [ text "VELA_QUEUE_ROUTES" ]
-                    ]
-                , viewQueueRoutesTable shared model
+                [ viewFieldHeader "Queue Routes"
+                , viewFieldDescription "The queue routes used when queuing builds."
+                , viewFieldEnvKeyValue "VELA_QUEUE_ROUTES"
+                , Components.Form.viewEditableList
+                    { id_ = queueRoutesId
+                    , webdata = model.settings
+                    , toItems = .queue >> .routes
+                    , addProps =
+                        Just
+                            { placeholder_ = "vela"
+                            , addOnInputMsg = QueueRoutesOnInput
+                            , addOnClickMsg = QueueRoutesAddOnClick
+                            }
+                    , viewHttpError =
+                        \error ->
+                            span [ Util.testAttribute <| queueRoutesId ++ "-error" ]
+                                [ text <|
+                                    case error of
+                                        Http.BadStatus statusCode ->
+                                            case statusCode of
+                                                401 ->
+                                                    "No settings found"
+
+                                                _ ->
+                                                    "No settings found, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+
+                                        _ ->
+                                            "No settings found"
+                                ]
+                    , viewNoItems = text "no routes found"
+                    , form = model.queueRoutes
+                    , itemEditOnClickMsg = QueueRoutesEditOnClick
+                    , itemSaveOnClickMsg = QueueRoutesSaveOnClick
+                    , itemEditOnInputMsg = QueueRoutesEditOnInput
+                    , itemRemoveOnClickMsg = QueueRoutesRemoveOnClick
+                    }
+                ]
+            , section
+                [ class "settings"
+                ]
+                [ viewFieldHeader "Repo Allowlist"
+                , viewFieldDescription "The repos permitted to use Vela."
+                , viewFieldEnvKeyValue "VELA_REPO_ALLOWLIST"
+                , Components.Form.viewEditableList
+                    { id_ = repoAllowlistId
+                    , webdata = model.settings
+                    , toItems = .repoAllowlist
+                    , addProps =
+                        Just
+                            { placeholder_ = "octocat/hello-world"
+                            , addOnInputMsg = RepoAllowlistOnInput
+                            , addOnClickMsg = RepoAllowlistAddOnClick
+                            }
+                    , viewHttpError =
+                        \error ->
+                            span [ Util.testAttribute <| repoAllowlistId ++ "-error" ]
+                                [ text <|
+                                    case error of
+                                        Http.BadStatus statusCode ->
+                                            case statusCode of
+                                                401 ->
+                                                    "No settings found"
+
+                                                _ ->
+                                                    "No settings found, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+
+                                        _ ->
+                                            "No settings found"
+                                ]
+                    , viewNoItems = text "no repos found"
+                    , form = model.repoAllowlist
+                    , itemEditOnClickMsg = RepoAllowlistEditOnClick
+                    , itemSaveOnClickMsg = RepoAllowlistSaveOnClick
+                    , itemEditOnInputMsg = RepoAllowlistEditOnInput
+                    , itemRemoveOnClickMsg = RepoAllowlistRemoveOnClick
+                    }
+                ]
+            , section
+                [ class "settings"
+                ]
+                [ viewFieldHeader "Schedule Allowlist"
+                , viewFieldDescription "The repos permitted to use schedules."
+                , viewFieldEnvKeyValue "VELA_SCHEDULE_ALLOWLIST"
+                , Components.Form.viewEditableList
+                    { id_ = scheduleAllowlistId
+                    , webdata = model.settings
+                    , toItems = .scheduleAllowlist
+                    , addProps =
+                        Just
+                            { placeholder_ = "octocat/hello-world"
+                            , addOnInputMsg = ScheduleAllowlistOnInput
+                            , addOnClickMsg = ScheduleAllowlistAddOnClick
+                            }
+                    , viewHttpError =
+                        \error ->
+                            span [ Util.testAttribute <| scheduleAllowlistId ++ "-error" ]
+                                [ text <|
+                                    case error of
+                                        Http.BadStatus statusCode ->
+                                            case statusCode of
+                                                401 ->
+                                                    "No settings found"
+
+                                                _ ->
+                                                    "No settings found, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+
+                                        _ ->
+                                            "No settings found"
+                                ]
+                    , viewNoItems = text "no repos found"
+                    , form = model.scheduleAllowlist
+                    , itemEditOnClickMsg = ScheduleAllowlistEditOnClick
+                    , itemSaveOnClickMsg = ScheduleAllowlistSaveOnClick
+                    , itemEditOnInputMsg = ScheduleAllowlistEditOnInput
+                    , itemRemoveOnClickMsg = ScheduleAllowlistRemoveOnClick
+                    }
                 ]
             ]
         ]
     }
 
 
-{-| viewQueueRoutesTable : renders a list of queue routes
+{-| viewFieldHeader : renders header view for a settings field
 -}
-viewQueueRoutesTable : Shared.Model -> Model -> Html Msg
-viewQueueRoutesTable shared model =
-    let
-        actions =
-            Nothing
+viewFieldHeader : String -> Html Msg
+viewFieldHeader title =
+    h2 [ class "settings-title" ]
+        [ text title ]
 
-        ( noRowsView, rows ) =
-            let
-                viewHttpError e =
-                    span [ Util.testAttribute "queue-routes-error" ]
-                        [ text <|
-                            case e of
-                                Http.BadStatus statusCode ->
-                                    case statusCode of
-                                        401 ->
-                                            "No settings found"
 
-                                        _ ->
-                                            "No settings found, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
-
-                                _ ->
-                                    "No settings found"
-                        ]
-            in
-            case model.settings of
-                RemoteData.Success s ->
-                    ( text "No queue routes found"
-                    , queueRoutesToRows shared model s.queue.routes
-                    )
-
-                RemoteData.Failure error ->
-                    ( viewHttpError error, [] )
-
-                _ ->
-                    ( Components.Loading.viewSmallLoader, [] )
-
-        cfg =
-            Components.Table.Config
-                Nothing
-                "routes"
-                noRowsView
-                []
-                rows
-                actions
-    in
-    div []
-        [ div [ class "form-controls" ]
-            [ Components.Form.viewInput
-                { title = Nothing
-                , subtitle = Nothing
-                , id_ = "queue-route"
-                , val = model.queueRoutes.val
-                , placeholder_ = "vela"
-                , classList_ = []
-                , wrapperClassList =
-                    [ ( "-wide", True )
-                    ]
-                , rows_ = Nothing
-                , wrap_ = Nothing
-                , msg = QueueRoutesOnInput
-                , disabled_ = False
-                }
-            , button
-                [ classList
-                    [ ( "button", True )
-                    , ( "-outline", True )
-                    ]
-                , onClick <| QueueRoutesAddOnClick model.queueRoutes.val
-                , disabled <| (String.length model.queueRoutes.val == 0) || (not <| RemoteData.isSuccess model.settings)
-                ]
-                [ text "add" ]
-            ]
-        , Components.Table.view cfg
+{-| viewFieldDescription : renders description view for a settings field
+-}
+viewFieldDescription : String -> Html Msg
+viewFieldDescription description =
+    p [ class "settings-description" ]
+        [ text description
         ]
 
 
-{-| queueRoutesToRows : takes list of queue routes and produces list of Table rows
+{-| viewFieldEnvKeyValue : renders env key view for a settings field
 -}
-queueRoutesToRows : Shared.Model -> Model -> List String -> Components.Table.Rows String Msg
-queueRoutesToRows shared model items =
-    List.map (\item -> Components.Table.Row item (viewqueueRouteRow shared model)) items
-
-
-{-| viewqueueRouteRow : takes item and renders a table row
--}
-viewqueueRouteRow : Shared.Model -> Model -> String -> Html Msg
-viewqueueRouteRow shared model item =
-    let
-        editing =
-            Maybe.Extra.unwrap Nothing (\e -> Just e) <| Dict.get item model.queueRoutes.editing
-    in
-    tr [ Util.testAttribute <| "item-row" ]
-        [ Components.Table.viewItemCell
-            { dataLabel = "item"
-            , parentClassList = []
-            , itemClassList = []
-            , children =
-                [ case editing of
-                    Just val ->
-                        Components.Form.viewInput
-                            { title = Nothing
-                            , subtitle = Nothing
-                            , id_ = "queue-route"
-                            , val = val
-                            , placeholder_ = "vela"
-                            , wrapperClassList = []
-                            , classList_ = []
-                            , rows_ = Nothing
-                            , wrap_ = Nothing
-                            , msg = QueueRoutesEditOnInput { id = item }
-                            , disabled_ = False
-                            }
-
-                    Nothing ->
-                        text item
-                ]
-            }
-        , Components.Table.viewIconCell
-            { dataLabel = "copy yaml"
-            , parentClassList = []
-            , itemWrapperClassList = []
-            , itemClassList = []
-            , children =
-                [ div []
-                    [ case editing of
-                        Just val ->
-                            button
-                                [ class "remove-button"
-                                , attribute "aria-label" "remove queue route "
-                                , class "button"
-                                , class "-icon"
-                                , onClick <| QueueRoutesSaveOnClick { id = item, val = val }
-                                , Util.testAttribute "remove-route"
-                                ]
-                                [ FeatherIcons.save
-                                    |> FeatherIcons.withSize 18
-                                    |> FeatherIcons.toHtml []
-                                ]
-
-                        _ ->
-                            button
-                                [ class "remove-button"
-                                , attribute "aria-label" "remove queue route "
-                                , class "button"
-                                , class "-icon"
-                                , onClick <| QueueRoutesEditOnClick { id = item }
-                                , Util.testAttribute "remove-route"
-                                ]
-                                [ FeatherIcons.edit2
-                                    |> FeatherIcons.withSize 18
-                                    |> FeatherIcons.toHtml []
-                                ]
-                    , button
-                        [ class "remove-button"
-                        , attribute "aria-label" "remove queue route "
-                        , class "button"
-                        , class "-icon"
-                        , onClick <| QueueRoutesRemoveOnClick item
-                        , Util.testAttribute "remove-route"
-                        ]
-                        [ FeatherIcons.minusSquare
-                            |> FeatherIcons.withSize 18
-                            |> FeatherIcons.toHtml []
-                        ]
-                    ]
-                ]
-            }
+viewFieldEnvKeyValue : String -> Html Msg
+viewFieldEnvKeyValue envKey =
+    p [ class "settings-env-key" ]
+        [ strong [] [ text "Env: " ]
+        , span [ class "env-key-value" ] [ text envKey ]
         ]
+
+
+{-| queueRoutesId : returns reusable id for queue routes
+-}
+queueRoutesId : String
+queueRoutesId =
+    "queue-routes"
+
+
+{-| repoAllowlistId : returns reusable id for repo allowlist
+-}
+repoAllowlistId : String
+repoAllowlistId =
+    "repo-allowlist"
+
+
+{-| scheduleAllowlistId : returns reusable id for schedule allowlist
+-}
+scheduleAllowlistId : String
+scheduleAllowlistId =
+    "schedule-allowlist"
+
+
+{-| saveButtonId : returns reusable id for save button
+-}
+saveButtonId : String -> String -> String
+saveButtonId base id =
+    base ++ "-save-" ++ id
