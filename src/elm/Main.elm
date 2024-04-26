@@ -3284,7 +3284,7 @@ isAuthProtected routePath =
             True
 
         Route.Path.Dashboards_Dashboard_ _ ->
-            False
+            True
 
         Route.Path.Org_ _ ->
             True
