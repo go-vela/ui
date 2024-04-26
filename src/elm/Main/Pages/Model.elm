@@ -57,7 +57,7 @@ type Model
     | Dash_Secrets_Engine__Shared_Org__Team_ { engine : String, org : String, team : String } Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Model
     | Dash_Secrets_Engine__Shared_Org__Team__Add { engine : String, org : String, team : String } Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Add.Model
     | Dash_Secrets_Engine__Shared_Org__Team__Name_ { engine : String, org : String, team : String, name : String } Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_.Model
-    | Dashboards_Dashboard_ { dashboard : String } Pages.Dashboards.Dashboard_.Model
+    | Dashboards_Dashboard_ { dashboardId : String } Pages.Dashboards.Dashboard_.Model
     | Org_ { org : String } Pages.Org_.Model
     | Org__Builds { org : String } Pages.Org_.Builds.Model
     | Org__Repo_ { org : String, repo : String } Pages.Org_.Repo_.Model

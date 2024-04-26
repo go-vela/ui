@@ -12,6 +12,8 @@ module Vela exposing
     , BuildGraphInteraction
     , BuildGraphNode
     , BuildNumber
+    , Dashboard
+    , DashboardRepoCard
     , Deployment
     , DeploymentPayload
     , EnableRepoPayload
@@ -53,6 +55,7 @@ module Vela exposing
     , decodeBuild
     , decodeBuildGraph
     , decodeBuilds
+    , decodeDashboard
     , decodeDeployment
     , decodeDeployments
     , decodeGraphInteraction
@@ -158,6 +161,101 @@ type alias Key =
 
 type alias Ref =
     String
+
+
+
+-- DASHBOARD
+
+
+type alias Dashboard =
+    { dashboard : DashboardItem
+    , repos : List DashboardRepoCard
+    }
+
+
+type alias DashboardItem =
+    { id : String
+    , name : String
+    , created_at : Int
+    , created_by : String
+    , updated_at : Int
+    , updated_by : String
+    , admins : List User
+    , repos : List DashboardRepo
+    }
+
+
+type alias DashboardRepo =
+    { id : Int
+    , name : String
+    , branches : List String
+    , events : List String
+    }
+
+
+type alias DashboardRepoCard =
+    { org : String
+    , name : String
+    , counter : Int
+    , builds : List DashboardRepoCardBuild
+    }
+
+
+type alias DashboardRepoCardBuild =
+    { number : Int
+    , started : Int
+    , finished : Int
+    , sender : String
+    , status : Status
+    }
+
+
+decodeDashboard : Decoder Dashboard
+decodeDashboard =
+    Json.Decode.succeed Dashboard
+        |> optional "dashboard" decodeDashboardItem (DashboardItem "" "" 0 "" 0 "" [] [])
+        |> optional "repos" (Json.Decode.list decodeDashboardRepoCard) []
+
+
+decodeDashboardItem : Decoder DashboardItem
+decodeDashboardItem =
+    Json.Decode.succeed DashboardItem
+        |> optional "id" string ""
+        |> optional "name" string ""
+        |> optional "created_at" int -1
+        |> optional "created_by" string ""
+        |> optional "updated_at" int -1
+        |> optional "updated_by" string ""
+        |> optional "admins" (Json.Decode.list decodeUser) []
+        |> optional "repos" (Json.Decode.list decodeDashboardRepo) []
+
+
+decodeDashboardRepoCard : Decoder DashboardRepoCard
+decodeDashboardRepoCard =
+    Json.Decode.succeed DashboardRepoCard
+        |> optional "org" string ""
+        |> optional "name" string ""
+        |> optional "counter" int -1
+        |> optional "builds" (Json.Decode.list decodeDashboardRepoCardBuild) []
+
+
+decodeDashboardRepo : Decoder DashboardRepo
+decodeDashboardRepo =
+    Json.Decode.succeed DashboardRepo
+        |> optional "id" int -1
+        |> optional "name" string ""
+        |> optional "branches" (Json.Decode.list string) []
+        |> optional "events" (Json.Decode.list string) []
+
+
+decodeDashboardRepoCardBuild : Decoder DashboardRepoCardBuild
+decodeDashboardRepoCardBuild =
+    Json.Decode.succeed DashboardRepoCardBuild
+        |> optional "number" int -1
+        |> optional "started" int -1
+        |> optional "finished" int -1
+        |> optional "sender" string ""
+        |> optional "status" buildStatusDecoder Pending
 
 
 

@@ -27,6 +27,7 @@ module Api.Operations exposing
     , getBuildStepLog
     , getBuildSteps
     , getCurrentUser
+    , getDashboard
     , getOrgBuilds
     , getOrgRepos
     , getOrgSecret
@@ -1197,4 +1198,16 @@ deleteSharedSecret baseUrl session options =
             options.name
         )
         Json.Decode.string
+        |> withAuth session
+
+
+{-| getDashboard : retrieve a dashboard.
+-}
+getDashboard : String -> Session -> { a | dashboardId : String } -> Request Vela.Dashboard
+getDashboard baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.Dashboard
+            options.dashboardId
+        )
+        Vela.decodeDashboard
         |> withAuth session
