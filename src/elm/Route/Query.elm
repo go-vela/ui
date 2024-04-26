@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Route.Query exposing (fromString, fromUrl, toString)
+module Route.Query exposing (fromUrl, toString)
 
 import Dict exposing (Dict)
 import Url exposing (Url)
@@ -28,20 +28,6 @@ fromUrl url =
                     |> String.split "&"
                     |> List.filterMap (String.split "=" >> queryPiecesToTuple)
                     |> Dict.fromList
-
-
-{-| fromString : takes in a query string and returns a dictionary of query parameters.
--}
-fromString : String -> Dict String String
-fromString query =
-    if String.isEmpty query then
-        Dict.empty
-
-    else
-        query
-            |> String.split "&"
-            |> List.filterMap (String.split "=" >> queryPiecesToTuple)
-            |> Dict.fromList
 
 
 {-| queryPiecesToTuple : takes in a list of strings and returns a tuple of two strings.
