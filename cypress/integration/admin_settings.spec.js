@@ -3,25 +3,29 @@
  */
 
 context('Admin Settings', () => {
-  // context('server returning bad repo', () => {
-  //   beforeEach(() => {
-  //     cy.server();
-  //     cy.route(
-  //       'PUT',
-  //       '*api/v1/repos/*/octocat',
-  //       'fixture:repository_updated.json',
-  //     );
-  //     cy.route(
-  //       'GET',
-  //       '*api/v1/repos/*/octocatbad',
-  //       'fixture:repository_bad.json',
-  //     );
-  //     cy.login('/github/octocatbad/settings');
-  //   });
-  //   it('should show an error', () => {
-  //     cy.get('[data-test=alert]').should('be.visible').contains('Error');
-  //   });
-  // });
+  beforeEach(() => {
+    cy.server();
+    cy.route({
+      method: 'GET',
+      url: '*api/v1/user*',
+      status: 200,
+      response: 'fixture:user_admin.json',
+    });
+  });
+  context('server returning bad repo', () => {
+    beforeEach(() => {
+      cy.server();
+      cy.route(
+        'GET',
+        '*api/v1/admin/settings',
+        'fixture:settings_bad.json',
+      );
+      cy.loginAdmin('/admin/settings');
+    });
+    it('should show an error', () => {
+      cy.get('[data-test=alert]').should('be.visible').contains('Error');
+    });
+  });
   // context('server returning repo', () => {
   //   beforeEach(() => {
   //     cy.server();
