@@ -71,7 +71,8 @@ context('Admin Settings', () => {
           .type('target/vela-git:abc123');
         cy.get('[data-test=button-clone-image-update]').click();
         cy.get('[data-test=alert]').should('be.visible').contains('Success');
-        cy.get('[data-test=input-clone-image]').should('be.visible')
+        cy.get('[data-test=input-clone-image]')
+          .should('be.visible')
           .should('have.value', 'target/vela-git:abc123');
       });
       it('editing above or below a limit should disable button', () => {
@@ -79,13 +80,17 @@ context('Admin Settings', () => {
           .should('be.visible')
           .clear()
           .type('999999');
-          cy.get('[data-test=button-template-depth-update]').should('be.disabled');
+        cy.get('[data-test=button-template-depth-update]').should(
+          'be.disabled',
+        );
 
-          cy.get('[data-test=input-template-depth]')
+        cy.get('[data-test=input-template-depth]')
           .should('be.visible')
           .type('0');
-          cy.get('[data-test=button-template-depth-update]').should('be.disabled');
-        });
+        cy.get('[data-test=button-template-depth-update]').should(
+          'be.disabled',
+        );
+      });
       // context('list item should allow editing', () => {
       //   it('edit button should toggle save and remove buttons', () => {
       //     cy.get('[data-test=editable-list-queue-routes]')
@@ -235,4 +240,3 @@ context('Admin Settings', () => {
     });
   });
 });
-

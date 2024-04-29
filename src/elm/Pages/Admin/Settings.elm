@@ -9,9 +9,8 @@ import Auth
 import Components.Form
 import Dict
 import Effect exposing (Effect)
-import Html exposing (Html, button, div, h2, p, section, span, strong, text)
-import Html.Attributes exposing (class, classList, disabled)
-import Html.Events exposing (onClick)
+import Html exposing (Html, div, h2, p, section, span, strong, text)
+import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
 import Json.Decode exposing (Error(..))
@@ -383,7 +382,7 @@ update shared route msg model =
                         | editing = Dict.insert options.id options.id model.queueRoutes.editing
                     }
               }
-            , Effect.focusOn { target = saveButtonId queueRoutesId options.id }
+            , Effect.focusOn { target = saveButtonHtmlId queueRoutesHtmlId options.id }
             )
 
         QueueRoutesSaveOnClick options ->
@@ -535,7 +534,7 @@ update shared route msg model =
                         | editing = Dict.insert options.id options.id model.repoAllowlist.editing
                     }
               }
-            , Effect.focusOn { target = saveButtonId repoAllowlistId options.id }
+            , Effect.focusOn { target = saveButtonHtmlId repoAllowlistHtmlId options.id }
             )
 
         RepoAllowlistSaveOnClick options ->
@@ -682,7 +681,7 @@ update shared route msg model =
                         | editing = Dict.insert options.id options.id model.scheduleAllowlist.editing
                     }
               }
-            , Effect.focusOn { target = saveButtonId scheduleAllowlistId options.id }
+            , Effect.focusOn { target = saveButtonHtmlId scheduleAllowlistHtmlId options.id }
             )
 
         ScheduleAllowlistSaveOnClick options ->
@@ -770,7 +769,7 @@ view shared route model =
                     [ Components.Form.viewInput
                         { title = Nothing
                         , subtitle = Nothing
-                        , id_ = "clone-image"
+                        , id_ = cloneImageHtmlId
                         , val = model.cloneImage
                         , placeholder_ = "docker.io/target/vela-git:latest"
                         , classList_ = []
@@ -781,7 +780,7 @@ view shared route model =
                         , disabled_ = False
                         }
                     , Components.Form.viewButton
-                        { id_ = "clone-image-update"
+                        { id_ = cloneImageHtmlId ++ "-update"
                         , msg = CloneImageUpdate model.cloneImage
                         , text_ = "update"
                         , classList_ =
@@ -809,7 +808,7 @@ view shared route model =
                     [ Components.Form.viewNumberInput
                         { title = Nothing
                         , subtitle = Nothing
-                        , id_ = "starlark-exec-limit"
+                        , id_ = starlarkExecLimitHtmlId
                         , val = model.starlarkExecLimitIn
                         , placeholder_ = numberBoundsToString starlarkExecLimitMin starlarkExecLimitMax
                         , wrapperClassList = [ ( "-wide", True ) ]
@@ -822,7 +821,7 @@ view shared route model =
                         , max = Just starlarkExecLimitMax
                         }
                     , Components.Form.viewButton
-                        { id_ = "starlark-exec-limit-update"
+                        { id_ = starlarkExecLimitHtmlId ++ "-update"
                         , msg = StarlarkExecLimitOnUpdate model.starlarkExecLimitIn
                         , text_ = "update"
                         , classList_ =
@@ -899,7 +898,7 @@ view shared route model =
                 , viewFieldDescription "The queue routes used when queuing builds."
                 , viewFieldEnvKeyValue "VELA_QUEUE_ROUTES"
                 , Components.Form.viewEditableList
-                    { id_ = queueRoutesId
+                    { id_ = queueRoutesHtmlId
                     , webdata = model.settings
                     , toItems = .queue >> .routes
                     , toId = identity
@@ -912,7 +911,7 @@ view shared route model =
                             }
                     , viewHttpError =
                         \error ->
-                            span [ Util.testAttribute <| queueRoutesId ++ "-error" ]
+                            span [ Util.testAttribute <| queueRoutesHtmlId ++ "-error" ]
                                 [ text <|
                                     case error of
                                         Http.BadStatus statusCode ->
@@ -941,7 +940,7 @@ view shared route model =
                 , viewFieldDescription "The repos permitted to use Vela."
                 , viewFieldEnvKeyValue "VELA_REPO_ALLOWLIST"
                 , Components.Form.viewEditableList
-                    { id_ = repoAllowlistId
+                    { id_ = repoAllowlistHtmlId
                     , webdata = model.settings
                     , toItems = .repoAllowlist
                     , toId = \r -> r
@@ -960,7 +959,7 @@ view shared route model =
                             }
                     , viewHttpError =
                         \error ->
-                            span [ Util.testAttribute <| repoAllowlistId ++ "-error" ]
+                            span [ Util.testAttribute <| repoAllowlistHtmlId ++ "-error" ]
                                 [ text <|
                                     case error of
                                         Http.BadStatus statusCode ->
@@ -989,7 +988,7 @@ view shared route model =
                 , viewFieldDescription "The repos permitted to use schedules."
                 , viewFieldEnvKeyValue "VELA_SCHEDULE_ALLOWLIST"
                 , Components.Form.viewEditableList
-                    { id_ = scheduleAllowlistId
+                    { id_ = scheduleAllowlistHtmlId
                     , webdata = model.settings
                     , toItems = .scheduleAllowlist
                     , toId = \r -> r
@@ -1008,7 +1007,7 @@ view shared route model =
                             }
                     , viewHttpError =
                         \error ->
-                            span [ Util.testAttribute <| scheduleAllowlistId ++ "-error" ]
+                            span [ Util.testAttribute <| scheduleAllowlistHtmlId ++ "-error" ]
                                 [ text <|
                                     case error of
                                         Http.BadStatus statusCode ->
@@ -1079,32 +1078,54 @@ numberBoundsToString min max =
     String.fromInt min ++ " <= value <= " ++ String.fromInt max
 
 
-{-| queueRoutesId : returns reusable id for queue routes
+
+-- HTML IDENTIFIERS
+
+
+{-| cloneImageHtmlId : returns reusable id for clone image
 -}
-queueRoutesId : String
-queueRoutesId =
+cloneImageHtmlId : String
+cloneImageHtmlId =
+    "clone-image"
+
+
+{-| starlarkExecLimitHtmlId : returns reusable id for starlark exec limit
+-}
+starlarkExecLimitHtmlId : String
+starlarkExecLimitHtmlId =
+    "starlark-exec-limit"
+
+
+{-| queueRoutesHtmlId : returns reusable id for queue routes
+-}
+queueRoutesHtmlId : String
+queueRoutesHtmlId =
     "queue-routes"
 
 
-{-| repoAllowlistId : returns reusable id for repo allowlist
+{-| repoAllowlistHtmlId : returns reusable id for repo allowlist
 -}
-repoAllowlistId : String
-repoAllowlistId =
+repoAllowlistHtmlId : String
+repoAllowlistHtmlId =
     "repo-allowlist"
 
 
-{-| scheduleAllowlistId : returns reusable id for schedule allowlist
+{-| scheduleAllowlistHtmlId : returns reusable id for schedule allowlist
 -}
-scheduleAllowlistId : String
-scheduleAllowlistId =
+scheduleAllowlistHtmlId : String
+scheduleAllowlistHtmlId =
     "schedule-allowlist"
 
 
-{-| saveButtonId : returns reusable id for save button
+{-| saveButtonHtmlId : returns reusable id for save button
 -}
-saveButtonId : String -> String -> String
-saveButtonId base id =
+saveButtonHtmlId : String -> String -> String
+saveButtonHtmlId base id =
     base ++ "-save-" ++ id
+
+
+
+-- LIMITS
 
 
 {-| templateDepthLimitMin : returns the minimum value for the template depth limit
