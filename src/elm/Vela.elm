@@ -207,6 +207,9 @@ type alias DashboardRepoCardBuild =
     , finished : Int
     , sender : String
     , status : Status
+    , event : String
+    , branch : String
+    , link : String
     }
 
 
@@ -256,6 +259,9 @@ decodeDashboardRepoCardBuild =
         |> optional "finished" int -1
         |> optional "sender" string ""
         |> optional "status" buildStatusDecoder Pending
+        |> optional "event" string ""
+        |> optional "branch" string ""
+        |> optional "link" string ""
 
 
 

@@ -5,8 +5,14 @@ SPDX-License-Identifier: Apache-2.0
 
 module Components.DashboardRepoCard exposing (view)
 
-import Html exposing (Html, div, text)
+import Html exposing (Html, a, div, text)
+import Html.Attributes
+    exposing
+        ( class
+        )
+import Route.Path
 import Shared
+import Utils.Helpers as Util
 import Vela
 
 
@@ -17,4 +23,34 @@ type alias Props =
 
 view : Shared.Model -> Props -> Html msg
 view shared props =
-    div [] [ text <| "Future " ++ props.card.org ++ "/" ++ props.card.name ++ " card" ]
+    div [ class "item" ]
+        [ a
+            [ Route.Path.href <|
+                Route.Path.Org_
+                    { org = props.card.org
+                    }
+            ]
+            [ text props.card.org ]
+        , a
+            [ Route.Path.href <|
+                Route.Path.Org__Repo_
+                    { org = props.card.org
+                    , repo = props.card.name
+                    }
+            ]
+            [ text props.card.name ]
+        , div [] <|
+            case List.head props.card.builds of
+                Just build ->
+                    [ text <| "status: " ++ Vela.statusToString build.status
+                    , text <| "build: " ++ String.fromInt build.number
+                    , text <| "sender: " ++ build.sender
+                    , text <| "branch: " ++ build.branch
+                    , text <| "event: " ++ build.event
+                    , text <| "started: " ++ Util.humanReadableDateWithDefault shared.zone build.started
+                    , text <| "duration: " ++ Util.formatRunTime shared.time build.started build.finished
+                    ]
+
+                Nothing ->
+                    [ text "No builds found" ]
+        ]
