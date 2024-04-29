@@ -67,8 +67,8 @@ type alias Model =
     { settings : WebData Vela.PlatformSettings
     , exported : WebData String
     , cloneImage : String
-    , starlarkExecLimit : Maybe Int
-    , templateDepth : Maybe Int
+    , starlarkExecLimitIn : String
+    , templateDepthIn : String
     , queueRoutes : Components.Form.EditableListForm
     , repoAllowlist : Components.Form.EditableListForm
     , scheduleAllowlist : Components.Form.EditableListForm
@@ -80,8 +80,8 @@ init shared () =
     ( { settings = RemoteData.Loading
       , exported = RemoteData.Loading
       , cloneImage = ""
-      , starlarkExecLimit = Nothing
-      , templateDepth = Nothing
+      , starlarkExecLimitIn = ""
+      , templateDepthIn = ""
       , queueRoutes = { val = "", editing = Dict.empty }
       , repoAllowlist = { val = "", editing = Dict.empty }
       , scheduleAllowlist = { val = "", editing = Dict.empty }
@@ -106,9 +106,9 @@ type Msg
     | CloneImageOnInput String
     | CloneImageUpdate String
     | StarlarkExecLimitOnInput String
-    | StarlarkExecLimitOnUpdate (Maybe Int)
+    | StarlarkExecLimitOnUpdate String
     | TemplateDepthOnInput String
-    | TemplateDepthOnUpdate (Maybe Int)
+    | TemplateDepthOnUpdate String
       -- QUEUE
     | QueueRoutesOnInput String
     | QueueRoutesAddOnClick String
@@ -141,8 +141,8 @@ update shared route msg model =
                     ( { model
                         | settings = RemoteData.Success settings
                         , cloneImage = settings.compiler.cloneImage
-                        , starlarkExecLimit = Just settings.compiler.starlarkExecLimit
-                        , templateDepth = Just settings.compiler.templateDepth
+                        , starlarkExecLimitIn = String.fromInt settings.compiler.starlarkExecLimit
+                        , templateDepthIn = String.fromInt settings.compiler.templateDepth
                       }
                     , Effect.none
                     )
@@ -216,14 +216,10 @@ update shared route msg model =
             )
 
         StarlarkExecLimitOnInput val ->
-            ( case String.toInt val of
-                Just val_ ->
-                    { model
-                        | starlarkExecLimit = Just val_
-                    }
-
-                Nothing ->
-                    model
+            ( { model
+                | starlarkExecLimitIn =
+                    Components.Form.handleNumberInputString model.starlarkExecLimitIn val
+              }
             , Effect.none
             )
 
@@ -231,7 +227,7 @@ update shared route msg model =
             let
                 compilerPayload =
                     { defaultCompilerPayload
-                        | starlarkExecLimit = val
+                        | starlarkExecLimit = String.toInt val
                     }
 
                 payload =
@@ -255,14 +251,10 @@ update shared route msg model =
             )
 
         TemplateDepthOnInput val ->
-            ( case String.toInt val of
-                Just val_ ->
-                    { model
-                        | templateDepth = Just val_
-                    }
-
-                Nothing ->
-                    model
+            ( { model
+                | templateDepthIn =
+                    Components.Form.handleNumberInputString model.templateDepthIn val
+              }
             , Effect.none
             )
 
@@ -270,7 +262,7 @@ update shared route msg model =
             let
                 compilerPayload =
                     { defaultCompilerPayload
-                        | templateDepth = val
+                        | templateDepth = String.toInt val
                     }
 
                 payload =
@@ -307,32 +299,47 @@ update shared route msg model =
 
         QueueRoutesAddOnClick val ->
             let
-                queuePayload =
-                    { defaultQueuePayload
-                        | routes = Just <| List.Extra.unique <| val :: RemoteData.unwrap [] (.queue >> .routes) model.settings
-                    }
+                currentRoutes =
+                    RemoteData.unwrap [] (.queue >> .routes) model.settings
 
-                payload =
-                    { defaultSettingsPayload
-                        | queue = Just queuePayload
-                    }
+                effect =
+                    if not <| List.member val currentRoutes then
+                        let
+                            queuePayload =
+                                { defaultQueuePayload
+                                    | routes = Just <| List.Extra.unique <| val :: currentRoutes
+                                }
 
-                body =
-                    Http.jsonBody <| Vela.encodeSettingsPayload payload
+                            payload =
+                                { defaultSettingsPayload
+                                    | queue = Just queuePayload
+                                }
+
+                            body =
+                                Http.jsonBody <| Vela.encodeSettingsPayload payload
+                        in
+                        Effect.updateSettings
+                            { baseUrl = shared.velaAPIBaseURL
+                            , session = shared.session
+                            , onResponse =
+                                UpdateSettingsResponse
+                                    { field = Vela.QueueRouteAdd val
+                                    }
+                            , body = body
+                            }
+
+                    else
+                        Effect.addAlertSuccess
+                            { content = "Queue route '" ++ val ++ "' already exists."
+                            , addToastIfUnique = False
+                            , link = Nothing
+                            }
 
                 editableListForm =
                     model.queueRoutes
             in
             ( { model | queueRoutes = { editableListForm | val = "" } }
-            , Effect.updateSettings
-                { baseUrl = shared.velaAPIBaseURL
-                , session = shared.session
-                , onResponse =
-                    UpdateSettingsResponse
-                        { field = Vela.QueueRouteAdd val
-                        }
-                , body = body
-                }
+            , effect
             )
 
         QueueRoutesRemoveOnClick val ->
@@ -454,27 +461,42 @@ update shared route msg model =
 
         RepoAllowlistAddOnClick val ->
             let
-                payload =
-                    { defaultSettingsPayload
-                        | repoAllowlist = Just <| List.Extra.unique <| val :: RemoteData.unwrap [] .repoAllowlist model.settings
-                    }
+                currentRepos =
+                    RemoteData.unwrap [] .repoAllowlist model.settings
 
-                body =
-                    Http.jsonBody <| Vela.encodeSettingsPayload payload
+                effect =
+                    if not <| List.member val currentRepos then
+                        let
+                            payload =
+                                { defaultSettingsPayload
+                                    | repoAllowlist = Just <| List.Extra.unique <| val :: currentRepos
+                                }
+
+                            body =
+                                Http.jsonBody <| Vela.encodeSettingsPayload payload
+                        in
+                        Effect.updateSettings
+                            { baseUrl = shared.velaAPIBaseURL
+                            , session = shared.session
+                            , onResponse =
+                                UpdateSettingsResponse
+                                    { field = Vela.RepoAllowlistAdd val
+                                    }
+                            , body = body
+                            }
+
+                    else
+                        Effect.addAlertSuccess
+                            { content = "Repo '" ++ val ++ "' already exists in overall allowlist."
+                            , addToastIfUnique = False
+                            , link = Nothing
+                            }
 
                 editableListForm =
                     model.repoAllowlist
             in
             ( { model | repoAllowlist = { editableListForm | val = "" } }
-            , Effect.updateSettings
-                { baseUrl = shared.velaAPIBaseURL
-                , session = shared.session
-                , onResponse =
-                    UpdateSettingsResponse
-                        { field = Vela.RepoAllowlistAdd val
-                        }
-                , body = body
-                }
+            , effect
             )
 
         RepoAllowlistRemoveOnClick val ->
@@ -586,27 +608,42 @@ update shared route msg model =
 
         ScheduleAllowlistAddOnClick val ->
             let
-                payload =
-                    { defaultSettingsPayload
-                        | scheduleAllowlist = Just <| List.Extra.unique <| val :: RemoteData.unwrap [] .scheduleAllowlist model.settings
-                    }
+                currentRepos =
+                    RemoteData.unwrap [] .scheduleAllowlist model.settings
 
-                body =
-                    Http.jsonBody <| Vela.encodeSettingsPayload payload
+                effect =
+                    if not <| List.member val currentRepos then
+                        let
+                            payload =
+                                { defaultSettingsPayload
+                                    | scheduleAllowlist = Just <| List.Extra.unique <| val :: RemoteData.unwrap [] .scheduleAllowlist model.settings
+                                }
+
+                            body =
+                                Http.jsonBody <| Vela.encodeSettingsPayload payload
+                        in
+                        Effect.updateSettings
+                            { baseUrl = shared.velaAPIBaseURL
+                            , session = shared.session
+                            , onResponse =
+                                UpdateSettingsResponse
+                                    { field = Vela.ScheduleAllowlistAdd val
+                                    }
+                            , body = body
+                            }
+
+                    else
+                        Effect.addAlertSuccess
+                            { content = "Repo '" ++ val ++ "' already exists in schedule allowlist."
+                            , addToastIfUnique = False
+                            , link = Nothing
+                            }
 
                 editableListForm =
                     model.scheduleAllowlist
             in
             ( { model | scheduleAllowlist = { editableListForm | val = "" } }
-            , Effect.updateSettings
-                { baseUrl = shared.velaAPIBaseURL
-                , session = shared.session
-                , onResponse =
-                    UpdateSettingsResponse
-                        { field = Vela.ScheduleAllowlistAdd val
-                        }
-                , body = body
-                }
+            , effect
             )
 
         ScheduleAllowlistRemoveOnClick val ->
@@ -743,13 +780,14 @@ view shared route model =
                         , msg = CloneImageOnInput
                         , disabled_ = False
                         }
-                    , button
-                        [ classList
-                            [ ( "button", True )
-                            , ( "-outline", True )
+                    , Components.Form.viewButton
+                        { id_ = "clone-image-update"
+                        , msg = CloneImageUpdate model.cloneImage
+                        , text_ = "update"
+                        , classList_ =
+                            [ ( "-outline", True )
                             ]
-                        , onClick <| CloneImageUpdate model.cloneImage
-                        , disabled <|
+                        , disabled_ =
                             RemoteData.unwrap True
                                 (\s ->
                                     String.isEmpty model.cloneImage
@@ -757,8 +795,7 @@ view shared route model =
                                         == model.cloneImage
                                 )
                                 model.settings
-                        ]
-                        [ text "update" ]
+                        }
                     ]
                 ]
             , section
@@ -767,41 +804,45 @@ view shared route model =
                 [ viewFieldHeader "Starlark Exec Limit"
                 , viewFieldDescription "The number of executions allowed for Starlark scripts."
                 , viewFieldEnvKeyValue "VELA_COMPILER_STARLARK_EXEC_LIMIT"
+                , viewFieldLimits <| text <| numberBoundsToString starlarkExecLimitMin starlarkExecLimitMax
                 , div [ class "form-controls" ]
                     [ Components.Form.viewNumberInput
                         { title = Nothing
                         , subtitle = Nothing
                         , id_ = "starlark-exec-limit"
-                        , val = model.starlarkExecLimit
-                        , placeholder_ = ""
+                        , val = model.starlarkExecLimitIn
+                        , placeholder_ = numberBoundsToString starlarkExecLimitMin starlarkExecLimitMax
                         , wrapperClassList = [ ( "-wide", True ) ]
                         , classList_ = []
                         , rows_ = Nothing
                         , wrap_ = Nothing
                         , msg = StarlarkExecLimitOnInput
                         , disabled_ = False
-                        , min = 1
-                        , max = 10000
+                        , min = Just starlarkExecLimitMin
+                        , max = Just starlarkExecLimitMax
                         }
-                    , button
-                        [ classList
-                            [ ( "button", True )
-                            , ( "-outline", True )
+                    , Components.Form.viewButton
+                        { id_ = "starlark-exec-limit-update"
+                        , msg = StarlarkExecLimitOnUpdate model.starlarkExecLimitIn
+                        , text_ = "update"
+                        , classList_ =
+                            [ ( "-outline", True )
                             ]
-                        , onClick <| StarlarkExecLimitOnUpdate model.starlarkExecLimit
-                        , disabled <|
+                        , disabled_ =
                             RemoteData.unwrap True
                                 (\s ->
-                                    case model.starlarkExecLimit of
+                                    case String.toInt model.starlarkExecLimitIn of
                                         Just limit ->
-                                            limit == s.compiler.starlarkExecLimit
+                                            limit
+                                                == s.compiler.starlarkExecLimit
+                                                || (limit < starlarkExecLimitMin)
+                                                || (limit > starlarkExecLimitMax)
 
                                         Nothing ->
                                             True
                                 )
                                 model.settings
-                        ]
-                        [ text "update" ]
+                        }
                     ]
                 ]
             , section
@@ -810,41 +851,45 @@ view shared route model =
                 [ viewFieldHeader "Template Depth"
                 , viewFieldDescription "The depth allowed for nested template references."
                 , viewFieldEnvKeyValue "VELA_TEMPLATE_DEPTH"
+                , viewFieldLimits <| text <| numberBoundsToString templateDepthLimitMin templateDepthLimitMax
                 , div [ class "form-controls" ]
                     [ Components.Form.viewNumberInput
                         { title = Nothing
                         , subtitle = Nothing
                         , id_ = "template-depth"
-                        , val = model.templateDepth
-                        , placeholder_ = ""
+                        , val = model.templateDepthIn
+                        , placeholder_ = numberBoundsToString templateDepthLimitMin templateDepthLimitMax
                         , wrapperClassList = [ ( "-wide", True ) ]
                         , classList_ = []
                         , rows_ = Nothing
                         , wrap_ = Nothing
                         , msg = TemplateDepthOnInput
                         , disabled_ = False
-                        , min = 1
-                        , max = 100
+                        , min = Just templateDepthLimitMin
+                        , max = Just templateDepthLimitMax
                         }
-                    , button
-                        [ classList
-                            [ ( "button", True )
-                            , ( "-outline", True )
+                    , Components.Form.viewButton
+                        { id_ = "template-depth-update"
+                        , msg = TemplateDepthOnUpdate model.templateDepthIn
+                        , text_ = "update"
+                        , classList_ =
+                            [ ( "-outline", True )
                             ]
-                        , onClick <| TemplateDepthOnUpdate model.templateDepth
-                        , disabled <|
+                        , disabled_ =
                             RemoteData.unwrap True
                                 (\s ->
-                                    case model.templateDepth of
+                                    case String.toInt model.templateDepthIn of
                                         Just limit ->
-                                            limit == s.compiler.templateDepth
+                                            limit
+                                                == s.compiler.templateDepth
+                                                || (limit < templateDepthLimitMin)
+                                                || (limit > templateDepthLimitMax)
 
                                         Nothing ->
                                             True
                                 )
                                 model.settings
-                        ]
-                        [ text "update" ]
+                        }
                     ]
                 ]
             , section
@@ -1011,10 +1056,27 @@ viewFieldDescription description =
 -}
 viewFieldEnvKeyValue : String -> Html Msg
 viewFieldEnvKeyValue envKey =
-    p [ class "settings-env-key" ]
+    p [ class "settings-info" ]
         [ strong [] [ text "Env: " ]
-        , span [ class "env-key-value" ] [ text envKey ]
+        , span [ class "info-value" ] [ text envKey ]
         ]
+
+
+{-| viewFieldLimits : renders limits or restrictions for a settings field
+-}
+viewFieldLimits : Html Msg -> Html Msg
+viewFieldLimits viewLimits =
+    p [ class "settings-info" ]
+        [ strong [] [ text "Restrictions: " ]
+        , span [ class "info-value" ] [ viewLimits ]
+        ]
+
+
+{-| numberBoundsToString : converts number bounds for a settings field to string
+-}
+numberBoundsToString : Int -> Int -> String
+numberBoundsToString min max =
+    String.fromInt min ++ " <= value <= " ++ String.fromInt max
 
 
 {-| queueRoutesId : returns reusable id for queue routes
@@ -1043,3 +1105,31 @@ scheduleAllowlistId =
 saveButtonId : String -> String -> String
 saveButtonId base id =
     base ++ "-save-" ++ id
+
+
+{-| templateDepthLimitMin : returns the minimum value for the template depth limit
+-}
+templateDepthLimitMin : Int
+templateDepthLimitMin =
+    1
+
+
+{-| templateDepthLimitMax : returns the maximum value for the template depth limit
+-}
+templateDepthLimitMax : Int
+templateDepthLimitMax =
+    100
+
+
+{-| starlarkExecLimitMin : returns the minimum value for the starlark exec limit
+-}
+starlarkExecLimitMin : Int
+starlarkExecLimitMin =
+    1
+
+
+{-| starlarkExecLimitMax : returns the maximum value for the starlark exec limit
+-}
+starlarkExecLimitMax : Int
+starlarkExecLimitMax =
+    9999

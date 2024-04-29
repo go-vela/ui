@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.Form exposing (EditableListForm, viewAllowEvents, viewButton, viewCheckbox, viewCopyButton, viewEditableList, viewInput, viewInputSection, viewNumberInput, viewRadio, viewSubtitle, viewTextarea, viewTextareaSection)
+module Components.Form exposing (EditableListForm, handleNumberInputString, viewAllowEvents, viewButton, viewCheckbox, viewCopyButton, viewEditableList, viewInput, viewInputSection, viewNumberInput, viewRadio, viewSubtitle, viewTextarea, viewTextareaSection)
 
 import Components.Loading
 import Dict exposing (Dict)
@@ -88,7 +88,6 @@ viewInput { id_, title, subtitle, val, placeholder_, classList_, wrapperClassLis
     div
         [ class "form-control"
         , classList wrapperClassList
-        , Util.testAttribute target
         ]
         [ input
             [ id target
@@ -105,11 +104,27 @@ viewInput { id_, title, subtitle, val, placeholder_, classList_, wrapperClassLis
         ]
 
 
+{-| handleNumberInputString : returns a value as a number if it can be converted, otherwise returns the current value
+-}
+handleNumberInputString : String -> String -> String
+handleNumberInputString current val =
+    case String.toInt val of
+        Just _ ->
+            val
+
+        Nothing ->
+            if not <| String.isEmpty val then
+                current
+
+            else
+                ""
+
+
 viewNumberInput :
     { id_ : String
     , title : Maybe String
     , subtitle : Maybe (Html msg)
-    , val : Maybe Int
+    , val : String
     , placeholder_ : String
     , wrapperClassList : List ( String, Bool )
     , classList_ : List ( String, Bool )
@@ -117,8 +132,8 @@ viewNumberInput :
     , wrap_ : Maybe String
     , msg : String -> msg
     , disabled_ : Bool
-    , min : Int
-    , max : Int
+    , min : Maybe Int
+    , max : Maybe Int
     }
     -> Html msg
 viewNumberInput { id_, title, subtitle, val, placeholder_, wrapperClassList, classList_, rows_, wrap_, msg, disabled_, min, max } =
@@ -129,14 +144,23 @@ viewNumberInput { id_, title, subtitle, val, placeholder_, wrapperClassList, cla
     div
         [ class "form-control"
         , classList wrapperClassList
-        , Util.testAttribute target
         ]
         [ input
             [ id target
             , type_ "number"
-            , Html.Attributes.min <| String.fromInt min
-            , Html.Attributes.max <| String.fromInt max
-            , value <| String.fromInt <| Maybe.withDefault -1 val
+            , case min of
+                Just m ->
+                    Html.Attributes.min <| String.fromInt m
+
+                Nothing ->
+                    Util.attrNone
+            , case max of
+                Just m ->
+                    Html.Attributes.max <| String.fromInt m
+
+                Nothing ->
+                    Util.attrNone
+            , value val
             , placeholder placeholder_
             , classList <| classList_
             , Maybe.Extra.unwrap Util.attrNone rows rows_
@@ -521,6 +545,10 @@ type alias EditableListForm =
 
 viewEditableList : EditableListProps a b msg -> Html msg
 viewEditableList props =
+    let
+        target =
+            String.join "-" [ "editable-list", props.id_ ]
+    in
     div []
         [ case props.addProps of
             Just addProps ->
@@ -528,7 +556,7 @@ viewEditableList props =
                     [ viewInput
                         { title = Nothing
                         , subtitle = Nothing
-                        , id_ = props.id_ ++ "-add"
+                        , id_ = target ++ "-add"
                         , val = props.form.val
                         , placeholder_ = addProps.placeholder_
                         , classList_ = []
@@ -540,20 +568,25 @@ viewEditableList props =
                         , msg = addProps.addOnInputMsg
                         , disabled_ = False
                         }
-                    , button
-                        [ classList
-                            [ ( "button", True )
-                            , ( "-outline", True )
+                    , viewButton
+                        { id_ = target ++ "-add"
+                        , msg = addProps.addOnClickMsg props.form.val
+                        , text_ = "add"
+                        , classList_ =
+                            [ ( "-outline", True )
                             ]
-                        , onClick <| addProps.addOnClickMsg props.form.val
-                        , disabled <| (String.length props.form.val == 0) || (not <| RemoteData.isSuccess props.webdata)
-                        ]
-                        [ text "add" ]
+                        , disabled_ =
+                            (String.length props.form.val == 0)
+                                || (not <| RemoteData.isSuccess props.webdata)
+                        }
                     ]
 
             _ ->
                 text ""
-        , div [ class "editable-list" ]
+        , div
+            [ class "editable-list"
+            , Util.testAttribute target
+            ]
             [ ul [] <|
                 case props.webdata of
                     RemoteData.Success data ->
@@ -562,14 +595,16 @@ viewEditableList props =
                                 props.toItems data
                         in
                         if List.isEmpty items then
-                            [ li [] [ props.viewNoItems ] ]
+                            [ li [ Util.testAttribute <| target ++ "-no-items" ]
+                                [ props.viewNoItems ]
+                            ]
 
                         else
                             List.map (viewEditableListItem props) items
 
                     RemoteData.Failure error ->
                         [ li []
-                            [ span [ Util.testAttribute "editable-list-error" ]
+                            [ span [ Util.testAttribute <| target ++ "-error" ]
                                 [ props.viewHttpError error
                                 ]
                             ]
@@ -587,16 +622,21 @@ viewEditableListItem props item =
         itemId =
             props.toId item
 
+        target =
+            String.join "-" [ "editable-list", "item", itemId ]
+
         editing =
             Maybe.Extra.unwrap Nothing (\e -> Just e) <| Dict.get itemId props.form.editing
     in
-    li []
+    li
+        [ Util.testAttribute target
+        ]
         [ case editing of
             Just val ->
                 viewInput
                     { title = Nothing
                     , subtitle = Nothing
-                    , id_ = props.id_ ++ "-modify-" ++ itemId
+                    , id_ = target
                     , val = val
                     , placeholder_ = props.toLabel item
                     , wrapperClassList = []
@@ -615,11 +655,12 @@ viewEditableListItem props item =
                     span []
                         [ button
                             [ class "remove-button"
-                            , attribute "aria-label" "remove queue route "
                             , class "button"
                             , class "-icon"
+                            , attribute "aria-label" <| "remove list item " ++ itemId
                             , onClick <| props.itemRemoveOnClickMsg <| itemId
-                            , id <| props.id_ ++ "-remove-" ++ itemId
+                            , Util.testAttribute <| target ++ "-remove"
+                            , id <| target ++ "-remove"
                             ]
                             [ FeatherIcons.minusSquare
                                 |> FeatherIcons.withSize 18
@@ -627,12 +668,12 @@ viewEditableListItem props item =
                             ]
                         , button
                             [ class "save-button"
-                            , attribute "aria-label" "save queue route "
                             , class "button"
                             , class "-icon"
+                            , attribute "aria-label" <| "save list item " ++ itemId
                             , onClick <| props.itemSaveOnClickMsg { id = itemId, val = val }
-                            , Util.testAttribute "save-route"
-                            , id <| props.id_ ++ "-save-" ++ itemId
+                            , Util.testAttribute <| target ++ "-save"
+                            , id <| target ++ "-save"
                             ]
                             [ FeatherIcons.save
                                 |> FeatherIcons.withSize 18
@@ -644,12 +685,12 @@ viewEditableListItem props item =
                     span []
                         [ button
                             [ class "edit-button"
-                            , attribute "aria-label" "edit queue route "
                             , class "button"
                             , class "-icon"
+                            , attribute "aria-label" <| "edit list item " ++ itemId
                             , onClick <| props.itemEditOnClickMsg { id = itemId }
-                            , Util.testAttribute "edit-route"
-                            , id <| props.id_ ++ "-edit-" ++ itemId
+                            , Util.testAttribute <| target ++ "-edit"
+                            , id <| target ++ "-edit"
                             ]
                             [ FeatherIcons.edit2
                                 |> FeatherIcons.withSize 18
