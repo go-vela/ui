@@ -75,7 +75,7 @@ type alias Rows data msg =
 {-| Config : configurations for rendering the data table
 -}
 type alias Config data msg =
-    { label : Maybe String
+    { label : String
     , testLabel : String
     , noRows : Html msg
     , columns : Columns
@@ -100,17 +100,12 @@ view { label, testLabel, noRows, columns, rows, headerElement } =
             List.length columns
     in
     table [ class "table-base", Util.testAttribute <| testLabel ++ "-table" ]
-        [ case label of
-            Just l ->
-                caption []
-                    [ div []
-                        [ text l
-                        , Maybe.withDefault (text "") headerElement
-                        ]
-                    ]
-
-            Nothing ->
-                text ""
+        [ caption []
+            [ div []
+                [ text label
+                , Maybe.withDefault (text "") headerElement
+                ]
+            ]
         , thead []
             [ tr [] <|
                 List.map

@@ -275,7 +275,7 @@ viewRepoSchedules shared model org repo =
 
         cfg =
             Components.Table.Config
-                (Just "Schedules")
+                "Schedules"
                 "repo-schedules"
                 noRowsView
                 tableHeaders

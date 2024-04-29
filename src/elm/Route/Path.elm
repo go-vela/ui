@@ -18,7 +18,6 @@ type Path
     | Account_Logout
     | Account_Settings
     | Account_SourceRepos
-    | Admin
     | Admin_Settings
     | Admin_Workers
     | Dash_Secrets_Engine__Org_Org_ { engine : String, org : String }
@@ -82,9 +81,6 @@ fromString urlPath =
 
         "account" :: "source-repos" :: [] ->
             Just Account_SourceRepos
-
-        "admin" :: [] ->
-            Just Admin
 
         "admin" :: "settings" :: [] ->
             Just Admin_Settings
@@ -311,9 +307,6 @@ toString path =
 
                 Account_SourceRepos ->
                     [ "account", "source-repos" ]
-
-                Admin ->
-                    [ "admin" ]
 
                 Admin_Settings ->
                     [ "admin", "settings" ]

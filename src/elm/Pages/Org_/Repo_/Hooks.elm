@@ -307,7 +307,7 @@ viewHooks shared model hooks =
 
         cfg =
             Components.Table.Config
-                (Just "Hooks")
+                "Hooks"
                 "hooks"
                 noRowsView
                 tableHeaders
