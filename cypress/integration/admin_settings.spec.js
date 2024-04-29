@@ -91,152 +91,151 @@ context('Admin Settings', () => {
           'be.disabled',
         );
       });
-      // context('list item should allow editing', () => {
-      //   it('edit button should toggle save and remove buttons', () => {
-      //     cy.get('[data-test=editable-list-queue-routes]')
-      //       .should('be.visible')
-      //       .within(() => {
-      //         cy.get('[data-test=editable-list-item-vela-edit]').should(
-      //           'be.visible',
-      //         );
-      //         cy.get('[data-test=editable-list-item-vela-save]').should(
-      //           'not.be.visible',
-      //         );
-      //         cy.get('[data-test=editable-list-item-vela-remove]').should(
-      //           'not.be.visible',
-      //         );
-      //         cy.get('[data-test=editable-list-item-vela-edit]')
-      //           .should('be.visible')
-      //           .click({ force: true });
-      //         cy.get('[data-test=editable-list-item-vela-edit]').should(
-      //           'not.be.visible',
-      //         );
-      //         cy.get('[data-test=editable-list-item-vela-remove]').should(
-      //           'be.visible',
-      //         );
-      //         cy.get('[data-test=editable-list-item-vela-save]')
-      //           .should('be.visible')
-      //           .click({ force: true });
-      //         cy.get('[data-test=editable-list-item-vela-save]').should(
-      //           'not.be.visible',
-      //         );
-      //       });
-      //   });
-      //   it('save button should skip non-edits', () => {
-      //     cy.get('[data-test=editable-list-queue-routes]')
-      //       .should('be.visible')
-      //       .within(() => {
-      //         cy.get('[data-test=editable-list-item-vela-edit]').should(
-      //           'be.visible',
-      //         );
-      //         cy.get('[data-test=editable-list-item-vela-save]').should(
-      //           'not.be.visible',
-      //         );
-      //         cy.get('[data-test=editable-list-item-vela-edit]')
-      //           .should('be.visible')
-      //           .click({ force: true });
-      //         // no change edit
-      //         cy.get('[data-test=editable-list-item-vela-save]')
-      //           .should('be.visible')
-      //           .click({ force: true });
-      //         cy.get('[data-test=editable-list-item-vela-save]').should(
-      //           'not.be.visible',
-      //         );
-      //         cy.get('[data-test=editable-list-item-vela]').should(
-      //           'contain',
-      //           'vela',
-      //         );
-      //         // empty string edit
-      //         cy.get('[data-test=editable-list-item-vela-edit]')
-      //           .should('be.visible')
-      //           .click({ force: true });
-      //         cy.get('[data-test=input-editable-list-item-vela]').clear();
-      //         cy.get('[data-test=editable-list-item-vela-save]')
-      //           .should('be.visible')
-      //           .click({ force: true });
-      //         cy.get('[data-test=editable-list-item-vela-save]').should(
-      //           'not.be.visible',
-      //         );
-      //         cy.get('[data-test=editable-list-item-vela]').should(
-      //           'contain',
-      //           'vela',
-      //         );
-      //         cy.get('[data-test=alert]').should('not.be.visible');
-      //       });
-      //   });
-      //   it('save button should save edits', () => {
-      //     cy.get('[data-test=editable-list-queue-routes]')
-      //       .should('be.visible')
-      //       .within(() => {
-      //         cy.get('[data-test=editable-list-item-vela-edit]').should(
-      //           'be.visible',
-      //         );
-      //         cy.get('[data-test=editable-list-item-vela-save]').should(
-      //           'not.be.visible',
-      //         );
-      //         cy.get('[data-test=editable-list-item-vela-edit]')
-      //           .should('be.visible')
-      //           .click({ force: true });
-      //         cy.get('[data-test=input-editable-list-item-vela]')
-      //           .clear()
-      //           .type('vela123');
-      //         cy.get('[data-test=editable-list-item-vela-save]')
-      //           .should('be.visible')
-      //           .click({ force: true });
-      //         cy.get('[data-test=editable-list-item-vela-save]').should(
-      //           'not.be.visible',
-      //         );
-      //         cy.get('[data-test=editable-list-item-vela123]').should(
-      //           'contain',
-      //           'vela123',
-      //         );
-      //       });
-      //   });
-      //   it('remove button should remove an item', () => {
-      //     cy.get('[data-test=editable-list-schedule-allowlist]')
-      //       .should('be.visible')
-      //       .within(() => {
-      //         cy.get('[data-test="editable-list-item-*-edit"]')
-      //           .should('be.visible')
-      //           .click({ force: true });
-      //         cy.get('[data-test="editable-list-item-*-remove"]')
-      //           .should('be.visible')
-      //           .click({ force: true });
-      //         cy.get('[data-test="editable-list-item-*"]').should(
-      //           'not.be.visible',
-      //         );
-      //         cy.get(
-      //           '[data-test=editable-list-schedule-allowlist-no-items]',
-      //         ).should('be.visible');
-      //       });
-      //       cy.get('[data-test=alert]').should('be.visible').contains('Success');
-      //   });
-      //   it('* repo wildcard should show helpful text', () => {
-      //     cy.get('[data-test=editable-list-schedule-allowlist]')
-      //       .should('be.visible')
-      //       .within(() => {
-      //         cy.get('[data-test="editable-list-item-*"]').should(
-      //           'contain',
-      //           'all repos',
-      //         );
-      //       });
-      //   });
-      //   it('add item input header should add items', () => {
-      //     cy.get('[data-test="editable-list-item-linux-large"]').should(
-      //       'not.be.visible',
-      //     );
-
-      //     cy.get('[data-test=input-editable-list-queue-routes-add]')
-      //       .clear()
-      //       .type('linux-large');
-      //     cy.get('[data-test=button-editable-list-queue-routes-add]')
-      //       .should('be.visible')
-      //       .click({ force: true });
-      //     cy.get('[data-test="editable-list-item-linux-large"]').should(
-      //       'be.visible',
-      //     );
-      //   });
-      // });
+      context('list item should allow editing', () => {
+        it('edit button should toggle save and remove buttons', () => {
+          cy.get('[data-test=editable-list-queue-routes]')
+            .should('be.visible')
+            .within(() => {
+              cy.get('[data-test=editable-list-item-vela-edit]').should(
+                'be.visible',
+              );
+              cy.get('[data-test=editable-list-item-vela-save]').should(
+                'not.be.visible',
+              );
+              cy.get('[data-test=editable-list-item-vela-remove]').should(
+                'not.be.visible',
+              );
+              cy.get('[data-test=editable-list-item-vela-edit]')
+                .should('be.visible')
+                .click({ force: true });
+              cy.get('[data-test=editable-list-item-vela-edit]').should(
+                'not.be.visible',
+              );
+              cy.get('[data-test=editable-list-item-vela-remove]').should(
+                'be.visible',
+              );
+              cy.get('[data-test=editable-list-item-vela-save]')
+                .should('be.visible')
+                .click({ force: true });
+              cy.get('[data-test=editable-list-item-vela-save]').should(
+                'not.be.visible',
+              );
+            });
+        });
+        it('save button should skip non-edits', () => {
+          cy.get('[data-test=editable-list-queue-routes]')
+            .should('be.visible')
+            .within(() => {
+              cy.get('[data-test=editable-list-item-vela-edit]').should(
+                'be.visible',
+              );
+              cy.get('[data-test=editable-list-item-vela-save]').should(
+                'not.be.visible',
+              );
+              cy.get('[data-test=editable-list-item-vela-edit]')
+                .should('be.visible')
+                .click({ force: true });
+              // no change edit
+              cy.get('[data-test=editable-list-item-vela-save]')
+                .should('be.visible')
+                .click({ force: true });
+              cy.get('[data-test=editable-list-item-vela-save]').should(
+                'not.be.visible',
+              );
+              cy.get('[data-test=editable-list-item-vela]').should(
+                'contain',
+                'vela',
+              );
+              // empty string edit
+              cy.get('[data-test=editable-list-item-vela-edit]')
+                .should('be.visible')
+                .click({ force: true });
+              cy.get('[data-test=input-editable-list-item-vela]').clear();
+              cy.get('[data-test=editable-list-item-vela-save]')
+                .should('be.visible')
+                .click({ force: true });
+              cy.get('[data-test=editable-list-item-vela-save]').should(
+                'not.be.visible',
+              );
+              cy.get('[data-test=editable-list-item-vela]').should(
+                'contain',
+                'vela',
+              );
+              cy.get('[data-test=alert]').should('not.be.visible');
+            });
+        });
+        it('save button should save edits', () => {
+          cy.get('[data-test=editable-list-queue-routes]')
+            .should('be.visible')
+            .within(() => {
+              cy.get('[data-test=editable-list-item-vela-edit]').should(
+                'be.visible',
+              );
+              cy.get('[data-test=editable-list-item-vela-save]').should(
+                'not.be.visible',
+              );
+              cy.get('[data-test=editable-list-item-vela-edit]')
+                .should('be.visible')
+                .click({ force: true });
+              cy.get('[data-test=input-editable-list-item-vela]')
+                .clear()
+                .type('vela123');
+              cy.get('[data-test=editable-list-item-vela-save]')
+                .should('be.visible')
+                .click({ force: true });
+              cy.get('[data-test=editable-list-item-vela-save]').should(
+                'not.be.visible',
+              );
+              cy.get('[data-test=editable-list-item-vela123]').should(
+                'contain',
+                'vela123',
+              );
+            });
+        });
+        it('remove button should remove an item', () => {
+          cy.get('[data-test=editable-list-schedule-allowlist]')
+            .should('be.visible')
+            .within(() => {
+              cy.get('[data-test="editable-list-item-*-edit"]')
+                .should('be.visible')
+                .click({ force: true });
+              cy.get('[data-test="editable-list-item-*-remove"]')
+                .should('be.visible')
+                .click({ force: true });
+              cy.get('[data-test="editable-list-item-*"]').should(
+                'not.be.visible',
+              );
+              cy.get(
+                '[data-test=editable-list-schedule-allowlist-no-items]',
+              ).should('be.visible');
+            });
+          cy.get('[data-test=alert]').should('be.visible').contains('Success');
+        });
+        it('* repo wildcard should show helpful text', () => {
+          cy.get('[data-test=editable-list-schedule-allowlist]')
+            .should('be.visible')
+            .within(() => {
+              cy.get('[data-test="editable-list-item-*"]').should(
+                'contain',
+                'all repos',
+              );
+            });
+        });
+        it('add item input header should add items', () => {
+          cy.get('[data-test="editable-list-item-linux-large"]').should(
+            'not.be.visible',
+          );
+          cy.get('[data-test=input-editable-list-queue-routes-add]')
+            .clear()
+            .type('linux-large');
+          cy.get('[data-test=button-editable-list-queue-routes-add]')
+            .should('be.visible')
+            .click({ force: true });
+          cy.get('[data-test="editable-list-item-linux-large"]').should(
+            'be.visible',
+          );
+        });
+      });
     });
   });
 });
