@@ -216,6 +216,8 @@ viewTextareaSection { id_, title, subtitle, val, placeholder_, classList_, rows_
         ]
 
 
+{-| viewTextarea : renders a textarea input
+-}
 viewTextarea :
     { id_ : String
     , val : String
@@ -327,6 +329,8 @@ viewButton { id_, msg, text_, classList_, disabled_ } =
         [ text text_ ]
 
 
+{-| viewCopyButton : renders a copy to clipboard button
+-}
 viewCopyButton : { id_ : String, msg : String -> msg, text_ : String, classList_ : List ( String, Bool ), disabled_ : Bool, content : String } -> Html msg
 viewCopyButton { id_, msg, text_, classList_, disabled_, content } =
     let
@@ -515,6 +519,8 @@ viewAllowEvents shared { msg, allowEvents } =
     ]
 
 
+{-| EditableListProps : properties for the editable list component.
+-}
 type alias EditableListProps a b msg =
     { id_ : String
     , webdata : WebData a
@@ -537,12 +543,16 @@ type alias EditableListProps a b msg =
     }
 
 
+{-| EditableListForm : form values for the editable list component.
+-}
 type alias EditableListForm =
     { val : String
     , editing : Dict String String
     }
 
 
+{-| viewEditableList : renders an editable list component with optional add button header.
+-}
 viewEditableList : EditableListProps a b msg -> Html msg
 viewEditableList props =
     let
@@ -616,6 +626,8 @@ viewEditableList props =
         ]
 
 
+{-| viewEditableListItem : renders an item for the editable list component.
+-}
 viewEditableListItem : EditableListProps a b msg -> b -> Html msg
 viewEditableListItem props item =
     let

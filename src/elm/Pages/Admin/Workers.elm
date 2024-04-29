@@ -369,6 +369,8 @@ viewWorker shared worker =
         ]
 
 
+{-| viewWorkerBuildsLinks : renders a list of links to worker builds
+-}
 viewWorkerBuildsLinks : Vela.Worker -> Html msg
 viewWorkerBuildsLinks worker =
     worker.running_builds
@@ -390,6 +392,8 @@ viewWorkerBuildsLinks worker =
         |> div []
 
 
+{-| statusToRowClass : takes a worker status and returns a class for the row
+-}
 statusToRowClass : String -> Html.Attribute msg
 statusToRowClass status =
     case status of

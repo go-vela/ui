@@ -308,6 +308,8 @@ viewBuildTabs shared props =
 -- ADMIN
 
 
+{-| viewAdminTabs : renders tabs available for viewing for the admin page.
+-}
 viewAdminTabs :
     Shared.Model
     ->
