@@ -293,7 +293,7 @@ viewRepoSchedules shared model org repo =
 schedulesToRows : Time.Zone -> String -> String -> List Vela.Schedule -> Components.Table.Rows Vela.Schedule msg
 schedulesToRows zone org repo schedules =
     schedules
-        |> List.concatMap (\s -> [ Just <| Components.Table.Row (addKey s) (viewSchedule zone org repo), scheduleErrorRow s ])
+        |> List.concatMap (\s -> [ Just <| Components.Table.Row s (viewSchedule zone org repo), scheduleErrorRow s ])
         |> List.filterMap identity
 
 
@@ -412,10 +412,3 @@ viewScheduleError schedule =
                 ]
     in
     msgRow
-
-
-{-| addKey : helper to create Vela.Schedule key
--}
-addKey : Vela.Schedule -> Vela.Schedule
-addKey schedule =
-    { schedule | org = schedule.org ++ "/" ++ schedule.repo ++ "/" ++ schedule.name }

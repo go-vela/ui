@@ -357,6 +357,31 @@ type alias Repository =
     }
 
 
+emptyRepository : Repository
+emptyRepository =
+    { id = -1
+    , user_id = -1
+    , owner = emptyUser
+    , org = ""
+    , name = ""
+    , full_name = ""
+    , link = ""
+    , clone = ""
+    , branch = ""
+    , limit = 0
+    , timeout = 0
+    , counter = 0
+    , visibility = ""
+    , approve_build = ""
+    , private = False
+    , trusted = False
+    , active = False
+    , allowEvents = defaultAllowEvents
+    , enabled = Disabled
+    , pipeline_type = ""
+    }
+
+
 decodeRepository : Decoder Repository
 decodeRepository =
     Json.Decode.succeed Repository
@@ -1519,8 +1544,7 @@ decodeHooks =
 
 type alias Schedule =
     { id : Int
-    , org : String
-    , repo : String
+    , repo : Repository
     , name : String
     , entry : String
     , enabled : Bool
@@ -1561,8 +1585,7 @@ decodeSchedule : Decoder Schedule
 decodeSchedule =
     Json.Decode.succeed Schedule
         |> optional "id" int -1
-        |> optional "repo.org" string ""
-        |> optional "repo.repo" string ""
+        |> optional "repo" decodeRepository emptyRepository
         |> optional "name" string ""
         |> optional "entry" string ""
         |> optional "active" bool False
