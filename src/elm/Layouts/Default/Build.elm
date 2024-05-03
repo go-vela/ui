@@ -428,6 +428,7 @@ view props shared route { toContentMsg, model, content } =
                 , build = model.build
                 , num = 10
                 , toPath = props.toBuildPath
+                , showTitle = True
                 }
              , Components.Build.view shared
                 { build = model.build

@@ -9,7 +9,7 @@ import Components.RecentBuilds
 import Components.Svgs
 import DateFormat.Relative
 import FeatherIcons
-import Html exposing (Html, a, div, span, text)
+import Html exposing (Html, a, br, div, header, li, p, section, span, text, ul)
 import Html.Attributes
     exposing
         ( attribute
@@ -54,6 +54,7 @@ view shared props =
                                 , build = RemoteData.succeed build
                                 , num = 5
                                 , toPath = \_ -> Route.Path.Home_
+                                , showTitle = False
                                 }
                             ]
                     }
@@ -66,13 +67,14 @@ view shared props =
                     , age = "-"
                     , sender = "-"
                     , duration = "-"
-                    , recentBuilds = div [ class "build-data-right" ] [ text "waiting for builds" ]
+                    , recentBuilds = div [ class "no-builds" ] [ text "waiting for builds" ]
                     }
     in
     div [ class "cards" ]
-        [ div [ class "card" ]
-            [ div []
-                [ div [ class "card-org-repo" ]
+        [ section [ class "card" ]
+            [ header [ class "card-org-repo" ]
+                [ cardProps.icon
+                , p []
                     [ a
                         [ Route.Path.href <|
                             Route.Path.Org_
@@ -80,9 +82,8 @@ view shared props =
                                 }
                         ]
                         [ text props.card.org ]
-                    ]
-                , div [ class "card-org-repo" ]
-                    [ a
+                    , br [] []
+                    , a
                         [ Route.Path.href <|
                             Route.Path.Org__Repo_
                                 { org = props.card.org
@@ -92,34 +93,32 @@ view shared props =
                         [ text props.card.name ]
                     ]
                 ]
-            , div [ class "build-data" ] <|
-                [ div [] [ cardProps.icon ]
-                , div [ class "build-status" ]
-                    [ div [ class "build-data-left" ]
-                        -- build link
-                        [ div []
-                            [ span [] [ FeatherIcons.cornerDownRight |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "go-to-build icon" ] ]
-                            , cardProps.build
-                            ]
+            , ul [ class "build-data" ] <|
+                -- build link
+                [ li [] [ FeatherIcons.cornerDownRight |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "go-to-build icon" ], cardProps.build ]
 
-                        -- event
-                        , div [] [ span [] [ FeatherIcons.send |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "event icon" ] ], text <| cardProps.event ]
-
-                        -- branch
-                        , div [] [ span [] [ FeatherIcons.gitBranch |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "branch icon" ] ], text <| cardProps.branch ]
-                        ]
-                    , div [ class "build-data-right" ]
-                        -- sender
-                        [ div [] [ text <| cardProps.sender, span [] [ FeatherIcons.user |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "build-sender icon" ] ] ]
-
-                        -- age
-                        , div [] [ text <| cardProps.age, span [] [ FeatherIcons.calendar |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "time-started icon" ] ] ]
-
-                        -- duration
-                        , div [] [ text <| cardProps.age, span [] [ FeatherIcons.clock |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "duration icon" ] ] ]
-                        ]
+                -- event
+                , li []
+                    [ FeatherIcons.send |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "event icon" ]
+                    , text <| cardProps.event
                     ]
-                , cardProps.recentBuilds
+
+                -- branch
+                , li []
+                    [ FeatherIcons.gitBranch |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "branch icon" ]
+                    , text <| cardProps.branch
+                    ]
+
+                -- sender
+                , li [] [ text <| cardProps.sender, FeatherIcons.user |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "build-sender icon" ] ]
+
+                -- age
+                , li [] [ text <| cardProps.age, FeatherIcons.calendar |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "time-started icon" ] ]
+
+                -- duration
+                , li []
+                    [ text <| cardProps.duration, FeatherIcons.clock |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "duration icon" ] ]
                 ]
+            , cardProps.recentBuilds
             ]
         ]

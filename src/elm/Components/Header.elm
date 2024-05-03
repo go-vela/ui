@@ -52,7 +52,7 @@ view shared props =
         identityAttributeList =
             Util.open props.showId
     in
-    header []
+    header [ class "main-header" ]
         [ div [ class "identity", id "identity", Util.testAttribute "identity" ]
             [ a
                 [ Route.Path.href Route.Path.Home_

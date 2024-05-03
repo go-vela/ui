@@ -6,6 +6,7 @@
 // dark theme (default)
 body,
 body.theme-dark {
+  --color-bg-darkest: var(--color-coal-darkest);
   --color-bg-dark: var(--color-coal-dark);
   --color-bg: var(--color-coal);
   --color-bg-light: var(--color-coal-light);
@@ -27,6 +28,7 @@ body.theme-dark {
 
 // light theme
 body.theme-light {
+  --color-bg-darkest: var(--color-gray-lightest);
   --color-bg-dark: var(--color-gray-light);
   --color-bg: var(--color-offwhite);
   //   --color-bg-light: var(--color-white);

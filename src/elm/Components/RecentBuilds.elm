@@ -5,6 +5,8 @@ SPDX-License-Identifier: Apache-2.0
 
 module Components.RecentBuilds exposing (view)
 
+-- import Utils.Errors exposing (showAlertAlways)
+
 import Components.Loading
 import Components.Svgs
 import Html exposing (Html, a, div, em, li, p, span, text, ul)
@@ -25,6 +27,7 @@ type alias Props =
     , build : WebData Vela.Build
     , num : Int
     , toPath : String -> Route.Path.Path
+    , showTitle : Bool
     }
 
 
@@ -34,11 +37,19 @@ type alias Props =
 
 view : Shared.Model -> Props -> Html msg
 view shared props =
+    let
+        viewTitle =
+            if props.showTitle then
+                p [ class "build-history-title" ] [ text "Recent Builds" ]
+
+            else
+                text ""
+    in
     case props.builds of
         RemoteData.Success builds ->
             if List.length builds > 0 then
                 div [ class "build-history" ]
-                    [ p [ class "build-history-title" ] [ text "Recent Builds" ]
+                    [ viewTitle
                     , ul [ Util.testAttribute "build-history", class "previews" ] <|
                         List.indexedMap (viewRecentBuild shared props) <|
                             List.take props.num builds
