@@ -51,14 +51,19 @@
 }
 
 // site admin platform settings
-.settings-info {
+.settings-info,
+.settings-previous-value {
   font-size: 1rem;
 
-  .info-value {
+  span {
     padding: 0.2rem 0.4rem;
 
     font-family: var(--font-code);
 
     background-color: var(--color-bg-dark);
   }
+}
+
+.settings-previous-value {
+  min-height: 1.6rem;
 }
