@@ -197,19 +197,7 @@ type alias DashboardRepoCard =
     { org : String
     , name : String
     , counter : Int
-    , builds : List DashboardRepoCardBuild
-    }
-
-
-type alias DashboardRepoCardBuild =
-    { number : Int
-    , started : Int
-    , finished : Int
-    , sender : String
-    , status : Status
-    , event : String
-    , branch : String
-    , link : String
+    , builds : List Build
     }
 
 
@@ -239,7 +227,7 @@ decodeDashboardRepoCard =
         |> optional "org" string ""
         |> optional "name" string ""
         |> optional "counter" int -1
-        |> optional "builds" (Json.Decode.list decodeDashboardRepoCardBuild) []
+        |> optional "builds" (Json.Decode.list decodeBuild) []
 
 
 decodeDashboardRepo : Decoder DashboardRepo
@@ -249,19 +237,6 @@ decodeDashboardRepo =
         |> optional "name" string ""
         |> optional "branches" (Json.Decode.list string) []
         |> optional "events" (Json.Decode.list string) []
-
-
-decodeDashboardRepoCardBuild : Decoder DashboardRepoCardBuild
-decodeDashboardRepoCardBuild =
-    Json.Decode.succeed DashboardRepoCardBuild
-        |> optional "number" int -1
-        |> optional "started" int -1
-        |> optional "finished" int -1
-        |> optional "sender" string ""
-        |> optional "status" buildStatusDecoder Pending
-        |> optional "event" string ""
-        |> optional "branch" string ""
-        |> optional "link" string ""
 
 
 

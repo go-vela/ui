@@ -5,13 +5,20 @@ SPDX-License-Identifier: Apache-2.0
 
 module Components.DashboardRepoCard exposing (view)
 
-import Html exposing (Html, a, div, text)
+import Components.RecentBuilds
+import Components.Svgs
+import DateFormat.Relative
+import FeatherIcons
+import Html exposing (Html, a, div, span, text)
 import Html.Attributes
     exposing
-        ( class
+        ( attribute
+        , class
         )
+import RemoteData
 import Route.Path
 import Shared
+import Time
 import Utils.Helpers as Util
 import Vela
 
@@ -23,34 +30,96 @@ type alias Props =
 
 view : Shared.Model -> Props -> Html msg
 view shared props =
-    div [ class "item" ]
-        [ a
-            [ Route.Path.href <|
-                Route.Path.Org_
-                    { org = props.card.org
-                    }
-            ]
-            [ text props.card.org ]
-        , a
-            [ Route.Path.href <|
-                Route.Path.Org__Repo_
-                    { org = props.card.org
-                    , repo = props.card.name
-                    }
-            ]
-            [ text props.card.name ]
-        , div [] <|
+    let
+        cardProps =
             case List.head props.card.builds of
                 Just build ->
-                    [ text <| "status: " ++ Vela.statusToString build.status
-                    , text <| "build: " ++ String.fromInt build.number
-                    , text <| "sender: " ++ build.sender
-                    , text <| "branch: " ++ build.branch
-                    , text <| "event: " ++ build.event
-                    , text <| "started: " ++ Util.humanReadableDateWithDefault shared.zone build.started
-                    , text <| "duration: " ++ Util.formatRunTime shared.time build.started build.finished
-                    ]
+                    { icon = Components.Svgs.recentBuildStatusToIcon build.status 0
+                    , build = a [ Route.Path.href <| Route.Path.Org__Repo__Build_ { org = props.card.org, repo = props.card.name, build = String.fromInt build.number } ] [ text <| "#" ++ String.fromInt build.number ]
+                    , event = build.event
+                    , branch = build.branch
+                    , sender = build.sender
+                    , age =
+                        let
+                            buildStartedPosix =
+                                Time.millisToPosix <| Util.secondsToMillis build.started
+                        in
+                        DateFormat.Relative.relativeTime shared.time <| buildStartedPosix
+                    , duration = Util.formatRunTime shared.time build.started build.finished
+                    , recentBuilds =
+                        div
+                            [ class "dashboard-recent-builds" ]
+                            [ Components.RecentBuilds.view shared
+                                { builds = RemoteData.succeed props.card.builds
+                                , build = RemoteData.succeed build
+                                , num = 5
+                                , toPath = \_ -> Route.Path.Home_
+                                }
+                            ]
+                    }
 
                 Nothing ->
-                    [ text "No builds found" ]
+                    { icon = Components.Svgs.recentBuildStatusToIcon Vela.Pending 0
+                    , build = span [] [ text "-" ]
+                    , event = "-"
+                    , branch = "-"
+                    , age = "-"
+                    , sender = "-"
+                    , duration = "-"
+                    , recentBuilds = div [ class "build-data-right" ] [ text "waiting for builds" ]
+                    }
+    in
+    div [ class "cards" ]
+        [ div [ class "card" ]
+            [ div []
+                [ div [ class "card-org-repo" ]
+                    [ a
+                        [ Route.Path.href <|
+                            Route.Path.Org_
+                                { org = props.card.org
+                                }
+                        ]
+                        [ text props.card.org ]
+                    ]
+                , div [ class "card-org-repo" ]
+                    [ a
+                        [ Route.Path.href <|
+                            Route.Path.Org__Repo_
+                                { org = props.card.org
+                                , repo = props.card.name
+                                }
+                        ]
+                        [ text props.card.name ]
+                    ]
+                ]
+            , div [ class "build-data" ] <|
+                [ div [] [ cardProps.icon ]
+                , div [ class "build-status" ]
+                    [ div [ class "build-data-left" ]
+                        -- build link
+                        [ div []
+                            [ span [] [ FeatherIcons.cornerDownRight |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "go-to-build icon" ] ]
+                            , cardProps.build
+                            ]
+
+                        -- event
+                        , div [] [ span [] [ FeatherIcons.send |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "event icon" ] ], text <| cardProps.event ]
+
+                        -- branch
+                        , div [] [ span [] [ FeatherIcons.gitBranch |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "branch icon" ] ], text <| cardProps.branch ]
+                        ]
+                    , div [ class "build-data-right" ]
+                        -- sender
+                        [ div [] [ text <| cardProps.sender, span [] [ FeatherIcons.user |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "build-sender icon" ] ] ]
+
+                        -- age
+                        , div [] [ text <| cardProps.age, span [] [ FeatherIcons.calendar |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "time-started icon" ] ] ]
+
+                        -- duration
+                        , div [] [ text <| cardProps.age, span [] [ FeatherIcons.clock |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "duration icon" ] ] ]
+                        ]
+                    ]
+                , cardProps.recentBuilds
+                ]
+            ]
         ]

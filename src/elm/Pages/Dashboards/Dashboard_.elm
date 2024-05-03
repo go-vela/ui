@@ -160,19 +160,18 @@ view shared route model =
                         div [] [ text "failed like no one has failed before" ]
 
                     RemoteData.Success dashboard ->
-                        div [] <|
+                        div []
                             [ h1 [] [ text dashboard.dashboard.name ]
-                            , p []
-                                [ text "This is a placeholder for future content."
-                                ]
-                            ]
-                                ++ List.map
+                            , div [ class "cards" ]
+                                (List.map
                                     (\repo ->
                                         Components.DashboardRepoCard.view shared
                                             { card = repo
                                             }
                                     )
                                     dashboard.repos
+                                )
+                            ]
                 ]
             ]
         ]
