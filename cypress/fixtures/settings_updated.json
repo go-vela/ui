@@ -9,5 +9,8 @@
     "routes": ["vela123", "linux-large"]
   },
   "repo_allowlist": ["octocat/hello-world"],
-  "schedule_allowlist": []
+  "schedule_allowlist": [],
+  "created_at": 1572980375,
+  "updated_at": 1572980675,
+  "updated_by": "octocat"
 }
