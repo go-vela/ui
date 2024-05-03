@@ -1882,6 +1882,9 @@ type alias PlatformSettings =
     , queue : Queue
     , repoAllowlist : List String
     , scheduleAllowlist : List String
+    , createdAt : Int
+    , updatedAt : Int
+    , updatedBy : String
     }
 
 
@@ -1893,6 +1896,9 @@ decodeSettings =
         |> required "queue" decodeQueue
         |> required "repo_allowlist" (Json.Decode.list Json.Decode.string)
         |> required "schedule_allowlist" (Json.Decode.list Json.Decode.string)
+        |> required "created_at" int
+        |> required "updated_at" int
+        |> required "updated_by" string
 
 
 type alias Compiler =
