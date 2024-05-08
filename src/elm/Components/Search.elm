@@ -87,7 +87,7 @@ viewRepoSearchBarGlobal searchFilters search =
         ]
 
 
-{-| viewRepoSearchBarLocal : takes an org and placeholder text and renders a search bar for local repo filtering.
+{-| viewRepoSearchBarLocal : takes filters and an org and renders a search bar for local repo filtering.
 -}
 viewRepoSearchBarLocal : Dict Vela.Org String -> Vela.Org -> Search msg -> Html msg
 viewRepoSearchBarLocal searchFilters org search =
