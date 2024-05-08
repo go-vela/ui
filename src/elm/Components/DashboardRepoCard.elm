@@ -67,58 +67,58 @@ view shared props =
                     , age = "-"
                     , sender = "-"
                     , duration = "-"
-                    , recentBuilds = div [ class "no-builds" ] [ text "waiting for builds" ]
+                    , recentBuilds = div [ class "dashboard-no-builds" ] [ text "waiting for builds" ]
                     }
     in
-    div [ class "cards" ]
-        [ section [ class "card" ]
-            [ header [ class "card-org-repo" ]
-                [ cardProps.icon
-                , p []
-                    [ a
-                        [ Route.Path.href <|
-                            Route.Path.Org_
-                                { org = props.card.org
-                                }
-                        ]
-                        [ text props.card.org ]
-                    , br [] []
-                    , a
-                        [ Route.Path.href <|
-                            Route.Path.Org__Repo_
-                                { org = props.card.org
-                                , repo = props.card.name
-                                }
-                        ]
-                        [ text props.card.name ]
+    section [ class "card" ]
+        [ header [ class "card-org-repo card-org-repo.padding-none" ]
+            [ cardProps.icon
+            , p []
+                [ a
+                    [ class "card-org"
+                    , Route.Path.href <|
+                        Route.Path.Org_
+                            { org = props.card.org
+                            }
                     ]
+                    [ text props.card.org ]
+                , br [] []
+                , a
+                    [ class "card-repo"
+                    , Route.Path.href <|
+                        Route.Path.Org__Repo_
+                            { org = props.card.org
+                            , repo = props.card.name
+                            }
+                    ]
+                    [ text props.card.name ]
                 ]
-            , ul [ class "build-data" ] <|
-                -- build link
-                [ li [] [ FeatherIcons.cornerDownRight |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "go-to-build icon" ], cardProps.build ]
-
-                -- event
-                , li []
-                    [ FeatherIcons.send |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "event icon" ]
-                    , text <| cardProps.event
-                    ]
-
-                -- branch
-                , li []
-                    [ FeatherIcons.gitBranch |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "branch icon" ]
-                    , text <| cardProps.branch
-                    ]
-
-                -- sender
-                , li [] [ text <| cardProps.sender, FeatherIcons.user |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "build-sender icon" ] ]
-
-                -- age
-                , li [] [ text <| cardProps.age, FeatherIcons.calendar |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "time-started icon" ] ]
-
-                -- duration
-                , li []
-                    [ text <| cardProps.duration, FeatherIcons.clock |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "duration icon" ] ]
-                ]
-            , cardProps.recentBuilds
             ]
+        , ul [ class "card-build-data" ] <|
+            [ -- build link
+              li [] [ FeatherIcons.cornerDownRight |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "go-to-build icon" ], cardProps.build ]
+
+            -- event
+            , li []
+                [ FeatherIcons.send |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "event icon" ]
+                , text <| cardProps.event
+                ]
+
+            -- branch
+            , li []
+                [ FeatherIcons.gitBranch |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "branch icon" ]
+                , text <| cardProps.branch
+                ]
+
+            -- sender
+            , li [] [ text <| cardProps.sender, FeatherIcons.user |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "build-sender icon" ] ]
+
+            -- age
+            , li [] [ text <| cardProps.age, FeatherIcons.calendar |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "time-started icon" ] ]
+
+            -- duration
+            , li []
+                [ text <| cardProps.duration, FeatherIcons.clock |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "duration icon" ] ]
+            ]
+        , cardProps.recentBuilds
         ]

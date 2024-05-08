@@ -30,8 +30,10 @@ import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Route.Path
 import Shared
+import Time
 import Utils.Errors as Errors
 import Utils.Helpers as Util
+import Utils.Interval as Interval
 import Vela
 import View exposing (View)
 
@@ -40,19 +42,19 @@ page : Auth.User -> Shared.Model -> Route { dashboardId : String } -> Page Model
 page user shared route =
     Page.new
         { init = init shared route
-        , update = update
+        , update = update shared route
         , subscriptions = subscriptions
         , view = view shared route
         }
-        |> Page.withLayout (toLayout user)
+        |> Page.withLayout (toLayout user route)
 
 
 
 -- LAYOUT
 
 
-toLayout : Auth.User -> Model -> Layouts.Layout Msg
-toLayout user model =
+toLayout : Auth.User -> Route { dashboardId : String } -> Model -> Layouts.Layout Msg
+toLayout user route model =
     Layouts.Default
         { helpCommands =
             [ { name = ""
@@ -91,10 +93,12 @@ init shared route () =
 type Msg
     = NoOp
     | GetDashboardResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Dashboard ))
+      -- REFRESH
+    | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
-update : Msg -> Model -> ( Model, Effect Msg )
-update msg model =
+update : Shared.Model -> Route { dashboardId : String } -> Msg -> Model -> ( Model, Effect Msg )
+update shared route msg model =
     case msg of
         NoOp ->
             ( model
@@ -116,6 +120,16 @@ update msg model =
                         }
                     )
 
+        Tick options ->
+            ( model
+            , Effect.getDashboard
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse = GetDashboardResponse
+                , dashboardId = route.params.dashboardId
+                }
+            )
+
 
 
 -- SUBSCRIPTIONS
@@ -123,7 +137,9 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Sub.batch
+        [ Interval.tickEveryFiveSeconds Tick
+        ]
 
 
 
@@ -135,11 +151,11 @@ view shared route model =
     let
         crumbs =
             [ ( "Overview", Just Route.Path.Home_ )
-            , ( "Dashboard", Nothing )
+            , ( "Dashboards", Nothing )
             , ( route.params.dashboardId, Nothing )
             ]
     in
-    { title = "Dashboard"
+    { title = "Dashboards"
     , body =
         [ Components.Nav.view
             shared
@@ -148,7 +164,7 @@ view shared route model =
             , crumbs = Components.Crumbs.view route.path crumbs
             }
         , main_ [ class "content-wrap" ]
-            [ div [ Util.testAttribute "dashboard" ]
+            [ div [ class "dashboard", Util.testAttribute "dashboard" ]
                 [ case model.dashboard of
                     RemoteData.Loading ->
                         div [] [ text "Loading..." ]
@@ -161,7 +177,7 @@ view shared route model =
 
                     RemoteData.Success dashboard ->
                         div []
-                            [ h1 [] [ text dashboard.dashboard.name ]
+                            [ h1 [ class "dashboard-title" ] [ text dashboard.dashboard.name ]
                             , div [ class "cards" ]
                                 (List.map
                                     (\repo ->

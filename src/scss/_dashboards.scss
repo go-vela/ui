@@ -3,14 +3,24 @@
 
 // styles for the dashboard pages
 
+.dashboard-title {
+  border-bottom: var(--line-width) solid var(--color-secondary);
+}
+
+.dashboard {
+
+}
+
 .cards {
   display: flex;
   flex-wrap: wrap;
 }
 
 .card {
-  flex-basis: 100%;
-  margin: 0.5rem; 
+  flex: 0 0 26rem;
+  margin-right: 2rem;
+  margin-bottom: 2rem;
+  padding: .5rem;
 
   background-color: var(--color-bg-dark);
 }
@@ -19,37 +29,152 @@
   display: flex;
   align-items: center;
   gap: .5rem;
+  line-height: 1.25;
+  width: calc(100% + 1rem);
+  margin: -0.5rem -0.5rem 0 -0.5rem; // to ignore .card padding
+  padding: 0 1rem;
 
   background-color: var(--color-bg-darkest);
+
+  .-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+      
+    &.-pending {
+      background-color: var(--color-bg-light);
+      stroke: var(--color-bg-darkest);
+    }
+
+    &.-running {
+      background-color: var(--color-yellow);
+      stroke: var(--color-bg-darkest);
+    } 
+
+    &.-success {
+      background-color: var(--color-green);
+      stroke: var(--color-bg-darkest);
+    }
+
+    &.-failure {
+      background-color: var(--color-red);
+      stroke: var(--color-bg-darkest);
+    }
+
+    &.-canceled {
+      background-color: var(--color-cyan-dark);
+      stroke: var(--color-bg-darkest);
+    }
+
+    &.-error {
+      background-color: var(--color-red);
+      stroke: var(--color-bg-darkest);
+    }
+  }
 }
 
-.build-data {
+.card-org {
+  font-size: smaller;
+  padding-left: .5rem;
+}
+
+.card-repo {
+  font-weight: bold;
+  padding-left: .5rem;
+}
+
+.card-icon-nothing {
+  background-color: var(--color-coal-light);
+}
+
+.card-build-data {
   columns: 2;
   list-style-type: none;
   padding: 0.5rem;
+  margin: 0;
 }
 
-.build-data li{
+.card-build-data li {
   display: flex;
-  // flex-direction: column;
+  margin: 0;
   align-items: center;
   gap: .5rem;
-}
 
-.build-data li:nth-child(n + 4){
-  justify-content: right;
+  &:not(:last-child) {
+    margin-bottom: .5rem;
+  }
 
+  &:nth-child(n + 4) {
+    justify-content: right;
+  }
 }
 
 .dashboard-recent-builds {
   margin: 0.5rem;
-  padding: 0 1rem;
 
-  background-color: var(--color-bg-darkest);
+  background-color: var(--color-bg-dark);
+
+  .recent-build:first-child .recent-build-link.-current{
+    margin: 0; 
+  }
+
+  .recent-build:first-child .-icon{
+    stroke-width: 1px;
+  }
+
+  .recent-build:not(:first-child) .-icon {
+    background-color: var(--color-bg-dark); // too many levels
+    stroke: var(--color-green);
+    stroke-width: 1px;
+        
+      &.-pending { // def too many levels
+        stroke: var(--color-bg-darkest);
+        border-top: 2px solid var(--color-green);
+        border-bottom: 2px solid var(--color-green);
+      }
+  
+      &.-running {
+        stroke: var(--color-bg-yellow);
+        border-top: 2px solid var(--color-yellow);
+        border-bottom: 2px solid var(--color-yellow);
+      } 
+  
+      &.-success {
+        stroke: var(--color-green);
+        border-top: 2px solid var(--color-green);
+        border-bottom: 2px solid var(--color-green);
+      }
+  
+      &.-failure {
+        stroke: var(--color-red);
+        border-top: 2px solid var(--color-red);
+        border-bottom: 2px solid var(--color-red);
+      }
+  
+      &.-canceled {
+        stroke: var(--color-cyan-dark);
+        border-top: 2px solid var(--color-cyan-dark);
+        border-bottom: 2px solid var(--color-cyan-dark);
+      }
+  
+      &.-error {
+        stroke: var(--color-red);
+        border-top: 2px solid var(--color-red);
+        border-bottom: 2px solid var(--color-red);
+      }
+  }
+
+  .-icon {
+    width: 5rem;
+    height: 5rem;
+    
+  }
 }
-.no-builds {
+
+.dashboard-no-builds {
   margin: 0.5rem;
-  padding: 0 1rem;
+  padding: 1.75rem 1rem 1rem 1rem;
+  height: 5rem;
+  text-align: center;
 
   background-color: var(--color-bg-darkest);
 }

@@ -809,6 +809,52 @@ details.build-toggle {
   font-size: 0.8em;
 }
 
+.-icon {
+  fill: none;
+  stroke: var(--color-primary);
+
+  &.-check {
+    background-color: var(--color-primary);
+
+    stroke: var(--color-bg);
+  }
+
+  &.-check,
+  &.-radio {
+    fill: none;
+  }
+
+  &.-success {
+    stroke: var(--color-green);
+  }
+
+  &.-running {
+    stroke: var(--color-yellow);
+  }
+
+  &.-failure,
+  &.-error {
+    stroke: var(--color-red);
+  }
+
+  &.-canceled {
+    stroke: var(--color-cyan-dark);
+  }
+
+  &.-pending {
+    fill: var(--color-bg-light);
+    stroke: var(--color-bg-light);
+  }
+
+  .-inner {
+    fill: var(--color-primary);
+  }
+
+  &.-skip {
+    stroke: var(--color-lavender);
+  }
+}
+
 .recent-build {
   position: relative;
 
@@ -833,7 +879,7 @@ details.build-toggle {
   margin: 0 0.2rem 0 0;
 }
 
-.build-history .recent-build-link .-icon {
+.recent-build-link .-icon {
   fill: none;
   stroke: var(--color-bg);
 
@@ -1299,52 +1345,6 @@ details.build-toggle {
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-}
-
-.-icon {
-  fill: none;
-  stroke: var(--color-primary);
-
-  &.-check {
-    background-color: var(--color-primary);
-
-    stroke: var(--color-bg);
-  }
-
-  &.-check,
-  &.-radio {
-    fill: none;
-  }
-
-  &.-success {
-    stroke: var(--color-green);
-  }
-
-  &.-running {
-    stroke: var(--color-yellow);
-  }
-
-  &.-failure,
-  &.-error {
-    stroke: var(--color-red);
-  }
-
-  &.-canceled {
-    stroke: var(--color-cyan-dark);
-  }
-
-  &.-pending {
-    fill: var(--color-bg-light);
-    stroke: var(--color-bg-light);
-  }
-
-  .-inner {
-    fill: var(--color-primary);
-  }
-
-  &.-skip {
-    stroke: var(--color-lavender);
-  }
 }
 
 .pager-actions {
