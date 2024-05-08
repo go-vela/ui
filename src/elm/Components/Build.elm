@@ -277,7 +277,7 @@ viewBuildPreview props =
         ]
 
 
-{-| viewActionsMenu : takes org, repo, build number, and build status, and renders appropriate action links in actions menu based on build status.
+{-| viewActionsMenu : takes build information and renders appropriate action links in actions menu based on build status.
 -}
 viewActionsMenu :
     { msgs :
