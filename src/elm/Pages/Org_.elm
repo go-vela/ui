@@ -32,7 +32,7 @@ import Vela
 import View exposing (View)
 
 
-{-| page : takes user, shared model, route, and returns an org's (builds) page.
+{-| page : takes user, shared model, route, and returns the org page.
 -}
 page : Auth.User -> Shared.Model -> Route { org : String } -> Page Model Msg
 page user shared route =
