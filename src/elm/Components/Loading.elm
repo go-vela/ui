@@ -11,7 +11,7 @@ viewSmallLoader =
     div [ class "small-loader" ] [ div [ class "-spinner" ] [], div [ class "-label" ] [] ]
 
 
-{-| viewSmallLoaderWithText : renders a small loading spinner for better transitioning UX with additional loading text.
+{-| viewSmallLoaderWithText : renders a large loading spinner for better transitioning UX with additional loading text.
 -}
 viewSmallLoaderWithText : String -> Html msg
 viewSmallLoaderWithText label =
