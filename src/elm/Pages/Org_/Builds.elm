@@ -421,7 +421,7 @@ subscriptions model =
 -- VIEW
 
 
-{-| view : takes models, route, and creates the html for the account settings page.
+{-| view : takes models, route, and renders the html for the org builds page.
 -}
 view : Shared.Model -> Route { org : String } -> Model -> View Msg
 view shared route model =
