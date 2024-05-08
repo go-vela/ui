@@ -598,7 +598,7 @@ view shared route model =
     }
 
 
-{-| viewTemplatesDetails : renders a Templates componenet for a build pipeline.
+{-| viewTemplatesDetails : renders templates for a build pipeline.
 -}
 viewTemplatesDetails : Model -> Html Msg -> Html Msg
 viewTemplatesDetails model body =
