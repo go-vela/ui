@@ -40,8 +40,6 @@ import Pages.Org_.Repo_.Tags
 import View exposing (View)
 
 
-{-| Model : The main model for the application.
--}
 type Model
     = Home_ Pages.Home_.Model
     | Account_Authenticate Pages.Account.Authenticate.Model

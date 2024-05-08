@@ -39,8 +39,6 @@ import Pages.Org_.Repo_.Settings
 import Pages.Org_.Repo_.Tags
 
 
-{-| Msg : The main message type for the application, used to route messages to the correct page.
--}
 type Msg
     = Home_ Pages.Home_.Msg
     | Account_Authenticate Pages.Account.Authenticate.Msg
