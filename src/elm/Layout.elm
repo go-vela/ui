@@ -120,10 +120,6 @@ withOnQueryParameterChanged { key, onChange } (Layout layout) =
     Layout { layout | onQueryParameterChangedDict = Dict.insert key onChange layout.onQueryParameterChangedDict }
 
 
-
--- USED INTERNALLY BY ELM LAND
-
-
 init : Layout parentProps model msg contentMsg -> () -> ( model, Effect msg )
 init (Layout layout) =
     layout.init

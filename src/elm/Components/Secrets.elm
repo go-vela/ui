@@ -207,6 +207,7 @@ tableHeaders =
     , ( Nothing, "events" )
     , ( Nothing, "images" )
     , ( Nothing, "allow commands" )
+    , ( Nothing, "allow substitution" )
     ]
 
 
