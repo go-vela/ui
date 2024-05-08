@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 module Route.Path exposing (Path(..), fromString, fromUrl, href, toString)
 
 import Html
-import Html.Attributes exposing (name)
+import Html.Attributes
 import Url exposing (Url)
 import Url.Parser exposing ((</>))
 
@@ -15,9 +15,9 @@ import Url.Parser exposing ((</>))
 -}
 type Path
     = Home_
+    | Account_Authenticate
     | Account_Login
     | Account_Logout
-    | Account_Authenticate
     | Account_Settings
     | Account_SourceRepos
     | Dash_Secrets_Engine__Org_Org_ { engine : String, org : String }
@@ -35,17 +35,17 @@ type Path
     | Org__Repo__Deployments { org : String, repo : String }
     | Org__Repo__Deployments_Add { org : String, repo : String }
     | Org__Repo__Hooks { org : String, repo : String }
+    | Org__Repo__Pulls { org : String, repo : String }
     | Org__Repo__Schedules { org : String, repo : String }
     | Org__Repo__Schedules_Add { org : String, repo : String }
     | Org__Repo__Schedules_Name_ { org : String, repo : String, name : String }
     | Org__Repo__Settings { org : String, repo : String }
+    | Org__Repo__Tags { org : String, repo : String }
     | Org__Repo__Build_ { org : String, repo : String, build : String }
     | Org__Repo__Build__Graph { org : String, repo : String, build : String }
     | Org__Repo__Build__Pipeline { org : String, repo : String, build : String }
     | Org__Repo__Build__Services { org : String, repo : String, build : String }
     | NotFound_
-    | Org__Repo__Pulls { org : String, repo : String }
-    | Org__Repo__Tags { org : String, repo : String }
 
 
 fromUrl : Url -> Path
@@ -69,205 +69,205 @@ fromString urlPath =
         [] ->
             Just Home_
 
-        [ "account", "login" ] ->
-            Just Account_Login
-
-        [ "account", "logout" ] ->
-            Just Account_Logout
-
-        [ "account", "authenticate" ] ->
+        "account" :: "authenticate" :: [] ->
             Just Account_Authenticate
 
-        [ "account", "settings" ] ->
+        "account" :: "login" :: [] ->
+            Just Account_Login
+
+        "account" :: "logout" :: [] ->
+            Just Account_Logout
+
+        "account" :: "settings" :: [] ->
             Just Account_Settings
 
-        [ "account", "source-repos" ] ->
+        "account" :: "source-repos" :: [] ->
             Just Account_SourceRepos
 
-        org :: [] ->
-            Org_
-                { org = org
-                }
-                |> Just
-
-        org :: "builds" :: [] ->
-            Org__Builds
-                { org = org
-                }
-                |> Just
-
-        org :: repo :: [] ->
-            Org__Repo_
-                { org = org
-                , repo = repo
-                }
-                |> Just
-
-        org :: repo :: "deployments" :: "add" :: [] ->
-            Org__Repo__Deployments_Add
-                { org = org
-                , repo = repo
-                }
-                |> Just
-
-        org :: repo :: "deployments" :: [] ->
-            Org__Repo__Deployments
-                { org = org
-                , repo = repo
-                }
-                |> Just
-
-        org :: repo :: "schedules" :: [] ->
-            Org__Repo__Schedules
-                { org = org
-                , repo = repo
-                }
-                |> Just
-
-        org :: repo :: "schedules" :: "add" :: [] ->
-            Org__Repo__Schedules_Add
-                { org = org
-                , repo = repo
-                }
-                |> Just
-
-        org :: repo :: "schedules" :: name :: [] ->
-            Org__Repo__Schedules_Name_
-                { org = org
-                , repo = repo
-                , name = name
-                }
-                |> Just
-
-        org :: repo :: "hooks" :: [] ->
-            Org__Repo__Hooks
-                { org = org
-                , repo = repo
-                }
-                |> Just
-
-        org :: repo :: "settings" :: [] ->
-            Org__Repo__Settings
-                { org = org
-                , repo = repo
-                }
-                |> Just
-
-        org :: repo :: "pulls" :: [] ->
-            Org__Repo__Pulls
-                { org = org
-                , repo = repo
-                }
-                |> Just
-
-        org :: repo :: "tags" :: [] ->
-            Org__Repo__Tags
-                { org = org
-                , repo = repo
-                }
-                |> Just
-
-        org :: repo :: build :: [] ->
-            Org__Repo__Build_
-                { org = org
-                , repo = repo
-                , build = build
-                }
-                |> Just
-
-        org :: repo :: build :: "services" :: [] ->
-            Org__Repo__Build__Services
-                { org = org
-                , repo = repo
-                , build = build
-                }
-                |> Just
-
-        org :: repo :: build :: "pipeline" :: [] ->
-            Org__Repo__Build__Pipeline
-                { org = org
-                , repo = repo
-                , build = build
-                }
-                |> Just
-
-        org :: repo :: build :: "graph" :: [] ->
-            Org__Repo__Build__Graph
-                { org = org
-                , repo = repo
-                , build = build
-                }
-                |> Just
-
-        "-" :: "secrets" :: engine :: "org" :: org :: [] ->
+        "-" :: "secrets" :: engine_ :: "org" :: org_ :: [] ->
             Dash_Secrets_Engine__Org_Org_
-                { org = org
-                , engine = engine
+                { engine = engine_
+                , org = org_
                 }
                 |> Just
 
-        "-" :: "secrets" :: engine :: "org" :: org :: "add" :: [] ->
+        "-" :: "secrets" :: engine_ :: "org" :: org_ :: "add" :: [] ->
             Dash_Secrets_Engine__Org_Org__Add
-                { org = org
-                , engine = engine
+                { engine = engine_
+                , org = org_
                 }
                 |> Just
 
-        "-" :: "secrets" :: engine :: "org" :: org :: name :: [] ->
+        "-" :: "secrets" :: engine_ :: "org" :: org_ :: name_ :: [] ->
             Dash_Secrets_Engine__Org_Org__Name_
-                { org = org
-                , name = name
-                , engine = engine
+                { engine = engine_
+                , org = org_
+                , name = name_
                 }
                 |> Just
 
-        "-" :: "secrets" :: engine :: "repo" :: org :: repo :: [] ->
+        "-" :: "secrets" :: engine_ :: "repo" :: org_ :: repo_ :: [] ->
             Dash_Secrets_Engine__Repo_Org__Repo_
-                { org = org
-                , repo = repo
-                , engine = engine
+                { engine = engine_
+                , org = org_
+                , repo = repo_
                 }
                 |> Just
 
-        "-" :: "secrets" :: engine :: "repo" :: org :: repo :: "add" :: [] ->
+        "-" :: "secrets" :: engine_ :: "repo" :: org_ :: repo_ :: "add" :: [] ->
             Dash_Secrets_Engine__Repo_Org__Repo__Add
-                { org = org
-                , repo = repo
-                , engine = engine
+                { engine = engine_
+                , org = org_
+                , repo = repo_
                 }
                 |> Just
 
-        "-" :: "secrets" :: engine :: "repo" :: org :: repo :: name :: [] ->
+        "-" :: "secrets" :: engine_ :: "repo" :: org_ :: repo_ :: name_ :: [] ->
             Dash_Secrets_Engine__Repo_Org__Repo__Name_
-                { org = org
-                , repo = repo
-                , name = name
-                , engine = engine
+                { engine = engine_
+                , org = org_
+                , repo = repo_
+                , name = name_
                 }
                 |> Just
 
-        "-" :: "secrets" :: engine :: "shared" :: org :: team :: [] ->
+        "-" :: "secrets" :: engine_ :: "shared" :: org_ :: team_ :: [] ->
             Dash_Secrets_Engine__Shared_Org__Team_
-                { org = org
-                , team = team
-                , engine = engine
+                { engine = engine_
+                , org = org_
+                , team = team_
                 }
                 |> Just
 
-        "-" :: "secrets" :: engine :: "shared" :: org :: team :: "add" :: [] ->
+        "-" :: "secrets" :: engine_ :: "shared" :: org_ :: team_ :: "add" :: [] ->
             Dash_Secrets_Engine__Shared_Org__Team__Add
-                { org = org
-                , team = team
-                , engine = engine
+                { engine = engine_
+                , org = org_
+                , team = team_
                 }
                 |> Just
 
-        "-" :: "secrets" :: engine :: "shared" :: org :: team :: name :: [] ->
+        "-" :: "secrets" :: engine_ :: "shared" :: org_ :: team_ :: name_ :: [] ->
             Dash_Secrets_Engine__Shared_Org__Team__Name_
-                { org = org
-                , team = team
-                , name = name
-                , engine = engine
+                { engine = engine_
+                , org = org_
+                , team = team_
+                , name = name_
+                }
+                |> Just
+
+        org_ :: [] ->
+            Org_
+                { org = org_
+                }
+                |> Just
+
+        org_ :: "builds" :: [] ->
+            Org__Builds
+                { org = org_
+                }
+                |> Just
+
+        org_ :: repo_ :: [] ->
+            Org__Repo_
+                { org = org_
+                , repo = repo_
+                }
+                |> Just
+
+        org_ :: repo_ :: "deployments" :: [] ->
+            Org__Repo__Deployments
+                { org = org_
+                , repo = repo_
+                }
+                |> Just
+
+        org_ :: repo_ :: "deployments" :: "add" :: [] ->
+            Org__Repo__Deployments_Add
+                { org = org_
+                , repo = repo_
+                }
+                |> Just
+
+        org_ :: repo_ :: "hooks" :: [] ->
+            Org__Repo__Hooks
+                { org = org_
+                , repo = repo_
+                }
+                |> Just
+
+        org_ :: repo_ :: "pulls" :: [] ->
+            Org__Repo__Pulls
+                { org = org_
+                , repo = repo_
+                }
+                |> Just
+
+        org_ :: repo_ :: "schedules" :: [] ->
+            Org__Repo__Schedules
+                { org = org_
+                , repo = repo_
+                }
+                |> Just
+
+        org_ :: repo_ :: "schedules" :: "add" :: [] ->
+            Org__Repo__Schedules_Add
+                { org = org_
+                , repo = repo_
+                }
+                |> Just
+
+        org_ :: repo_ :: "schedules" :: name_ :: [] ->
+            Org__Repo__Schedules_Name_
+                { org = org_
+                , repo = repo_
+                , name = name_
+                }
+                |> Just
+
+        org_ :: repo_ :: "settings" :: [] ->
+            Org__Repo__Settings
+                { org = org_
+                , repo = repo_
+                }
+                |> Just
+
+        org_ :: repo_ :: "tags" :: [] ->
+            Org__Repo__Tags
+                { org = org_
+                , repo = repo_
+                }
+                |> Just
+
+        org_ :: repo_ :: build_ :: [] ->
+            Org__Repo__Build_
+                { org = org_
+                , repo = repo_
+                , build = build_
+                }
+                |> Just
+
+        org_ :: repo_ :: build_ :: "graph" :: [] ->
+            Org__Repo__Build__Graph
+                { org = org_
+                , repo = repo_
+                , build = build_
+                }
+                |> Just
+
+        org_ :: repo_ :: build_ :: "pipeline" :: [] ->
+            Org__Repo__Build__Pipeline
+                { org = org_
+                , repo = repo_
+                , build = build_
+                }
+                |> Just
+
+        org_ :: repo_ :: build_ :: "services" :: [] ->
+            Org__Repo__Build__Services
+                { org = org_
+                , repo = repo_
+                , build = build_
                 }
                 |> Just
 
@@ -293,68 +293,20 @@ toString path =
                 Home_ ->
                     []
 
+                Account_Authenticate ->
+                    [ "account", "authenticate" ]
+
                 Account_Login ->
                     [ "account", "login" ]
 
                 Account_Logout ->
                     [ "account", "logout" ]
 
-                Account_Authenticate ->
-                    [ "account", "authenticate" ]
-
                 Account_Settings ->
                     [ "account", "settings" ]
 
                 Account_SourceRepos ->
                     [ "account", "source-repos" ]
-
-                Org_ params ->
-                    [ params.org ]
-
-                Org__Builds params ->
-                    [ params.org, "builds" ]
-
-                Org__Repo_ params ->
-                    [ params.org, params.repo ]
-
-                Org__Repo__Pulls params ->
-                    [ params.org, params.repo, "?event=pull_request" ]
-
-                Org__Repo__Tags params ->
-                    [ params.org, params.repo, "?event=tag" ]
-
-                Org__Repo__Deployments params ->
-                    [ params.org, params.repo, "deployments" ]
-
-                Org__Repo__Deployments_Add params ->
-                    [ params.org, params.repo, "deployments", "add" ]
-
-                Org__Repo__Schedules params ->
-                    [ params.org, params.repo, "schedules" ]
-
-                Org__Repo__Schedules_Add params ->
-                    [ params.org, params.repo, "schedules", "add" ]
-
-                Org__Repo__Schedules_Name_ params ->
-                    [ params.org, params.repo, "schedules", params.name ]
-
-                Org__Repo__Hooks params ->
-                    [ params.org, params.repo, "hooks" ]
-
-                Org__Repo__Settings params ->
-                    [ params.org, params.repo, "settings" ]
-
-                Org__Repo__Build_ params ->
-                    [ params.org, params.repo, params.build ]
-
-                Org__Repo__Build__Services params ->
-                    [ params.org, params.repo, params.build, "services" ]
-
-                Org__Repo__Build__Pipeline params ->
-                    [ params.org, params.repo, params.build, "pipeline" ]
-
-                Org__Repo__Build__Graph params ->
-                    [ params.org, params.repo, params.build, "graph" ]
 
                 Dash_Secrets_Engine__Org_Org_ params ->
                     [ "-", "secrets", params.engine, "org", params.org ]
@@ -382,6 +334,54 @@ toString path =
 
                 Dash_Secrets_Engine__Shared_Org__Team__Name_ params ->
                     [ "-", "secrets", params.engine, "shared", params.org, params.team, params.name ]
+
+                Org_ params ->
+                    [ params.org ]
+
+                Org__Builds params ->
+                    [ params.org, "builds" ]
+
+                Org__Repo_ params ->
+                    [ params.org, params.repo ]
+
+                Org__Repo__Deployments params ->
+                    [ params.org, params.repo, "deployments" ]
+
+                Org__Repo__Deployments_Add params ->
+                    [ params.org, params.repo, "deployments", "add" ]
+
+                Org__Repo__Hooks params ->
+                    [ params.org, params.repo, "hooks" ]
+
+                Org__Repo__Pulls params ->
+                    [ params.org, params.repo, "pulls" ]
+
+                Org__Repo__Schedules params ->
+                    [ params.org, params.repo, "schedules" ]
+
+                Org__Repo__Schedules_Add params ->
+                    [ params.org, params.repo, "schedules", "add" ]
+
+                Org__Repo__Schedules_Name_ params ->
+                    [ params.org, params.repo, "schedules", params.name ]
+
+                Org__Repo__Settings params ->
+                    [ params.org, params.repo, "settings" ]
+
+                Org__Repo__Tags params ->
+                    [ params.org, params.repo, "tags" ]
+
+                Org__Repo__Build_ params ->
+                    [ params.org, params.repo, params.build ]
+
+                Org__Repo__Build__Graph params ->
+                    [ params.org, params.repo, params.build, "graph" ]
+
+                Org__Repo__Build__Pipeline params ->
+                    [ params.org, params.repo, params.build, "pipeline" ]
+
+                Org__Repo__Build__Services params ->
+                    [ params.org, params.repo, params.build, "services" ]
 
                 NotFound_ ->
                     [ "not-found" ]

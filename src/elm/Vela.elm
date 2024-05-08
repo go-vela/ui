@@ -180,7 +180,7 @@ decodeUser =
         |> required "name" string
         |> optional "favorites" (Json.Decode.list string) []
         |> required "active" bool
-        |> required "admin" bool
+        |> optional "admin" bool False
 
 
 emptyUser : User
