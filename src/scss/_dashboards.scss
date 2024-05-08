@@ -82,12 +82,21 @@
   padding-left: .5rem;
 }
 
+.card-repo-truncate-text {
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 25ch;
+}
+
 .card-icon-nothing {
   background-color: var(--color-coal-light);
 }
 
 .card-build-data {
   columns: 2;
+  column-gap: 0rem;
   list-style-type: none;
   padding: 0.5rem;
   margin: 0;
@@ -105,6 +114,13 @@
 
   &:nth-child(n + 4) {
     justify-content: right;
+  }
+
+  .card-truncate-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 15ch;
   }
 }
 
@@ -133,7 +149,7 @@
       }
   
       &.-running {
-        stroke: var(--color-bg-yellow);
+        stroke: var(--color-yellow);
         border-top: 2px solid var(--color-yellow);
         border-bottom: 2px solid var(--color-yellow);
       } 

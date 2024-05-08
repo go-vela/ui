@@ -8,6 +8,7 @@ module Pages.Dashboards.Dashboard_ exposing (Model, Msg, page)
 import Auth
 import Components.Crumbs
 import Components.DashboardRepoCard
+import Components.Loading
 import Components.Nav
 import Effect exposing (Effect)
 import Html
@@ -15,7 +16,7 @@ import Html
         ( div
         , h1
         , main_
-        , p
+        , span
         , text
         )
 import Html.Attributes
@@ -91,8 +92,7 @@ init shared route () =
 
 
 type Msg
-    = NoOp
-    | GetDashboardResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Dashboard ))
+    = GetDashboardResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Dashboard ))
       -- REFRESH
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
@@ -100,11 +100,6 @@ type Msg
 update : Shared.Model -> Route { dashboardId : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
-        NoOp ->
-            ( model
-            , Effect.none
-            )
-
         GetDashboardResponse response ->
             case response of
                 Ok ( _, dashboard ) ->
@@ -166,15 +161,6 @@ view shared route model =
         , main_ [ class "content-wrap" ]
             [ div [ class "dashboard", Util.testAttribute "dashboard" ]
                 [ case model.dashboard of
-                    RemoteData.Loading ->
-                        div [] [ text "Loading..." ]
-
-                    RemoteData.NotAsked ->
-                        div [] [ text "Not Asked" ]
-
-                    RemoteData.Failure error ->
-                        div [] [ text "failed like no one has failed before" ]
-
                     RemoteData.Success dashboard ->
                         div []
                             [ h1 [ class "dashboard-title" ] [ text dashboard.dashboard.name ]
@@ -188,6 +174,28 @@ view shared route model =
                                     dashboard.repos
                                 )
                             ]
+
+                    RemoteData.Failure error ->
+                        span []
+                            [ text <|
+                                case error of
+                                    Http.BadStatus statusCode ->
+                                        case statusCode of
+                                            401 ->
+                                                "Unauthorized to retrieve dashboard"
+
+                                            404 ->
+                                                "No dashboard found"
+
+                                            _ ->
+                                                "No dashboard found; there was an error with the server"
+
+                                    _ ->
+                                        "No dashboard found; there was an error with the server"
+                            ]
+
+                    _ ->
+                        Components.Loading.viewSmallLoader
                 ]
             ]
         ]

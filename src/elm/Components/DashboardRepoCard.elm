@@ -66,7 +66,7 @@ view shared props =
                     , branch = "-"
                     , age = "-"
                     , sender = "-"
-                    , duration = "-"
+                    , duration = "--:--"
                     , recentBuilds = div [ class "dashboard-no-builds" ] [ text "waiting for builds" ]
                     }
     in
@@ -84,7 +84,7 @@ view shared props =
                     [ text props.card.org ]
                 , br [] []
                 , a
-                    [ class "card-repo"
+                    [ class "card-repo card-repo-truncate-text"
                     , Route.Path.href <|
                         Route.Path.Org__Repo_
                             { org = props.card.org
@@ -101,20 +101,20 @@ view shared props =
             -- event
             , li []
                 [ FeatherIcons.send |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "event icon" ]
-                , text <| cardProps.event
+                , span [ class "card-truncate-text" ] [ text <| cardProps.event ]
                 ]
 
             -- branch
             , li []
                 [ FeatherIcons.gitBranch |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "branch icon" ]
-                , text <| cardProps.branch
+                , span [ class "card-truncate-text" ] [ text <| cardProps.branch ]
                 ]
 
             -- sender
-            , li [] [ text <| cardProps.sender, FeatherIcons.user |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "build-sender icon" ] ]
+            , li [] [ span [ class "card-truncate-text" ] [ text <| cardProps.sender ], FeatherIcons.user |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "build-sender icon" ] ]
 
             -- age
-            , li [] [ text <| cardProps.age, FeatherIcons.calendar |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "time-started icon" ] ]
+            , li [] [ span [ class "card-truncate-text" ] [ text <| cardProps.age ], FeatherIcons.calendar |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [ attribute "aria-label" "time-started icon" ] ]
 
             -- duration
             , li []
