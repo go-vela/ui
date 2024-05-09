@@ -81,7 +81,8 @@ context('Schedules', () => {
         });
       },
     );
-    context('schedule',
+    context(
+      'schedule',
       {
         env: {
           VELA_SCHEDULE_ALLOWLIST: '*',
@@ -113,7 +114,9 @@ context('Schedules', () => {
         });
         it('should show last scheduled at', () => {
           cy.get('@dailySchedule').within(() => {
-            cy.get('[data-label=scheduled-at]').contains('05/25/2023 at 12:52 PM');
+            cy.get('[data-label=scheduled-at]').contains(
+              '05/25/2023 at 12:52 PM',
+            );
           });
         });
         it('should show updated by', () => {
@@ -123,7 +126,9 @@ context('Schedules', () => {
         });
         it('should show updated at', () => {
           cy.get('@dailySchedule').within(() => {
-            cy.get('[data-label=updated-at]').contains('05/25/2023 at 12:52 PM');
+            cy.get('[data-label=updated-at]').contains(
+              '05/25/2023 at 12:52 PM',
+            );
           });
         });
         context('failure', () => {
@@ -132,10 +137,11 @@ context('Schedules', () => {
           });
           it('should show error', () => {
             cy.get('@error').contains(
-              'unable to trigger build for schedule Hourly: unable to schedule build: unable to compile pipeline configuration for github/octocat: 1 error occurred: * no \"version:\" YAML property provided'
+              'unable to trigger build for schedule Hourly: unable to schedule build: unable to compile pipeline configuration for github/octocat: 1 error occurred: * no "version:" YAML property provided',
             );
           });
         });
-      })
+      },
+    );
   });
 });
