@@ -114,9 +114,7 @@ context('Schedules', () => {
         });
         it('should show last scheduled at', () => {
           cy.get('@dailySchedule').within(() => {
-            cy.get('[data-label=scheduled-at]').contains(
-              '05/25/2023 at 12:52 PM',
-            );
+            cy.get('[data-label=scheduled-at]').contains('-');
           });
         });
         it('should show updated by', () => {

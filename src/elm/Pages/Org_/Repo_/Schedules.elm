@@ -5,9 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 module Pages.Org_.Repo_.Schedules exposing (Model, Msg, page, view)
 
-import Ansi.Log
 import Api.Pagination
-import Array
 import Auth
 import Components.Loading
 import Components.Pager
@@ -16,7 +14,7 @@ import Components.Table
 import Dict
 import Effect exposing (Effect)
 import FeatherIcons
-import Html exposing (Html, a, code, div, span, td, text, tr)
+import Html exposing (Html, a, div, span, td, text, tr)
 import Html.Attributes exposing (attribute, class)
 import Http
 import Http.Detailed
@@ -29,7 +27,6 @@ import Route.Path
 import Shared
 import Svg.Attributes
 import Time
-import Utils.Ansi
 import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Utils.Interval as Interval
@@ -393,21 +390,12 @@ scheduleErrorRow schedule =
 viewScheduleError : Vela.Schedule -> Html msg
 viewScheduleError schedule =
     let
-        lines =
-            Utils.Ansi.decodeAnsi schedule.error
-                |> Array.map
-                    (\line ->
-                        Just <|
-                            Ansi.Log.viewLine line
-                    )
-                |> Array.toList
-                |> List.filterMap identity
-
         msgRow =
             tr [ class "error-data", Util.testAttribute "schedules-error" ]
                 [ td [ attribute "colspan" "6" ]
-                    [ code [ class "error-content" ]
-                        lines
+                    [ span
+                        [ class "error-content" ]
+                        [ text schedule.error ]
                     ]
                 ]
     in
