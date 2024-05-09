@@ -333,7 +333,7 @@ viewSchedule zone org repo schedule =
                 ]
             }
         , Components.Table.viewItemCell
-            { dataLabel = "cron expression"
+            { dataLabel = "cron-expression"
             , parentClassList = []
             , itemClassList = []
             , children =
@@ -357,7 +357,7 @@ viewSchedule zone org repo schedule =
                 ]
             }
         , Components.Table.viewItemCell
-            { dataLabel = "scheduled at"
+            { dataLabel = "scheduled-at"
             , parentClassList = []
             , itemClassList = []
             , children =
@@ -365,14 +365,14 @@ viewSchedule zone org repo schedule =
                 ]
             }
         , Components.Table.viewItemCell
-            { dataLabel = "updated by"
+            { dataLabel = "updated-by"
             , parentClassList = []
             , itemClassList = []
             , children =
                 [ text schedule.updated_by ]
             }
         , Components.Table.viewItemCell
-            { dataLabel = "updated at"
+            { dataLabel = "updated-at"
             , parentClassList = []
             , itemClassList = []
             , children =
