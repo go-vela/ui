@@ -394,13 +394,6 @@ viewSchedule zone org repo schedule =
         ]
 
 
-{-| addKey : helper to create Vela.Schedule key.
--}
-addKey : Vela.Schedule -> Vela.Schedule
-addKey schedule =
-    { schedule | org = schedule.org ++ "/" ++ schedule.repo ++ "/" ++ schedule.name }
-
-
 {-| scheduleErrorRow : converts schedule error to table row.
 -}
 scheduleErrorRow : Vela.Schedule -> Maybe (Components.Table.Row Vela.Schedule msg)
