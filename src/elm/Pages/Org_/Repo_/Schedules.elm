@@ -411,6 +411,7 @@ scheduleErrorRow schedule =
     else
         Nothing
 
+
 {-| viewScheduleError : renders schedule error.
 -}
 viewScheduleError : Vela.Schedule -> Html msg
