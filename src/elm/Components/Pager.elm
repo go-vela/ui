@@ -19,12 +19,16 @@ import Utils.Helpers as Util
 -- TYPES
 
 
+{-| Label : alias for an object representing the possible labels for a pager component.
+-}
 type alias Labels =
     { previousLabel : String
     , nextLabel : String
     }
 
 
+{-| defaultLabels : default labels for the pager.
+-}
 defaultLabels : Labels
 defaultLabels =
     { previousLabel = "newer"
@@ -32,6 +36,8 @@ defaultLabels =
     }
 
 
+{-| prevNextLabels : navigation labels for the pager.
+-}
 prevNextLabels : Labels
 prevNextLabels =
     { previousLabel = "prev"
@@ -39,6 +45,8 @@ prevNextLabels =
     }
 
 
+{-| Props : alias for an object representing properties for the pager component.
+-}
 type alias Props msg =
     { show : Bool
     , links : List WebLink
@@ -51,6 +59,8 @@ type alias Props msg =
 -- VIEW
 
 
+{-| view : renders pager buttons with correct state based on number of pages.
+-}
 view : Props msg -> Html msg
 view props =
     let

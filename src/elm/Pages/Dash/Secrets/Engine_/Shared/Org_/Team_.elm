@@ -34,6 +34,8 @@ import Vela
 import View exposing (View)
 
 
+{-| page : takes user, shared model, route, and returns an org's team's shared secrets page.
+-}
 page : Auth.User -> Shared.Model -> Route { engine : String, org : String, team : String } -> Page Model Msg
 page user shared route =
     Page.new
@@ -49,6 +51,8 @@ page user shared route =
 -- LAYOUT
 
 
+{-| toLayout : takes user, route, model, and passes an org's team's shared secrets page info to Layouts.
+-}
 toLayout : Auth.User -> Route { engine : String, org : String, team : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
@@ -72,12 +76,16 @@ toLayout user route model =
 -- INIT
 
 
+{-| Model : alias for a model object for an org's team's shared secrets page.
+-}
 type alias Model =
     { sharedSecrets : WebData (List Vela.Secret)
     , pager : List WebLink
     }
 
 
+{-| init : takes in a shared model, route, and returns a model and effect.
+-}
 init : Shared.Model -> Route { engine : String, org : String, team : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { sharedSecrets = RemoteData.Loading
@@ -100,6 +108,8 @@ init shared route () =
 -- UPDATE
 
 
+{-| Msg : custom type with possible messages.
+-}
 type Msg
     = -- SECRETS
       GetSharedSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Secret ))
@@ -110,6 +120,8 @@ type Msg
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
+{-| update : takes current models, route, message, and returns an updated model and effect.
+-}
 update : Shared.Model -> Route { engine : String, org : String, team : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
@@ -182,6 +194,8 @@ update shared route msg model =
 -- SUBSCRIPTIONS
 
 
+{-| subscriptions : takes model and returns the subscriptions for auto refreshing the page.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Interval.tickEveryFiveSeconds Tick
@@ -191,6 +205,8 @@ subscriptions model =
 -- VIEW
 
 
+{-| view : takes models, route, and creates the html for an org's team's shared secrets page.
+-}
 view : Shared.Model -> Route { engine : String, org : String, team : String } -> Model -> View Msg
 view shared route model =
     let

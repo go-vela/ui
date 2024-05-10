@@ -29,7 +29,7 @@ import Task exposing (Task)
 -- TYPES
 
 
-{-| RequestConfig : a basic configuration record for an API request
+{-| RequestConfig : basic configuration record for an API request.
 -}
 type alias RequestConfig a =
     { method : String
@@ -40,13 +40,13 @@ type alias RequestConfig a =
     }
 
 
-{-| Request : wraps a configuration for an API request
+{-| Request : wraps a configuration for an API request.
 -}
 type Request a
     = Request (RequestConfig a)
 
 
-{-| ListResponse : a custom response type to be used in conjunction
+{-| ListResponse : custom response type to be used in conjunction
 with API pagination response headers to discern between
 a response that has more pages to fetch vs a response that has
 no further pages.
@@ -60,14 +60,14 @@ type ListResponse a
 -- HELPERS
 
 
-{-| request : turn a request configuration into a request
+{-| request : turn a request configuration into a request.
 -}
 request : RequestConfig a -> Request a
 request =
     Request
 
 
-{-| toTask : turn a request config into an HTTP task
+{-| toTask : turn a request config into an HTTP task.
 -}
 toTask : Request a -> Task (Http.Detailed.Error String) ( Http.Metadata, a )
 toTask (Request config) =
@@ -81,7 +81,7 @@ toTask (Request config) =
         }
 
 
-{-| toStringTask : turn a request config into an HTTP task
+{-| toStringTask : turn a request config into an HTTP task.
 -}
 toStringTask : Request String -> Task (Http.Detailed.Error String) ( Http.Metadata, String )
 toStringTask (Request config) =
@@ -95,7 +95,7 @@ toStringTask (Request config) =
         }
 
 
-{-| toAllTask : like _toTask_ but attaches a custom resolver to use in conjunction with _tryAll_
+{-| toAllTask : like _toTask_ but attaches a custom resolver to use in conjunction with _tryAll_.
 -}
 toAllTask : Request a -> Task (Http.Detailed.Error String) ( Http.Metadata, ListResponse a )
 toAllTask (Request config) =
@@ -109,14 +109,14 @@ toAllTask (Request config) =
         }
 
 
-{-| listResponseToList : small helper that forwards the inital HTTP task to the recurse function
+{-| listResponseToList : small helper that forwards the inital HTTP task to the recurse function.
 -}
 listResponseToList : Task (Http.Detailed.Error String) ( Http.Metadata, ListResponse a ) -> Task (Http.Detailed.Error String) ( Http.Metadata, List a )
 listResponseToList task =
     task |> recurse
 
 
-{-| listResponseResolver : turns a response from an HTTP request into a 'ListResponse' response
+{-| listResponseResolver : turns a response from an HTTP request into a 'ListResponse' response.
 -}
 listResponseResolver : RequestConfig a -> Http.Response String -> Result (Http.Detailed.Error String) ( Http.Metadata, ListResponse a )
 listResponseResolver config response =
@@ -152,7 +152,7 @@ listResponseResolver config response =
             Err (Http.Detailed.BadStatus m b)
 
 
-{-| recurse : keeps firing off HTTP tasks if the response is of type Partial
+{-| recurse : keeps firing off HTTP tasks if the response is of type Partial.
 
     Thanks to "https://github.com/correl/elm-paginated" for the inspiration
 
@@ -173,7 +173,7 @@ recurse originalRequest =
             )
 
 
-{-| update: aggregates the results from two responses as needed
+{-| update : aggregates the results from two responses as needed.
 -}
 update : ( Http.Metadata, ListResponse a ) -> ( Http.Metadata, ListResponse a ) -> ( Http.Metadata, ListResponse a )
 update old new =
@@ -188,7 +188,7 @@ update old new =
             ( meta, Partial request_ (oldItems ++ newItems) )
 
 
-{-| withAuth : returns an auth header with given Bearer token
+{-| withAuth : returns an auth header with given Bearer token.
 -}
 withAuth : Session -> Request a -> Request a
 withAuth session (Request config) =
@@ -209,7 +209,7 @@ withAuth session (Request config) =
 -- METHODS
 
 
-{-| get : creates a GET request configuration
+{-| get : creates a GET request configuration.
 -}
 get : String -> Endpoint -> Decoder b -> Request b
 get api endpoint decoder =
@@ -222,7 +222,7 @@ get api endpoint decoder =
         }
 
 
-{-| post : creates a POST request configuration
+{-| post : creates a POST request configuration.
 -}
 post : String -> Endpoint -> Http.Body -> Decoder b -> Request b
 post api endpoint body decoder =
@@ -235,7 +235,7 @@ post api endpoint body decoder =
         }
 
 
-{-| put : creates a PUT request configuration
+{-| put : creates a PUT request configuration.
 -}
 put : String -> Endpoint -> Http.Body -> Decoder b -> Request b
 put api endpoint body decoder =
@@ -248,7 +248,7 @@ put api endpoint body decoder =
         }
 
 
-{-| delete : creates a DELETE request configuration
+{-| delete : creates a DELETE request configuration.
 -}
 delete : String -> Endpoint -> Decoder b -> Request b
 delete api endpoint decoder =
@@ -261,7 +261,7 @@ delete api endpoint decoder =
         }
 
 
-{-| patch : creates a PATCH request configuration
+{-| patch : creates a PATCH request configuration.
 -}
 patch : String -> Endpoint -> Decoder b -> Request b
 patch api endpoint decoder =
@@ -278,7 +278,7 @@ patch api endpoint decoder =
 -- ENTRYPOINT
 
 
-{-| try : default way to request information from an endpoint
+{-| try : default way to request information from an endpoint.
 
     example usage:
         Api.try UserResponse <| Api.getUser model authParams
@@ -290,7 +290,7 @@ try msg request_ =
         |> Task.attempt msg
 
 
-{-| tryAll : will attempt to get all results for the endpoint based on pagination
+{-| tryAll : will attempt to get all results for the endpoint based on pagination.
 
     example usage:
         Api.tryAll RepositoriesResponse <| Api.getAllRepositories model
@@ -303,7 +303,7 @@ tryAll msg request_ =
         |> Task.attempt msg
 
 
-{-| tryString : way to request information from an endpoint with a string response
+{-| tryString : way to request information from an endpoint with a string response.
 
     example usage:
         Api.tryString UserResponse <| Api.getUser model authParams

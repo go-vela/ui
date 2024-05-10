@@ -15,6 +15,8 @@ import Shared
 -- VIEW
 
 
+{-| view : renders the wrapper for placing other components in util space, if applicable.
+-}
 view : Shared.Model -> Route () -> List (Html msg) -> Html msg
 view shared route buttons =
     div [ class "util" ]

@@ -37,6 +37,8 @@ import Vela
 import View exposing (View)
 
 
+{-| page : takes user, shared model, route, and returns a build page.
+-}
 page : Auth.User -> Shared.Model -> Route { org : String, repo : String, build : String } -> Page Model Msg
 page user shared route =
     Page.new
@@ -53,6 +55,8 @@ page user shared route =
 -- LAYOUT
 
 
+{-| toLayout : takes user, route, model, and passes a build page's info to Layouts.
+-}
 toLayout : Auth.User -> Route { org : String, repo : String, build : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Build
@@ -159,6 +163,8 @@ toLayout user route model =
 -- INIT
 
 
+{-| Model : alias for a model object for a build page.
+-}
 type alias Model =
     { steps : WebData (List Vela.Step)
     , logs : Dict Int (WebData Vela.Log)
@@ -168,6 +174,8 @@ type alias Model =
     }
 
 
+{-| init : takes shared model, route, and initializes build page input arguments.
+-}
 init : Shared.Model -> Route { org : String, repo : String, build : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { steps = RemoteData.Loading
@@ -203,6 +211,8 @@ init shared route () =
 -- UPDATE
 
 
+{-| Msg : custom type with possible messages.
+-}
 type Msg
     = NoOp
       -- BROWSER
@@ -226,6 +236,8 @@ type Msg
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
+{-| update : takes current models, route, message, and returns an updated model and effect.
+-}
 update : Shared.Model -> Route { org : String, repo : String, build : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
@@ -542,6 +554,8 @@ update shared route msg model =
 -- SUBSCRIPTIONS
 
 
+{-| subscriptions : takes model and returns the subscriptions for auto refreshing the page.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Interval.tickEveryFiveSeconds Tick
@@ -551,6 +565,8 @@ subscriptions model =
 -- VIEW
 
 
+{-| view : takes models, route, and creates the html for a build page.
+-}
 view : Shared.Model -> Route { org : String, repo : String, build : String } -> Model -> View Msg
 view shared route model =
     { title = ""
@@ -599,6 +615,8 @@ view shared route model =
     }
 
 
+{-| viewStages : renders a list of stages.
+-}
 viewStages : Shared.Model -> Model -> Route { org : String, repo : String, build : String } -> List Vela.Step -> List (Html Msg)
 viewStages shared model route steps =
     steps
@@ -616,6 +634,8 @@ viewStages shared model route steps =
             )
 
 
+{-| viewStep : renders a stage component on a build page.
+-}
 viewStage : Shared.Model -> Model -> Route { org : String, repo : String, build : String } -> String -> List Vela.Step -> Html Msg
 viewStage shared model route stage steps =
     div
@@ -627,6 +647,8 @@ viewStage shared model route stage steps =
         ]
 
 
+{-| viewStep : renders a step component on a build page.
+-}
 viewStep : Shared.Model -> Model -> Route { org : String, repo : String, build : String } -> Vela.Step -> Html Msg
 viewStep shared model route step =
     div
@@ -677,7 +699,7 @@ viewStep shared model route step =
         ]
 
 
-{-| viewStageDivider : renders divider between stage
+{-| viewStageDivider : renders divider between stages.
 -}
 viewStageDivider : String -> Html msg
 viewStageDivider stage =
@@ -689,7 +711,7 @@ viewStageDivider stage =
         text ""
 
 
-{-| hasStages : takes steps and returns true if the pipeline contain stages
+{-| hasStages : takes steps and returns true if the pipeline contain stages.
 -}
 hasStages : List Vela.Step -> Bool
 hasStages steps =
@@ -700,6 +722,8 @@ hasStages steps =
         |> (\stage -> stage /= "")
 
 
+{-| viewLogs : renders a log component for a build step.
+-}
 viewLogs : Shared.Model -> Model -> Route { org : String, repo : String, build : String } -> Vela.Step -> WebData Vela.Log -> Html Msg
 viewLogs shared model route step log =
     case step.status of

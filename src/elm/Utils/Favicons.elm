@@ -11,18 +11,20 @@ import Url.Builder
 import Vela
 
 
+{-| Favicon : alias for a favicon path.
+-}
 type alias Favicon =
     String
 
 
-{-| defaultFavicon : returns absolute path to default favicon
+{-| defaultFavicon : returns absolute path to default favicon.
 -}
 defaultFavicon : String
 defaultFavicon =
     Url.Builder.absolute [ "images", "favicon.ico" ] []
 
 
-{-| updateFavicon : sets the browser tab favicon
+{-| updateFavicon : sets the browser tab favicon.
 -}
 updateFavicon : Favicon -> Favicon -> ( Favicon, Cmd msg )
 updateFavicon currentFavicon newFavicon =
@@ -33,7 +35,7 @@ updateFavicon currentFavicon newFavicon =
         ( currentFavicon, Cmd.none )
 
 
-{-| statusToFavicon : takes build status and returns absolute path to the appropriate favicon
+{-| statusToFavicon : takes build status and returns absolute path to the appropriate favicon.
 -}
 statusToFavicon : Vela.Status -> Favicon
 statusToFavicon status =

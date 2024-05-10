@@ -20,6 +20,8 @@ import Utils.Helpers as Util
 import Vela
 
 
+{-| Props : alias for an object representing properties for a build component.
+-}
 type alias Props msg =
     { build : WebData Vela.Build
     , showFullTimestamps : Bool
@@ -29,6 +31,8 @@ type alias Props msg =
     }
 
 
+{-| view : renders a build preview component.
+-}
 view : Shared.Model -> Props msg -> Html msg
 view shared props =
     case props.build of
@@ -216,6 +220,8 @@ view shared props =
                 }
 
 
+{-| viewBuildPreview : takes build info and renders a build preview.
+-}
 viewBuildPreview :
     { statusIcon : List (Html msg)
     , statusClass : Html.Attribute msg
@@ -271,6 +277,8 @@ viewBuildPreview props =
         ]
 
 
+{-| viewActionsMenu : takes build information and renders appropriate action links in actions menu based on build status.
+-}
 viewActionsMenu :
     { msgs :
         { showHideActionsMenus : Maybe Int -> Maybe Bool -> msg
@@ -353,7 +361,7 @@ viewActionsMenu props =
 -- BUILD
 
 
-{-| viewError : checks for build error and renders message
+{-| viewError : checks for build error and renders message.
 -}
 viewError : Vela.Build -> Html msg
 viewError build =
@@ -429,7 +437,7 @@ viewError build =
                 ]
 
 
-{-| statusToClass : takes build status and returns css class
+{-| statusToClass : takes build status and returns css class.
 -}
 statusToClass : Vela.Status -> Html.Attribute msg
 statusToClass status =
@@ -459,7 +467,7 @@ statusToClass status =
             class "-error"
 
 
-{-| buildAnimation : takes build info and returns div containing styled flair based on running status
+{-| buildAnimation : takes build info and returns div containing styled flair based on running status.
 -}
 buildAnimation : Vela.Status -> Int -> Html msg
 buildAnimation buildStatus build =
@@ -471,7 +479,7 @@ buildAnimation buildStatus build =
             div [ class "build-animation", class "-not-running", statusToClass buildStatus ] []
 
 
-{-| topParticles : returns an svg frame to parallax scroll on a running build, set to the top of the build
+{-| topParticles : returns an svg frame to parallax scroll on a running build, set to the top of the build.
 -}
 topParticles : Int -> List (Html msg)
 topParticles build =
@@ -490,7 +498,7 @@ topParticles build =
     ]
 
 
-{-| bottomParticles : returns an svg frame to parallax scroll on a running build, set to the bottom of the build
+{-| bottomParticles : returns an svg frame to parallax scroll on a running build, set to the bottom of the build.
 -}
 bottomParticles : Int -> List (Html msg)
 bottomParticles build =
@@ -509,7 +517,7 @@ bottomParticles build =
     ]
 
 
-{-| topBuildNumberDashes : returns a different particle effect based on a module of the build number
+{-| topBuildNumberDashes : returns a different particle effect based on a module of the build number.
 -}
 topBuildNumberDashes : Int -> String
 topBuildNumberDashes build =
@@ -524,7 +532,7 @@ topBuildNumberDashes build =
             "-animation-dashes-3"
 
 
-{-| bottomBuildNumberDashes : returns a different particle effect based on a module of the build number
+{-| bottomBuildNumberDashes : returns a different particle effect based on a module of the build number.
 -}
 bottomBuildNumberDashes : Int -> String
 bottomBuildNumberDashes build =
@@ -543,7 +551,7 @@ bottomBuildNumberDashes build =
 -- BUILD
 
 
-{-| viewRestartButton : takes org repo and build number and renders button to restart a build
+{-| viewRestartButton : takes org, repo, build number, and renders button to restart a build.
 -}
 viewRestartButton : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } -> msg) -> Html msg
 viewRestartButton org repo build restartBuild =
@@ -559,7 +567,7 @@ viewRestartButton org repo build restartBuild =
         ]
 
 
-{-| viewCancelButton : takes org repo and build number and renders button to cancel a build
+{-| viewCancelButton : takes org, repo, build number, and renders button to cancel a build.
 -}
 viewCancelButton : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } -> msg) -> Html msg
 viewCancelButton org repo build cancelBuild =
@@ -575,7 +583,7 @@ viewCancelButton org repo build cancelBuild =
         ]
 
 
-{-| viewApproveButton : takes org repo and build number and renders button to approve a build run
+{-| viewApproveButton : takes org, repo, build number, and renders button to approve a build run.
 -}
 viewApproveButton : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } -> msg) -> Html msg
 viewApproveButton org repo build approveBuild =
@@ -591,7 +599,7 @@ viewApproveButton org repo build approveBuild =
         ]
 
 
-{-| viewRestartMenuLink : takes org repo and build number and renders actions menu link to restart a build
+{-| viewRestartMenuLink : takes org, repo, and build number, and renders actions menu link to restart a build.
 -}
 viewRestartMenuLink : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } -> msg) -> Html msg
 viewRestartMenuLink org repo build restartBuild =
@@ -612,7 +620,7 @@ viewRestartMenuLink org repo build restartBuild =
         ]
 
 
-{-| viewCancelMenuLink : takes org repo and build number and renders actions menu link to cancel a build
+{-| viewCancelMenuLink : takes org, repo, and build number, and renders actions menu link to cancel a build.
 -}
 viewCancelMenuLink : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } -> msg) -> Html msg
 viewCancelMenuLink org repo build cancelBuild =
@@ -633,7 +641,7 @@ viewCancelMenuLink org repo build cancelBuild =
         ]
 
 
-{-| viewApproveMenuLink : takes org repo and build number and renders actions menu link to approve a build run
+{-| viewApproveMenuLink : takes org, repo, and build number, and renders actions menu link to approve a build run.
 -}
 viewApproveMenuLink : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } -> msg) -> Html msg
 viewApproveMenuLink org repo build approveBuild =

@@ -32,6 +32,8 @@ import Vela
 import View exposing (View)
 
 
+{-| page : takes user, shared model, route, and returns a build's pipeline page.
+-}
 page : Auth.User -> Shared.Model -> Route { org : String, repo : String, build : String } -> Page Model Msg
 page user shared route =
     Page.new
@@ -49,6 +51,8 @@ page user shared route =
 -- LAYOUT
 
 
+{-| toLayout : takes user, route, model, and passes a build's pipeline page info to Layouts.
+-}
 toLayout : Auth.User -> Route { org : String, repo : String, build : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Build
@@ -109,6 +113,8 @@ toLayout user route model =
 -- INIT
 
 
+{-| Model : alias for a model object for a build's pipeline page.
+-}
 type alias Model =
     { build : WebData Vela.Build
     , pipeline : WebData Vela.PipelineConfig
@@ -120,6 +126,8 @@ type alias Model =
     }
 
 
+{-| init : takes shared model, route, and initializes pipeline page input arguments.
+-}
 init : Shared.Model -> Route { org : String, repo : String, build : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { build = RemoteData.Loading
@@ -158,6 +166,8 @@ init shared route () =
 -- UPDATE
 
 
+{-| Msg : custom type with possible messages.
+-}
 type Msg
     = NoOp
       -- BROWSER
@@ -178,6 +188,8 @@ type Msg
     | ShowHideTemplates
 
 
+{-| update : takes current models, route, message, and returns an updated model and effect.
+-}
 update : Shared.Model -> Route { org : String, repo : String, build : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
@@ -435,6 +447,8 @@ update shared route msg model =
 -- SUBSCRIPTIONS
 
 
+{-| subscriptions : takes model and returns that there are no subscriptions.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
@@ -444,6 +458,8 @@ subscriptions model =
 -- VIEW
 
 
+{-| view : takes models, route, and creates the html for a build pipeline page.
+-}
 view : Shared.Model -> Route { org : String, repo : String, build : String } -> Model -> View Msg
 view shared route model =
     let
@@ -582,6 +598,8 @@ view shared route model =
     }
 
 
+{-| viewTemplatesDetails : renders templates for a build pipeline.
+-}
 viewTemplatesDetails : Model -> Html Msg -> Html Msg
 viewTemplatesDetails model body =
     details
@@ -598,6 +616,8 @@ viewTemplatesDetails model body =
         ]
 
 
+{-| viewExpandToggleButton : renders a link to expand or revert an expanded pipeline.
+-}
 viewExpandToggleButton : Model -> Html Msg
 viewExpandToggleButton model =
     button
@@ -614,6 +634,8 @@ viewExpandToggleButton model =
         ]
 
 
+{-| viewTemplate : renders a component with info and link to a template.
+-}
 viewTemplate : ( String, Vela.Template ) -> Html msg
 viewTemplate ( _, t ) =
     div [ class "template", Util.testAttribute <| "pipeline-template-" ++ t.name ]
@@ -626,6 +648,8 @@ viewTemplate ( _, t ) =
         ]
 
 
+{-| viewLines : creates a list of lines for a template.
+-}
 viewLines : Vela.PipelineConfig -> Focus.Focus -> Bool -> List (Html Msg)
 viewLines config focus shift =
     config.decodedData
@@ -643,6 +667,8 @@ viewLines config focus shift =
         |> List.filterMap identity
 
 
+{-| viewLine : creates a numbered, linkable line for a template.
+-}
 viewLine : Bool -> Int -> Maybe Ansi.Log.Line -> Focus.Focus -> Html Msg
 viewLine shiftKeyDown lineNumber line focus =
     tr
