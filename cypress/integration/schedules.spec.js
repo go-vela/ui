@@ -81,5 +81,63 @@ context('Schedules', () => {
         });
       },
     );
+    context(
+      'schedule',
+      {
+        env: {
+          VELA_SCHEDULE_ALLOWLIST: '*',
+        },
+      },
+      () => {
+        beforeEach(() => {
+          cy.get('[data-test=schedules-row]').first().as('dailySchedule');
+        });
+        it('should show name', () => {
+          cy.get('@dailySchedule').within(() => {
+            cy.get('.name').contains('Daily');
+          });
+        });
+        it('should show entry', () => {
+          cy.get('@dailySchedule').within(() => {
+            cy.get('[data-label=cron-expression]').contains('0 0 * * *');
+          });
+        });
+        it('should show enabled', () => {
+          cy.get('@dailySchedule').within(() => {
+            cy.get('[data-label=enabled]').contains('yes');
+          });
+        });
+        it('should show branch', () => {
+          cy.get('@dailySchedule').within(() => {
+            cy.get('[data-label=branch]').contains('main');
+          });
+        });
+        it('should show last scheduled at', () => {
+          cy.get('@dailySchedule').within(() => {
+            cy.get('[data-label=scheduled-at]').should('exist');
+          });
+        });
+        it('should show updated by', () => {
+          cy.get('@dailySchedule').within(() => {
+            cy.get('[data-label=updated-by]').contains('CookieCat');
+          });
+        });
+        it('should show updated at', () => {
+          cy.get('@dailySchedule').within(() => {
+            cy.get('[data-label=updated-at]').should('exist');
+          });
+        });
+        context('failure', () => {
+          beforeEach(() => {
+            cy.get('[data-test=schedules-error]').as('error');
+          });
+          it('should show error', () => {
+            cy.get('@error').contains(
+              'unable to trigger build for schedule Hourly: unable to schedule build: unable to compile pipeline configuration for github/octocat: 1 error occurred: * no "version:" YAML property provided',
+            );
+          });
+        });
+      },
+    );
   });
 });

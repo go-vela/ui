@@ -14,8 +14,8 @@ import Components.Table
 import Dict
 import Effect exposing (Effect)
 import FeatherIcons
-import Html exposing (Html, a, div, span, text, tr)
-import Html.Attributes exposing (class)
+import Html exposing (Html, a, div, span, td, text, tr)
+import Html.Attributes exposing (attribute, class)
 import Http
 import Http.Detailed
 import Layouts
@@ -305,7 +305,9 @@ viewRepoSchedules shared model org repo =
 -}
 schedulesToRows : Time.Zone -> String -> String -> List Vela.Schedule -> Components.Table.Rows Vela.Schedule msg
 schedulesToRows zone org repo schedules =
-    List.map (\s -> Components.Table.Row (addKey s) (viewSchedule zone org repo)) schedules
+    schedules
+        |> List.concatMap (\s -> [ Just <| Components.Table.Row s (viewSchedule zone org repo), scheduleErrorRow s ])
+        |> List.filterMap identity
 
 
 {-| tableHeaders : returns table headers for schedules table.
@@ -344,7 +346,7 @@ viewSchedule zone org repo schedule =
                 ]
             }
         , Components.Table.viewItemCell
-            { dataLabel = "cron expression"
+            { dataLabel = "cron-expression"
             , parentClassList = []
             , itemClassList = []
             , children =
@@ -368,7 +370,7 @@ viewSchedule zone org repo schedule =
                 ]
             }
         , Components.Table.viewItemCell
-            { dataLabel = "scheduled at"
+            { dataLabel = "scheduled-at"
             , parentClassList = []
             , itemClassList = []
             , children =
@@ -376,14 +378,14 @@ viewSchedule zone org repo schedule =
                 ]
             }
         , Components.Table.viewItemCell
-            { dataLabel = "updated by"
+            { dataLabel = "updated-by"
             , parentClassList = []
             , itemClassList = []
             , children =
                 [ text schedule.updated_by ]
             }
         , Components.Table.viewItemCell
-            { dataLabel = "updated at"
+            { dataLabel = "updated-at"
             , parentClassList = []
             , itemClassList = []
             , children =
@@ -397,3 +399,30 @@ viewSchedule zone org repo schedule =
 addKey : Vela.Schedule -> Vela.Schedule
 addKey schedule =
     { schedule | org = schedule.org ++ "/" ++ schedule.repo ++ "/" ++ schedule.name }
+
+
+{-| scheduleErrorRow : converts schedule error to table row.
+-}
+scheduleErrorRow : Vela.Schedule -> Maybe (Components.Table.Row Vela.Schedule msg)
+scheduleErrorRow schedule =
+    if not <| String.isEmpty schedule.error then
+        Just <| Components.Table.Row schedule viewScheduleError
+
+    else
+        Nothing
+
+{-| viewScheduleError : renders schedule error.
+-}
+viewScheduleError : Vela.Schedule -> Html msg
+viewScheduleError schedule =
+    let
+        msgRow =
+            tr [ class "error-data", Util.testAttribute "schedules-error" ]
+                [ td [ attribute "colspan" "6" ]
+                    [ span
+                        [ class "error-content" ]
+                        [ text schedule.error ]
+                    ]
+                ]
+    in
+    msgRow

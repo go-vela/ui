@@ -5,9 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 module Pages.Org_.Repo_.Hooks exposing (..)
 
-import Ansi.Log
 import Api.Pagination
-import Array
 import Auth
 import Components.Loading
 import Components.Pager
@@ -19,7 +17,6 @@ import Html
     exposing
         ( Html
         , a
-        , code
         , div
         , span
         , td
@@ -44,7 +41,6 @@ import Route exposing (Route)
 import Route.Path
 import Shared
 import Time
-import Utils.Ansi
 import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Utils.Interval as Interval
@@ -444,31 +440,23 @@ hookErrorRow hook =
 viewHookError : Vela.Hook -> Html msg
 viewHookError hook =
     let
-        lines =
-            Utils.Ansi.decodeAnsi hook.error
-                |> Array.map
-                    (\line ->
-                        Just <|
-                            Ansi.Log.viewLine line
-                    )
-                |> Array.toList
-                |> List.filterMap identity
-
         msgRow =
             case hook.status of
                 "skipped" ->
                     tr [ class "skipped-data", Util.testAttribute "hooks-skipped" ]
                         [ td [ attribute "colspan" "6" ]
-                            [ code [ class "skipped-content" ]
-                                lines
+                            [ span
+                                [ class "skipped-content" ]
+                                [ text hook.error ]
                             ]
                         ]
 
                 _ ->
                     tr [ class "error-data", Util.testAttribute "hooks-error" ]
                         [ td [ attribute "colspan" "6" ]
-                            [ code [ class "error-content" ]
-                                lines
+                            [ span
+                                [ class "error-content" ]
+                                [ text hook.error ]
                             ]
                         ]
     in

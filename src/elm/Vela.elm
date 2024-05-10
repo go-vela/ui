@@ -357,6 +357,31 @@ type alias Repository =
     }
 
 
+emptyRepository : Repository
+emptyRepository =
+    { id = -1
+    , user_id = -1
+    , owner = emptyUser
+    , org = ""
+    , name = ""
+    , full_name = ""
+    , link = ""
+    , clone = ""
+    , branch = ""
+    , limit = 0
+    , timeout = 0
+    , counter = 0
+    , visibility = ""
+    , approve_build = ""
+    , private = False
+    , trusted = False
+    , active = False
+    , allowEvents = defaultAllowEvents
+    , enabled = Disabled
+    , pipeline_type = ""
+    }
+
+
 decodeRepository : Decoder Repository
 decodeRepository =
     Json.Decode.succeed Repository
@@ -1519,8 +1544,7 @@ decodeHooks =
 
 type alias Schedule =
     { id : Int
-    , org : String
-    , repo : String
+    , repo : Repository
     , name : String
     , entry : String
     , enabled : Bool
@@ -1530,6 +1554,7 @@ type alias Schedule =
     , updated_at : Int
     , updated_by : String
     , branch : String
+    , error : String
     }
 
 
@@ -1540,6 +1565,7 @@ type alias SchedulePayload =
     , entry : Maybe String
     , enabled : Maybe Bool
     , branch : Maybe String
+    , error : Maybe String
     }
 
 
@@ -1551,6 +1577,7 @@ defaultSchedulePayload =
     , entry = Nothing
     , enabled = Nothing
     , branch = Nothing
+    , error = Nothing
     }
 
 
@@ -1558,8 +1585,7 @@ decodeSchedule : Decoder Schedule
 decodeSchedule =
     Json.Decode.succeed Schedule
         |> optional "id" int -1
-        |> optional "repo.org" string ""
-        |> optional "repo.repo" string ""
+        |> optional "repo" decodeRepository emptyRepository
         |> optional "name" string ""
         |> optional "entry" string ""
         |> optional "active" bool False
@@ -1569,6 +1595,7 @@ decodeSchedule =
         |> optional "updated_at" int 0
         |> optional "updated_by" string ""
         |> optional "branch" string ""
+        |> optional "error" string ""
 
 
 decodeSchedules : Decoder (List Schedule)
