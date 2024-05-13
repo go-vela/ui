@@ -17,10 +17,10 @@ import Html
     exposing
         ( Html
         , a
+        , code
         , div
         , span
         , td
-        , code
         , text
         , tr
         )
