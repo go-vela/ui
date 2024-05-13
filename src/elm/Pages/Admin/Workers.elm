@@ -42,6 +42,8 @@ import Vela
 import View exposing (View)
 
 
+{-| page : shared model, route, and returns the page.
+-}
 page : Auth.User -> Shared.Model -> Route () -> Page Model Msg
 page user shared route =
     Page.new
@@ -57,6 +59,8 @@ page user shared route =
 -- LAYOUT
 
 
+{-| toLayout : takes model and passes the page info to Layouts.
+-}
 toLayout : Auth.User -> Model -> Layouts.Layout Msg
 toLayout user model =
     Layouts.Default_Admin
@@ -78,12 +82,16 @@ toLayout user model =
 -- INIT
 
 
+{-| Model : alias for model for the page.
+-}
 type alias Model =
     { workers : WebData (List Vela.Worker)
     , pager : List WebLink
     }
 
 
+{-| init : initializes page with no arguments.
+-}
 init : Shared.Model -> Route () -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { workers = RemoteData.Loading
@@ -103,6 +111,8 @@ init shared route () =
 -- UPDATE
 
 
+{-| Msg : custom type with possible messages.
+-}
 type Msg
     = -- WORKERS
       GetWorkersResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Worker ))
@@ -111,6 +121,8 @@ type Msg
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
+{-| update : takes current models, message, and returns an updated model and effect.
+-}
 update : Shared.Model -> Route () -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
@@ -168,6 +180,8 @@ update shared route msg model =
 -- SUBSCRIPTIONS
 
 
+{-| subscriptions : takes model and returns subscriptions.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Interval.tickEveryFiveSeconds Tick
@@ -177,6 +191,8 @@ subscriptions model =
 -- VIEW
 
 
+{-| view : takes models, route, and creates the html for the page.
+-}
 view : Shared.Model -> Route () -> Model -> View Msg
 view shared route model =
     { title = ""
@@ -192,7 +208,7 @@ view shared route model =
     }
 
 
-{-| viewWorkers : renders a list of workers
+{-| viewWorkers : renders a list of workers.
 -}
 viewWorkers : Shared.Model -> Model -> Route () -> Html Msg
 viewWorkers shared model route =

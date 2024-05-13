@@ -154,18 +154,8 @@ viewNumberInput { id_, title, subtitle, val, placeholder_, wrapperClassList, cla
         [ input
             [ id target
             , type_ "number"
-            , case min of
-                Just m ->
-                    Html.Attributes.min <| String.fromInt m
-
-                Nothing ->
-                    Util.attrNone
-            , case max of
-                Just m ->
-                    Html.Attributes.max <| String.fromInt m
-
-                Nothing ->
-                    Util.attrNone
+            , Maybe.Extra.unwrap Util.attrNone (String.fromInt >> Html.Attributes.min) min
+            , Maybe.Extra.unwrap Util.attrNone (String.fromInt >> Html.Attributes.max) max
             , value val
             , placeholder placeholder_
             , classList <| classList_
