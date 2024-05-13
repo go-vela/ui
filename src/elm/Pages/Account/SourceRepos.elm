@@ -8,7 +8,6 @@ module Pages.Account.SourceRepos exposing (..)
 import Api.Api as Api
 import Api.Operations
 import Auth
-import Cmd.Extra exposing (add)
 import Components.Crumbs
 import Components.Favorites
 import Components.Nav

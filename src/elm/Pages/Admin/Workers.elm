@@ -10,7 +10,7 @@ import Auth
 import Components.Loading
 import Components.Pager
 import Components.Table
-import Dict
+import Dict exposing (Dict)
 import Effect exposing (Effect)
 import Html
     exposing
@@ -87,6 +87,7 @@ toLayout user model =
 type alias Model =
     { workers : WebData (List Vela.Worker)
     , pager : List WebLink
+    , editing : Dict String String
     }
 
 
@@ -96,6 +97,7 @@ init : Shared.Model -> Route () -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { workers = RemoteData.Loading
       , pager = []
+      , editing = Dict.empty
       }
     , Effect.getWorkers
         { baseUrl = shared.velaAPIBaseURL
@@ -116,6 +118,8 @@ init shared route () =
 type Msg
     = -- WORKERS
       GetWorkersResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Worker ))
+    | UpdateWorkerResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Worker ))
+    | ClickEditWorker {}
     | GotoPage Int
       -- REFRESH
     | Tick { time : Time.Posix, interval : Interval.Interval }
@@ -145,6 +149,10 @@ update shared route msg model =
                         }
                     )
 
+        UpdateWorkerResponse response ->
+            ( model, Effect.none )
+        ClickEditWorker  _ ->
+            ( model, Effect.none )
         GotoPage pageNumber ->
             ( model
             , Effect.batch
