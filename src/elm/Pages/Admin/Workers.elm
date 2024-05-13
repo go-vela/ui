@@ -234,7 +234,7 @@ viewWorkers shared model route =
                                 Http.BadStatus statusCode ->
                                     case statusCode of
                                         401 ->
-                                            "No workers found"
+                                            "No workers found, most likely due to not having access to the resource"
 
                                         _ ->
                                             "No workers found, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
