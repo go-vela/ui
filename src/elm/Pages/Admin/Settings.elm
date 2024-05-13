@@ -183,7 +183,17 @@ update shared route msg model =
             case response of
                 Ok ( meta, settings ) ->
                     ( { model
-                        | settings = RemoteData.Success settings
+                        | settings =
+                            case model.settings of
+                                RemoteData.Success s ->
+                                    if settings.updatedAt < s.updatedAt then
+                                        model.settings
+
+                                    else
+                                        RemoteData.Success settings
+
+                                _ ->
+                                    RemoteData.Success settings
                       }
                     , Effect.none
                     )

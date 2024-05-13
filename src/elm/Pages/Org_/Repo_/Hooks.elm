@@ -469,10 +469,10 @@ hookStatusToRowClass : String -> Html.Attribute msg
 hookStatusToRowClass status =
     case status of
         "success" ->
-            class "-success"
+            class "status-success"
 
         "skipped" ->
-            class "-skipped"
+            class "status-skipped"
 
         _ ->
-            class "-error"
+            class "status-error"

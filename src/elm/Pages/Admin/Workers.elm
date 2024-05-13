@@ -415,16 +415,16 @@ statusToRowClass : String -> Html.Attribute msg
 statusToRowClass status =
     case status of
         "idle" ->
-            class "-idle"
+            class "status-idle"
 
         "available" ->
-            class "-available"
+            class "status-available"
 
         "busy" ->
-            class "-busy"
+            class "status-busy"
 
         "error" ->
-            class "-error"
+            class "status-error"
 
         _ ->
-            class "-success"
+            class "status-success"
