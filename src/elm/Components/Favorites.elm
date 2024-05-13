@@ -19,6 +19,8 @@ import Vela
 -- VIEW
 
 
+{-| viewStarToggle : renders star toggle.
+-}
 viewStarToggle :
     { msg : Vela.Org -> Maybe Vela.Repo -> msg
     , user : WebData Vela.User
@@ -37,6 +39,8 @@ viewStarToggle { msg, user, org, repo } =
         [ star <| Favorites.isFavorited org repo user ]
 
 
+{-| starToggleAriaLabel : renders appropriate aria label for add or remove favorite.
+-}
 starToggleAriaLabel : Vela.Org -> Vela.Repo -> Bool -> Html.Attribute msg
 starToggleAriaLabel org repo favorited =
     let

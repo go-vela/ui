@@ -16,6 +16,8 @@ import Utils.Theme as Theme
 import Vela
 
 
+{-| Model : The main shared model for the application.
+-}
 type alias Model =
     { -- FLAGS
       velaAPIBaseURL : String

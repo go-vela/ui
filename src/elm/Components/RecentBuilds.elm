@@ -20,6 +20,8 @@ import Vela
 --TYPES
 
 
+{-| Props : alias for an object representing properties for the recent builds component.
+-}
 type alias Props =
     { builds : WebData (List Vela.Build)
     , build : WebData Vela.Build
@@ -32,6 +34,8 @@ type alias Props =
 -- VIEW
 
 
+{-| view : renders recent builds history.
+-}
 view : Shared.Model -> Props -> Html msg
 view shared props =
     case props.builds of
@@ -51,7 +55,7 @@ view shared props =
             Components.Loading.viewSmallLoader
 
 
-{-| viewRecentBuild : takes recent build and renders status and link to build as a small icon widget
+{-| viewRecentBuild : takes recent build and renders status and link to build as a small icon widget.
 
     focusing or hovering the recent build icon will display a build info tooltip
 
@@ -64,7 +68,7 @@ viewRecentBuild shared props idx build =
         ]
 
 
-{-| recentBuildLink : takes time info and build and renders line for redirecting to recent build
+{-| recentBuildLink : takes time info and build and renders line for redirecting to recent build.
 
     focusing and hovering this element will display the tooltip
 
@@ -97,7 +101,7 @@ recentBuildLink shared props idx build =
         ]
 
 
-{-| recentBuildTooltip : takes time info and build and renders tooltip for viewing recent build info
+{-| recentBuildTooltip : takes time info and build and renders tooltip for viewing recent build info.
 
     tooltip is visible when the recent build link is focused or hovered
 
@@ -122,6 +126,8 @@ recentBuildTooltip shared props build =
         ]
 
 
+{-| buildInfo : displays and populates ref info for pr and tag events.
+-}
 buildInfo : Vela.Build -> Html msg
 buildInfo build =
     case build.event of
@@ -135,6 +141,8 @@ buildInfo build =
             viewTooltipField "" ""
 
 
+{-| viewTooltipField : renders the HTML for a line item in the tool tip component.
+-}
 viewTooltipField : String -> String -> Html msg
 viewTooltipField key value =
     li [ class "line" ]

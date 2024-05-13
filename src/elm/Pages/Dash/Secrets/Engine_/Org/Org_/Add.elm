@@ -28,6 +28,8 @@ import Vela exposing (defaultSecretPayload)
 import View exposing (View)
 
 
+{-| page : takes user, shared model, route, and returns an org's secret add page.
+-}
 page : Auth.User -> Shared.Model -> Route { engine : String, org : String } -> Page Model Msg
 page user shared route =
     Page.new
@@ -43,6 +45,8 @@ page user shared route =
 -- LAYOUT
 
 
+{-| toLayout : takes user, route, model, and passes an an org's secret add page info to Layouts.
+-}
 toLayout : Auth.User -> Route { engine : String, org : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
@@ -66,11 +70,15 @@ toLayout user route model =
 -- INIT
 
 
+{-| Model : alias for a model object an org's secret add page.
+-}
 type alias Model =
     { form : Components.SecretForm.Form
     }
 
 
+{-| init : takes in a shared model, and returns a model and effect.
+-}
 init : Shared.Model -> () -> ( Model, Effect Msg )
 init shared () =
     ( { form = Components.SecretForm.defaultOrgRepoSecretForm }
@@ -82,6 +90,8 @@ init shared () =
 -- UPDATE
 
 
+{-| Msg : custom type with possible messages.
+-}
 type Msg
     = -- SECRETS
       AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
@@ -96,6 +106,8 @@ type Msg
     | SubmitForm
 
 
+{-| update : takes current models, route, message, and returns an updated model and effect.
+-}
 update : Shared.Model -> Route { engine : String, org : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     let
@@ -227,6 +239,8 @@ update shared route msg model =
 -- SUBSCRIPTIONS
 
 
+{-| subscriptions : takes model and returns that there are no subscriptions.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
@@ -236,6 +250,8 @@ subscriptions model =
 -- VIEW
 
 
+{-| view : takes models, route, and creates the html for an org's secret add page.
+-}
 view : Shared.Model -> Route { engine : String, org : String } -> Model -> View Msg
 view shared route model =
     let

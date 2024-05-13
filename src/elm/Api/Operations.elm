@@ -75,7 +75,7 @@ import Vela
 -- OPERATIONS
 
 
-{-| getToken attempts to retrieve a new access token
+{-| getToken : attempts to retrieve a new access token.
 -}
 getToken : String -> Request JwtAccessToken
 getToken baseUrl =
@@ -84,8 +84,8 @@ getToken baseUrl =
         Auth.Jwt.decodeJwtAccessToken
 
 
-{-| finishAuthentication : complete authentication by supplying code and state to the authenciate endpoint
-which will also set the refresh token cookie
+{-| finishAuthentication : complete authentication by supplying code and state to the authenciate endpoint,
+which will also set the refresh token cookie.
 -}
 finishAuthentication : String -> Auth.Session.AuthParams -> Request JwtAccessToken
 finishAuthentication baseUrl { code, state } =
@@ -94,7 +94,7 @@ finishAuthentication baseUrl { code, state } =
         Auth.Jwt.decodeJwtAccessToken
 
 
-{-| logout: logs the user out by deleting the refresh token cookie
+{-| logout : logs the user out by deleting the refresh token cookie.
 -}
 logout : String -> Session -> Request String
 logout baseUrl session =
@@ -104,7 +104,7 @@ logout baseUrl session =
         |> withAuth session
 
 
-{-| getCurrentUser : retrieves the currently authenticated user with the current user endpoint
+{-| getCurrentUser : retrieves the currently authenticated user with the current user endpoint.
 -}
 getCurrentUser : String -> Session -> Request Vela.User
 getCurrentUser baseUrl session =
@@ -114,7 +114,7 @@ getCurrentUser baseUrl session =
         |> withAuth session
 
 
-{-| updateCurrentUser : updates the currently authenticated user with the current user endpoint
+{-| updateCurrentUser : updates the currently authenticated user with the current user endpoint.
 -}
 updateCurrentUser : String -> Session -> Http.Body -> Request Vela.User
 updateCurrentUser baseUrl session body =
@@ -125,7 +125,7 @@ updateCurrentUser baseUrl session body =
         |> withAuth session
 
 
-{-| getUserSourceRepos : retrieves the current users source repositories
+{-| getUserSourceRepos : retrieves the current users source repositories.
 -}
 getUserSourceRepos : String -> Session -> Request Vela.SourceRepositories
 getUserSourceRepos baseUrl session =
@@ -135,7 +135,7 @@ getUserSourceRepos baseUrl session =
         |> withAuth session
 
 
-{-| getRepo : retrieves a repo
+{-| getRepo : retrieves a repo.
 -}
 getRepo : String -> Session -> { a | org : String, repo : String } -> Request Vela.Repository
 getRepo baseUrl session options =
@@ -148,7 +148,7 @@ getRepo baseUrl session options =
         |> withAuth session
 
 
-{-| enableRepo : enables a repo
+{-| enableRepo : enables a repo.
 -}
 enableRepo : String -> Session -> Http.Body -> Request Vela.Repository
 enableRepo baseUrl session body =
@@ -162,7 +162,7 @@ enableRepo baseUrl session body =
         |> withAuth session
 
 
-{-| updateRepo : updates a repo
+{-| updateRepo : updates a repo.
 -}
 updateRepo : String -> Session -> { a | org : String, repo : String, body : Http.Body } -> Request Vela.Repository
 updateRepo baseUrl session options =
@@ -176,7 +176,7 @@ updateRepo baseUrl session options =
         |> withAuth session
 
 
-{-| repairRepo : repairs a repo
+{-| repairRepo : repairs a repo.
 -}
 repairRepo : String -> Session -> { a | org : String, repo : String } -> Request String
 repairRepo baseUrl session options =
@@ -189,7 +189,7 @@ repairRepo baseUrl session options =
         |> withAuth session
 
 
-{-| chownRepo : chowns a repo
+{-| chownRepo : chowns a repo.
 -}
 chownRepo : String -> Session -> { a | org : String, repo : String } -> Request String
 chownRepo baseUrl session options =
@@ -202,7 +202,7 @@ chownRepo baseUrl session options =
         |> withAuth session
 
 
-{-| disableRepo : disables a repo
+{-| disableRepo : disables a repo.
 -}
 disableRepo : String -> Session -> { a | org : String, repo : String } -> Request String
 disableRepo baseUrl session options =
@@ -215,7 +215,7 @@ disableRepo baseUrl session options =
         |> withAuth session
 
 
-{-| getOrgRepos : retrieves the repositories for an org
+{-| getOrgRepos : retrieves the repositories for an org.
 -}
 getOrgRepos :
     String
@@ -238,7 +238,7 @@ getOrgRepos baseUrl session options =
         |> withAuth session
 
 
-{-| getOrgBuilds : retrieves builds for an org
+{-| getOrgBuilds : retrieves builds for an org.
 -}
 getOrgBuilds :
     String
@@ -263,7 +263,7 @@ getOrgBuilds baseUrl session options =
         |> withAuth session
 
 
-{-| getRepoBuilds : retrieves builds for a repo
+{-| getRepoBuilds : retrieves builds for a repo.
 -}
 getRepoBuilds :
     String
@@ -290,7 +290,7 @@ getRepoBuilds baseUrl session options =
         |> withAuth session
 
 
-{-| getWorkers : retrieves workers
+{-| getWorkers : retrieves workers.
 -}
 getWorkers :
     String
@@ -311,7 +311,7 @@ getWorkers baseUrl session options =
         |> withAuth session
 
 
-{-| getSettings : retrieves the active settings record for the platform
+{-| getSettings : retrieves the active settings record for the platform.
 -}
 getSettings :
     String
@@ -325,7 +325,7 @@ getSettings baseUrl session _ =
         |> withAuth session
 
 
-{-| updateSettings : updates the active settings record for the platform
+{-| updateSettings : updates the active settings record for the platform.
 -}
 updateSettings :
     String
@@ -340,7 +340,7 @@ updateSettings baseUrl session options =
         |> withAuth session
 
 
-{-| restartBuild : restarts a build
+{-| restartBuild : restarts a build.
 -}
 restartBuild :
     String
@@ -364,7 +364,7 @@ restartBuild baseUrl session options =
         |> withAuth session
 
 
-{-| cancelBuild : cancels a build
+{-| cancelBuild : cancels a build.
 -}
 cancelBuild :
     String
@@ -387,7 +387,7 @@ cancelBuild baseUrl session options =
         |> withAuth session
 
 
-{-| approveBuild : approves a build
+{-| approveBuild : approves a build.
 -}
 approveBuild :
     String
@@ -411,7 +411,7 @@ approveBuild baseUrl session options =
         |> withAuth session
 
 
-{-| getRepoDeployments : retrieves deployments for a repo
+{-| getRepoDeployments : retrieves deployments for a repo.
 -}
 getRepoDeployments :
     String
@@ -436,7 +436,7 @@ getRepoDeployments baseUrl session options =
         |> withAuth session
 
 
-{-| addDeployment : adds a deployment for a repo
+{-| addDeployment : adds a deployment for a repo.
 -}
 addDeployment :
     String
@@ -460,7 +460,7 @@ addDeployment baseUrl session options =
         |> withAuth session
 
 
-{-| getRepoHooks : retrieves hooks for a repo
+{-| getRepoHooks : retrieves hooks for a repo.
 -}
 getRepoHooks :
     String
@@ -485,7 +485,7 @@ getRepoHooks baseUrl session options =
         |> withAuth session
 
 
-{-| getRepoSchedules : retrieves schedules for a repo
+{-| getRepoSchedules : retrieves schedules for a repo.
 -}
 getRepoSchedules :
     String
@@ -510,7 +510,7 @@ getRepoSchedules baseUrl session options =
         |> withAuth session
 
 
-{-| getRepoSchedule : retrieves a schedule for a repo
+{-| getRepoSchedule : retrieves a schedule for a repo.
 -}
 getRepoSchedule :
     String
@@ -533,7 +533,7 @@ getRepoSchedule baseUrl session options =
         |> withAuth session
 
 
-{-| addRepoSchedule : adds a repo schedule
+{-| addRepoSchedule : adds a repo schedule.
 -}
 addRepoSchedule :
     String
@@ -558,7 +558,7 @@ addRepoSchedule baseUrl session options =
         |> withAuth session
 
 
-{-| updateRepoSchedule : updates a repo schedule
+{-| updateRepoSchedule : updates a repo schedule.
 -}
 updateRepoSchedule :
     String
@@ -583,7 +583,7 @@ updateRepoSchedule baseUrl session options =
         |> withAuth session
 
 
-{-| deleteRepoSchedule : deletes a repo schedule
+{-| deleteRepoSchedule : deletes a repo schedule.
 -}
 deleteRepoSchedule :
     String
@@ -606,7 +606,7 @@ deleteRepoSchedule baseUrl session options =
         |> withAuth session
 
 
-{-| redeliverHook : redelivers a hook for a repo
+{-| redeliverHook : redelivers a hook for a repo.
 -}
 redeliverHook :
     String
@@ -630,7 +630,7 @@ redeliverHook baseUrl session options =
         |> withAuth session
 
 
-{-| getBuild : retrieves a build
+{-| getBuild : retrieves a build.
 -}
 getBuild :
     String
@@ -653,7 +653,7 @@ getBuild baseUrl session options =
         |> withAuth session
 
 
-{-| getBuildSteps : retrieves steps for a build
+{-| getBuildSteps : retrieves steps for a build.
 -}
 getBuildSteps :
     String
@@ -680,7 +680,7 @@ getBuildSteps baseUrl session options =
         |> withAuth session
 
 
-{-| getBuildServices: retrieves services for a build
+{-| getBuildServices : retrieves services for a build.
 -}
 getBuildServices :
     String
@@ -707,7 +707,7 @@ getBuildServices baseUrl session options =
         |> withAuth session
 
 
-{-| getBuildStepLog: retrieves a log for a step
+{-| getBuildStepLog : retrieves a log for a step.
 -}
 getBuildStepLog :
     String
@@ -732,7 +732,7 @@ getBuildStepLog baseUrl session options =
         |> withAuth session
 
 
-{-| getBuildServiceLog: retrieves a log for a service
+{-| getBuildServiceLog : retrieves a log for a service.
 -}
 getBuildServiceLog :
     String
@@ -757,7 +757,7 @@ getBuildServiceLog baseUrl session options =
         |> withAuth session
 
 
-{-| getPipelineConfig: retrieves a pipeline config for a ref
+{-| getPipelineConfig : retrieves a pipeline config for a ref.
 -}
 getPipelineConfig :
     String
@@ -780,7 +780,7 @@ getPipelineConfig baseUrl session options =
         |> withAuth session
 
 
-{-| expandPipelineConfig: retrieves an expanded pipeline config for a ref
+{-| expandPipelineConfig : retrieves an expanded pipeline config for a ref.
 -}
 expandPipelineConfig :
     String
@@ -804,7 +804,7 @@ expandPipelineConfig baseUrl session options =
         |> withAuth session
 
 
-{-| getPipelineTemplates: retrieves templates for a pipeline ref
+{-| getPipelineTemplates : retrieves templates for a pipeline ref.
 -}
 getPipelineTemplates :
     String
@@ -827,7 +827,7 @@ getPipelineTemplates baseUrl session options =
         |> withAuth session
 
 
-{-| getBuildGraph: retrieves a graph for a build
+{-| getBuildGraph : retrieves a graph for a build.
 -}
 getBuildGraph :
     String
@@ -850,7 +850,7 @@ getBuildGraph baseUrl session options =
         |> withAuth session
 
 
-{-| getOrgSecrets : retrieves secrets for an org
+{-| getOrgSecrets : retrieves secrets for an org.
 -}
 getOrgSecrets :
     String
@@ -877,7 +877,7 @@ getOrgSecrets baseUrl session options =
         |> withAuth session
 
 
-{-| getOrgSecret : retrieves a secret for an org
+{-| getOrgSecret : retrieves a secret for an org.
 -}
 getOrgSecret :
     String
@@ -902,7 +902,7 @@ getOrgSecret baseUrl session options =
         |> withAuth session
 
 
-{-| updateOrgSecret : updates a secret for an org
+{-| updateOrgSecret : updates a secret for an org.
 -}
 updateOrgSecret :
     String
@@ -929,7 +929,7 @@ updateOrgSecret baseUrl session options =
         |> withAuth session
 
 
-{-| addOrgSecret : adds an org secret
+{-| addOrgSecret : adds an org secret.
 -}
 addOrgSecret :
     String
@@ -956,7 +956,7 @@ addOrgSecret baseUrl session options =
         |> withAuth session
 
 
-{-| deleteOrgSecret : deletes a secret for an org
+{-| deleteOrgSecret : deletes a secret for an org.
 -}
 deleteOrgSecret :
     String
@@ -981,7 +981,7 @@ deleteOrgSecret baseUrl session options =
         |> withAuth session
 
 
-{-| getRepoSecrets : retrieves secrets for a repo
+{-| getRepoSecrets : retrieves secrets for a repo.
 -}
 getRepoSecrets :
     String
@@ -1009,7 +1009,7 @@ getRepoSecrets baseUrl session options =
         |> withAuth session
 
 
-{-| getRepoSecret : retrieve a secret for a repo
+{-| getRepoSecret : retrieve a secret for a repo.
 -}
 getRepoSecret :
     String
@@ -1035,7 +1035,7 @@ getRepoSecret baseUrl session options =
         |> withAuth session
 
 
-{-| updateRepoSecret : updates a secret for a repo
+{-| updateRepoSecret : updates a secret for a repo.
 -}
 updateRepoSecret :
     String
@@ -1063,7 +1063,7 @@ updateRepoSecret baseUrl session options =
         |> withAuth session
 
 
-{-| addRepoSecret : adds a repo secret
+{-| addRepoSecret : adds a repo secret.
 -}
 addRepoSecret :
     String
@@ -1091,7 +1091,7 @@ addRepoSecret baseUrl session options =
         |> withAuth session
 
 
-{-| deleteRepoSecret : deletes a secret for a repo
+{-| deleteRepoSecret : deletes a secret for a repo.
 -}
 deleteRepoSecret :
     String
@@ -1117,7 +1117,7 @@ deleteRepoSecret baseUrl session options =
         |> withAuth session
 
 
-{-| getSharedSecrets : retrieves secrets for an org/team
+{-| getSharedSecrets : retrieves secrets for an org/team.
 -}
 getSharedSecrets :
     String
@@ -1145,7 +1145,7 @@ getSharedSecrets baseUrl session options =
         |> withAuth session
 
 
-{-| getSharedSecret : retrieve a secret for an org/team
+{-| getSharedSecret : retrieve a secret for an org/team.
 -}
 getSharedSecret :
     String
@@ -1171,7 +1171,7 @@ getSharedSecret baseUrl session options =
         |> withAuth session
 
 
-{-| updateSharedSecret : updates a secret for an org/team
+{-| updateSharedSecret : updates a secret for an org/team.
 -}
 updateSharedSecret :
     String
@@ -1199,7 +1199,7 @@ updateSharedSecret baseUrl session options =
         |> withAuth session
 
 
-{-| addSharedSecret : adds a shared secret
+{-| addSharedSecret : adds a shared secret.
 -}
 addSharedSecret :
     String
@@ -1227,7 +1227,7 @@ addSharedSecret baseUrl session options =
         |> withAuth session
 
 
-{-| deleteSharedSecret : deletes a secret for an org/team
+{-| deleteSharedSecret : deletes a secret for an org/team.
 -}
 deleteSharedSecret :
     String

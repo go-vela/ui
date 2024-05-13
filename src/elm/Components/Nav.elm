@@ -24,6 +24,8 @@ import Shared
 -- TYPES
 
 
+{-| Props : alias for an object representing properties for the navigation component.
+-}
 type alias Props msg =
     { buttons : List (Html msg)
     , crumbs : Html msg
@@ -34,6 +36,8 @@ type alias Props msg =
 -- VIEW
 
 
+{-| view : renders the navigation component.
+-}
 view : Shared.Model -> Route params -> Props msg -> Html msg
 view shared route props =
     nav [ class "navigation", attribute "aria-label" "Navigation" ]

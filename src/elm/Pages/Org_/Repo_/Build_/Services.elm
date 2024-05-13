@@ -37,6 +37,8 @@ import Vela
 import View exposing (View)
 
 
+{-| page : takes user, shared model, route, and returns a build's services page.
+-}
 page : Auth.User -> Shared.Model -> Route { org : String, repo : String, build : String } -> Page Model Msg
 page user shared route =
     Page.new
@@ -53,6 +55,8 @@ page user shared route =
 -- LAYOUT
 
 
+{-| toLayout : takes user, route, model, and passes a build's services page info to Layouts.
+-}
 toLayout : Auth.User -> Route { org : String, repo : String, build : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Build
@@ -134,6 +138,8 @@ toLayout user route model =
 -- INIT
 
 
+{-| Model : alias for a model object for a build's services page.
+-}
 type alias Model =
     { services : WebData (List Vela.Service)
     , logs : Dict Int (WebData Vela.Log)
@@ -143,6 +149,8 @@ type alias Model =
     }
 
 
+{-| init : takes shared model, route, and initializes services page input arguments.
+-}
 init : Shared.Model -> Route { org : String, repo : String, build : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { services = RemoteData.Loading
@@ -170,6 +178,8 @@ init shared route () =
 -- UPDATE
 
 
+{-| Msg : custom type with possible messages.
+-}
 type Msg
     = NoOp
     | -- BROWSER
@@ -193,6 +203,8 @@ type Msg
     | Tick { time : Time.Posix, interval : Interval }
 
 
+{-| update : takes current models, route, message, and returns an updated model and effect.
+-}
 update : Shared.Model -> Route { org : String, repo : String, build : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
@@ -508,6 +520,8 @@ update shared route msg model =
 -- SUBSCRIPTIONS
 
 
+{-| subscriptions : takes model and returns the subscriptions for auto refreshing the page.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Interval.tickEveryFiveSeconds Tick
@@ -517,6 +531,8 @@ subscriptions model =
 -- VIEW
 
 
+{-| view : takes models, route, and creates the html for a build services page.
+-}
 view : Shared.Model -> Route { org : String, repo : String, build : String } -> Model -> View Msg
 view shared route model =
     { title = ""
@@ -563,6 +579,8 @@ view shared route model =
     }
 
 
+{-| viewService : renders a service component on the Services tab.
+-}
 viewService : Shared.Model -> Model -> Route { org : String, repo : String, build : String } -> Vela.Service -> Html Msg
 viewService shared model route service =
     div
@@ -608,6 +626,8 @@ viewService shared model route service =
         ]
 
 
+{-| viewLogs : renders a log componenet for a build service.
+-}
 viewLogs : Shared.Model -> Model -> Route { org : String, repo : String, build : String } -> Vela.Service -> WebData Vela.Log -> Html Msg
 viewLogs shared model route service log =
     case service.status of

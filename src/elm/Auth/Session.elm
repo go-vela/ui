@@ -15,8 +15,7 @@ import Task
 import Time exposing (Posix)
 
 
-{-| AuthParams defines the parameters
-used to complete authentication
+{-| AuthParams : defines the parameters used to complete authentication.
 -}
 type alias AuthParams =
     { code : Maybe String
@@ -24,8 +23,7 @@ type alias AuthParams =
     }
 
 
-{-| SessionDetails defines the shape
-of the session information
+{-| SessionDetails : defines the shape of the session information.
 -}
 type alias SessionDetails =
     { token : String
@@ -34,8 +32,7 @@ type alias SessionDetails =
     }
 
 
-{-| Session represents the possible
-session states
+{-| Session : represents the possible session states.
 -}
 type Session
     = Unauthenticated
@@ -46,8 +43,7 @@ type Session
 -- HELPERS
 
 
-{-| refreshAccessToken is a helper to schedule
-a job to try and refresh the access token
+{-| refreshAccessToken : helper to schedule a job to try and refresh the access token.
 -}
 refreshAccessToken : msg -> SessionDetails -> Cmd msg
 refreshAccessToken msg sessionDetails =
@@ -55,8 +51,7 @@ refreshAccessToken msg sessionDetails =
         |> Task.attempt (\_ -> msg)
 
 
-{-| delayTask takes a time in the future
-and delays in one of the following ways:
+{-| delayTask : takes a time in the future and delays in one of the following ways:
 
   - 30s before future time
   - if future time is less than a minute,

@@ -52,6 +52,8 @@ import Vela
 import View exposing (View)
 
 
+{-| page : takes user, shared model, route, and returns a user's sourced repositories page.
+-}
 page : Auth.User -> Shared.Model -> Route () -> Page Model Msg
 page user shared route =
     Page.new
@@ -67,6 +69,8 @@ page user shared route =
 -- LAYOUT
 
 
+{-| toLayout : takes user, models, and passes source repos page info to Layouts.
+-}
 toLayout : Auth.User -> Shared.Model -> Model -> Layouts.Layout Msg
 toLayout user shared model =
     Layouts.Default
@@ -83,12 +87,16 @@ toLayout user shared model =
 -- INIT
 
 
+{-| Model : alias for a model object for the source repos page.
+-}
 type alias Model =
     { searchFilters : Dict Vela.Org String
     , sourceRepos : WebData Vela.SourceRepositories
     }
 
 
+{-| init : takes shared model and initializes source repos page input arguments.
+-}
 init : Shared.Model -> () -> ( Model, Effect Msg )
 init shared () =
     ( { searchFilters = Dict.empty
@@ -106,6 +114,8 @@ init shared () =
 -- UPDATE
 
 
+{-| Msg : custom type with possible messages.
+-}
 type Msg
     = NoOp
       -- SOURCE REPOS
@@ -119,6 +129,8 @@ type Msg
     | ToggleFavorite Vela.Org (Maybe String)
 
 
+{-| update : takes current models, message, and returns an updated model and effect.
+-}
 update : Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
 update shared msg model =
     -- persist any source repos updates to the shared model
@@ -317,6 +329,8 @@ update shared msg model =
 -- SUBSCRIPTIONS
 
 
+{-| subscriptions : takes model and returns that there are no subscriptions.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
@@ -326,6 +340,8 @@ subscriptions model =
 -- VIEW
 
 
+{-| view : takes models, route, and creates the html for the account settings page.
+-}
 view : Shared.Model -> Route () -> Model -> View Msg
 view shared route model =
     let
@@ -370,7 +386,7 @@ view shared route model =
     }
 
 
-{-| viewSourceRepos : takes model and source repos and renders them based on user search
+{-| viewSourceRepos : takes model and source repos and renders them based on user search.
 -}
 viewSourceRepos : Shared.Model -> Model -> Html Msg
 viewSourceRepos shared model =
@@ -396,7 +412,7 @@ viewSourceRepos shared model =
             viewErrorSourceOrg
 
 
-{-| viewLoadingSourceOrgs : renders 8 source org loading skeletons
+{-| viewLoadingSourceOrgs : renders 8 source org loading skeletons.
 -}
 viewLoadingSourceOrgs : Html Msg
 viewLoadingSourceOrgs =
@@ -404,7 +420,7 @@ viewLoadingSourceOrgs =
         List.Extra.initialize 8 viewLoadingSourceOrg
 
 
-{-| viewLoadingSourceOrg : renders a loading indicator in the form of a source org skeleton
+{-| viewLoadingSourceOrg : renders a loading indicator in the form of a source org skeleton.
 -}
 viewLoadingSourceOrg : Int -> Html Msg
 viewLoadingSourceOrg idx =
@@ -434,7 +450,7 @@ viewLoadingSourceOrg idx =
         ]
 
 
-{-| viewErrorSourceOrg : renders an error in the form of a source org when unable to fetch source repositories
+{-| viewErrorSourceOrg : renders an error in the form of a source org when unable to fetch source repositories.
 -}
 viewErrorSourceOrg : Html Msg
 viewErrorSourceOrg =
@@ -453,7 +469,7 @@ viewErrorSourceOrg =
         ]
 
 
-{-| viewSourceOrg : renders the source repositories available to a user by org
+{-| viewSourceOrg : renders the source repositories available to a user by org.
 -}
 viewSourceOrg :
     WebData Vela.User
@@ -473,7 +489,7 @@ viewSourceOrg user filters org repos =
     viewSourceOrgDetails filters org repos_ filtered content UpdateSearchFilter EnableRepos
 
 
-{-| viewSourceOrgDetails : renders the source repositories by org as an html details element
+{-| viewSourceOrgDetails : renders the source repositories by org as an html details element.
 -}
 viewSourceOrgDetails :
     Dict Vela.Org String
@@ -489,7 +505,7 @@ viewSourceOrgDetails filters org repos filtered content search enableRepos =
         viewSourceOrgSummary filters org repos filtered content search enableRepos
 
 
-{-| viewSourceOrgSummary : renders the source repositories details summary
+{-| viewSourceOrgSummary : renders the source repositories details summary.
 -}
 viewSourceOrgSummary :
     Dict Vela.Org String
@@ -513,7 +529,7 @@ viewSourceOrgSummary filters org repos filtered content search enableRepos =
         :: content
 
 
-{-| viewSourceRepo : renders single repo within a list of org repos
+{-| viewSourceRepo : renders single repo within a list of org repos.
 viewSourceRepo uses model.sourceRepos and enableRepoButton to determine the state of each specific 'Enable' button
 -}
 viewSourceRepo :
@@ -529,7 +545,7 @@ viewSourceRepo user enableRepo toggleFavorite repo =
         ]
 
 
-{-| viewSearchedSourceRepo : renders single repo when searching across all repos
+{-| viewSearchedSourceRepo : renders single repo when searching across all repos.
 -}
 viewSearchedSourceRepo : ({ repo : Vela.Repository, showAlertOnResponse : Bool, addFavoriteOnResponse : Bool } -> msg) -> Favorites.UpdateFavorites msg -> Vela.Repository -> WebData Vela.User -> Html msg
 viewSearchedSourceRepo enableRepo toggleFavorite repo user =
@@ -540,14 +556,14 @@ viewSearchedSourceRepo enableRepo toggleFavorite repo user =
         ]
 
 
-{-| viewRepoCount : renders the amount of repos available within an org
+{-| viewRepoCount : renders the amount of repos available within an org.
 -}
 viewRepoCount : List a -> Html msg
 viewRepoCount repos =
     span [ class "repo-count", Util.testAttribute "source-repo-count" ] [ text <| (String.fromInt <| List.length repos) ++ " repos" ]
 
 
-{-| enableReposButton : takes List of repos and renders a button to enable them all at once, texts depends on user input filter
+{-| enableReposButton : takes List of repos and renders a button to enable them all at once, texts depends on user input filter.
 -}
 enableReposButton : Vela.Org -> List Vela.Repository -> Bool -> (List Vela.Repository -> msg) -> Html msg
 enableReposButton org repos filtered enableRepos =
@@ -561,7 +577,7 @@ enableReposButton org repos filtered enableRepos =
         ]
 
 
-{-| enableRepoButton : builds action button for enabling single repos
+{-| enableRepoButton : builds action button for enabling single repos.
 -}
 enableRepoButton : Vela.Repository -> ({ repo : Vela.Repository, showAlertOnResponse : Bool, addFavoriteOnResponse : Bool } -> msg) -> Favorites.UpdateFavorites msg -> WebData Vela.User -> Html msg
 enableRepoButton repo enableRepo toggleFavorite user =
@@ -652,7 +668,7 @@ enableRepoButton repo enableRepo toggleFavorite user =
                 [ FeatherIcons.refreshCw |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
 
 
-{-| searchReposGlobal : takes source repositories and search filters and renders filtered repos
+{-| searchReposGlobal : takes source repositories and search filters and renders filtered repos.
 -}
 searchReposGlobal : Shared.Model -> Model -> Vela.SourceRepositories -> ({ repo : Vela.Repository, showAlertOnResponse : Bool, addFavoriteOnResponse : Bool } -> msg) -> Favorites.UpdateFavorites msg -> Html msg
 searchReposGlobal shared model repos enableRepo toggleFavorite =
@@ -675,7 +691,7 @@ searchReposGlobal shared model repos enableRepo toggleFavorite =
             [ div [ class "item" ] [ text "No results" ] ]
 
 
-{-| searchReposLocal : takes repo search filters, the org, and repos and renders a list of repos based on user-entered text
+{-| searchReposLocal : takes repo search filters, the org, and repos and renders a list of repos based on user-entered text.
 -}
 searchReposLocal :
     WebData Vela.User

@@ -23,6 +23,8 @@ import Vela
 -- VIEW
 
 
+{-| viewInputSection : renders the HTML for an input field in a section.
+-}
 viewInputSection :
     { id_ : String
     , title : Maybe String
@@ -66,6 +68,8 @@ viewInputSection { id_, title, subtitle, val, placeholder_, classList_, rows_, w
         ]
 
 
+{-| viewInput : renders the HTML for an input field within a section.
+-}
 viewInput :
     { id_ : String
     , title : Maybe String
@@ -104,7 +108,7 @@ viewInput { id_, title, subtitle, val, placeholder_, classList_, wrapperClassLis
         ]
 
 
-{-| handleNumberInputString : returns a value as a number if it can be converted, otherwise returns the current value
+{-| handleNumberInputString : returns a value as a number if it can be converted, otherwise returns the current value.
 -}
 handleNumberInputString : String -> String -> String
 handleNumberInputString current val =
@@ -120,6 +124,8 @@ handleNumberInputString current val =
                 ""
 
 
+{-| viewNumberInput : renders the HTML for an input expected to handle numbers.
+-}
 viewNumberInput :
     { id_ : String
     , title : Maybe String
@@ -173,6 +179,8 @@ viewNumberInput { id_, title, subtitle, val, placeholder_, wrapperClassList, cla
         ]
 
 
+{-| viewTextareaSection : renders the HTML for a textarea within a section.
+-}
 viewTextareaSection :
     { id_ : String
     , title : Maybe String
@@ -216,7 +224,7 @@ viewTextareaSection { id_, title, subtitle, val, placeholder_, classList_, rows_
         ]
 
 
-{-| viewTextarea : renders a textarea input
+{-| viewTextarea : renders a textarea input.
 -}
 viewTextarea :
     { id_ : String
@@ -250,6 +258,8 @@ viewTextarea { id_, val, placeholder_, classList_, rows_, wrap_, msg, disabled_ 
         ]
 
 
+{-| viewCheckbox : renders the HTML for a checkbox.
+-}
 viewCheckbox :
     { id_ : String
     , title : String
@@ -283,6 +293,8 @@ viewCheckbox { id_, title, subtitle, field, state, msg, disabled_ } =
         ]
 
 
+{-| viewRadio : renders the HTML for a radio button.
+-}
 viewRadio :
     { id_ : String
     , title : String
@@ -313,6 +325,8 @@ viewRadio { id_, title, subtitle, value, field, msg, disabled_ } =
         ]
 
 
+{-| viewButton : renders the HTML for a button.
+-}
 viewButton : { id_ : String, msg : msg, text_ : String, classList_ : List ( String, Bool ), disabled_ : Bool } -> Html msg
 viewButton { id_, msg, text_, classList_, disabled_ } =
     let
@@ -356,6 +370,8 @@ viewCopyButton { id_, msg, text_, classList_, disabled_, content } =
         ]
 
 
+{-| viewSubtitle : renders the HTML for a subtitle.
+-}
 viewSubtitle : Maybe (Html msg) -> Html msg
 viewSubtitle subtitle =
     Maybe.Extra.unwrap (text "")
@@ -363,6 +379,8 @@ viewSubtitle subtitle =
         subtitle
 
 
+{-| viewAllowEvents : takes in allowed events and renders the HTML for events.
+-}
 viewAllowEvents :
     Shared.Model
     ->

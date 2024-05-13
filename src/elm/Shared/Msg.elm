@@ -21,6 +21,8 @@ import Utils.Theme as Theme
 import Vela
 
 
+{-| Msg : The main shared message type for the application.
+-}
 type Msg
     = NoOp
       -- BROWSER

@@ -18,6 +18,8 @@ import Utils.Helpers as Util
 -- TYPES
 
 
+{-| Props : alias for an object representing properties for a repo component.
+-}
 type alias Props msg =
     { toggleFavoriteMsg : Favorites.UpdateFavorites msg
     , org : String
@@ -31,6 +33,8 @@ type alias Props msg =
 -- VIEW
 
 
+{-| view : renders repo item component.
+-}
 view : Shared.Model -> Props msg -> Html msg
 view shared { toggleFavoriteMsg, org, repo, favorites, filtered } =
     let

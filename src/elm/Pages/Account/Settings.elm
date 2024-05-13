@@ -48,6 +48,8 @@ import Utils.Helpers as Util
 import View exposing (View)
 
 
+{-| page : takes user, shared model, route, and returns a user settings page.
+-}
 page : Auth.User -> Shared.Model -> Route () -> Page Model Msg
 page user shared route =
     Page.new
@@ -63,6 +65,8 @@ page user shared route =
 -- LAYOUT
 
 
+{-| toLayout : takes user, model, and passes the account settings page info to Layouts.
+-}
 toLayout : Auth.User -> Model -> Layouts.Layout Msg
 toLayout user model =
     Layouts.Default
@@ -79,10 +83,14 @@ toLayout user model =
 -- INIT
 
 
+{-| Model : alias for a model object for the settings page.
+-}
 type alias Model =
     {}
 
 
+{-| init : initializes account settings page with no arguments.
+-}
 init : () -> ( Model, Effect Msg )
 init () =
     ( {}
@@ -94,12 +102,16 @@ init () =
 -- UPDATE
 
 
+{-| Msg : custom type with possible messages.
+-}
 type Msg
     = NoOp
       -- ALERTS
     | AddAlertCopiedToClipboard String
 
 
+{-| update : takes current model, message, and returns an updated model and effect.
+-}
 update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
@@ -123,6 +135,8 @@ update msg model =
 -- SUBSCRIPTIONS
 
 
+{-| subscriptions : takes model and returns that there are no subscriptions.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
@@ -132,6 +146,8 @@ subscriptions model =
 -- VIEW
 
 
+{-| view : takes models, route, and creates the html for the account settings page.
+-}
 view : Shared.Model -> Route () -> Model -> View Msg
 view shared route model =
     let
@@ -157,6 +173,8 @@ view shared route model =
     }
 
 
+{-| viewAccountSettings : renders a div containing account settings, such as auth token.
+-}
 viewAccount_Settings : Shared.Model -> Model -> Html Msg
 viewAccount_Settings shared model =
     div [ class "my-settings", Util.testAttribute "settings" ] <|

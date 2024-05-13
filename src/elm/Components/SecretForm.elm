@@ -41,6 +41,8 @@ import Vela
 -- TYPES
 
 
+{-| Form : alias for a secrets form.
+-}
 type alias Form =
     { team : String
     , name : String
@@ -53,6 +55,8 @@ type alias Form =
     }
 
 
+{-| defaultOrgRepoSecretForm : returns a default form for org and repo secrets.
+-}
 defaultOrgRepoSecretForm : Form
 defaultOrgRepoSecretForm =
     { team = ""
@@ -66,6 +70,8 @@ defaultOrgRepoSecretForm =
     }
 
 
+{-| defaultSharedSecretForm : returns a default form for shared secrets.
+-}
 defaultSharedSecretForm : String -> Form
 defaultSharedSecretForm team =
     { team =
@@ -84,6 +90,8 @@ defaultSharedSecretForm team =
     }
 
 
+{-| toForm : converts a secret to a form.
+-}
 toForm : Vela.Secret -> Form
 toForm secret =
     { team = secret.team
@@ -101,6 +109,8 @@ toForm secret =
 -- VIEW
 
 
+{-| viewImagesInput : renders input for images.
+-}
 viewImagesInput :
     { onInput_ : String -> msg
     , addImage : String -> msg
@@ -169,6 +179,8 @@ viewImagesInput { onInput_, addImage, removeImage, images, imageValue, disabled_
         ]
 
 
+{-| viewImage : renders a supplied docker image with option to remove.
+-}
 viewImage : { msg : String -> msg, image : String } -> Html msg
 viewImage { msg, image } =
     div [ class "image", class "chevron" ]
@@ -183,6 +195,8 @@ viewImage { msg, image } =
         ]
 
 
+{-| viewAllowCommandsInput : renders radio buttons to control access to secret via commands.
+-}
 viewAllowCommandsInput : { msg : String -> msg, value : Bool, disabled_ : Bool } -> Html msg
 viewAllowCommandsInput { msg, value, disabled_ } =
     section [ Util.testAttribute "allow-commands" ]
@@ -221,6 +235,8 @@ viewAllowCommandsInput { msg, value, disabled_ } =
         ]
 
 
+{-| viewAllowSubstitutionInput : renders radio buttons to control access to secret via substitution.
+-}
 viewAllowSubstitutionInput : { msg : String -> msg, value : Bool, disabled_ : Bool } -> Html msg
 viewAllowSubstitutionInput { msg, value, disabled_ } =
     section [ Util.testAttribute "allow-substitution" ]
@@ -258,6 +274,8 @@ viewAllowSubstitutionInput { msg, value, disabled_ } =
         ]
 
 
+{-| viewHelp : renders link to docs for secrets help.
+-}
 viewHelp : String -> Html msg
 viewHelp docsUrl =
     div [ class "help" ]
@@ -270,6 +288,8 @@ viewHelp docsUrl =
         ]
 
 
+{-| viewAllowEventsSelect : renders Events selection portion of a secret.
+-}
 viewAllowEventsSelect :
     Shared.Model
     ->
@@ -296,6 +316,8 @@ viewAllowEventsSelect shared props =
         ]
 
 
+{-| viewPullRequestWarning : renders disclaimer message for enabling secret for PR events.
+-}
 viewPullRequestWarning : Html msg
 viewPullRequestWarning =
     p [ class "notice" ]

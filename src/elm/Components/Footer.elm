@@ -16,6 +16,8 @@ import Utils.Helpers as Util
 -- VIEW
 
 
+{-| view : renders any footer content, like alerts.
+-}
 view :
     { toasties : Stack Alert
     , copyAlertMsg : String -> msg

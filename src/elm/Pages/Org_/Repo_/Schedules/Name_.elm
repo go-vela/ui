@@ -28,6 +28,8 @@ import Vela exposing (defaultSchedulePayload)
 import View exposing (View)
 
 
+{-| page : takes user, shared model, route, and returns a specific schedule page.
+-}
 page : Auth.User -> Shared.Model -> Route { org : String, repo : String, name : String } -> Page Model Msg
 page user shared route =
     Page.new
@@ -43,6 +45,8 @@ page user shared route =
 -- LAYOUT
 
 
+{-| toLayout : takes user, route, model, and passes a specific schedule page info to Layouts.
+-}
 toLayout : Auth.User -> Route { org : String, repo : String, name : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
@@ -85,6 +89,8 @@ toLayout user route model =
 -- INIT
 
 
+{-| Model : alias for a model object for a specific schedule page.
+-}
 type alias Model =
     { schedule : WebData Vela.Schedule
     , name : String
@@ -96,6 +102,8 @@ type alias Model =
     }
 
 
+{-| init : takes in a shared model, route, and returns a model and effect.
+-}
 init : Shared.Model -> Route { org : String, repo : String, name : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { schedule = RemoteData.Loading
@@ -125,6 +133,8 @@ init shared route () =
 -- UPDATE
 
 
+{-| Msg : custom type with possible messages.
+-}
 type Msg
     = NoOp
       -- SCHEDULES
@@ -140,6 +150,8 @@ type Msg
     | ConfirmDelete
 
 
+{-| update : takes current models, route, message, and returns an updated model and effect.
+-}
 update : Shared.Model -> Route { org : String, repo : String, name : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
@@ -285,6 +297,8 @@ update shared route msg model =
 -- SUBSCRIPTIONS
 
 
+{-| subscriptions : takes model and returns that there are no subscriptions.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
@@ -294,6 +308,8 @@ subscriptions model =
 -- VIEW
 
 
+{-| view : renders the html for a specific schedule page.
+-}
 view : Shared.Model -> Route { org : String, repo : String, name : String } -> Model -> View Msg
 view shared route model =
     let
