@@ -16,12 +16,15 @@ import Http.Detailed
 import Json.Decode exposing (Error(..))
 import Layouts
 import List.Extra
+import Maybe.Extra
 import Page exposing (Page)
 import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
+import Time
 import Utils.Errors as Errors
 import Utils.Helpers as Util
+import Utils.Interval as Interval
 import Vela exposing (defaultCompilerPayload, defaultQueuePayload, defaultSettingsPayload)
 import View exposing (View)
 
@@ -70,22 +73,15 @@ toLayout user model =
 -- INIT
 
 
-{-| ValueWithPrevious : a record for storing a previous value to enable lazy "undo".
--}
-type alias ValueWithPrevious =
-    { prev : String
-    , val : String
-    }
-
-
 {-| Model : alias for model for the page.
 -}
 type alias Model =
     { settings : WebData Vela.PlatformSettings
+    , originalSettings : Maybe Vela.PlatformSettings
     , exported : WebData String
-    , cloneImage : ValueWithPrevious
-    , starlarkExecLimitIn : ValueWithPrevious
-    , templateDepthIn : ValueWithPrevious
+    , cloneImage : String
+    , starlarkExecLimitIn : String
+    , templateDepthIn : String
     , queueRoutes : Components.Form.EditableListForm
     , repoAllowlist : Components.Form.EditableListForm
     , scheduleAllowlist : Components.Form.EditableListForm
@@ -97,19 +93,11 @@ type alias Model =
 init : Shared.Model -> () -> ( Model, Effect Msg )
 init shared () =
     ( { settings = RemoteData.Loading
+      , originalSettings = Nothing
       , exported = RemoteData.Loading
-      , cloneImage =
-            { prev = ""
-            , val = ""
-            }
-      , starlarkExecLimitIn =
-            { prev = ""
-            , val = ""
-            }
-      , templateDepthIn =
-            { prev = ""
-            , val = ""
-            }
+      , cloneImage = ""
+      , starlarkExecLimitIn = ""
+      , templateDepthIn = ""
       , queueRoutes = { val = "", editing = Dict.empty }
       , repoAllowlist = { val = "", editing = Dict.empty }
       , scheduleAllowlist = { val = "", editing = Dict.empty }
@@ -131,6 +119,7 @@ init shared () =
 type Msg
     = -- SETTINGS
       GetSettingsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.PlatformSettings ))
+    | RefreshSettingsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.PlatformSettings ))
     | UpdateSettingsResponse { field : Vela.PlatformSettingsFieldUpdate } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.PlatformSettings ))
       -- COMPILER
     | CloneImageOnInput String
@@ -160,6 +149,8 @@ type Msg
     | ScheduleAllowlistSaveOnClick { id : String, val : String }
     | ScheduleAllowlistEditOnInput { id : String } String
     | ScheduleAllowlistRemoveOnClick String
+      -- REFRESH
+    | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
 {-| update : takes current models, message, and returns an updated model and effect.
@@ -171,19 +162,28 @@ update shared route msg model =
             case response of
                 Ok ( meta, settings ) ->
                     ( { model
+                        | originalSettings = Just settings
+                        , settings = RemoteData.Success settings
+                        , cloneImage = settings.compiler.cloneImage
+                        , starlarkExecLimitIn = String.fromInt settings.compiler.starlarkExecLimit
+                        , templateDepthIn = String.fromInt settings.compiler.templateDepth
+                      }
+                    , Effect.none
+                    )
+
+                Err error ->
+                    ( { model | settings = Errors.toFailure error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Errors.showAlertAlways
+                        }
+                    )
+
+        RefreshSettingsResponse response ->
+            case response of
+                Ok ( meta, settings ) ->
+                    ( { model
                         | settings = RemoteData.Success settings
-                        , cloneImage =
-                            { prev = settings.compiler.cloneImage
-                            , val = settings.compiler.cloneImage
-                            }
-                        , starlarkExecLimitIn =
-                            { prev = String.fromInt settings.compiler.starlarkExecLimit
-                            , val = String.fromInt settings.compiler.starlarkExecLimit
-                            }
-                        , templateDepthIn =
-                            { prev = String.fromInt settings.compiler.templateDepth
-                            , val = String.fromInt settings.compiler.templateDepth
-                            }
                       }
                     , Effect.none
                     )
@@ -214,7 +214,7 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | settings = Errors.toFailure error }
+                    ( model
                     , Effect.handleHttpError
                         { error = error
                         , shouldShowAlertFn = Errors.showAlertAlways
@@ -224,10 +224,7 @@ update shared route msg model =
         -- COMPILER
         CloneImageOnInput val ->
             ( { model
-                | cloneImage =
-                    { prev = model.cloneImage.prev
-                    , val = val
-                    }
+                | cloneImage = val
               }
             , Effect.none
             )
@@ -248,10 +245,7 @@ update shared route msg model =
                     Http.jsonBody <| Vela.encodeSettingsPayload payload
             in
             ( { model
-                | cloneImage =
-                    { prev = RemoteData.unwrap model.cloneImage.prev (.compiler >> .cloneImage) model.settings
-                    , val = val
-                    }
+                | cloneImage = val
               }
             , Effect.updateSettings
                 { baseUrl = shared.velaAPIBaseURL
@@ -266,10 +260,7 @@ update shared route msg model =
 
         StarlarkExecLimitOnInput val ->
             ( { model
-                | starlarkExecLimitIn =
-                    { prev = model.starlarkExecLimitIn.prev
-                    , val = Components.Form.handleNumberInputString model.starlarkExecLimitIn.val val
-                    }
+                | starlarkExecLimitIn = val
               }
             , Effect.none
             )
@@ -290,13 +281,7 @@ update shared route msg model =
                     Http.jsonBody <| Vela.encodeSettingsPayload payload
             in
             ( { model
-                | starlarkExecLimitIn =
-                    { prev =
-                        RemoteData.unwrap model.starlarkExecLimitIn.prev
-                            (\s -> s.compiler.starlarkExecLimit |> String.fromInt)
-                            model.settings
-                    , val = val
-                    }
+                | starlarkExecLimitIn = val
               }
             , Effect.updateSettings
                 { baseUrl = shared.velaAPIBaseURL
@@ -311,10 +296,7 @@ update shared route msg model =
 
         TemplateDepthOnInput val ->
             ( { model
-                | templateDepthIn =
-                    { prev = model.templateDepthIn.prev
-                    , val = Components.Form.handleNumberInputString model.templateDepthIn.val val
-                    }
+                | templateDepthIn = Components.Form.handleNumberInputString model.templateDepthIn val
               }
             , Effect.none
             )
@@ -335,13 +317,7 @@ update shared route msg model =
                     Http.jsonBody <| Vela.encodeSettingsPayload payload
             in
             ( { model
-                | templateDepthIn =
-                    { prev =
-                        RemoteData.unwrap model.templateDepthIn.prev
-                            (\s -> s.compiler.templateDepth |> String.fromInt)
-                            model.settings
-                    , val = val
-                    }
+                | templateDepthIn = val
               }
             , Effect.updateSettings
                 { baseUrl = shared.velaAPIBaseURL
@@ -810,6 +786,16 @@ update shared route msg model =
             , Effect.none
             )
 
+        -- REFRESH
+        Tick options ->
+            ( model
+            , Effect.getSettings
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse = RefreshSettingsResponse
+                }
+            )
+
 
 
 -- SUBSCRIPTIONS
@@ -819,7 +805,7 @@ update shared route msg model =
 -}
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Interval.tickEveryFiveSeconds Tick
 
 
 
@@ -844,7 +830,7 @@ view shared route model =
                         { title = Nothing
                         , subtitle = Nothing
                         , id_ = cloneImageHtmlId
-                        , val = model.cloneImage.val
+                        , val = model.cloneImage
                         , placeholder_ = "docker.io/target/vela-git:latest"
                         , classList_ = []
                         , wrapperClassList = [ ( "-wide", True ) ]
@@ -855,7 +841,7 @@ view shared route model =
                         }
                     , Components.Form.viewButton
                         { id_ = cloneImageHtmlId ++ "-update"
-                        , msg = CloneImageOnUpdate model.cloneImage.val
+                        , msg = CloneImageOnUpdate model.cloneImage
                         , text_ = "update"
                         , classList_ =
                             [ ( "-outline", True )
@@ -863,14 +849,16 @@ view shared route model =
                         , disabled_ =
                             RemoteData.unwrap True
                                 (\s ->
-                                    String.isEmpty model.cloneImage.val
+                                    String.isEmpty model.cloneImage
                                         || s.compiler.cloneImage
-                                        == model.cloneImage.val
+                                        == model.cloneImage
                                 )
                                 model.settings
                         }
                     ]
-                , viewFieldPreviousValue model (\s -> s.compiler.cloneImage) model.cloneImage.prev
+                , viewFieldPreviousValue model
+                    (\s -> s.compiler.cloneImage)
+                    (\ms -> Maybe.Extra.unwrap "" (.compiler >> .cloneImage) ms)
                 ]
             , section
                 [ class "settings"
@@ -884,7 +872,7 @@ view shared route model =
                         { title = Nothing
                         , subtitle = Nothing
                         , id_ = starlarkExecLimitHtmlId
-                        , val = model.starlarkExecLimitIn.val
+                        , val = model.starlarkExecLimitIn
                         , placeholder_ = numberBoundsToString starlarkExecLimitMin starlarkExecLimitMax
                         , wrapperClassList = [ ( "-wide", True ) ]
                         , classList_ = []
@@ -897,7 +885,7 @@ view shared route model =
                         }
                     , Components.Form.viewButton
                         { id_ = starlarkExecLimitHtmlId ++ "-update"
-                        , msg = StarlarkExecLimitOnUpdate model.starlarkExecLimitIn.val
+                        , msg = StarlarkExecLimitOnUpdate model.starlarkExecLimitIn
                         , text_ = "update"
                         , classList_ =
                             [ ( "-outline", True )
@@ -905,7 +893,7 @@ view shared route model =
                         , disabled_ =
                             RemoteData.unwrap True
                                 (\s ->
-                                    case String.toInt model.starlarkExecLimitIn.val of
+                                    case String.toInt model.starlarkExecLimitIn of
                                         Just limit ->
                                             limit
                                                 == s.compiler.starlarkExecLimit
@@ -918,7 +906,9 @@ view shared route model =
                                 model.settings
                         }
                     ]
-                , viewFieldPreviousValue model (\s -> String.fromInt s.compiler.starlarkExecLimit) model.starlarkExecLimitIn.prev
+                , viewFieldPreviousValue model
+                    (\s -> String.fromInt s.compiler.starlarkExecLimit)
+                    (\ms -> Maybe.Extra.unwrap "" (.compiler >> .starlarkExecLimit >> String.fromInt) ms)
                 ]
             , section
                 [ class "settings"
@@ -932,7 +922,7 @@ view shared route model =
                         { title = Nothing
                         , subtitle = Nothing
                         , id_ = "template-depth"
-                        , val = model.templateDepthIn.val
+                        , val = model.templateDepthIn
                         , placeholder_ = numberBoundsToString templateDepthLimitMin templateDepthLimitMax
                         , wrapperClassList = [ ( "-wide", True ) ]
                         , classList_ = []
@@ -945,7 +935,7 @@ view shared route model =
                         }
                     , Components.Form.viewButton
                         { id_ = "template-depth-update"
-                        , msg = TemplateDepthOnUpdate model.templateDepthIn.val
+                        , msg = TemplateDepthOnUpdate model.templateDepthIn
                         , text_ = "update"
                         , classList_ =
                             [ ( "-outline", True )
@@ -953,7 +943,7 @@ view shared route model =
                         , disabled_ =
                             RemoteData.unwrap True
                                 (\s ->
-                                    case String.toInt model.templateDepthIn.val of
+                                    case String.toInt model.templateDepthIn of
                                         Just limit ->
                                             limit
                                                 == s.compiler.templateDepth
@@ -966,7 +956,9 @@ view shared route model =
                                 model.settings
                         }
                     ]
-                , viewFieldPreviousValue model (\s -> String.fromInt s.compiler.templateDepth) model.templateDepthIn.prev
+                , viewFieldPreviousValue model
+                    (\s -> String.fromInt s.compiler.templateDepth)
+                    (\ms -> Maybe.Extra.unwrap "" (.compiler >> .templateDepth >> String.fromInt) ms)
                 ]
             , section
                 [ class "settings"
@@ -1160,14 +1152,14 @@ viewFieldEnvKeyValue envKey =
 
 {-| viewFieldPreviousValue : renders previous value for a settings field
 -}
-viewFieldPreviousValue : Model -> (Vela.PlatformSettings -> String) -> String -> Html Msg
-viewFieldPreviousValue model toCurr prev =
+viewFieldPreviousValue : Model -> (Vela.PlatformSettings -> String) -> (Maybe Vela.PlatformSettings -> String) -> Html Msg
+viewFieldPreviousValue model toCurr toPrev =
     p [ class "settings-previous-value" ] <|
         case model.settings of
             RemoteData.Success settings ->
-                if prev /= toCurr settings then
+                if toPrev model.originalSettings /= toCurr settings then
                     [ strong [] [ text "Before: " ]
-                    , span [] [ text prev ]
+                    , span [] [ text (toPrev model.originalSettings) ]
                     ]
 
                 else

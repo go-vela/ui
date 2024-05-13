@@ -164,6 +164,7 @@ update shared route msg model =
                 ]
             )
 
+        -- REFRESH
         Tick options ->
             ( model
             , Effect.getWorkers
