@@ -64,7 +64,7 @@ context('Workers', () => {
       });
       context('error', () => {
         it('should have error styles', () => {
-          cy.get('@lastWorker').should('have.class', '-error');
+          cy.get('@lastWorker').should('have.class', 'status-error');
         });
       });
     });
