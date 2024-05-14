@@ -346,7 +346,7 @@ view shared route model =
 
                             _ ->
                                 text ""
-                        , Components.Form.viewTextarea
+                        , Components.Form.viewTextareaSection
                             { title = Just "Target"
                             , subtitle = Nothing
                             , id_ = "target"
@@ -358,7 +358,7 @@ view shared route model =
                             , wrap_ = Just "soft"
                             , msg = TargetOnInput
                             }
-                        , Components.Form.viewTextarea
+                        , Components.Form.viewTextareaSection
                             { title = Just "Ref"
                             , subtitle = Nothing
                             , id_ = "ref"
@@ -373,7 +373,7 @@ view shared route model =
                             , wrap_ = Just "soft"
                             , msg = RefOnInput
                             }
-                        , Components.Form.viewTextarea
+                        , Components.Form.viewTextareaSection
                             { title = Just "Description"
                             , subtitle = Nothing
                             , id_ = "description"
@@ -385,7 +385,7 @@ view shared route model =
                             , wrap_ = Just "soft"
                             , msg = DescriptionOnInput
                             }
-                        , Components.Form.viewTextarea
+                        , Components.Form.viewTextareaSection
                             { title = Just "Task"
                             , subtitle = Nothing
                             , id_ = "task"
@@ -415,7 +415,7 @@ view shared route model =
                                         ]
                                     ]
                                 , div [ class "parameters-inputs" ]
-                                    [ Components.Form.viewInput
+                                    [ Components.Form.viewInputSection
                                         { title = Nothing
                                         , subtitle = Nothing
                                         , id_ = "parameter-key"
@@ -427,7 +427,7 @@ view shared route model =
                                         , wrap_ = Just "soft"
                                         , msg = ParameterKeyOnInput
                                         }
-                                    , Components.Form.viewInput
+                                    , Components.Form.viewInputSection
                                         { title = Nothing
                                         , subtitle = Nothing
                                         , id_ = "parameter-value"

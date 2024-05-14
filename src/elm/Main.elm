@@ -18,6 +18,7 @@ import Json.Encode
 import Layout
 import Layouts
 import Layouts.Default
+import Layouts.Default.Admin
 import Layouts.Default.Build
 import Layouts.Default.Org
 import Layouts.Default.Repo
@@ -32,6 +33,8 @@ import Pages.Account.Login
 import Pages.Account.Logout
 import Pages.Account.Settings
 import Pages.Account.SourceRepos
+import Pages.Admin.Settings
+import Pages.Admin.Workers
 import Pages.Dash.Secrets.Engine_.Org.Org_
 import Pages.Dash.Secrets.Engine_.Org.Org_.Add
 import Pages.Dash.Secrets.Engine_.Org.Org_.Name_
@@ -127,6 +130,11 @@ initLayout model layout =
             , Cmd.none
             )
 
+        ( Layouts.Default props, Just (Main.Layouts.Model.Default_Admin existing) ) ->
+            ( Main.Layouts.Model.Default { default = existing.default }
+            , Cmd.none
+            )
+
         ( Layouts.Default props, Just (Main.Layouts.Model.Default_Build existing) ) ->
             ( Main.Layouts.Model.Default { default = existing.default }
             , Cmd.none
@@ -158,7 +166,117 @@ initLayout model layout =
             , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default defaultLayoutEffect)
             )
 
+        ( Layouts.Default_Admin props, Just (Main.Layouts.Model.Default existing) ) ->
+            let
+                route : Route ()
+                route =
+                    Route.fromUrl () model.url
+
+                defaultAdminLayout =
+                    Layouts.Default.Admin.layout props model.shared route
+
+                ( adminLayoutModel, adminLayoutEffect ) =
+                    Layout.init defaultAdminLayout ()
+            in
+            ( Main.Layouts.Model.Default_Admin { default = existing.default, admin = adminLayoutModel }
+            , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Admin adminLayoutEffect)
+            )
+
+        ( Layouts.Default_Admin props, Just (Main.Layouts.Model.Default_Admin existing) ) ->
+            ( Main.Layouts.Model.Default_Admin existing
+            , Cmd.none
+            )
+
+        ( Layouts.Default_Admin props, Just (Main.Layouts.Model.Default_Build existing) ) ->
+            let
+                route : Route ()
+                route =
+                    Route.fromUrl () model.url
+
+                defaultAdminLayout =
+                    Layouts.Default.Admin.layout props model.shared route
+
+                ( adminLayoutModel, adminLayoutEffect ) =
+                    Layout.init defaultAdminLayout ()
+            in
+            ( Main.Layouts.Model.Default_Admin { default = existing.default, admin = adminLayoutModel }
+            , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Admin adminLayoutEffect)
+            )
+
+        ( Layouts.Default_Admin props, Just (Main.Layouts.Model.Default_Org existing) ) ->
+            let
+                route : Route ()
+                route =
+                    Route.fromUrl () model.url
+
+                defaultAdminLayout =
+                    Layouts.Default.Admin.layout props model.shared route
+
+                ( adminLayoutModel, adminLayoutEffect ) =
+                    Layout.init defaultAdminLayout ()
+            in
+            ( Main.Layouts.Model.Default_Admin { default = existing.default, admin = adminLayoutModel }
+            , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Admin adminLayoutEffect)
+            )
+
+        ( Layouts.Default_Admin props, Just (Main.Layouts.Model.Default_Repo existing) ) ->
+            let
+                route : Route ()
+                route =
+                    Route.fromUrl () model.url
+
+                defaultAdminLayout =
+                    Layouts.Default.Admin.layout props model.shared route
+
+                ( adminLayoutModel, adminLayoutEffect ) =
+                    Layout.init defaultAdminLayout ()
+            in
+            ( Main.Layouts.Model.Default_Admin { default = existing.default, admin = adminLayoutModel }
+            , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Admin adminLayoutEffect)
+            )
+
+        ( Layouts.Default_Admin props, _ ) ->
+            let
+                route : Route ()
+                route =
+                    Route.fromUrl () model.url
+
+                defaultAdminLayout =
+                    Layouts.Default.Admin.layout props model.shared route
+
+                defaultLayout =
+                    Layouts.Default.layout (Layout.parentProps defaultAdminLayout) model.shared route
+
+                ( adminLayoutModel, adminLayoutEffect ) =
+                    Layout.init defaultAdminLayout ()
+
+                ( defaultLayoutModel, defaultLayoutEffect ) =
+                    Layout.init defaultLayout ()
+            in
+            ( Main.Layouts.Model.Default_Admin { default = defaultLayoutModel, admin = adminLayoutModel }
+            , Cmd.batch
+                [ fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Admin adminLayoutEffect)
+                , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default defaultLayoutEffect)
+                ]
+            )
+
         ( Layouts.Default_Build props, Just (Main.Layouts.Model.Default existing) ) ->
+            let
+                route : Route ()
+                route =
+                    Route.fromUrl () model.url
+
+                defaultBuildLayout =
+                    Layouts.Default.Build.layout props model.shared route
+
+                ( buildLayoutModel, buildLayoutEffect ) =
+                    Layout.init defaultBuildLayout ()
+            in
+            ( Main.Layouts.Model.Default_Build { default = existing.default, build = buildLayoutModel }
+            , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Build buildLayoutEffect)
+            )
+
+        ( Layouts.Default_Build props, Just (Main.Layouts.Model.Default_Admin existing) ) ->
             let
                 route : Route ()
                 route =
@@ -252,6 +370,22 @@ initLayout model layout =
             , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Org orgLayoutEffect)
             )
 
+        ( Layouts.Default_Org props, Just (Main.Layouts.Model.Default_Admin existing) ) ->
+            let
+                route : Route ()
+                route =
+                    Route.fromUrl () model.url
+
+                defaultOrgLayout =
+                    Layouts.Default.Org.layout props model.shared route
+
+                ( orgLayoutModel, orgLayoutEffect ) =
+                    Layout.init defaultOrgLayout ()
+            in
+            ( Main.Layouts.Model.Default_Org { default = existing.default, org = orgLayoutModel }
+            , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Org orgLayoutEffect)
+            )
+
         ( Layouts.Default_Org props, Just (Main.Layouts.Model.Default_Build existing) ) ->
             let
                 route : Route ()
@@ -315,6 +449,22 @@ initLayout model layout =
             )
 
         ( Layouts.Default_Repo props, Just (Main.Layouts.Model.Default existing) ) ->
+            let
+                route : Route ()
+                route =
+                    Route.fromUrl () model.url
+
+                defaultRepoLayout =
+                    Layouts.Default.Repo.layout props model.shared route
+
+                ( repoLayoutModel, repoLayoutEffect ) =
+                    Layout.init defaultRepoLayout ()
+            in
+            ( Main.Layouts.Model.Default_Repo { default = existing.default, repo = repoLayoutModel }
+            , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Repo repoLayoutEffect)
+            )
+
+        ( Layouts.Default_Repo props, Just (Main.Layouts.Model.Default_Admin existing) ) ->
             let
                 route : Route ()
                 route =
@@ -524,6 +674,54 @@ initPageAndLayout model =
                     , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Account_SourceRepos >> Page))
+                            |> Maybe.map (initLayout model)
+                    }
+                )
+
+        Route.Path.Admin_Settings ->
+            runWhenAuthenticatedWithLayout
+                model
+                (\user ->
+                    let
+                        page : Page.Page Pages.Admin.Settings.Model Pages.Admin.Settings.Msg
+                        page =
+                            Pages.Admin.Settings.page user model.shared (Route.fromUrl () model.url)
+
+                        ( pageModel, pageEffect ) =
+                            Page.init page ()
+                    in
+                    { page =
+                        Tuple.mapBoth
+                            Main.Pages.Model.Admin_Settings
+                            (Effect.map Main.Pages.Msg.Admin_Settings >> fromPageEffect model)
+                            ( pageModel, pageEffect )
+                    , layout =
+                        Page.layout pageModel page
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Admin_Settings >> Page))
+                            |> Maybe.map (initLayout model)
+                    }
+                )
+
+        Route.Path.Admin_Workers ->
+            runWhenAuthenticatedWithLayout
+                model
+                (\user ->
+                    let
+                        page : Page.Page Pages.Admin.Workers.Model Pages.Admin.Workers.Msg
+                        page =
+                            Pages.Admin.Workers.page user model.shared (Route.fromUrl () model.url)
+
+                        ( pageModel, pageEffect ) =
+                            Page.init page ()
+                    in
+                    { page =
+                        Tuple.mapBoth
+                            Main.Pages.Model.Admin_Workers
+                            (Effect.map Main.Pages.Msg.Admin_Workers >> fromPageEffect model)
+                            ( pageModel, pageEffect )
+                    , layout =
+                        Page.layout pageModel page
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Admin_Workers >> Page))
                             |> Maybe.map (initLayout model)
                     }
                 )
@@ -1412,6 +1610,26 @@ updateFromPage msg model =
                         (Page.update (Pages.Account.SourceRepos.page user model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
                 )
 
+        ( Main.Pages.Msg.Admin_Settings pageMsg, Main.Pages.Model.Admin_Settings pageModel ) ->
+            runWhenAuthenticated
+                model
+                (\user ->
+                    Tuple.mapBoth
+                        Main.Pages.Model.Admin_Settings
+                        (Effect.map Main.Pages.Msg.Admin_Settings >> fromPageEffect model)
+                        (Page.update (Pages.Admin.Settings.page user model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
+                )
+
+        ( Main.Pages.Msg.Admin_Workers pageMsg, Main.Pages.Model.Admin_Workers pageModel ) ->
+            runWhenAuthenticated
+                model
+                (\user ->
+                    Tuple.mapBoth
+                        Main.Pages.Model.Admin_Workers
+                        (Effect.map Main.Pages.Msg.Admin_Workers >> fromPageEffect model)
+                        (Page.update (Pages.Admin.Workers.page user model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
+                )
+
         ( Main.Pages.Msg.Dash_Secrets_Engine__Org_Org_ pageMsg, Main.Pages.Model.Dash_Secrets_Engine__Org_Org_ params pageModel ) ->
             runWhenAuthenticated
                 model
@@ -1680,6 +1898,23 @@ updateFromLayout msg model =
                 (Effect.map Main.Layouts.Msg.Default >> fromLayoutEffect model)
                 (Layout.update (Layouts.Default.layout props model.shared route) layoutMsg layoutModel.default)
 
+        ( Just (Layouts.Default_Admin props), Just (Main.Layouts.Model.Default_Admin layoutModel), Main.Layouts.Msg.Default layoutMsg ) ->
+            let
+                defaultProps =
+                    Layouts.Default.Admin.layout props model.shared route
+                        |> Layout.parentProps
+            in
+            Tuple.mapBoth
+                (\newModel -> Just (Main.Layouts.Model.Default_Admin { layoutModel | default = newModel }))
+                (Effect.map Main.Layouts.Msg.Default >> fromLayoutEffect model)
+                (Layout.update (Layouts.Default.layout defaultProps model.shared route) layoutMsg layoutModel.default)
+
+        ( Just (Layouts.Default_Admin props), Just (Main.Layouts.Model.Default_Admin layoutModel), Main.Layouts.Msg.Default_Admin layoutMsg ) ->
+            Tuple.mapBoth
+                (\newModel -> Just (Main.Layouts.Model.Default_Admin { layoutModel | admin = newModel }))
+                (Effect.map Main.Layouts.Msg.Default_Admin >> fromLayoutEffect model)
+                (Layout.update (Layouts.Default.Admin.layout props model.shared route) layoutMsg layoutModel.admin)
+
         ( Just (Layouts.Default_Build props), Just (Main.Layouts.Model.Default_Build layoutModel), Main.Layouts.Msg.Default layoutMsg ) ->
             let
                 defaultProps =
@@ -1775,6 +2010,18 @@ toLayoutFromPage model =
                 |> toAuthProtectedPage model Pages.Account.SourceRepos.page
                 |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.Account_SourceRepos >> Page))
+
+        Main.Pages.Model.Admin_Settings pageModel ->
+            Route.fromUrl () model.url
+                |> toAuthProtectedPage model Pages.Admin.Settings.page
+                |> Maybe.andThen (Page.layout pageModel)
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.Admin_Settings >> Page))
+
+        Main.Pages.Model.Admin_Workers pageModel ->
+            Route.fromUrl () model.url
+                |> toAuthProtectedPage model Pages.Admin.Workers.page
+                |> Maybe.andThen (Page.layout pageModel)
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.Admin_Workers >> Page))
 
         Main.Pages.Model.Dash_Secrets_Engine__Org_Org_ params pageModel ->
             Route.fromUrl params model.url
@@ -2015,6 +2262,24 @@ subscriptions model =
                         (\user ->
                             Page.subscriptions (Pages.Account.SourceRepos.page user model.shared (Route.fromUrl () model.url)) pageModel
                                 |> Sub.map Main.Pages.Msg.Account_SourceRepos
+                                |> Sub.map Page
+                        )
+                        (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+                Main.Pages.Model.Admin_Settings pageModel ->
+                    Auth.Action.subscriptions
+                        (\user ->
+                            Page.subscriptions (Pages.Admin.Settings.page user model.shared (Route.fromUrl () model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.Admin_Settings
+                                |> Sub.map Page
+                        )
+                        (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+                Main.Pages.Model.Admin_Workers pageModel ->
+                    Auth.Action.subscriptions
+                        (\user ->
+                            Page.subscriptions (Pages.Admin.Workers.page user model.shared (Route.fromUrl () model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.Admin_Workers
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -2263,6 +2528,21 @@ subscriptions model =
                         |> Sub.map Main.Layouts.Msg.Default
                         |> Sub.map Layout
 
+                ( Just (Layouts.Default_Admin props), Just (Main.Layouts.Model.Default_Admin layoutModel) ) ->
+                    let
+                        defaultProps =
+                            Layouts.Default.Admin.layout props model.shared route
+                                |> Layout.parentProps
+                    in
+                    Sub.batch
+                        [ Layout.subscriptions (Layouts.Default.layout defaultProps model.shared route) layoutModel.default
+                            |> Sub.map Main.Layouts.Msg.Default
+                            |> Sub.map Layout
+                        , Layout.subscriptions (Layouts.Default.Admin.layout props model.shared route) layoutModel.admin
+                            |> Sub.map Main.Layouts.Msg.Default_Admin
+                            |> Sub.map Layout
+                        ]
+
                 ( Just (Layouts.Default_Build props), Just (Main.Layouts.Model.Default_Build layoutModel) ) ->
                     let
                         defaultProps =
@@ -2351,6 +2631,25 @@ toView model =
                 { model = layoutModel.default
                 , toContentMsg = Main.Layouts.Msg.Default >> Layout
                 , content = viewPage model
+                }
+
+        ( Just (Layouts.Default_Admin props), Just (Main.Layouts.Model.Default_Admin layoutModel) ) ->
+            let
+                defaultProps =
+                    Layouts.Default.Admin.layout props model.shared route
+                        |> Layout.parentProps
+            in
+            Layout.view
+                (Layouts.Default.layout defaultProps model.shared route)
+                { model = layoutModel.default
+                , toContentMsg = Main.Layouts.Msg.Default >> Layout
+                , content =
+                    Layout.view
+                        (Layouts.Default.Admin.layout props model.shared route)
+                        { model = layoutModel.admin
+                        , toContentMsg = Main.Layouts.Msg.Default_Admin >> Layout
+                        , content = viewPage model
+                        }
                 }
 
         ( Just (Layouts.Default_Build props), Just (Main.Layouts.Model.Default_Build layoutModel) ) ->
@@ -2455,6 +2754,24 @@ viewPage model =
                 (\user ->
                     Page.view (Pages.Account.SourceRepos.page user model.shared (Route.fromUrl () model.url)) pageModel
                         |> View.map Main.Pages.Msg.Account_SourceRepos
+                        |> View.map Page
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+        Main.Pages.Model.Admin_Settings pageModel ->
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
+                (\user ->
+                    Page.view (Pages.Admin.Settings.page user model.shared (Route.fromUrl () model.url)) pageModel
+                        |> View.map Main.Pages.Msg.Admin_Settings
+                        |> View.map Page
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+        Main.Pages.Model.Admin_Workers pageModel ->
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
+                (\user ->
+                    Page.view (Pages.Admin.Workers.page user model.shared (Route.fromUrl () model.url)) pageModel
+                        |> View.map Main.Pages.Msg.Admin_Workers
                         |> View.map Page
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -2793,6 +3110,26 @@ toPageUrlHookCmd model routes =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
+        Main.Pages.Model.Admin_Settings pageModel ->
+            Auth.Action.command
+                (\user ->
+                    Page.toUrlMessages routes (Pages.Admin.Settings.page user model.shared (Route.fromUrl () model.url))
+                        |> List.map Main.Pages.Msg.Admin_Settings
+                        |> List.map Page
+                        |> toCommands
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+        Main.Pages.Model.Admin_Workers pageModel ->
+            Auth.Action.command
+                (\user ->
+                    Page.toUrlMessages routes (Pages.Admin.Workers.page user model.shared (Route.fromUrl () model.url))
+                        |> List.map Main.Pages.Msg.Admin_Workers
+                        |> List.map Page
+                        |> toCommands
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
         Main.Pages.Model.Dash_Secrets_Engine__Org_Org_ params pageModel ->
             Auth.Action.command
                 (\user ->
@@ -3076,6 +3413,23 @@ toLayoutUrlHookCmd oldModel model routes =
                 |> List.map Layout
                 |> toCommands
 
+        ( Just (Layouts.Default_Admin props), Just (Main.Layouts.Model.Default_Admin layoutModel) ) ->
+            let
+                defaultProps =
+                    Layouts.Default.Admin.layout props model.shared route
+                        |> Layout.parentProps
+            in
+            Cmd.batch
+                [ Layout.toUrlMessages routes (Layouts.Default.layout defaultProps model.shared route)
+                    |> List.map Main.Layouts.Msg.Default
+                    |> List.map Layout
+                    |> toCommands
+                , Layout.toUrlMessages routes (Layouts.Default.Admin.layout props model.shared route)
+                    |> List.map Main.Layouts.Msg.Default_Admin
+                    |> List.map Layout
+                    |> toCommands
+                ]
+
         ( Just (Layouts.Default_Build props), Just (Main.Layouts.Model.Default_Build layoutModel) ) ->
             let
                 defaultProps =
@@ -3139,6 +3493,12 @@ hasNavigatedWithinNewLayout { from, to } =
                 Just ( Layouts.Default _, Layouts.Default _ ) ->
                     True
 
+                Just ( Layouts.Default_Admin _, Layouts.Default_Admin _ ) ->
+                    True
+
+                Just ( Layouts.Default_Admin _, Layouts.Default _ ) ->
+                    True
+
                 Just ( Layouts.Default_Build _, Layouts.Default_Build _ ) ->
                     True
 
@@ -3185,6 +3545,12 @@ isAuthProtected routePath =
             True
 
         Route.Path.Account_SourceRepos ->
+            True
+
+        Route.Path.Admin_Settings ->
+            True
+
+        Route.Path.Admin_Workers ->
             True
 
         Route.Path.Dash_Secrets_Engine__Org_Org_ _ ->

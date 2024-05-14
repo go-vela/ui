@@ -26,6 +26,8 @@ module Vela exposing
     , Name
     , Org
     , PipelineConfig
+    , PlatformSettings
+    , PlatformSettingsFieldUpdate(..)
     , Ref
     , Repo
     , RepoFieldUpdate(..)
@@ -47,6 +49,7 @@ module Vela exposing
     , Templates
     , Type
     , User
+    , Worker
     , allowEventsFilterQueryKeys
     , allowEventsToList
     , buildRepoPayload
@@ -69,15 +72,20 @@ module Vela exposing
     , decodeSecret
     , decodeSecrets
     , decodeServices
+    , decodeSettings
     , decodeSourceRepositories
     , decodeSteps
     , decodeUser
+    , decodeWorkers
     , defaultAllowEvents
+    , defaultCompilerPayload
     , defaultDeploymentPayload
     , defaultEnabledAllowEvents
+    , defaultQueuePayload
     , defaultRepoPayload
     , defaultSchedulePayload
     , defaultSecretPayload
+    , defaultSettingsPayload
     , defaultUpdateUserPayload
     , enableUpdate
     , encodeBuildGraphRenderData
@@ -86,8 +94,10 @@ module Vela exposing
     , encodeRepoPayload
     , encodeSchedulePayload
     , encodeSecretPayload
+    , encodeSettingsPayload
     , encodeUpdateUser
     , getAllowEventField
+    , platformSettingsFieldUpdateToResponseConfig
     , repoFieldUpdateToResponseConfig
     , secretToKey
     , secretTypeToString
@@ -732,8 +742,8 @@ decodePullActions =
         |> required "synchronize" bool
         |> required "edited" bool
         |> required "reopened" bool
-        |> required "labeled" bool
-        |> required "unlabeled" bool
+        |> optional "labeled" bool False
+        |> optional "unlabeled" bool False
 
 
 decodeDeployActions : Decoder DeployActions
@@ -1853,6 +1863,266 @@ encodeDeploymentPayload deployment =
 decodeDeploymentParameters : Decoder (Maybe (List KeyValuePair))
 decodeDeploymentParameters =
     Json.Decode.map decodeKeyValuePairs <| Json.Decode.keyValuePairs Json.Decode.string
+
+
+type alias Worker =
+    { id : Int
+    , host_name : String
+    , address : String
+    , routes : List String
+    , active : Bool
+    , status : String
+    , last_status_update : Int
+    , running_builds : List Build
+    , last_build_started : Int
+    , last_build_finished : Int
+    , last_checked_in : Int
+    , build_limit : Int
+    }
+
+
+decodeWorker : Decoder Worker
+decodeWorker =
+    Json.Decode.succeed Worker
+        |> optional "id" int -1
+        |> required "hostname" string
+        |> required "address" string
+        |> optional "routes" (Json.Decode.list string) []
+        |> optional "active" bool False
+        |> optional "status" string ""
+        |> optional "last_status_update_at" int -1
+        |> optional "running_builds" decodeBuilds []
+        |> optional "last_build_started_at" int -1
+        |> optional "last_build_finished_at" int -1
+        |> optional "last_checked_in" int -1
+        |> optional "build_limit" int -1
+
+
+decodeWorkers : Decoder (List Worker)
+decodeWorkers =
+    Json.Decode.list decodeWorker
+
+
+type alias PlatformSettings =
+    { id : Int
+    , compiler : Compiler
+    , queue : Queue
+    , repoAllowlist : List String
+    , scheduleAllowlist : List String
+    , createdAt : Int
+    , updatedAt : Int
+    , updatedBy : String
+    }
+
+
+decodeSettings : Decoder PlatformSettings
+decodeSettings =
+    Json.Decode.succeed PlatformSettings
+        |> optional "id" int -1
+        |> required "compiler" decodeCompiler
+        |> required "queue" decodeQueue
+        |> required "repo_allowlist" (Json.Decode.list Json.Decode.string)
+        |> required "schedule_allowlist" (Json.Decode.list Json.Decode.string)
+        |> required "created_at" int
+        |> required "updated_at" int
+        |> required "updated_by" string
+
+
+type alias Compiler =
+    { cloneImage : String
+    , templateDepth : Int
+    , starlarkExecLimit : Int
+    }
+
+
+decodeCompiler : Decoder Compiler
+decodeCompiler =
+    Json.Decode.succeed Compiler
+        |> optional "clone_image" string ""
+        |> optional "template_depth" int -1
+        |> optional "starlark_exec_limit" int -1
+
+
+type alias CompilerPayload =
+    { cloneImage : Maybe String
+    , templateDepth : Maybe Int
+    , starlarkExecLimit : Maybe Int
+    }
+
+
+defaultCompilerPayload : CompilerPayload
+defaultCompilerPayload =
+    { cloneImage = Nothing
+    , templateDepth = Nothing
+    , starlarkExecLimit = Nothing
+    }
+
+
+encodeCompilerPayload : CompilerPayload -> Json.Encode.Value
+encodeCompilerPayload compiler =
+    Json.Encode.object
+        [ ( "clone_image", encodeOptional Json.Encode.string compiler.cloneImage )
+        , ( "template_depth", encodeOptional Json.Encode.int compiler.templateDepth )
+        , ( "starlark_exec_limit", encodeOptional Json.Encode.int compiler.starlarkExecLimit )
+        ]
+
+
+type alias Queue =
+    { routes : List String
+    }
+
+
+decodeQueue : Decoder Queue
+decodeQueue =
+    Json.Decode.succeed Queue
+        |> optional "routes" (Json.Decode.list Json.Decode.string) []
+
+
+type alias QueuePayload =
+    { routes : Maybe (List String)
+    }
+
+
+defaultQueuePayload : QueuePayload
+defaultQueuePayload =
+    { routes = Nothing
+    }
+
+
+encodeQueuePayload : QueuePayload -> Json.Encode.Value
+encodeQueuePayload queue =
+    Json.Encode.object
+        [ ( "routes", encodeOptional (Json.Encode.list Json.Encode.string) queue.routes )
+        ]
+
+
+type alias SettingsPayload =
+    { compiler : Maybe CompilerPayload
+    , queue : Maybe QueuePayload
+    , repoAllowlist : Maybe (List String)
+    , scheduleAllowlist : Maybe (List String)
+    }
+
+
+defaultSettingsPayload : SettingsPayload
+defaultSettingsPayload =
+    { compiler = Nothing
+    , queue = Nothing
+    , repoAllowlist = Nothing
+    , scheduleAllowlist = Nothing
+    }
+
+
+encodeSettingsPayload : SettingsPayload -> Json.Encode.Value
+encodeSettingsPayload settings =
+    Json.Encode.object
+        [ ( "compiler", encodeOptional encodeCompilerPayload settings.compiler )
+        , ( "queue", encodeOptional encodeQueuePayload settings.queue )
+        , ( "repo_allowlist", encodeOptional (Json.Encode.list Json.Encode.string) settings.repoAllowlist )
+        , ( "schedule_allowlist", encodeOptional (Json.Encode.list Json.Encode.string) settings.scheduleAllowlist )
+        ]
+
+
+type PlatformSettingsFieldUpdate
+    = CompilerCloneImage
+    | CompilerTemplateDepth
+    | CompilerStarlarkExecLimit
+    | QueueRouteAdd String
+    | QueueRouteUpdate String String
+    | QueueRouteRemove String
+    | RepoAllowlistAdd String
+    | RepoAllowlistUpdate String String
+    | RepoAllowlistRemove String
+    | ScheduleAllowlistAdd String
+    | ScheduleAllowlistUpdate String String
+    | ScheduleAllowlistRemove String
+
+
+type alias PlatformSettingsUpdateResponseConfig =
+    { successAlert : PlatformSettings -> String
+    }
+
+
+platformSettingsFieldUpdateToResponseConfig : PlatformSettingsFieldUpdate -> PlatformSettingsUpdateResponseConfig
+platformSettingsFieldUpdateToResponseConfig field =
+    case field of
+        CompilerCloneImage ->
+            { successAlert =
+                \settings ->
+                    "Compiler clone image set to '"
+                        ++ settings.compiler.cloneImage
+                        ++ "'."
+            }
+
+        CompilerTemplateDepth ->
+            { successAlert =
+                \settings ->
+                    "Compiler template depth set to '"
+                        ++ String.fromInt settings.compiler.templateDepth
+                        ++ "'."
+            }
+
+        CompilerStarlarkExecLimit ->
+            { successAlert =
+                \settings ->
+                    "Compiler Starlark exec limit set to '"
+                        ++ String.fromInt settings.compiler.starlarkExecLimit
+                        ++ "'."
+            }
+
+        QueueRouteAdd added ->
+            { successAlert =
+                \_ ->
+                    "Queue route '" ++ added ++ "' added."
+            }
+
+        QueueRouteUpdate from to ->
+            { successAlert =
+                \_ ->
+                    "Queue route '" ++ from ++ "' updated to'" ++ to ++ "'."
+            }
+
+        QueueRouteRemove route ->
+            { successAlert =
+                \_ ->
+                    "Queue route '" ++ route ++ "' removed."
+            }
+
+        RepoAllowlistAdd added ->
+            { successAlert =
+                \_ ->
+                    "Repo '" ++ added ++ "' added to the overall allowlist."
+            }
+
+        RepoAllowlistUpdate from to ->
+            { successAlert =
+                \_ ->
+                    "Repo '" ++ from ++ "' updated to'" ++ to ++ "' in the overall allowlist."
+            }
+
+        RepoAllowlistRemove route ->
+            { successAlert =
+                \_ ->
+                    "Repo '" ++ route ++ "' removed from the overall allowlist."
+            }
+
+        ScheduleAllowlistAdd added ->
+            { successAlert =
+                \_ ->
+                    "Repo '" ++ added ++ "' added to the schedules allowlist."
+            }
+
+        ScheduleAllowlistUpdate from to ->
+            { successAlert =
+                \_ ->
+                    "Repo '" ++ from ++ "' updated to'" ++ to ++ "' in the schedules allowlist."
+            }
+
+        ScheduleAllowlistRemove route ->
+            { successAlert =
+                \_ ->
+                    "Repo '" ++ route ++ "' removed from the schedules allowlist."
+            }
 
 
 type alias KeyValuePair =

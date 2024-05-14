@@ -1,0 +1,16 @@
+{
+  "id": 1,
+  "compiler": {
+    "clone_image": "target/vela-git:abc123",
+    "template_depth": 1,
+    "starlark_exec_limit": 5
+  },
+  "queue": {
+    "routes": ["vela123", "linux-large"]
+  },
+  "repo_allowlist": ["octocat/hello-world"],
+  "schedule_allowlist": [],
+  "created_at": 1572980375,
+  "updated_at": 1572980675,
+  "updated_by": "octocat"
+}

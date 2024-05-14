@@ -103,7 +103,7 @@ init shared () =
       , sourceRepos = shared.sourceRepos
       }
     , Effect.batch
-        [ Effect.getCurrentUser {}
+        [ Effect.getCurrentUserShared {}
         , Effect.sendMsg (GetUserSourceRepos False)
         , Effect.focusOn { target = "global-search-input" }
         ]

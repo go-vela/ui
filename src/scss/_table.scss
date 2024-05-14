@@ -106,10 +106,6 @@ td .key .list-item {
   max-width: 24rem;
 }
 
-.table-base tr.-success {
-  border-left: 2px solid var(--color-green);
-}
-
 .table-base tr.error-data {
   color: var(--color-red-light);
 
@@ -132,14 +128,29 @@ td .key .list-item {
   }
 }
 
-.table-base tr.-error {
+.table-base tr.status-success {
+  border-left: 2px solid var(--color-green);
+}
+
+.table-base tr.status-error {
   border-bottom: none;
   border-left: 2px solid var(--color-red);
 }
 
-.table-base tr.-skipped {
+.table-base tr.status-skipped {
   border-bottom: none;
   border-left: 2px solid var(--color-lavender);
+}
+
+.table-base tr.status-busy {
+  border-bottom: none;
+  border-left: 2px solid var(--color-yellow);
+}
+
+.table-base tr.status-available,
+.table-base tr.status-idle {
+  border-bottom: none;
+  border-left: 2px solid var(--color-green);
 }
 
 .table-base .error-content {
@@ -210,7 +221,7 @@ td .key .list-item {
     padding-left: 0.6rem;
   }
 
-  .table-base tr.-error {
+  .table-base tr.status-error {
     margin-bottom: 0;
   }
 

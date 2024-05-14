@@ -88,7 +88,7 @@ init props shared route _ =
       }
     , Effect.batch
         [ Effect.updateFavicon { favicon = Favicons.defaultFavicon }
-        , Effect.getCurrentUser {}
+        , Effect.getCurrentUserShared {}
         , Effect.getRepoBuildsShared
             { pageNumber = Nothing
             , perPage = Nothing
@@ -150,7 +150,7 @@ update props route msg model =
         Tick options ->
             ( model
             , Effect.batch
-                [ Effect.getCurrentUser {}
+                [ Effect.getCurrentUserShared {}
                 , Effect.getRepoBuildsShared
                     { pageNumber = Nothing
                     , perPage = Nothing

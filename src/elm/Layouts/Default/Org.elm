@@ -83,7 +83,7 @@ init shared route _ =
       }
     , Effect.batch
         [ Effect.updateFavicon { favicon = Favicons.defaultFavicon }
-        , Effect.getCurrentUser {}
+        , Effect.getCurrentUserShared {}
         ]
     )
 

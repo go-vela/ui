@@ -95,7 +95,7 @@ init : Shared.Model -> () -> ( Model, Effect Msg )
 init shared () =
     ( { favoritesFilter = ""
       }
-    , Effect.getCurrentUser {}
+    , Effect.getCurrentUserShared {}
     )
 
 
@@ -138,7 +138,7 @@ update msg model =
         -- REFRESH
         Tick options ->
             ( model
-            , Effect.getCurrentUser {}
+            , Effect.getCurrentUserShared {}
             )
 
 

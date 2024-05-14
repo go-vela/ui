@@ -13,6 +13,7 @@ import FeatherIcons
 import Html exposing (Html, a, button, details, div, header, li, nav, summary, text, ul)
 import Html.Attributes exposing (attribute, class, classList, href, id)
 import Html.Events exposing (onClick)
+import RemoteData
 import Route
 import Route.Path
 import Shared
@@ -105,7 +106,24 @@ view shared props =
             ]
         , nav [ class "help-links" ]
             [ ul []
-                [ li []
+                [ case shared.user of
+                    RemoteData.Success user ->
+                        if user.admin then
+                            li [ class "identity-menu-item" ]
+                                [ a
+                                    [ Util.testAttribute "admin-link"
+                                    , Route.Path.href Route.Path.Admin_Settings
+                                    ]
+                                    [ text "site admin"
+                                    ]
+                                ]
+
+                        else
+                            text ""
+
+                    _ ->
+                        text ""
+                , li []
                     [ viewThemeToggle props.theme props.setTheme
                     ]
                 , li []

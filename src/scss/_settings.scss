@@ -7,7 +7,8 @@
 // styles for the settings pages
 
 .repo-settings,
-.my-settings {
+.my-settings,
+.admin-settings {
   display: flex;
   flex-wrap: wrap;
 }
@@ -47,4 +48,22 @@
   display: flex;
   flex-direction: column;
   margin-right: 0.8em;
+}
+
+// site admin platform settings
+.settings-info,
+.settings-previous-value {
+  font-size: 1rem;
+
+  span {
+    padding: 0.2rem 0.4rem;
+
+    font-family: var(--font-code);
+
+    background-color: var(--color-bg-dark);
+  }
+}
+
+.settings-previous-value {
+  min-height: 1.6rem;
 }
