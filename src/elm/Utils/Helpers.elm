@@ -69,7 +69,7 @@ import Time exposing (Posix, Zone, posixToMillis, toHour, toMinute, utc)
 import Url
 
 
-{-| onMouseDownShowHelp : takes model and returns subscriptions for handling onMouseDown events at the browser level
+{-| onMouseDownShowHelp : takes model and returns subscriptions for handling onMouseDown events at the browser level.
 -}
 onMouseDownSubscription : String -> Bool -> (Maybe Bool -> msg) -> Sub msg
 onMouseDownSubscription targetId show triggerMsg =
@@ -80,7 +80,7 @@ onMouseDownSubscription targetId show triggerMsg =
         Sub.none
 
 
-{-| outsideTarget : returns decoder for handling clicks that occur from outside the currently focused/open dropdown
+{-| outsideTarget : returns decoder for handling clicks that occur from outside the currently focused/open dropdown.
 -}
 outsideTarget : String -> msg -> Json.Decode.Decoder msg
 outsideTarget targetId msg =
@@ -95,7 +95,7 @@ outsideTarget targetId msg =
             )
 
 
-{-| isOutsideTarget : returns decoder for determining if click target occurred from within a specified element
+{-| isOutsideTarget : returns decoder for determining if click target occurred from within a specified element.
 -}
 isOutsideTarget : String -> Json.Decode.Decoder Bool
 isOutsideTarget targetId =
@@ -118,28 +118,28 @@ isOutsideTarget targetId =
         ]
 
 
-{-| testAttribute : returns an html attribute that produces msgs for selecting the element during automated testing
+{-| testAttribute : returns an html attribute that produces msgs for selecting the element during automated testing.
 -}
 testAttribute : String -> Attribute msg
 testAttribute tag =
     attribute "data-test" tag
 
 
-{-| secondsToMillis : converts seconds to milliseconds
+{-| secondsToMillis : converts seconds to milliseconds.
 -}
 secondsToMillis : Int -> Int
 secondsToMillis seconds =
     seconds * 1000
 
 
-{-| millisToSeconds : converts milliseconds posix to seconds
+{-| millisToSeconds : converts milliseconds posix to seconds.
 -}
 millisToSeconds : Int -> Int
 millisToSeconds millis =
     millis // 1000
 
 
-{-| humanReadableDateWithDefault : takes timezone and posix timestamp and returns human readable date string with a default value for 0
+{-| humanReadableDateWithDefault : takes timezone and posix timestamp and returns human readable date string with a default value for 0.
 -}
 humanReadableDateWithDefault : Zone -> Int -> String
 humanReadableDateWithDefault timezone t =
@@ -150,7 +150,7 @@ humanReadableDateWithDefault timezone t =
         humanReadableDateFormatter timezone <| Time.millisToPosix <| secondsToMillis t
 
 
-{-| humanReadableDateTimeWithDefault : takes timezone and posix timestamp and returns human readable date time string with a default value for 0
+{-| humanReadableDateTimeWithDefault : takes timezone and posix timestamp and returns human readable date time string with a default value for 0.
 -}
 humanReadableDateTimeWithDefault : Zone -> Int -> String
 humanReadableDateTimeWithDefault timezone t =
@@ -161,7 +161,7 @@ humanReadableDateTimeWithDefault timezone t =
         humanReadableDateTimeFormatter timezone <| Time.millisToPosix <| secondsToMillis t
 
 
-{-| humanReadableDateFormatter : formats a zone and date into human readable chunks
+{-| humanReadableDateFormatter : formats a zone and date into human readable chunks.
 -}
 humanReadableDateFormatter : Zone -> Posix -> String
 humanReadableDateFormatter =
@@ -174,7 +174,7 @@ humanReadableDateFormatter =
         ]
 
 
-{-| humanReadableDateTimeFormatter : formats a zone and date/time into human readable chunks
+{-| humanReadableDateTimeFormatter : formats a zone and date/time into human readable chunks.
 -}
 humanReadableDateTimeFormatter : Zone -> Posix -> String
 humanReadableDateTimeFormatter =
@@ -193,14 +193,14 @@ humanReadableDateTimeFormatter =
         ]
 
 
-{-| relativeTimeNoSeconds : helper for using DateFormat.Relative.relativeTime with no seconds granularity
+{-| relativeTimeNoSeconds : helper for using DateFormat.Relative.relativeTime with no seconds granularity.
 -}
 relativeTimeNoSeconds : Posix -> Posix -> String
 relativeTimeNoSeconds now then_ =
     relativeTimeWithOptions { defaultRelativeOptions | someSecondsAgo = noSomeSecondsAgo } now then_
 
 
-{-| toUtcString : helper for using Time to convert Posix to a UTC string in the format HH:MM
+{-| toUtcString : helper for using Time to convert Posix to a UTC string in the format HH:MM.
 -}
 toUtcString : Time.Posix -> String
 toUtcString time =
@@ -209,14 +209,14 @@ toUtcString time =
         ++ toTwoDigits (toMinute utc time)
 
 
-{-| noSomeSecondsAgo : helper for configurating DateFormat.Relative.relativeTime
+{-| noSomeSecondsAgo : helper for configurating DateFormat.Relative.relativeTime.
 -}
 noSomeSecondsAgo : Int -> String
 noSomeSecondsAgo _ =
     "just now"
 
 
-{-| formatRunTime : calculates build runtime using current application time and build times
+{-| formatRunTime : calculates build runtime using current application time and build times.
 -}
 formatRunTime : Posix -> Int -> Int -> String
 formatRunTime now started finished =
@@ -233,7 +233,7 @@ formatRunTime now started finished =
     String.join ":" [ minutes, seconds ]
 
 
-{-| buildRunTime : calculates build runtime using current application time and build times, returned in seconds
+{-| buildRunTime : calculates build runtime using current application time and build times, returned in seconds.
 -}
 buildRunTime : Posix -> Int -> Int -> Int
 buildRunTime now started finished =
@@ -254,21 +254,21 @@ buildRunTime now started finished =
     end - start
 
 
-{-| runTimeMinutes : takes runtime in seconds, extracts minutes, and pads with necessary 0's
+{-| runTimeMinutes : takes runtime in seconds, extracts minutes, and pads with necessary 0's.
 -}
 runTimeMinutes : Int -> String
 runTimeMinutes seconds =
     toTwoDigits <| seconds // 60
 
 
-{-| runTimeSeconds : takes runtime in seconds, extracts seconds, and pads with necessary 0's
+{-| runTimeSeconds : takes runtime in seconds, extracts seconds, and pads with necessary 0's.
 -}
 runTimeSeconds : Int -> String
 runTimeSeconds seconds =
     toTwoDigits <| Basics.remainderBy 60 seconds
 
 
-{-| toTwoDigits : takes an integer of time and pads with necessary 0's
+{-| toTwoDigits : takes an integer of time and pads with necessary 0's.
 
     0  seconds -> "00"
     9  seconds -> "09"
@@ -280,28 +280,28 @@ toTwoDigits int =
     String.padLeft 2 '0' <| String.fromInt int
 
 
-{-| formatTestTag : formats a test attribute tag by lower casing and replacing spaces with '-'
+{-| formatTestTag : formats a test attribute tag by lower casing and replacing spaces with '-'.
 -}
 formatTestTag : String -> String
 formatTestTag tag =
     String.replace " " "-" <| String.toLower tag
 
 
-{-| filterEmptyList : filters out empties from list of string
+{-| filterEmptyList : filters out empties from list of string.
 -}
 filterEmptyList : List String -> List String
 filterEmptyList =
     List.filter (\x -> not <| String.isEmpty x)
 
 
-{-| filterEmptyLists : filters out empties from list of (key, list)
+{-| filterEmptyLists : filters out empties from list of (key, list).
 -}
 filterEmptyLists : List ( b, List a ) -> List ( b, List a )
 filterEmptyLists =
     List.filter (\( _, list ) -> List.isEmpty list == False)
 
 
-{-| anyBlank : takes list of strings, returns true if any are blank
+{-| anyBlank : takes list of strings, returns true if any are blank.
 -}
 anyBlank : List String -> Bool
 anyBlank strings =
@@ -313,50 +313,49 @@ anyBlank strings =
             True
 
 
-{-| noBlanks : takes list of strings, returns true if any are blank
+{-| noBlanks : takes list of strings, returns true if any are blank.
 -}
 noBlanks : List String -> Bool
 noBlanks strings =
     not <| anyBlank strings
 
 
-{-| overwriteById : takes single item and list and updates the specific item by ID
-
-    returns Nothing if no update was needed
-
+{-| overwriteById : takes single item and list and updates the specific item by ID, returns Nothing if no update was needed.
 -}
 overwriteById : { a | id : comparable } -> List { a | id : comparable } -> Maybe { a | id : comparable }
 overwriteById item list =
     List.head <| List.filter (\a -> a.id == item.id) <| List.Extra.setIf (\a -> a.id == item.id) item list
 
 
+{-| existsById : takes single item and list and updates the specific item by ID, returns a True if record exists, otherwise False.
+-}
 existsById : { a | id : comparable } -> List { a | id : comparable } -> Bool
 existsById item list =
     List.length (List.filter (\a -> a.id == item.id) list) > 0
 
 
-{-| mergeListsById : takes two lists and merges them by unique id
+{-| mergeListsById : takes two lists and merges them by unique id.
 -}
 mergeListsById : List { a | id : comparable } -> List { a | id : comparable } -> List { a | id : comparable }
 mergeListsById listA listB =
     List.filter (\a -> not <| existsById a listB) listA ++ listB
 
 
-{-| oneSecondMillis : single second in milliseconds for clock tick subscriptions
+{-| oneSecondMillis : single second in milliseconds for clock tick subscriptions.
 -}
 oneSecondMillis : Float
 oneSecondMillis =
     1000
 
 
-{-| fiveSecondsMillis : five seconds in milliseconds for clock tick subscriptions
+{-| fiveSecondsMillis : five seconds in milliseconds for clock tick subscriptions.
 -}
 fiveSecondsMillis : Float
 fiveSecondsMillis =
     oneSecondMillis * 5
 
 
-{-| isLoading : takes WebData and returns true if it is in a Loading state
+{-| isLoading : takes WebData and returns true if it is in a Loading state.
 -}
 isLoading : WebData a -> Bool
 isLoading status =
@@ -368,7 +367,7 @@ isLoading status =
             False
 
 
-{-| isSuccess : takes WebData and returns true if it is in a Success state
+{-| isSuccess : takes WebData and returns true if it is in a Success state.
 -}
 isSuccess : WebData a -> Bool
 isSuccess status =
@@ -380,7 +379,7 @@ isSuccess status =
             False
 
 
-{-| dispatch : performs an always-succeed task to push a Cmd Msg to update in loops
+{-| dispatch : performs an always-succeed task to push a Cmd Msg to update in loops.
 -}
 dispatch : msg -> Cmd msg
 dispatch msg =
@@ -388,7 +387,7 @@ dispatch msg =
         |> perform identity
 
 
-{-| open : returns html attribute for open/closed details summaries
+{-| open : returns html attribute for open/closed details summaries.
 -}
 open : Bool -> List (Html.Attribute msg)
 open isOpen =
@@ -399,14 +398,14 @@ open isOpen =
         []
 
 
-{-| ariaHidden: returns the html attribute for setting aria-hidden=true
+{-| ariaHidden : returns the html attribute for setting aria-hidden=true.
 -}
 ariaHidden : Html.Attribute msg
 ariaHidden =
     attribute "aria-hidden" "true"
 
 
-{-| attrIf : takes a Bool and returns either the Html.Attribute or the Html equivalent of nothing
+{-| attrIf : takes a Bool and returns either the Html.Attribute or the Html equivalent of nothing.
 -}
 attrIf : Bool -> Html.Attribute msg -> Html.Attribute msg
 attrIf cond attr =
@@ -417,14 +416,14 @@ attrIf cond attr =
         class ""
 
 
-{-| attrNone : returns the Html.Attribute equivalent of nothing
+{-| attrNone : returns the Html.Attribute equivalent of nothing.
 -}
 attrNone : Html.Attribute msg
 attrNone =
     classList []
 
 
-{-| boolToString : takes bool and converts to true/false string
+{-| boolToString : takes bool and converts to true/false string.
 -}
 boolToString : Bool -> String
 boolToString bool =
@@ -435,7 +434,7 @@ boolToString bool =
         "false"
 
 
-{-| boolToYesNo : takes bool and converts to yes/no string
+{-| boolToYesNo : takes bool and converts to yes/no string.
 -}
 boolToYesNo : Bool -> String
 boolToYesNo bool =
@@ -446,14 +445,14 @@ boolToYesNo bool =
         "no"
 
 
-{-| yesNoToBool : takes yes/no string and converts to bool
+{-| yesNoToBool : takes yes/no string and converts to bool.
 -}
 yesNoToBool : String -> Bool
 yesNoToBool yesNo =
     yesNo == "yes"
 
 
-{-| stringToMaybe : takes string and returns nothing if trimmed string is empty
+{-| stringToMaybe : takes string and returns nothing if trimmed string is empty.
 -}
 stringToMaybe : String -> Maybe String
 stringToMaybe str =
@@ -468,14 +467,14 @@ stringToMaybe str =
         Just trimmed
 
 
-{-| onClickPreventDefault : returns custom onClick handler for calling javascript function preventDefault()
+{-| onClickPreventDefault : returns custom onClick handler for calling javascript function preventDefault().
 -}
 onClickPreventDefault : msg -> Html.Attribute msg
 onClickPreventDefault message =
     custom "click" (Json.Decode.succeed { message = message, stopPropagation = False, preventDefault = True })
 
 
-{-| successful : extracts successful items from list of WebData items and returns List item
+{-| successful : extracts successful items from list of WebData items and returns List item.
 -}
 successful : List (WebData a) -> List a
 successful =
@@ -490,7 +489,7 @@ successful =
         )
 
 
-{-| extractFocusIdFromRange : takes focusId with possible range and extracts the id to focus on
+{-| extractFocusIdFromRange : takes focusId with possible range and extracts the id to focus on.
 -}
 extractFocusIdFromRange : String -> String
 extractFocusIdFromRange focusId =
@@ -517,7 +516,7 @@ extractFocusIdFromRange focusId =
         focusId
 
 
-{-| base64Decode : takes string and decodes it from base64
+{-| base64Decode : takes string and decodes it from base64.
 -}
 base64Decode : String -> String
 base64Decode inStr =
@@ -531,7 +530,7 @@ base64Decode inStr =
         |> Maybe.withDefault ""
 
 
-{-| pageToString : small helper to turn page number to a string to display in crumbs
+{-| pageToString : small helper to turn page number to a string to display in crumbs.
 -}
 pageToString : Maybe String -> String
 pageToString maybePage =
@@ -548,7 +547,7 @@ pageToString maybePage =
             )
 
 
-{-| buildRefURL : drops '.git' off the clone url and concatenates tree + ref
+{-| buildRefURL : drops '.git' off the clone url and concatenates tree + ref.
 -}
 buildRefURL : String -> String -> String
 buildRefURL clone ref =
@@ -556,7 +555,7 @@ buildRefURL clone ref =
 
 
 {-| orgRepoFromBuildLink : takes build and uses the link field to parse out org and repo
-if the build link has a host, then URL is used to parse, otherwise it splits on '/'
+if the build link has a host, then URL is used to parse, otherwise it splits on '/'.
 -}
 orgRepoFromBuildLink : String -> ( String, String )
 orgRepoFromBuildLink link =
@@ -576,21 +575,21 @@ orgRepoFromBuildLink link =
             )
 
 
-{-| buildPRCommitURL : creates a direct link to a commit in a PR
+{-| buildPRCommitURL : creates a direct link to a commit in a PR.
 -}
 buildPRCommitURL : String -> String -> String
 buildPRCommitURL source commit =
     source ++ "/commits/" ++ commit
 
 
-{-| trimCommitHash : takes the first 7 characters of the full commit hash
+{-| trimCommitHash : takes the first 7 characters of the full commit hash.
 -}
 trimCommitHash : String -> String
 trimCommitHash commit =
     String.left 7 commit
 
 
-{-| getNameFromRef : parses the name from git for easy consumption
+{-| getNameFromRef : parses the name from git for easy consumption.
 -}
 getNameFromRef : String -> String
 getNameFromRef s =
@@ -618,7 +617,7 @@ formatFilesize =
     Filesize.format
 
 
-{-| stringToAllowlist : takes a comma-separated string list of org/repo pairs and parses it into a list of tuples
+{-| stringToAllowlist : takes a comma-separated string list of org/repo pairs and parses it into a list of tuples.
 -}
 stringToAllowlist : String -> List ( String, String )
 stringToAllowlist src =
@@ -651,14 +650,14 @@ stringToAllowlist src =
             )
 
 
-{-| checkScheduleAllowlist : takes org, repo and allowlist and checks if the repo exists in the list, accounting for wildcards (\*)
+{-| checkScheduleAllowlist : takes org, repo and allowlist and checks if the repo exists in the list, accounting for wildcards (\*).
 -}
 checkScheduleAllowlist : String -> String -> List ( String, String ) -> Bool
 checkScheduleAllowlist org repo allowlist =
     List.any (checkMatch ( org, repo )) allowlist
 
 
-{-| checkMatch : takes two pairs of org and repo and checks if the inPair matches the allowlist srcPair
+{-| checkMatch : takes two pairs of org and repo and checks if the inPair matches the allowlist srcPair.
 -}
 checkMatch : ( String, String ) -> ( String, String ) -> Bool
 checkMatch ( inOrg, inRepo ) ( srcOrg, srcRepo ) =

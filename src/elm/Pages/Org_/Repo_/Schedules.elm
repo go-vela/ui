@@ -14,8 +14,8 @@ import Components.Table
 import Dict
 import Effect exposing (Effect)
 import FeatherIcons
-import Html exposing (Html, a, div, span, text, tr)
-import Html.Attributes exposing (class)
+import Html exposing (Html, a, div, span, td, text, tr)
+import Html.Attributes exposing (attribute, class)
 import Http
 import Http.Detailed
 import Layouts
@@ -34,6 +34,8 @@ import Vela
 import View exposing (View)
 
 
+{-| page : takes user, shared model, route, and returns a schedules page.
+-}
 page : Auth.User -> Shared.Model -> Route { org : String, repo : String } -> Page Model Msg
 page user shared route =
     Page.new
@@ -49,6 +51,8 @@ page user shared route =
 -- LAYOUT
 
 
+{-| toLayout : takes user, route, model, and passes the schedules page info to Layouts.
+-}
 toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Repo
@@ -78,6 +82,8 @@ toLayout user route model =
 -- INIT
 
 
+{-| Model : alias for a model object for a schedules page.
+-}
 type alias Model =
     { schedules : WebData (List Vela.Schedule)
     , pager : List WebLink
@@ -85,6 +91,8 @@ type alias Model =
     }
 
 
+{-| init : takes shared model, route, and initializes schedules page input arguments.
+-}
 init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { schedules = RemoteData.Loading
@@ -109,6 +117,8 @@ init shared route () =
 -- UPDATE
 
 
+{-| Msg : custom type with possible messages.
+-}
 type Msg
     = -- SCHEDULES
       GetRepoSchedulesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Schedule ))
@@ -117,6 +127,8 @@ type Msg
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
+{-| update : takes current models, route, message, and returns an updated model and effect.
+-}
 update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
@@ -179,6 +191,8 @@ update shared route msg model =
 -- SUBSCRIPTIONS
 
 
+{-| subscriptions : takes model and returns the subscriptions for auto refreshing the page.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Interval.tickEveryFiveSeconds Tick
@@ -188,6 +202,8 @@ subscriptions model =
 -- VIEW
 
 
+{-| view : takes models, route, and creates the html for the schedules page.
+-}
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
     { title = "Schedules" ++ Util.pageToString (Dict.get "page" route.query)
@@ -203,7 +219,7 @@ view shared route model =
     }
 
 
-{-| viewRepoSchedules : takes schedules model and renders table for viewing repo schedules
+{-| viewRepoSchedules : takes schedules model and renders table for viewing repo schedules.
 -}
 viewRepoSchedules : Shared.Model -> Model -> String -> String -> Html Msg
 viewRepoSchedules shared model org repo =
@@ -285,14 +301,16 @@ viewRepoSchedules shared model org repo =
     div [] [ Components.Table.view cfg ]
 
 
-{-| schedulesToRows : takes list of schedules and produces list of Table rows
+{-| schedulesToRows : takes list of schedules and produces list of Table rows.
 -}
 schedulesToRows : Time.Zone -> String -> String -> List Vela.Schedule -> Components.Table.Rows Vela.Schedule msg
 schedulesToRows zone org repo schedules =
-    List.map (\s -> Components.Table.Row (addKey s) (viewSchedule zone org repo)) schedules
+    schedules
+        |> List.concatMap (\s -> [ Just <| Components.Table.Row s (viewSchedule zone org repo), scheduleErrorRow s ])
+        |> List.filterMap identity
 
 
-{-| tableHeaders : returns table headers for schedules table
+{-| tableHeaders : returns table headers for schedules table.
 -}
 tableHeaders : Components.Table.Columns
 tableHeaders =
@@ -306,7 +324,7 @@ tableHeaders =
     ]
 
 
-{-| viewSchedule : takes schedule and renders a table row
+{-| viewSchedule : takes schedule and renders a table row.
 -}
 viewSchedule : Time.Zone -> String -> String -> Vela.Schedule -> Html msg
 viewSchedule zone org repo schedule =
@@ -328,7 +346,7 @@ viewSchedule zone org repo schedule =
                 ]
             }
         , Components.Table.viewItemCell
-            { dataLabel = "cron expression"
+            { dataLabel = "cron-expression"
             , parentClassList = []
             , itemClassList = []
             , children =
@@ -352,7 +370,7 @@ viewSchedule zone org repo schedule =
                 ]
             }
         , Components.Table.viewItemCell
-            { dataLabel = "scheduled at"
+            { dataLabel = "scheduled-at"
             , parentClassList = []
             , itemClassList = []
             , children =
@@ -360,14 +378,14 @@ viewSchedule zone org repo schedule =
                 ]
             }
         , Components.Table.viewItemCell
-            { dataLabel = "updated by"
+            { dataLabel = "updated-by"
             , parentClassList = []
             , itemClassList = []
             , children =
                 [ text schedule.updated_by ]
             }
         , Components.Table.viewItemCell
-            { dataLabel = "updated at"
+            { dataLabel = "updated-at"
             , parentClassList = []
             , itemClassList = []
             , children =
@@ -376,8 +394,29 @@ viewSchedule zone org repo schedule =
         ]
 
 
-{-| addKey : helper to create Vela.Schedule key
+{-| scheduleErrorRow : converts schedule error to table row.
 -}
-addKey : Vela.Schedule -> Vela.Schedule
-addKey schedule =
-    { schedule | org = schedule.org ++ "/" ++ schedule.repo ++ "/" ++ schedule.name }
+scheduleErrorRow : Vela.Schedule -> Maybe (Components.Table.Row Vela.Schedule msg)
+scheduleErrorRow schedule =
+    if not <| String.isEmpty schedule.error then
+        Just <| Components.Table.Row schedule viewScheduleError
+
+    else
+        Nothing
+
+
+{-| viewScheduleError : renders schedule error.
+-}
+viewScheduleError : Vela.Schedule -> Html msg
+viewScheduleError schedule =
+    let
+        msgRow =
+            tr [ class "error-data", Util.testAttribute "schedules-error" ]
+                [ td [ attribute "colspan" "6" ]
+                    [ span
+                        [ class "error-content" ]
+                        [ text schedule.error ]
+                    ]
+                ]
+    in
+    msgRow

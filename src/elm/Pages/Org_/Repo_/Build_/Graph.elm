@@ -37,6 +37,8 @@ import View exposing (View)
 import Visualization.DOT as DOT
 
 
+{-| page : takes user, shared model, route, and returns a build's graph (a.k.a. visualize) page.
+-}
 page : Auth.User -> Shared.Model -> Route { org : String, repo : String, build : String } -> Page Model Msg
 page user shared route =
     Page.new
@@ -52,6 +54,8 @@ page user shared route =
 -- LAYOUT
 
 
+{-| toLayout : takes user, route, model, and passes a build graph (a.k.a. visualize) page info to Layouts.
+-}
 toLayout : Auth.User -> Route { org : String, repo : String, build : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Build
@@ -112,6 +116,8 @@ toLayout user route model =
 -- INIT
 
 
+{-| Model : alias for a model object for a build's graph (a.k.a. visualize) page.
+-}
 type alias Model =
     { build : WebData Vela.Build
     , graph : WebData Vela.BuildGraph
@@ -123,6 +129,8 @@ type alias Model =
     }
 
 
+{-| init : takes shared model, route, and initializes build graph (a.k.a. visualize) page input arguments.
+-}
 init : Shared.Model -> Route { org : String, repo : String, build : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { build = RemoteData.Loading
@@ -151,6 +159,8 @@ init shared route () =
 -- UPDATE
 
 
+{-| Msg : custom type with possible messages.
+-}
 type Msg
     = NoOp
       -- BROWSER
@@ -168,6 +178,8 @@ type Msg
     | Tick { interval : Interval.Interval, time : Time.Posix }
 
 
+{-| update : takes current models, route info, message, and returns an updated model and effect.
+-}
 update : Shared.Model -> Route { org : String, repo : String, build : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
@@ -324,6 +336,8 @@ update shared route msg model =
 -- SUBSCRIPTIONS
 
 
+{-| subscriptions : takes model and returns the subscriptions for auto refreshing page or refreshing due to user interaction.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
@@ -341,6 +355,8 @@ subscriptions model =
 -- VIEW
 
 
+{-| view : renders the elm build graph root. the graph root is selected by d3 and filled with graphviz content.
+-}
 view : Shared.Model -> Route { org : String, repo : String, build : String } -> Model -> View Msg
 view shared route model =
     { title = "Graph"
@@ -554,7 +570,7 @@ view shared route model =
     }
 
 
-{-| renderBuildGraph : takes partial build model and render options, and returns a cmd for dispatching a graphviz+d3 render command
+{-| renderBuildGraph : takes partial build model and render options, and returns a cmd for dispatching a graphviz+d3 render command.
 -}
 renderBuildGraph : Shared.Model -> Model -> { freshDraw : Bool } -> Cmd msg
 renderBuildGraph shared model props =
@@ -575,7 +591,7 @@ renderBuildGraph shared model props =
             Cmd.none
 
 
-{-| clearBuildGraph : returns a cmd for dispatching a graphviz+d3 render command to clear the graph
+{-| clearBuildGraph : returns a cmd for dispatching a graphviz+d3 render command to clear the graph.
 -}
 clearBuildGraph : Cmd msg
 clearBuildGraph =
@@ -591,7 +607,7 @@ clearBuildGraph =
             }
 
 
-{-| renderDOT : takes model and build graph, and returns a string representation of a DOT graph using the extended Graph DOT package
+{-| renderDOT : takes model and build graph, and returns a string representation of a DOT graph using the extended Graph DOT package.
 <https://graphviz.org/doc/info/lang.html>
 <https://package.elm-lang.org/packages/elm-community/graph/latest/Graph.DOT>
 -}
@@ -839,7 +855,7 @@ nodeLabel shared model graph node showSteps =
     table <| header :: rows
 
 
-{-| nodeLabel : takes model and a node, and returns the DOT string representation
+{-| nodeLabel : takes model and a node, and returns the DOT string representation.
 -}
 nodeToString : Shared.Model -> Model -> Vela.BuildGraph -> Node Vela.BuildGraphNode -> String
 nodeToString shared model graph node =
@@ -848,7 +864,7 @@ nodeToString shared model graph node =
         ++ DOT.makeAttributes (nodeAttributes shared model graph node.label)
 
 
-{-| edgeToString : takes model and a node, and returns the DOT string representation
+{-| edgeToString : takes model and a node, and returns the DOT string representation.
 -}
 edgeToString : Edge Vela.BuildGraphEdge -> String
 edgeToString edge =
@@ -968,7 +984,7 @@ serviceSubgraphStyles =
     }
 
 
-{-| nodeLabelTableAttributes : returns the base styles applied to all node label-tables
+{-| nodeLabelTableAttributes : returns the base styles applied to all node label-tables.
 -}
 nodeLabelTableAttributes : List ( String, DOT.AttributeValue )
 nodeLabelTableAttributes =
@@ -979,7 +995,7 @@ nodeLabelTableAttributes =
     ]
 
 
-{-| nodeAttributes : returns the node-specific dynamic attributes
+{-| nodeAttributes : returns the node-specific dynamic attributes.
 -}
 nodeAttributes : Shared.Model -> Model -> Vela.BuildGraph -> Vela.BuildGraphNode -> Dict String DOT.Attribute
 nodeAttributes shared model buildGraph node =
@@ -1019,7 +1035,7 @@ nodeAttributes shared model buildGraph node =
         ]
 
 
-{-| edgeAttributes : returns the edge-specific dynamic attributes
+{-| edgeAttributes : returns the edge-specific dynamic attributes.
 -}
 edgeAttributes : Vela.BuildGraphEdge -> Dict String DOT.Attribute
 edgeAttributes edge =
@@ -1052,28 +1068,28 @@ edgeAttributes edge =
         ]
 
 
-{-| builtInClusterID : constant for organizing the layout of build graph nodes
+{-| builtInClusterID : constant for organizing the layout of build graph nodes.
 -}
 builtInClusterID : Int
 builtInClusterID =
     2
 
 
-{-| pipelineClusterID : constant for organizing the layout of build graph nodes
+{-| pipelineClusterID : constant for organizing the layout of build graph nodes.
 -}
 pipelineClusterID : Int
 pipelineClusterID =
     1
 
 
-{-| serviceClusterID : constant for organizing the layout of build graph nodes
+{-| serviceClusterID : constant for organizing the layout of build graph nodes.
 -}
 serviceClusterID : Int
 serviceClusterID =
     0
 
 
-{-| hrefHandle : constant for handling hrefs in the graph
+{-| hrefHandle : constant for handling hrefs in the graph.
 -}
 hrefHandle : String
 hrefHandle =

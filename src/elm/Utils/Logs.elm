@@ -10,14 +10,14 @@ import Utils.Helpers as Util
 import Vela
 
 
-{-| topTrackerFocusId : takes resource number and returns the line focus id for auto focusing on log follow
+{-| topTrackerFocusId : takes resource number and returns the line focus id for auto focusing on log follow.
 -}
 topTrackerFocusId : String -> String
 topTrackerFocusId number =
     number ++ "-line-tracker-top"
 
 
-{-| bottomTrackerFocusId : takes resource number and returns the line focus id for auto focusing on log follow
+{-| bottomTrackerFocusId : takes resource number and returns the line focus id for auto focusing on log follow.
 -}
 bottomTrackerFocusId : String -> String
 bottomTrackerFocusId number =

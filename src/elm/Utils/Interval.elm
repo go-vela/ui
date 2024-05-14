@@ -9,17 +9,23 @@ import Time
 import Utils.Helpers as Util
 
 
+{-| Interval : type to represent the interval at which a message is sent.
+-}
 type Interval
     = OneSecond
     | FiveSeconds
 
 
+{-| tickEveryOneSecond : message to be sent every second.
+-}
 tickEveryOneSecond : ({ time : Time.Posix, interval : Interval } -> msg) -> Sub msg
 tickEveryOneSecond msg =
     Time.every Util.oneSecondMillis <|
         \time -> msg { time = time, interval = OneSecond }
 
 
+{-| tickEveryFiveSeconds : message to be sent every five seconds.
+-}
 tickEveryFiveSeconds : ({ time : Time.Posix, interval : Interval } -> msg) -> Sub msg
 tickEveryFiveSeconds msg =
     Time.every Util.fiveSecondsMillis <|

@@ -16,7 +16,7 @@ import Html.Attributes exposing (classList, style)
 -- ANSI
 
 
-{-| defaultAnsiLogModel : struct to represent default model required by ANSI parser
+{-| defaultAnsiLogModel : struct to represent default model required by ANSI parser.
 -}
 defaultAnsiLogModel : Ansi.Log.Model
 defaultAnsiLogModel =
@@ -29,7 +29,7 @@ defaultAnsiLogModel =
     }
 
 
-{-| defaultAnsiLogStyle : struct to represent default style required by ANSI model
+{-| defaultAnsiLogStyle : struct to represent default style required by ANSI model.
 -}
 defaultAnsiLogStyle : Ansi.Log.Style
 defaultAnsiLogStyle =
@@ -46,7 +46,7 @@ defaultAnsiLogStyle =
     }
 
 
-{-| defaultPosition : default ANSI cursor position
+{-| defaultPosition : default ANSI cursor position.
 -}
 defaultPosition : Ansi.Log.CursorPosition
 defaultPosition =
@@ -55,7 +55,7 @@ defaultPosition =
     }
 
 
-{-| decodeAnsi : takes maybe log parses into ansi decoded log line array
+{-| decodeAnsi : takes maybe log parses into ansi decoded log line array.
 see: <https://package.elm-lang.org/packages/vito/elm-ansi>
 -}
 decodeAnsi : String -> Array.Array Ansi.Log.Line
@@ -63,7 +63,7 @@ decodeAnsi log =
     .lines <| Ansi.Log.update log defaultAnsiLogModel
 
 
-{-| styleAttributesAnsi : takes Ansi.Log.Style and renders it into ANSI style Html attributes
+{-| styleAttributesAnsi : takes Ansi.Log.Style and renders it into ANSI style Html attributes.
 see: <https://package.elm-lang.org/packages/vito/elm-ansi>
 this function has been pulled in unmodified because elm-ansi does not expose it
 -}
@@ -125,7 +125,7 @@ styleAttributesAnsi logStyle =
     ]
 
 
-{-| colorClassesAnsi : takes style parameters and renders it into ANSI styled color classes that can be used with the Html style attribute
+{-| colorClassesAnsi : takes style parameters and renders it into ANSI styled color classes that can be used with the Html style attribute.
 see: <https://package.elm-lang.org/packages/vito/elm-ansi>
 this function has been pulled unmodified in because elm-ansi does not expose it
 -}

@@ -8,7 +8,7 @@ module Api.Header exposing (get)
 import Dict exposing (Dict)
 
 
-{-| get : looks for the specified header key and returns the value
+{-| get : looks for the specified header key and returns the value.
 
     we lower case they keys because different browsers may return them in diff cases
 

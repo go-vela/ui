@@ -17,10 +17,12 @@ import Json.Encode
 
 
 
+-- To learn more about Elm ports, see the official guide:
+-- <https://guide.elm-lang.org/interop/ports>
 -- AUTH REDIRECT
 
 
-{-| outbound
+{-| setRedirect : outbound.
 -}
 port setRedirect : Json.Encode.Value -> Cmd msg
 
@@ -29,12 +31,12 @@ port setRedirect : Json.Encode.Value -> Cmd msg
 -- THEME
 
 
-{-| inbound
+{-| onThemeChange : inbound.
 -}
 port onThemeChange : (Json.Decode.Value -> msg) -> Sub msg
 
 
-{-| outbound
+{-| setTheme : outbound.
 -}
 port setTheme : Json.Encode.Value -> Cmd msg
 
@@ -43,7 +45,7 @@ port setTheme : Json.Encode.Value -> Cmd msg
 -- DYNAMIC FAVICON
 
 
-{-| outbound
+{-| setFavicon : outbound.
 -}
 port setFavicon : Json.Encode.Value -> Cmd msg
 
@@ -52,11 +54,11 @@ port setFavicon : Json.Encode.Value -> Cmd msg
 -- VISUALIZATION
 
 
-{-| outbound
+{-| renderBuildGraph : outbound.
 -}
 port renderBuildGraph : Json.Encode.Value -> Cmd msg
 
 
-{-| inbound
+{-| onGraphInteraction : inbound.
 -}
 port onGraphInteraction : (Json.Decode.Value -> msg) -> Sub msg

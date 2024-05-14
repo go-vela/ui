@@ -11,14 +11,14 @@ import Url.Builder as UB exposing (QueryParameter)
 import Vela
 
 
-{-| apiBase : is the versioned base of all API paths
+{-| apiBase : the versioned base of all API paths.
 -}
 apiBase : String
 apiBase =
     "api/v1"
 
 
-{-| Endpoint : represents any one unique API endpoint
+{-| Endpoint : represents any one unique API endpoint.
 -}
 type Endpoint
     = Authenticate Auth.Session.AuthParams
@@ -56,7 +56,7 @@ type Endpoint
     | PipelineTemplates Vela.Org Vela.Repo Vela.Ref
 
 
-{-| toUrl : turns and Endpoint into a URL string
+{-| toUrl : turns and Endpoint into a URL string.
 -}
 toUrl : String -> Endpoint -> String
 toUrl api endpoint =
@@ -166,7 +166,7 @@ toUrl api endpoint =
             url api [ "dashboards", dashboardId ] []
 
 
-{-| url : creates a URL string with the given path segments and query parameters
+{-| url : creates a URL string with the given path segments and query parameters.
 -}
 url : String -> List String -> List QueryParameter -> String
 url api segments params =

@@ -18,6 +18,8 @@ import Vela
 -- VIEW
 
 
+{-| viewInput : renders the HTML for an input field.
+-}
 viewInput :
     { id_ : String
     , title : Maybe String
@@ -61,6 +63,8 @@ viewInput { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, m
         ]
 
 
+{-| viewTextarea : renders the HTML for a text area field.
+-}
 viewTextarea :
     { id_ : String
     , title : Maybe String
@@ -104,6 +108,8 @@ viewTextarea { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_
         ]
 
 
+{-| viewCheckbox : renders the HTML for a checkbox.
+-}
 viewCheckbox :
     { id_ : String
     , title : String
@@ -137,6 +143,8 @@ viewCheckbox { id_, title, subtitle, field, state, msg, disabled_ } =
         ]
 
 
+{-| viewRadio : renders the HTML for a radio button.
+-}
 viewRadio :
     { id_ : String
     , title : String
@@ -167,6 +175,8 @@ viewRadio { id_, title, subtitle, value, field, msg, disabled_ } =
         ]
 
 
+{-| viewButton : renders the HTML for a button.
+-}
 viewButton : { id_ : String, msg : msg, text_ : String, classList_ : List ( String, Bool ), disabled_ : Bool } -> Html msg
 viewButton { id_, msg, text_, classList_, disabled_ } =
     let
@@ -183,6 +193,8 @@ viewButton { id_, msg, text_, classList_, disabled_ } =
         [ text text_ ]
 
 
+{-| viewSubtitle : renders the HTML for a subtitle.
+-}
 viewSubtitle : Maybe (Html msg) -> Html msg
 viewSubtitle subtitle =
     Maybe.Extra.unwrap (text "")
@@ -190,6 +202,8 @@ viewSubtitle subtitle =
         subtitle
 
 
+{-| viewAllowEvents : takes in allowed events and renders the HTML for events.
+-}
 viewAllowEvents :
     Shared.Model
     ->

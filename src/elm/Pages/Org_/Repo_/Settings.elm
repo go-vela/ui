@@ -29,6 +29,8 @@ import Vela exposing (defaultRepoPayload)
 import View exposing (View)
 
 
+{-| page : takes user, shared model, route, and returns a repo's settings page.
+-}
 page : Auth.User -> Shared.Model -> Route { org : String, repo : String } -> Page Model Msg
 page user shared route =
     Page.new
@@ -44,6 +46,8 @@ page user shared route =
 -- LAYOUT
 
 
+{-| toLayout : takes user, route, model, and passes a repo's settings page info to Layouts.
+-}
 toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default_Repo
@@ -101,6 +105,8 @@ toLayout user route model =
 -- INIT
 
 
+{-| Model : alias for a model object for a repo's settings page.
+-}
 type alias Model =
     { repo : WebData Vela.Repository
     , inLimit : Maybe Int
@@ -109,6 +115,8 @@ type alias Model =
     }
 
 
+{-| init : takes shared model, route, and initializes repo settings page input arguments.
+-}
 init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { repo = RemoteData.Loading
@@ -130,6 +138,8 @@ init shared route () =
 -- UPDATE
 
 
+{-| Msg : custom type with possible messages.
+-}
 type Msg
     = --REPO
       GetRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
@@ -159,6 +169,8 @@ type Msg
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
+{-| update : takes current models, route, message, and returns an updated model and effect.
+-}
 update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
@@ -686,6 +698,8 @@ update shared route msg model =
 -- SUBSCRIPTIONS
 
 
+{-| subscriptions : takes model and returns the subscriptions for auto refreshing the page.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Interval.tickEveryFiveSeconds Tick
@@ -695,6 +709,8 @@ subscriptions model =
 -- VIEW
 
 
+{-| view : takes models, route, and creates the html for a repo's settings page.
+-}
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
     { title = "Settings"
@@ -719,7 +735,7 @@ view shared route model =
     }
 
 
-{-| viewAllowEvents : takes shared model and repo and renders the settings category for updating repo allow events
+{-| viewAllowEvents : takes shared model and repo and renders the settings category for updating repo allow events.
 -}
 viewAllowEvents : Shared.Model -> Vela.Repository -> ({ allowEvents : Vela.AllowEvents, event : Vela.AllowEventsField } -> Bool -> msg) -> Html msg
 viewAllowEvents shared repo msg =
@@ -740,7 +756,7 @@ viewAllowEvents shared repo msg =
         )
 
 
-{-| viewAccess : takes shared model and repo and renders the settings category for updating repo access
+{-| viewAccess : takes shared model and repo and renders the settings category for updating repo access.
 -}
 viewAccess : Vela.Repository -> (String -> msg) -> Html msg
 viewAccess repo msg =
@@ -770,7 +786,7 @@ viewAccess repo msg =
         ]
 
 
-{-| viewForkPolicy : takes model and repo and renders the settings category for updating repo fork policy
+{-| viewForkPolicy : takes model and repo and renders the settings category for updating repo fork policy.
 -}
 viewForkPolicy : Vela.Repository -> (String -> msg) -> Html msg
 viewForkPolicy repo msg =
@@ -818,7 +834,7 @@ viewForkPolicy repo msg =
         ]
 
 
-{-| viewLimit : takes model and repo and renders the settings category for updating repo build limit
+{-| viewLimit : takes model and repo and renders the settings category for updating repo build limit.
 -}
 viewLimit : Shared.Model -> Vela.Repository -> Maybe Int -> (Int -> msg) -> (String -> msg) -> Html msg
 viewLimit shared repo inLimit clickMsg inputMsg =
@@ -908,7 +924,7 @@ validLimit maxLimit inLimit _ repoLimit =
             False
 
 
-{-| viewTimeout : takes model and repo and renders the settings category for updating repo build timeout
+{-| viewTimeout : takes model and repo and renders the settings category for updating repo build timeout.
 -}
 viewTimeout : Vela.Repository -> Maybe Int -> (Int -> msg) -> (String -> msg) -> Html msg
 viewTimeout repo inTimeout clickMsg inputMsg =
@@ -982,7 +998,7 @@ validTimeout inTimeout repoTimeout =
             False
 
 
-{-| viewBuildCounter : takes model and repo and renders the settings category for updating repo build counter
+{-| viewBuildCounter : takes model and repo and renders the settings category for updating repo build counter.
 -}
 viewBuildCounter : Vela.Repository -> Maybe Int -> (Int -> msg) -> (String -> msg) -> Html msg
 viewBuildCounter repo inCounter clickMsg inputMsg =
@@ -1069,7 +1085,7 @@ viewCounterWarning inCounter =
             text ""
 
 
-{-| viewBadge : takes repo and renders a section for getting your build status badge
+{-| viewBadge : takes repo and renders a section for getting your build status badge.
 -}
 viewBadge : Shared.Model -> Vela.Repository -> (String -> msg) -> Html msg
 viewBadge shared repo copyMsg =
@@ -1286,7 +1302,7 @@ disableable status =
             False
 
 
-{-| viewPipelineType : takes model and repo and renders the settings category for updating repo pipeline type
+{-| viewPipelineType : takes model and repo and renders the settings category for updating repo pipeline type.
 -}
 viewPipelineType : Vela.Repository -> (String -> msg) -> Html msg
 viewPipelineType repo msg =

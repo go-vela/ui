@@ -22,6 +22,8 @@ import Html.Attributes exposing (id)
 import Maybe.Extra
 
 
+{-| Focus : an object that represents a point of focus.
+-}
 type alias Focus =
     { group : Maybe Int
     , a : Maybe Int
@@ -29,6 +31,17 @@ type alias Focus =
     }
 
 
+{-| fromString : returns the Focus object from a (route) string,
+where group is a placeholder for step or service.
+
+example: octo/cat/3#1:5:7 (build 3, step 1, log lines 5 to 7)
+
+{ group = 1
+, a = 5
+, b = 7
+}
+
+-}
 fromString : Maybe String -> Focus
 fromString =
     Maybe.Extra.unwrap
@@ -64,6 +77,17 @@ fromString =
         )
 
 
+{-| fromStringNoGroup : returns the Focus object from a (route) string,
+where group doesn't exist.
+
+example: octo/cat/3/pipeline#2:5 (build 3, pipeline lines 2 to 5)
+
+{ group = nothing
+, a = 2
+, b = 5
+}
+
+-}
 fromStringNoGroup : Maybe String -> Focus
 fromStringNoGroup =
     Maybe.Extra.unwrap
@@ -93,6 +117,8 @@ fromStringNoGroup =
         )
 
 
+{-| toString : converts a Focus object into a string.
+-}
 toString : Focus -> String
 toString focus =
     [ focus.group, focus.a, focus.b ]
@@ -101,6 +127,8 @@ toString focus =
         |> String.join ":"
 
 
+{-| fromAttrId : returns the Focus object from an id.
+-}
 fromAttrId : String -> Focus
 fromAttrId id_ =
     case String.split "-" id_ of
@@ -129,6 +157,8 @@ fromAttrId id_ =
             }
 
 
+{-| toDomTarget : converts a Focus object into a string.
+-}
 toDomTarget : Focus -> String
 toDomTarget focus =
     (case ( focus.group, focus.a, focus.b ) of
@@ -155,6 +185,8 @@ toDomTarget focus =
         |> String.join "-"
 
 
+{-| toAttr : converts a Focus object into an Html.Attribute.
+-}
 toAttr : Focus -> Html.Attribute msg
 toAttr focus =
     [ focus.group, focus.a, focus.b ]
@@ -165,6 +197,8 @@ toAttr focus =
         |> id
 
 
+{-| canTarget : returns true if the focus can be targeted.
+-}
 canTarget : Focus -> Bool
 canTarget focus =
     case ( focus.group, focus.a, focus.b ) of
@@ -178,6 +212,8 @@ canTarget focus =
             False
 
 
+{-| updateLineRange : takes a focus, group, line number, boolean, and returns a new focus.
+-}
 updateLineRange : Bool -> Maybe Int -> Int -> Focus -> Focus
 updateLineRange shiftKeyDown group lineNumber focus =
     (case ( shiftKeyDown, ( focus.a, focus.b ) ) of
@@ -221,6 +257,8 @@ updateLineRange shiftKeyDown group lineNumber focus =
            )
 
 
+{-| lineRangeStyles : takes a group, line number, focus, and returns a string.
+-}
 lineRangeStyles : Maybe Int -> Int -> Focus -> String
 lineRangeStyles group lineNumber focus =
     case ( focus.group, focus.a, focus.b ) of
@@ -250,6 +288,8 @@ lineRangeStyles group lineNumber focus =
             ""
 
 
+{-| lineNumberChanged : compares focuses, and might return an int.
+-}
 lineNumberChanged : Maybe Focus -> Focus -> Maybe Int
 lineNumberChanged maybeBefore after =
     case maybeBefore of
