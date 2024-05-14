@@ -17,6 +17,7 @@ import Html
     exposing
         ( Html
         , a
+        , code
         , div
         , span
         , td
@@ -454,7 +455,7 @@ viewHookError hook =
                 _ ->
                     tr [ class "error-data", Util.testAttribute "hooks-error" ]
                         [ td [ attribute "colspan" "6" ]
-                            [ span
+                            [ code
                                 [ class "error-content" ]
                                 [ text hook.error ]
                             ]
