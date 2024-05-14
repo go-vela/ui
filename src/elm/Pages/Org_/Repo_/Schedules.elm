@@ -14,8 +14,22 @@ import Components.Table
 import Dict
 import Effect exposing (Effect)
 import FeatherIcons
-import Html exposing (Html, a, div, span, td, text, tr)
-import Html.Attributes exposing (attribute, class)
+import Html
+    exposing
+        ( Html
+        , a
+        , code
+        , div
+        , span
+        , td
+        , text
+        , tr
+        )
+import Html.Attributes
+    exposing
+        ( attribute
+        , class
+        )
 import Http
 import Http.Detailed
 import Layouts
@@ -413,7 +427,7 @@ viewScheduleError schedule =
         msgRow =
             tr [ class "error-data", Util.testAttribute "schedules-error" ]
                 [ td [ attribute "colspan" "6" ]
-                    [ span
+                    [ code
                         [ class "error-content" ]
                         [ text schedule.error ]
                     ]
