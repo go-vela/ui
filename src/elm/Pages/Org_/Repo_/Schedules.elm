@@ -333,6 +333,7 @@ tableHeaders =
     , ( Nothing, "enabled" )
     , ( Nothing, "branch" )
     , ( Nothing, "last scheduled at" )
+    , ( Nothing, "next run" )
     , ( Nothing, "updated by" )
     , ( Nothing, "updated at" )
     ]
@@ -389,6 +390,14 @@ viewSchedule zone org repo schedule =
             , itemClassList = []
             , children =
                 [ text <| Util.humanReadableDateTimeWithDefault zone schedule.scheduled_at
+                ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = "next-run"
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ text <| Util.humanReadableDateTimeWithDefault zone schedule.next_run
                 ]
             }
         , Components.Table.viewItemCell
