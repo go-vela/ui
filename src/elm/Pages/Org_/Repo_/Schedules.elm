@@ -435,7 +435,7 @@ viewScheduleError schedule =
     let
         msgRow =
             tr [ class "error-data", Util.testAttribute "schedules-error" ]
-                [ td [ attribute "colspan" "6" ]
+                [ td [ attribute "colspan" (String.fromInt <| List.length tableHeaders) ]
                     [ code
                         [ class "error-content" ]
                         [ text schedule.error ]
