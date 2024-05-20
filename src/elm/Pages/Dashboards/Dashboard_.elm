@@ -16,6 +16,7 @@ import Html
         ( div
         , h1
         , main_
+        , code
         , span
         , text
         )
@@ -37,6 +38,8 @@ import Utils.Helpers as Util
 import Utils.Interval as Interval
 import Vela
 import View exposing (View)
+import Html exposing (p)
+import Html exposing (br)
 
 
 {-| page : takes user, shared model, route, and returns the dashboard page.
@@ -217,9 +220,13 @@ view shared route model =
                         [ h1 [ class "dashboard-title" ] [ text dashboard.dashboard.name ]
                         , div [ class "cards" ]
                             (if List.isEmpty dashboard.repos then
-                                [ span
+                                [ p
                                     []
-                                    [ text "This dashboard doesn't have repositories added yet." ]
+                                    [ text "This dashboard doesn't have repositories added yet. Add some with the CLI:"
+                                    , br [] []
+                                    , code [ class "shell" ] 
+                                        [ text ("vela update dashboard --id " ++ route.params.dashboard ++ " --add-repos org/repo") ]
+                                    ]
                                 ]
 
                              else
