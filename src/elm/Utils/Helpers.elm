@@ -230,7 +230,7 @@ formatRunTime now started finished =
         seconds =
             runTimeSeconds runtime
     in
-    -- smallest units is seconds
+    -- treating 00:00 as an unreasonable runtime state
     if minutes == "00" && seconds == "00" then
         "--:--"
 
