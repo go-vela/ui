@@ -42,10 +42,12 @@ module Api.Operations exposing
     , getRepoSchedules
     , getRepoSecret
     , getRepoSecrets
+    , getSettings
     , getSharedSecret
     , getSharedSecrets
     , getToken
     , getUserSourceRepos
+    , getWorkers
     , logout
     , redeliverHook
     , repairRepo
@@ -55,6 +57,7 @@ module Api.Operations exposing
     , updateRepo
     , updateRepoSchedule
     , updateRepoSecret
+    , updateSettings
     , updateSharedSecret
     )
 
@@ -285,6 +288,56 @@ getRepoBuilds baseUrl session options =
             options.repo
         )
         Vela.decodeBuilds
+        |> withAuth session
+
+
+{-| getWorkers : retrieves workers.
+-}
+getWorkers :
+    String
+    -> Session
+    ->
+        { a
+            | pageNumber : Maybe Int
+            , perPage : Maybe Int
+        }
+    -> Request (List Vela.Worker)
+getWorkers baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.Workers
+            options.pageNumber
+            options.perPage
+        )
+        Vela.decodeWorkers
+        |> withAuth session
+
+
+{-| getSettings : retrieves the active settings record for the platform.
+-}
+getSettings :
+    String
+    -> Session
+    -> a
+    -> Request Vela.PlatformSettings
+getSettings baseUrl session _ =
+    get baseUrl
+        Api.Endpoint.Settings
+        Vela.decodeSettings
+        |> withAuth session
+
+
+{-| updateSettings : updates the active settings record for the platform.
+-}
+updateSettings :
+    String
+    -> Session
+    -> { a | body : Http.Body }
+    -> Request Vela.PlatformSettings
+updateSettings baseUrl session options =
+    put baseUrl
+        Api.Endpoint.Settings
+        options.body
+        Vela.decodeSettings
         |> withAuth session
 
 

@@ -139,7 +139,7 @@ viewImagesInput { onInput_, addImage, removeImage, images, imageValue, disabled_
                     ]
                 ]
             , div [ class "parameters-inputs" ]
-                [ Components.Form.viewInput
+                [ Components.Form.viewInputSection
                     { title = Nothing
                     , subtitle = Nothing
                     , id_ = "image-name"

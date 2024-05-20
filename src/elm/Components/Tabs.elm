@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.Tabs exposing (Tab, view, viewBuildTabs, viewOrgTabs, viewRepoTabs)
+module Components.Tabs exposing (Tab, view, viewAdminTabs, viewBuildTabs, viewOrgTabs, viewRepoTabs)
 
 import Dict exposing (Dict)
 import Html exposing (Html, a, div, span, text)
@@ -308,3 +308,34 @@ viewBuildTabs shared props =
             ]
     in
     view props.tabHistory props.currentPath tabs "jump-bar-build"
+
+
+
+-- ADMIN
+
+
+{-| viewAdminTabs : renders tabs available for viewing for the admin page.
+-}
+viewAdminTabs :
+    Shared.Model
+    ->
+        { currentPath : Route.Path.Path
+        , tabHistory : Dict String Url
+        }
+    -> Html msg
+viewAdminTabs shared props =
+    let
+        tabs =
+            [ { name = "Settings"
+              , toPath = Route.Path.Admin_Settings
+              , isAlerting = False
+              , show = True
+              }
+            , { name = "Workers"
+              , toPath = Route.Path.Admin_Workers
+              , isAlerting = False
+              , show = True
+              }
+            ]
+    in
+    view props.tabHistory props.currentPath tabs "jump-bar-admin"

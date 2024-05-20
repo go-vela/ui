@@ -27,10 +27,14 @@ page shared route =
 -- INIT
 
 
+{-| Model : alias for a model object for the page.
+-}
 type alias Model =
     {}
 
 
+{-| init : initializes page with no arguments.
+-}
 init : Route () -> () -> ( Model, Effect Msg )
 init route () =
     ( {}
@@ -42,6 +46,8 @@ init route () =
 -- UPDATE
 
 
+{-| Msg : custom type with possible messages.
+-}
 type Msg
     = NoOp
 

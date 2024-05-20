@@ -111,6 +111,14 @@
       flex: 1 0 100%;
     }
   }
+
+  &.-wide {
+    flex: 1;
+
+    input {
+      flex: 1;
+    }
+  }
 }
 
 // radio & checkbox
@@ -287,4 +295,25 @@
   &.-no-x-pad {
     padding: 0.5rem 0;
   }
+}
+
+.editable-list ul {
+  padding: 0;
+
+  list-style: none;
+  background: var(--color-bg-dark);
+
+  .save-button {
+    margin-left: 0.6rem;
+  }
+}
+
+.editable-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 3.6rem;
+  padding: 0.6rem 0.8rem;
+
+  border-bottom: 1px solid var(--color-bg);
 }

@@ -17,6 +17,7 @@ import Html
     exposing
         ( Html
         , a
+        , code
         , div
         , span
         , td
@@ -454,7 +455,7 @@ viewHookError hook =
                 _ ->
                     tr [ class "error-data", Util.testAttribute "hooks-error" ]
                         [ td [ attribute "colspan" "6" ]
-                            [ span
+                            [ code
                                 [ class "error-content" ]
                                 [ text hook.error ]
                             ]
@@ -469,10 +470,10 @@ hookStatusToRowClass : String -> Html.Attribute msg
 hookStatusToRowClass status =
     case status of
         "success" ->
-            class "-success"
+            class "status-success"
 
         "skipped" ->
-            class "-skipped"
+            class "status-skipped"
 
         _ ->
-            class "-error"
+            class "status-error"

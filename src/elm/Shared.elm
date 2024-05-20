@@ -448,12 +448,12 @@ update route msg model =
         Shared.Msg.GetCurrentUser ->
             ( model
             , Api.try
-                Shared.Msg.CurrentUserResponse
+                Shared.Msg.GetCurrentUserResponse
                 (Api.Operations.getCurrentUser model.velaAPIBaseURL model.session)
                 |> Effect.sendCmd
             )
 
-        Shared.Msg.CurrentUserResponse response ->
+        Shared.Msg.GetCurrentUserResponse response ->
             case response of
                 Ok ( _, user ) ->
                     ( { model | user = RemoteData.succeed user }

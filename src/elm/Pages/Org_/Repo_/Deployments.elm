@@ -380,7 +380,7 @@ tableHeaders =
 -}
 viewDeployment : Shared.Model -> Vela.Repository -> Vela.Deployment -> Html Msg
 viewDeployment shared repo deployment =
-    tr [ Util.testAttribute <| "deployments-row", class "-success" ]
+    tr [ Util.testAttribute <| "deployments-row", class "status-success" ]
         [ Components.Table.viewIconCell
             { dataLabel = "status"
             , parentClassList = []
