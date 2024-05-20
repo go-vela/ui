@@ -39,7 +39,9 @@ import Vela
 import View exposing (View)
 
 
-page : Auth.User -> Shared.Model -> Route { dashboardId : String } -> Page Model Msg
+{-| page : takes user, shared model, route, and returns the dashboard page.
+-}
+page : Auth.User -> Shared.Model -> Route { dashboard : String } -> Page Model Msg
 page user shared route =
     Page.new
         { init = init shared route
@@ -54,13 +56,38 @@ page user shared route =
 -- LAYOUT
 
 
-toLayout : Auth.User -> Route { dashboardId : String } -> Model -> Layouts.Layout Msg
+{-| toLayout : takes user, model, and passes the dashboard page info to Layouts.
+-}
+toLayout : Auth.User -> Route { dashboard : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
         { helpCommands =
-            [ { name = ""
-              , content = "resources on this page not yet supported via the CLI"
-              , docs = Nothing
+            [ { name = "View Dashboard"
+              , content =
+                    "vela view dashboard --id "
+                        ++ route.params.dashboard
+              , docs = Just "dashboard/view"
+              }
+            , { name = "Update Dashboard To Change Name"
+              , content =
+                    "vela update dashboard --id "
+                        ++ route.params.dashboard
+                        ++ " --name new-name"
+              , docs = Just "dashboard/update"
+              }
+            , { name = "Update Dashboard To Add A Repository"
+              , content =
+                    "vela update dashboard --id "
+                        ++ route.params.dashboard
+                        ++ " --add-repos org/repo"
+              , docs = Just "dashboard/update"
+              }
+            , { name = "Update Dashboard To Add An Admin"
+              , content =
+                    "vela update dashboard --id "
+                        ++ route.params.dashboard
+                        ++ " --add-admins username"
+              , docs = Just "dashboard/update"
               }
             ]
         }
@@ -70,19 +97,22 @@ toLayout user route model =
 -- INIT
 
 
+{-| Model : alias for a model object for the dashboard page.
+-}
 type alias Model =
     { dashboard : WebData Vela.Dashboard }
 
 
-init : Shared.Model -> Route { dashboardId : String } -> () -> ( Model, Effect Msg )
+{-| init : takes shared model and initializes dashboard page input arguments.
+-}
+init : Shared.Model -> Route { dashboard : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { dashboard = RemoteData.Loading }
     , Effect.getDashboard
         { baseUrl = shared.velaAPIBaseURL
         , session = shared.session
-        , onResponse =
-            GetDashboardResponse
-        , dashboardId = route.params.dashboardId
+        , onResponse = GetDashboardResponse
+        , dashboardId = route.params.dashboard
         }
     )
 
@@ -91,13 +121,17 @@ init shared route () =
 -- UPDATE
 
 
+{-| Msg : custom type with possible messages.
+-}
 type Msg
     = GetDashboardResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Dashboard ))
       -- REFRESH
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
-update : Shared.Model -> Route { dashboardId : String } -> Msg -> Model -> ( Model, Effect Msg )
+{-| update : takes current model, message, and returns an updated model and effect.
+-}
+update : Shared.Model -> Route { dashboard : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
         GetDashboardResponse response ->
@@ -121,7 +155,7 @@ update shared route msg model =
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = GetDashboardResponse
-                , dashboardId = route.params.dashboardId
+                , dashboardId = route.params.dashboard
                 }
             )
 
@@ -130,6 +164,8 @@ update shared route msg model =
 -- SUBSCRIPTIONS
 
 
+{-| subscriptions : takes model and returns the subscriptions for auto refreshing the page.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
@@ -141,16 +177,32 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Route { dashboardId : String } -> Model -> View Msg
+{-| view : takes models, route, and creates the html for the dashboard page.
+-}
+view : Shared.Model -> Route { dashboard : String } -> Model -> View Msg
 view shared route model =
     let
+        dashboardName =
+            case model.dashboard of
+                RemoteData.Success dashboard ->
+                    dashboard.dashboard.name
+
+                RemoteData.Loading ->
+                    ""
+
+                _ ->
+                    "Unknown"
+
+        pageTitle =
+            dashboardName ++ " Dashboard"
+
         crumbs =
             [ ( "Overview", Just Route.Path.Home_ )
             , ( "Dashboards", Nothing )
-            , ( route.params.dashboardId, Nothing )
+            , ( dashboardName, Nothing )
             ]
     in
-    { title = "Dashboards"
+    { title = pageTitle
     , body =
         [ Components.Nav.view
             shared
@@ -160,23 +212,29 @@ view shared route model =
             }
         , main_ [ class "content-wrap" ]
             [ div [ class "dashboard", Util.testAttribute "dashboard" ]
-                [ case model.dashboard of
+                (case model.dashboard of
                     RemoteData.Success dashboard ->
-                        div []
-                            [ h1 [ class "dashboard-title" ] [ text dashboard.dashboard.name ]
-                            , div [ class "cards" ]
-                                (List.map
+                        [ h1 [ class "dashboard-title" ] [ text dashboard.dashboard.name ]
+                        , div [ class "cards" ]
+                            (if List.isEmpty dashboard.repos then
+                                [ span
+                                    []
+                                    [ text "This dashboard doesn't have repositories added yet." ]
+                                ]
+
+                             else
+                                List.map
                                     (\repo ->
                                         Components.DashboardRepoCard.view shared
                                             { card = repo
                                             }
                                     )
                                     dashboard.repos
-                                )
-                            ]
+                            )
+                        ]
 
                     RemoteData.Failure error ->
-                        span []
+                        [ span []
                             [ text <|
                                 case error of
                                     Http.BadStatus statusCode ->
@@ -185,7 +243,7 @@ view shared route model =
                                                 "Unauthorized to retrieve dashboard"
 
                                             404 ->
-                                                "No dashboard found"
+                                                "Dashboard \"" ++ route.params.dashboard ++ "\" not found. Please check the URL."
 
                                             _ ->
                                                 "No dashboard found; there was an error with the server"
@@ -193,10 +251,11 @@ view shared route model =
                                     _ ->
                                         "No dashboard found; there was an error with the server"
                             ]
+                        ]
 
                     _ ->
-                        Components.Loading.viewSmallLoader
-                ]
+                        [ Components.Loading.viewSmallLoader ]
+                )
             ]
         ]
     }

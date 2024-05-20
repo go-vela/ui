@@ -1745,3 +1745,25 @@ details.build-toggle {
 .overflow-auto {
   overflow: auto;
 }
+
+code.shell {
+  position: relative;
+
+  padding: 0.75rem 1rem 0.75rem 2rem;
+
+  background-color: var(--color-bg-dark);
+
+  &::before {
+    position: absolute;
+    top: 50%;
+    left: 0.8rem;
+
+    display: block;
+
+    color: var(--color-green);
+
+    transform: translateY(-50%);
+
+    content: '$';
+  }
+}
