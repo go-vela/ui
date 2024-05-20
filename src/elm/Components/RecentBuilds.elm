@@ -156,7 +156,11 @@ buildInfo build =
 -}
 viewTooltipField : String -> String -> Html msg
 viewTooltipField key value =
-    li [ class "line" ]
-        [ span [] [ text key ]
-        , span [] [ text value ]
-        ]
+    if String.isEmpty value then
+        text ""
+
+    else
+        li [ class "line" ]
+            [ span [] [ text key ]
+            , span [] [ text value ]
+            ]
