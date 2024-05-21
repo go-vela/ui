@@ -256,7 +256,8 @@ body.theme-light {
 
 .theme-light .dashboard-recent-builds .recent-build:not(:first-child) .-canceled {
   background-color: var(--color-gray-lightest);
-  border-color: (--color-cyan-semi-dark);
+  border-color: var(--color-cyan-semi-dark);
+
   stroke: var(--color-cyan-semi-dark);
 }
 
