@@ -79,15 +79,11 @@ a {
 // Vela logo
 .vela-logo {
   &-star {
-    fill: var(--color-lavender);
+    fill: var(--color-violet);
   }
 
-  &-outer {
+  &-line {
     fill: var(--color-cyan);
-  }
-
-  &-inner {
-    fill: var(--color-text);
   }
 }
 

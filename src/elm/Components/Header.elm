@@ -64,7 +64,7 @@ view shared props =
                 , class "identity-logo-link"
                 , attribute "aria-label" "Home"
                 ]
-                [ velaLogo 24 ]
+                [ velaLogo 32 ]
             , case shared.session of
                 Authenticated auth ->
                     details (identityBaseClassList :: identityAttributeList)
