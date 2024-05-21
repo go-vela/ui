@@ -445,7 +445,7 @@ viewHookError hook =
             case hook.status of
                 "skipped" ->
                     tr [ class "skipped-data", Util.testAttribute "hooks-skipped" ]
-                        [ td [ attribute "colspan" "6" ]
+                        [ td [ attribute "colspan" (String.fromInt <| List.length tableHeaders) ]
                             [ span
                                 [ class "skipped-content" ]
                                 [ text hook.error ]
@@ -454,7 +454,7 @@ viewHookError hook =
 
                 _ ->
                     tr [ class "error-data", Util.testAttribute "hooks-error" ]
-                        [ td [ attribute "colspan" "6" ]
+                        [ td [ attribute "colspan" (String.fromInt <| List.length tableHeaders) ]
                             [ code
                                 [ class "error-content" ]
                                 [ text hook.error ]

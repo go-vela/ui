@@ -61,7 +61,8 @@
     "updated_by": "CookieCat",
     "scheduled_at": 0,
     "branch": "main",
-    "error": ""
+    "error": "",
+    "next_run": 1685037152
   },
   {
     "id": 2,
@@ -125,6 +126,7 @@
     "updated_by": "CookieCat",
     "scheduled_at": 0,
     "branch": "main",
-    "error": "unable to trigger build for schedule Hourly: unable to schedule build: unable to compile pipeline configuration for github/octocat: 1 error occurred: * no \"version:\" YAML property provided"
+    "error": "unable to trigger build for schedule Hourly: unable to schedule build: unable to compile pipeline configuration for github/octocat: 1 error occurred: * no \"version:\" YAML property provided",
+    "next_run": 1685037152
   }
 ]

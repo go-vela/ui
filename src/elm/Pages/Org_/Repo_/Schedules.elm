@@ -333,6 +333,7 @@ tableHeaders =
     , ( Nothing, "enabled" )
     , ( Nothing, "branch" )
     , ( Nothing, "last scheduled at" )
+    , ( Nothing, "next run" )
     , ( Nothing, "updated by" )
     , ( Nothing, "updated at" )
     ]
@@ -392,6 +393,14 @@ viewSchedule zone org repo schedule =
                 ]
             }
         , Components.Table.viewItemCell
+            { dataLabel = "next-run"
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ text <| Util.humanReadableDateTimeWithDefault zone schedule.next_run
+                ]
+            }
+        , Components.Table.viewItemCell
             { dataLabel = "updated-by"
             , parentClassList = []
             , itemClassList = []
@@ -426,7 +435,7 @@ viewScheduleError schedule =
     let
         msgRow =
             tr [ class "error-data", Util.testAttribute "schedules-error" ]
-                [ td [ attribute "colspan" "6" ]
+                [ td [ attribute "colspan" (String.fromInt <| List.length tableHeaders) ]
                     [ code
                         [ class "error-content" ]
                         [ text schedule.error ]
