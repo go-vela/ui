@@ -439,6 +439,13 @@ details.build-toggle {
   flex-direction: column;
 }
 
+.builds-caption {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.75em 0 1.2rem;
+  padding-left: 1rem;
+}
+
 .hidden-spacer {
   visibility: hidden;
 }
@@ -915,7 +922,8 @@ details.build-toggle {
   font-size: 0.9rem;
 }
 
-.steps {
+.steps,
+.services {
   position: relative;
 
   .details {
@@ -955,7 +963,8 @@ details.build-toggle {
   );
 }
 
-.step.flowline-left:last-child {
+.step.flowline-left:last-child,
+.service.flowline-left:last-child {
   background-repeat: no-repeat;
   background-size: 100% 2em;
 }
@@ -1003,6 +1012,7 @@ details.build-toggle {
   font-family: var(--font-code);
 }
 
+.no-steps,
 .no-services {
   padding: 1rem 1rem;
 
@@ -1281,6 +1291,12 @@ details.build-toggle {
   border: 1px solid var(--color-red);
 }
 
+.vert-icon-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
 .-icon {
   fill: none;
   stroke: var(--color-primary);
@@ -1476,7 +1492,7 @@ details.build-toggle {
 }
 
 // build filters
-.build-bar {
+.builds-header {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -1549,6 +1565,7 @@ details.build-toggle {
 .secret-form,
 .deployment-form,
 .schedule-form {
+  max-width: 45rem;
   margin-bottom: 0.5rem;
   padding-top: 1rem;
 }
@@ -1565,6 +1582,23 @@ details.build-toggle {
   padding-left: 1rem;
 }
 
+.form-control.-stack.parameters-container {
+  margin-bottom: 0;
+}
+
+.images-inputs,
+.parameters-inputs {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  margin-top: 0.2rem;
+}
+
+.image-input,
+.parameter-input {
+  margin-right: 1rem;
+}
+
 .images,
 .parameters {
   display: flex;
@@ -1572,17 +1606,8 @@ details.build-toggle {
   align-items: flex-start;
 }
 
-.add-image,
-.add-parameter {
-  margin-left: 1rem;
-}
-
-.parameter-input {
-  margin: 0 1rem 1rem 0;
-}
-
-.added-image,
-.added-parameter {
+.image,
+.parameter {
   position: relative;
 
   display: flex;
@@ -1593,8 +1618,8 @@ details.build-toggle {
   background: var(--color-bg-dark);
 }
 
-.added-image .name,
-.added-parameter .name {
+.image .name,
+.parameter .name {
   flex: 1;
 
   font-size: 0.9rem;
@@ -1602,18 +1627,29 @@ details.build-toggle {
   word-wrap: break-word;
 }
 
-.images .added-image .button,
-.parameters .added-parameter .button {
+.image .button,
+.parameter .button {
+  margin-bottom: 0.1rem;
   margin-left: 1rem;
 }
 
-.added-image.chevron,
-.added-parameter.chevron {
+.no-images,
+.no-parameters {
+  margin-left: 0.4rem;
+  padding: 0.3rem 1rem;
+
+  font-size: 0.9rem;
+
+  background: var(--color-bg-dark);
+}
+
+.image.chevron,
+.parameter.chevron {
   margin-left: 2rem;
 }
 
-.added-image.chevron:before,
-.added-parameter.chevron:before {
+.image.chevron:before,
+.parameter.chevron:before {
   position: absolute;
   left: -1.5rem;
 
@@ -1628,25 +1664,6 @@ details.build-toggle {
   padding: 1rem;
 }
 
-.manage-secret .subheader,
-.manage-deployment .subheader {
-  width: 80%;
-  margin-top: 1rem;
-
-  border-bottom: 2px solid var(--color-primary);
-}
-
-.manage-secret input,
-.manage-deployment input {
-  max-width: 400px;
-}
-
-.manage-secret textarea,
-.manage-deployment textarea,
-.manage-schedule textarea {
-  max-width: 70%;
-}
-
 .secret-form .help,
 .deployment-form .help,
 .schedule-form .help {
@@ -1659,15 +1676,12 @@ details.build-toggle {
   padding-left: 1rem;
 }
 
-.deployment-form h2.deployment-header {
-  margin-bottom: 1rem;
-}
-
 .add-deployment-buttons {
   justify-content: flex-end;
 }
 
-.button.-secret-delete-confirm {
+.button.-secret-delete-confirm,
+.button.-repo-disable-confirm {
   color: var(--color-red);
 
   background-color: var(--color-bg);
@@ -1683,10 +1697,14 @@ details.build-toggle {
   }
 }
 
+.shared-secrets-container {
+  margin-top: 1.2rem;
+}
+
 // Secrets Section end
 
 .field-help-link {
-  margin-left: 0.6rem;
+  margin-left: 0.5rem;
 }
 
 .field-description {

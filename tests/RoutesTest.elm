@@ -1,42 +1,48 @@
-module RoutesTest exposing (testHref, testMatch, testRouteToUrl)
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
+module RoutesTest exposing (testHref, testMatch, testPathFromString, testPathFromStringFullUrl, testPathFromStringNoScheme, testPathFromStringWithHash, testPathFromStringWithQuery, testPathFromStringWithQueryAndHash, testRouteToUrl)
 
 import Expect
-import Routes exposing (Route(..), routeToUrl)
+import Route.Path
 import Test exposing (..)
 import Url exposing (Url)
+import Utils.Routes
 
 
 
--- href
+-- Route.Path.toString
 
 
 testHref : Test
 testHref =
     test "returns the href of a route" <|
         \_ ->
-            routeToUrl Routes.Login
+            Route.Path.toString Route.Path.Account_Login
                 |> Expect.equal "/account/login"
 
 
 
--- match
+-- Route.Path.fromUrl
 
 
 testMatch : Test
 testMatch =
     describe "route gets matched as intended for given url"
-        [ testUrl "/account/login" Login
-        , testUrl "/asdf" (OrgRepositories "asdf" Nothing Nothing)
-        , testUrl "/" Overview
+        [ testUrl "/account/login" Route.Path.Account_Login
+        , testUrl "/asdf" (Route.Path.Org_ { org = "asdf" })
+        , testUrl "/" Route.Path.Home_
         ]
 
 
-testUrl : String -> Route -> Test
+testUrl : String -> Route.Path.Path -> Test
 testUrl p route =
     test ("Testing '" ++ p) <|
         \_ ->
             makeUrl p
-                |> Routes.match
+                |> Route.Path.fromUrl
                 |> Expect.equal route
 
 
@@ -52,12 +58,64 @@ makeUrl p =
 
 
 
--- routeToUrl
+-- Route.Path.toString
 
 
 testRouteToUrl : Test
 testRouteToUrl =
     test "Login -> /account/login" <|
         \_ ->
-            Routes.routeToUrl Login
+            Route.Path.toString Route.Path.Account_Login
                 |> Expect.equal "/account/login"
+
+
+
+-- Utils.Routes.pathFromString
+
+
+testPathFromString : Test
+testPathFromString =
+    test "/account/login -> { path }" <|
+        \_ ->
+            Utils.Routes.pathFromString "/account/login"
+                |> Expect.equal { path = "/account/login", query = Nothing, hash = Nothing }
+
+
+testPathFromStringFullUrl : Test
+testPathFromStringFullUrl =
+    test "http://example.com/account/login -> { path }" <|
+        \_ ->
+            Utils.Routes.pathFromString "http://example.com/account/login"
+                |> Expect.equal { path = "/account/login", query = Nothing, hash = Nothing }
+
+
+testPathFromStringNoScheme : Test
+testPathFromStringNoScheme =
+    test "example.com/account/login -> { path }" <|
+        \_ ->
+            Utils.Routes.pathFromString "example.com/account/login"
+                |> Expect.equal { path = "/account/login", query = Nothing, hash = Nothing }
+
+
+testPathFromStringWithQuery : Test
+testPathFromStringWithQuery =
+    test "/account/login?foo=bar -> { path }" <|
+        \_ ->
+            Utils.Routes.pathFromString "/account/login?foo=bar"
+                |> Expect.equal { path = "/account/login", query = Just "foo=bar", hash = Nothing }
+
+
+testPathFromStringWithHash : Test
+testPathFromStringWithHash =
+    test "/account/login#foo:bar:baz -> { path }" <|
+        \_ ->
+            Utils.Routes.pathFromString "/account/login#foo:bar:baz"
+                |> Expect.equal { path = "/account/login", query = Nothing, hash = Just "foo:bar:baz" }
+
+
+testPathFromStringWithQueryAndHash : Test
+testPathFromStringWithQueryAndHash =
+    test "/account/login?foo=bar#foo:bar:baz -> { path }" <|
+        \_ ->
+            Utils.Routes.pathFromString "/account/login?foo=bar#foo:bar:baz"
+                |> Expect.equal { path = "/account/login", query = Just "foo=bar", hash = Just "foo:bar:baz" }

@@ -70,7 +70,8 @@ body.theme-light {
     background-color: var(--color-cyan-semi-dark);
   }
 
-  .steps .-icon.-canceled {
+  .steps .-icon.-canceled,
+  .services .-icon.-canceled {
     stroke: var(--color-cyan-semi-dark);
   }
 

@@ -8,17 +8,14 @@
     "link": "https://github.com/go-vela/server",
     "clone": "https://github.com/go-vela/server.git",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
     "visibility": "public",
     "private": false,
     "trusted": true,
-    "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false
+    "active": true
   },
   {
     "id": 18,
@@ -29,17 +26,14 @@
     "link": "https://github.com/go-vela/feature-requests",
     "clone": "https://github.com/go-vela/feature-requests.git",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
     "visibility": "public",
     "private": false,
     "trusted": true,
-    "active": false,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false
+    "active": false
   },
   {
     "id": 17,
@@ -50,17 +44,14 @@
     "link": "https://github.com/go-vela/ideas",
     "clone": "https://github.com/go-vela/ideas.git",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
     "visibility": "public",
     "private": false,
     "trusted": true,
-    "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false
+    "active": true
   },
   {
     "id": 16,
@@ -71,16 +62,13 @@
     "link": "https://github.com/CookieCat/applications",
     "clone": "https://github.com/CookieCat/applications.git",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
     "visibility": "public",
     "private": false,
     "trusted": true,
-    "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false
+    "active": true
   }
 ]

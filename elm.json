@@ -19,15 +19,13 @@
       "elm/url": "1.0.0",
       "elm-community/graph": "6.0.0",
       "elm-community/json-extra": "4.3.0",
-      "elm-community/list-extra": "8.7.0",
-      "elm-community/maybe-extra": "5.3.0",
-      "elm-community/string-extra": "4.0.1",
+      "elmcraft/core-extra": "2.0.0",
       "feathericons/elm-feather": "1.5.0",
       "jackfranklin/elm-parse-link-header": "2.0.2",
       "jzxhuang/http-extras": "2.1.0",
       "krisajenkins/remotedata": "6.0.1",
       "pablen/toasty": "1.2.0",
-      "ryannhg/date-format": "2.3.0",
+      "ryan-haskell/date-format": "1.0.0",
       "vito/elm-ansi": "9.0.2"
     },
     "indirect": {
@@ -43,7 +41,7 @@
   },
   "test-dependencies": {
     "direct": {
-      "elm-explorations/test": "2.1.0"
+      "elm-explorations/test": "2.2.0"
     },
     "indirect": {}
   }

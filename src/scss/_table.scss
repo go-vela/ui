@@ -13,9 +13,17 @@
   border-bottom: 2px solid var(--color-lavender);
 }
 
-.table-base tr .-icon {
+.table-base tr .table-icon {
   width: 3rem;
-  padding-left: 1.25rem;
+  padding-left: 1rem;
+}
+
+.table-base .table-icon div {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  height: 2.5rem;
 }
 
 .table-base tr {
@@ -57,9 +65,24 @@
 }
 
 .table-base td {
-  padding: 0.625em;
+  padding: 0.3em;
+  padding-left: 0.625em;
 
   vertical-align: top;
+}
+
+.table-base td:last-child {
+  padding-right: 1rem;
+}
+
+.table-base .single-item {
+  display: inline-block;
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+}
+
+.table-base .-block {
+  display: block;
 }
 
 .table-base td .list-item {
@@ -79,16 +102,8 @@ td .key .list-item {
   max-width: 24rem;
 }
 
-.table-base .source-id {
-  padding: 0.2rem 1rem;
-
-  font-weight: 300;
-
-  background-color: var(--color-bg);
-}
-
-.table-base tr.-success {
-  border-left: 2px solid var(--color-green);
+.table-base .source-id .list-item {
+  max-width: 24rem;
 }
 
 .table-base tr.error-data {
@@ -113,14 +128,29 @@ td .key .list-item {
   }
 }
 
-.table-base tr.-error {
+.table-base tr.status-success {
+  border-left: 2px solid var(--color-green);
+}
+
+.table-base tr.status-error {
   border-bottom: none;
   border-left: 2px solid var(--color-red);
 }
 
-.table-base tr.-skipped {
+.table-base tr.status-skipped {
   border-bottom: none;
   border-left: 2px solid var(--color-lavender);
+}
+
+.table-base tr.status-busy {
+  border-bottom: none;
+  border-left: 2px solid var(--color-yellow);
+}
+
+.table-base tr.status-available,
+.table-base tr.status-idle {
+  border-bottom: none;
+  border-left: 2px solid var(--color-green);
 }
 
 .table-base .error-content {
@@ -186,12 +216,12 @@ td .key .list-item {
     border-bottom: 2px solid var(--color-lavender);
   }
 
-  .table-base tr .-icon {
+  .table-base tr .table-icon {
     width: inherit;
     padding-left: 0.6rem;
   }
 
-  .table-base tr.-error {
+  .table-base tr.status-error {
     margin-bottom: 0;
   }
 
@@ -217,10 +247,6 @@ td .key .list-item {
 
   .table-base td a {
     max-width: 8rem;
-  }
-
-  .table-base td .list-item {
-    font-size: 0.9rem;
   }
 
   .table-base td::before {

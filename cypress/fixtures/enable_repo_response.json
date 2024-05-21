@@ -7,6 +7,7 @@
   "link": "",
   "clone": "",
   "branch": "main",
+  "topics": [],
   "build_limit": 10,
   "timeout": 30,
   "counter": 0,
@@ -14,10 +15,5 @@
   "private": false,
   "trusted": true,
   "active": true,
-  "allow_pull": false,
-  "allow_push": true,
-  "allow_deploy": false,
-  "allow_tag": false,
-  "allow_comment": false,
   "pipeline_type": "yaml"
 }

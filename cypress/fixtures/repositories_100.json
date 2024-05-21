@@ -8,6 +8,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -15,22 +16,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -38,6 +38,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -50,6 +53,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -57,22 +61,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -80,6 +83,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -92,6 +98,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -99,22 +106,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -122,6 +128,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -134,6 +143,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -141,22 +151,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -164,6 +173,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -176,6 +188,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -183,22 +196,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -206,6 +218,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -218,6 +233,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -225,22 +241,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -248,6 +263,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -260,6 +278,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -267,22 +286,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -290,6 +308,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -302,6 +323,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -309,22 +331,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -332,6 +353,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -344,6 +368,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -351,22 +376,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -374,6 +398,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -386,6 +413,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -393,22 +421,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -416,6 +443,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -428,6 +458,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -435,22 +466,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -458,6 +488,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -470,6 +503,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -477,22 +511,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -500,6 +533,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -512,6 +548,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -519,22 +556,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -542,6 +578,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -554,6 +593,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -561,22 +601,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -584,6 +623,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -596,6 +638,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -603,22 +646,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -626,6 +668,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -638,6 +683,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -645,22 +691,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -668,6 +713,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -680,6 +728,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -687,22 +736,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -710,6 +758,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -722,6 +773,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -729,22 +781,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -752,6 +803,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -764,6 +818,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -771,22 +826,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -794,6 +848,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -806,6 +863,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -813,22 +871,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -836,6 +893,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -848,6 +908,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -855,22 +916,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -878,6 +938,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -890,6 +953,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -897,22 +961,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -920,6 +983,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -932,6 +998,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -939,22 +1006,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -962,6 +1028,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -974,6 +1043,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -981,22 +1051,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1004,6 +1073,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1016,6 +1088,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1023,22 +1096,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1046,6 +1118,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1058,6 +1133,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1065,22 +1141,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1088,6 +1163,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1100,6 +1178,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1107,22 +1186,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1130,6 +1208,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1142,6 +1223,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1149,22 +1231,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1172,6 +1253,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1184,6 +1268,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1191,22 +1276,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1214,6 +1298,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1226,6 +1313,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1233,22 +1321,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1256,6 +1343,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1268,6 +1358,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1275,22 +1366,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1298,6 +1388,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1310,6 +1403,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1317,22 +1411,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1340,6 +1433,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1352,6 +1448,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1359,22 +1456,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1382,6 +1478,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1394,6 +1493,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1401,22 +1501,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1424,6 +1523,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1436,6 +1538,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1443,22 +1546,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1466,6 +1568,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1478,6 +1583,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1485,22 +1591,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1508,6 +1613,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1520,6 +1628,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1527,22 +1636,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1550,6 +1658,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1562,6 +1673,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1569,22 +1681,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1592,6 +1703,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1604,6 +1718,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1611,22 +1726,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1634,6 +1748,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1646,6 +1763,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1653,22 +1771,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1676,6 +1793,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1688,6 +1808,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1695,22 +1816,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1718,6 +1838,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1730,6 +1853,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1737,22 +1861,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1760,6 +1883,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1772,6 +1898,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1779,22 +1906,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1802,6 +1928,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1814,6 +1943,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1821,22 +1951,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1844,6 +1973,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1856,6 +1988,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1863,22 +1996,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1886,6 +2018,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1898,6 +2033,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1905,22 +2041,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1928,6 +2063,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1940,6 +2078,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1947,22 +2086,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -1970,6 +2108,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -1982,6 +2123,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -1989,22 +2131,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2012,6 +2153,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2024,6 +2168,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2031,22 +2176,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2054,6 +2198,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2066,6 +2213,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2073,22 +2221,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2096,6 +2243,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2108,6 +2258,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2115,22 +2266,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2138,6 +2288,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2150,6 +2303,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2157,22 +2311,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2180,6 +2333,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2192,6 +2348,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2199,22 +2356,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2222,6 +2378,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2234,6 +2393,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2241,22 +2401,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2264,6 +2423,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2276,6 +2438,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2283,22 +2446,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2306,6 +2468,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2318,6 +2483,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2325,22 +2491,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2348,6 +2513,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2360,6 +2528,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2367,22 +2536,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2390,6 +2558,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2402,6 +2573,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2409,22 +2581,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2432,6 +2603,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2444,6 +2618,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2451,22 +2626,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2474,6 +2648,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2486,6 +2663,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2493,22 +2671,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2516,6 +2693,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2528,6 +2708,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2535,22 +2716,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2558,6 +2738,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2570,6 +2753,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2577,22 +2761,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2600,6 +2783,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2612,6 +2798,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2619,22 +2806,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2642,6 +2828,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2654,6 +2843,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2661,22 +2851,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2684,6 +2873,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2696,6 +2888,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2703,22 +2896,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2726,6 +2918,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2738,6 +2933,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2745,22 +2941,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2768,6 +2963,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2780,6 +2978,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2787,22 +2986,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2810,6 +3008,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2822,6 +3023,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2829,22 +3031,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2852,6 +3053,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2864,6 +3068,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2871,22 +3076,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2894,6 +3098,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2906,6 +3113,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2913,22 +3121,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2936,6 +3143,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2948,6 +3158,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2955,22 +3166,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -2978,6 +3188,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -2990,6 +3203,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -2997,22 +3211,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3020,6 +3233,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3032,6 +3248,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -3039,22 +3256,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3062,6 +3278,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3074,6 +3293,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -3081,22 +3301,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3104,6 +3323,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3116,6 +3338,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -3123,22 +3346,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3146,6 +3368,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3158,6 +3383,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -3165,22 +3391,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3188,6 +3413,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3200,6 +3428,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -3207,22 +3436,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3230,6 +3458,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3242,6 +3473,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -3249,22 +3481,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3272,6 +3503,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3284,6 +3518,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -3291,22 +3526,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3314,6 +3548,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3326,6 +3563,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -3333,22 +3571,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3356,6 +3593,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3368,6 +3608,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -3375,22 +3616,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3398,6 +3638,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3410,6 +3653,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -3417,22 +3661,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3440,6 +3683,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3452,6 +3698,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -3459,22 +3706,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3482,6 +3728,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3494,6 +3743,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -3501,22 +3751,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3524,6 +3773,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3536,6 +3788,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -3543,22 +3796,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3566,6 +3818,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3578,6 +3833,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -3585,22 +3841,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3608,6 +3863,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3620,6 +3878,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -3627,22 +3886,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3650,6 +3908,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3662,6 +3923,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -3669,22 +3931,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3692,6 +3953,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3704,6 +3968,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -3711,22 +3976,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3734,6 +3998,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3746,6 +4013,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -3753,22 +4021,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3776,6 +4043,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3788,6 +4058,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -3795,22 +4066,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3818,6 +4088,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3830,6 +4103,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -3837,22 +4111,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3860,6 +4133,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3872,6 +4148,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -3879,22 +4156,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3902,6 +4178,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3914,6 +4193,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -3921,22 +4201,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3944,6 +4223,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3956,6 +4238,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -3963,22 +4246,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -3986,6 +4268,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -3998,6 +4283,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -4005,22 +4291,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -4028,6 +4313,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -4040,6 +4328,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -4047,22 +4336,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -4070,6 +4358,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -4082,6 +4373,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -4089,22 +4381,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -4112,6 +4403,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -4124,6 +4418,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -4131,22 +4426,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -4154,6 +4448,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   },
@@ -4166,6 +4463,7 @@
     "link": "",
     "clone": "",
     "branch": "main",
+    "topics": [],
     "build_limit": 10,
     "timeout": 30,
     "counter": 0,
@@ -4173,22 +4471,21 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
     "pipeline_type": "yaml",
     "allow_events": {
       "push": {
         "branch": true,
-        "tag": false
+        "tag": false,
+        "delete_branch": false,
+        "delete_tag": false
       },
       "pull_request": {
         "opened": false,
         "synchronize": false,
         "edited": false,
-        "reopened": false
+        "reopened": false,
+        "labeled": false,
+        "unlabeled": false
       },
       "deployment": {
         "created": false
@@ -4196,6 +4493,9 @@
       "comment": {
         "created": false,
         "edited": false
+      },
+      "schedule": {
+        "run": false
       }
     }
   }

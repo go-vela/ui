@@ -17,25 +17,33 @@ import LinkHeader exposing (WebLink, parse)
 import Url.Builder as UB exposing (QueryParameter)
 
 
+{-| Page : alias for an int indicating a page number.
+-}
 type alias Page =
     Int
 
 
+{-| PerPage : alias for an int indicating the number of items per page.
+-}
 type alias PerPage =
     Int
 
 
+{-| defaultPage : default page number.
+-}
 defaultPage : Page
 defaultPage =
     1
 
 
+{-| defaultPerPage : default number of items per page.
+-}
 defaultPerPage : PerPage
 defaultPerPage =
     10
 
 
-{-| get : turns a link header into a list of WebLinks
+{-| get : turns a link header into a list of WebLinks.
 -}
 get : Dict String String -> List WebLink
 get headers =
@@ -44,7 +52,7 @@ get headers =
         |> Maybe.withDefault []
 
 
-{-| maybeNextLink : returns any "next" links if available
+{-| maybeNextLink : returns any "next" links if available.
 -}
 maybeNextLink : List WebLink -> Maybe String
 maybeNextLink links =
@@ -62,7 +70,7 @@ maybeNextLink links =
         |> Maybe.map .url
 
 
-{-| toQueryParams : turns paging information into QueryParameters
+{-| toQueryParams : turns paging information into QueryParameters.
 
     Note: absence of a parameter will default to server side defaults
 

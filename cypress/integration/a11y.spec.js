@@ -29,7 +29,7 @@ context('Accessibility (a11y)', () => {
     it('overview', () => {
       cy.visit('/account/login');
       cy.injectAxe();
-      cy.wait(500);
+      cy.wait(2000);
       // excludes accessibility testing for Elm pop-up that only appears in Cypress and not on the actual UI
       cy.checkA11y({ exclude: [elmExclude] }, A11Y_OPTS);
     });
@@ -91,10 +91,25 @@ context('Accessibility (a11y)', () => {
       cy.checkA11yForPage('/github/octocat/hooks', A11Y_OPTS);
     });
 
+    it('schedules page', () => {
+      cy.checkA11yForPage('/github/octocat/schedules', A11Y_OPTS);
+    });
+
+    it('deployments page', () => {
+      cy.checkA11yForPage('/github/octocat/deployments', A11Y_OPTS);
+    });
+
+    it('repo secrets page', () => {
+      cy.checkA11yForPage(
+        '/-/secrets/native/repo/octocat/deployments',
+        A11Y_OPTS,
+      );
+    });
+
     it('build page', () => {
       cy.login('/github/octocat/1');
       cy.injectAxe();
-      cy.wait(500);
+      cy.wait(2000);
       cy.clickSteps();
       // excludes accessibility testing for Elm pop-up that only appears in Cypress and not on the actual UI
       cy.checkA11y({ exclude: [elmExclude] }, A11Y_OPTS);

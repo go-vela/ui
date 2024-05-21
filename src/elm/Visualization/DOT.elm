@@ -1,3 +1,8 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module Visualization.DOT exposing
     ( Attribute(..)
     , AttributeValue(..)
@@ -17,7 +22,7 @@ import Json.Encode
 -- TYPES
 
 
-{-| Styles : graph style options
+{-| Styles : graph style options.
 -}
 type alias Styles =
     { rankdir : Rankdir
@@ -27,7 +32,7 @@ type alias Styles =
     }
 
 
-{-| Rankdir : direction of the graph render layout
+{-| Rankdir : direction of the graph render layout.
 -}
 type Rankdir
     = TB
@@ -36,14 +41,14 @@ type Rankdir
     | RL
 
 
-{-| Attribute : used for escaping graph layout attribute keys
+{-| Attribute : used for escaping graph layout attribute keys.
 -}
 type Attribute
     = DefaultJSONLabelEscape String
     | HtmlLabelEscape String
 
 
-{-| AttributeValue : used for escaping graph layout attribute values
+{-| AttributeValue : used for escaping graph layout attribute values.
 -}
 type AttributeValue
     = DefaultEscape String
@@ -55,7 +60,7 @@ type AttributeValue
 
 
 {-| digraph : takes styles and graph content and wraps it in a DOT directed graph layout to be
-used with graphviz/DOT: <https://graphviz.org/doc/info/lang.html>
+used with graphviz/DOT: <https://graphviz.org/doc/info/lang.html>.
 -}
 digraph : Styles -> List String -> String
 digraph styles content =
@@ -78,7 +83,7 @@ digraph styles content =
 
 
 {-| clusterSubgraph : takes cluster ID, styles, nodes and edges, and wraps it in a DOT directed subgraph layout to be
-used with graphviz/DOT: <https://graphviz.org/doc/info/lang.html>
+used with graphviz/DOT: <https://graphviz.org/doc/info/lang.html>.
 -}
 clusterSubgraph : Int -> Styles -> String -> String -> String
 clusterSubgraph cluster styles nodesString edgesString =
@@ -96,7 +101,7 @@ clusterSubgraph cluster styles nodesString edgesString =
         ]
 
 
-{-| rankDirToString : takes Rankdir type and returns it as a string
+{-| rankDirToString : takes Rankdir type and returns it as a string.
 -}
 rankDirToString : Rankdir -> String
 rankDirToString r =
@@ -114,7 +119,7 @@ rankDirToString r =
             "RL"
 
 
-{-| escapeCharacters : takes string and escapes special characters to prepare for use in a DOT string
+{-| escapeCharacters : takes string and escapes special characters to prepare for use in a DOT string.
 -}
 escapeCharacters : String -> String
 escapeCharacters s =
@@ -126,7 +131,7 @@ escapeCharacters s =
         |> String.replace "'" "&#039;"
 
 
-{-| escapeAttributes : takes list of string attributes and escapes special characters for keys and values to prepare for use in a DOT string
+{-| escapeAttributes : takes list of string attributes and escapes special characters for keys and values to prepare for use in a DOT string.
 -}
 escapeAttributes : List ( String, AttributeValue ) -> String
 escapeAttributes attributes =
@@ -143,7 +148,7 @@ escapeAttributes attributes =
         |> String.join " "
 
 
-{-| attributeToString : takes attribute and returns it as a string
+{-| attributeToString : takes attribute and returns it as a string.
 -}
 attributeToString : Attribute -> String
 attributeToString attribute =
@@ -156,7 +161,7 @@ attributeToString attribute =
             "<" ++ h ++ ">"
 
 
-{-| makeAttributes : takes dictionary of attributes and returns them as a string
+{-| makeAttributes : takes dictionary of attributes and returns them as a string.
 -}
 makeAttributes : Dict String Attribute -> String
 makeAttributes d =
@@ -167,7 +172,7 @@ makeAttributes d =
         " [" ++ attributeKeyValuePairs d ++ "]"
 
 
-{-| attributeKeyValuePairs : helper for taking dictionary of attributes and returns them as a string
+{-| attributeKeyValuePairs : helper for taking dictionary of attributes and returns them as a string.
 -}
 attributeKeyValuePairs : Dict String Attribute -> String
 attributeKeyValuePairs =

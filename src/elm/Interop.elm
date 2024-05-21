@@ -3,53 +3,62 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-port module Interop exposing (onGraphInteraction, onThemeChange, renderBuildGraph, setFavicon, setRedirect, setTheme)
+port module Interop exposing
+    ( onGraphInteraction
+    , onThemeChange
+    , renderBuildGraph
+    , setFavicon
+    , setRedirect
+    , setTheme
+    )
 
-import Json.Decode as Decode
-import Json.Encode as Encode
+import Json.Decode
+import Json.Encode
 
 
 
+-- To learn more about Elm ports, see the official guide:
+-- <https://guide.elm-lang.org/interop/ports>
 -- AUTH REDIRECT
 
 
-{-| outbound
+{-| setRedirect : outbound.
 -}
-port setRedirect : Encode.Value -> Cmd msg
+port setRedirect : Json.Encode.Value -> Cmd msg
 
 
 
 -- THEME
 
 
-{-| inbound
+{-| onThemeChange : inbound.
 -}
-port onThemeChange : (Decode.Value -> msg) -> Sub msg
+port onThemeChange : (Json.Decode.Value -> msg) -> Sub msg
 
 
-{-| outbound
+{-| setTheme : outbound.
 -}
-port setTheme : Encode.Value -> Cmd msg
+port setTheme : Json.Encode.Value -> Cmd msg
 
 
 
 -- DYNAMIC FAVICON
 
 
-{-| outbound
+{-| setFavicon : outbound.
 -}
-port setFavicon : Encode.Value -> Cmd msg
+port setFavicon : Json.Encode.Value -> Cmd msg
 
 
 
 -- VISUALIZATION
 
 
-{-| outbound
+{-| renderBuildGraph : outbound.
 -}
-port renderBuildGraph : Encode.Value -> Cmd msg
+port renderBuildGraph : Json.Encode.Value -> Cmd msg
 
 
-{-| inbound
+{-| onGraphInteraction : inbound.
 -}
-port onGraphInteraction : (Decode.Value -> msg) -> Sub msg
+port onGraphInteraction : (Json.Decode.Value -> msg) -> Sub msg

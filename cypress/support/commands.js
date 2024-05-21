@@ -22,21 +22,26 @@ if (!Cypress.env('CI')) {
 // Login helper (accepts initial path to visit)
 Cypress.Commands.add('login', (path = '/') => {
   cy.server();
-  cy.route('/token-refresh', 'fixture:auth.json');
+  cy.route('/token-refresh*', 'fixture:auth.json');
+  cy.visit(path);
+});
+
+// Login helper for site admin auth (accepts initial path to visit)
+Cypress.Commands.add('loginAdmin', (path = '/') => {
+  cy.server();
+  cy.route('/token-refresh*', 'fixture:auth_admin.json');
   cy.visit(path);
 });
 
 // Faking the act of logging in helper
 Cypress.Commands.add('loggingIn', (path = '/') => {
   cy.server();
-  cy.route('/token-refresh', 'fixture:auth.json');
+  cy.route('*/token-refresh', 'fixture:auth.json');
   cy.route('/authenticate*', 'fixture:auth.json');
+
   cy.visit('/account/authenticate?code=deadbeef&state=1337', {
     onBeforeLoad: win => {
-      win.localStorage.setItem(
-        'vela-redirect',
-        `${Cypress.config('baseUrl')}${path}`,
-      );
+      win.localStorage.setItem('vela-redirect', `${path}`);
     },
   });
 });
@@ -64,6 +69,7 @@ Cypress.Commands.add('stubBuild', () => {
   cy.fixture('build_error.json').as('errorBuild');
   cy.fixture('build_canceled.json').as('cancelBuild');
   cy.fixture('build_pending_approval.json').as('pendingApprovalBuild');
+  cy.fixture('build_approved.json').as('approvedBuild');
   cy.route({
     method: 'GET',
     url: 'api/v1/repos/*/*/builds/1',
@@ -111,6 +117,12 @@ Cypress.Commands.add('stubBuild', () => {
     url: 'api/v1/repos/*/*/builds/8',
     status: 200,
     response: `@pendingApprovalBuild`,
+  });
+  cy.route({
+    method: 'GET',
+    url: 'api/v1/repos/*/*/builds/9',
+    status: 200,
+    response: `@approvedBuild`,
   });
 });
 
@@ -535,7 +547,7 @@ Cypress.Commands.add('stubPipelineExpand', () => {
     url: '*api/v1/pipelines/*/*/*/expand*',
     status: 200,
     response: '@expanded',
-  });
+  }).as('expand');
 });
 
 Cypress.Commands.add('stubPipelineExpandErrors', () => {
@@ -616,12 +628,38 @@ Cypress.Commands.add('redeliverHookError', () => {
   });
 });
 
+Cypress.Commands.add('workerPages', () => {
+  cy.server();
+  cy.fixture('workers_10a.json').as('workersPage1');
+  cy.fixture('workers_10b.json').as('workersPage2');
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/workers*',
+    headers: {
+      link: `<http://localhost:8888/api/v1/workers?page=2&per_page=10>; rel="next", <http://localhost:8888/api/v1/workers?page=2&per_page=10>; rel="last",`,
+    },
+    response: '@workersPage1',
+  });
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/workers?page=2*',
+    headers: {
+      link: `<http://localhost:8888/api/v1/workers?page=1&per_page=10>; rel="first", <http://localhost:8888/api/v1/workers?page=1&per_page=10>; rel="prev",`,
+    },
+    response: '@workersPage2',
+  });
+});
+
 Cypress.Commands.add('checkA11yForPage', (path = '/', opts = {}) => {
   cy.login(path);
   cy.injectAxe();
-  cy.wait(500);
+  cy.wait(2000);
   // excludes accessibility testing for Elm pop-up that only appears in Cypress and not on the actual UI
-  cy.checkA11y({ exclude: ['[style*="padding-left: calc(1ch + 6px)"]'] }, opts);
+  cy.checkA11y(
+    { exclude: ['[style*="padding-left: calc(1ch + 6px)"]'] },
+    opts,
+    terminalLog,
+  );
 });
 
 Cypress.Commands.add('setTheme', theme => {
@@ -645,3 +683,23 @@ Cypress.Commands.add('clickServices', theme => {
   cy.get('[data-test=service-header-4]').click({ force: true });
   cy.get('[data-test=service-header-5]').click({ force: true });
 });
+
+function terminalLog(violations) {
+  cy.task(
+    'log',
+    `${violations.length} accessibility violation${
+      violations.length === 1 ? '' : 's'
+    } ${violations.length === 1 ? 'was' : 'were'} detected`,
+  );
+  // pluck specific keys to keep the table readable
+  const violationData = violations.map(
+    ({ id, impact, description, nodes }) => ({
+      id,
+      impact,
+      description,
+      nodes: nodes.length,
+    }),
+  );
+
+  cy.task('table', violationData);
+}
