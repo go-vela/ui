@@ -249,4 +249,19 @@ body.theme-light {
   }
 }
 
+// dashboards
+.theme-light .card-header .-canceled {
+  background-color: var(--color-cyan-semi-dark);
+}
+
+.theme-light .dashboard-recent-builds .recent-build:not(:first-child) .-canceled {
+  background-color: var(--color-gray-lightest);
+  border-color: (--color-cyan-semi-dark);
+  stroke: var(--color-cyan-semi-dark);
+}
+
+.theme-light .recent-build-link.-current:has(.-canceled)::before {
+    background-color: var(--color-cyan-semi-dark);
+}
+
 /*! purgecss end ignore */
