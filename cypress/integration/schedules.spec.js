@@ -117,6 +117,11 @@ context('Schedules', () => {
             cy.get('[data-label=scheduled-at]').should('exist');
           });
         });
+        it('should show next run', () => {
+          cy.get('@dailySchedule').within(() => {
+            cy.get('[data-label=next-run]').should('exist');
+          });
+        });
         it('should show updated by', () => {
           cy.get('@dailySchedule').within(() => {
             cy.get('[data-label=updated-by]').contains('CookieCat');
