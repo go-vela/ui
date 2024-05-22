@@ -1644,6 +1644,7 @@ type alias Schedule =
     , updated_by : String
     , branch : String
     , error : String
+    , next_run : Int
     }
 
 
@@ -1685,6 +1686,7 @@ decodeSchedule =
         |> optional "updated_by" string ""
         |> optional "branch" string ""
         |> optional "error" string ""
+        |> optional "next_run" int 0
 
 
 decodeSchedules : Decoder (List Schedule)
