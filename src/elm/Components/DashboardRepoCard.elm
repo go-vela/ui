@@ -40,11 +40,14 @@ import Utils.Helpers as Util
 import Vela
 
 
+{-| Props : alias for an object representing properties for a dashboard repo card component.
+-}
 type alias Props =
     { card : Vela.DashboardRepoCard
     }
 
-
+{-| view : renders a dashboard repo card component.
+-}
 view : Shared.Model -> Props -> Html msg
 view shared props =
     let
