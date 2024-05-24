@@ -46,6 +46,7 @@ type alias Props =
     { card : Vela.DashboardRepoCard
     }
 
+
 {-| view : renders a dashboard repo card component.
 -}
 view : Shared.Model -> Props -> Html msg
