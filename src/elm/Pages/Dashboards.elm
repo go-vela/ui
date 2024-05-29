@@ -62,7 +62,7 @@ toLayout user route model =
             , { name = "Add Dashboard With Multiple Admins"
               , content = "vela add dashboard --name MyDashboard --admins username1,username2"
               , docs = Just "dashboard/add"
-            }
+              }
             ]
         }
 

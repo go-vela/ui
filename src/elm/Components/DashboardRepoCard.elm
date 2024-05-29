@@ -177,7 +177,8 @@ view shared props =
             -- sender
             , li []
                 [ span
-                    [ Util.attrIf (String.length cardProps.sender > 15) (title cardProps.sender) ] [ text <| cardProps.sender ]
+                    [ Util.attrIf (String.length cardProps.sender > 15) (title cardProps.sender) ]
+                    [ text <| cardProps.sender ]
                 , FeatherIcons.user
                     |> FeatherIcons.withSize 20
                     |> FeatherIcons.toHtml [ attribute "aria-label" "build-sender icon" ]
