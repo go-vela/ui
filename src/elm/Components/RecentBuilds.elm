@@ -5,7 +5,6 @@ SPDX-License-Identifier: Apache-2.0
 
 module Components.RecentBuilds exposing (view)
 
--- import Utils.Errors exposing (showAlertAlways)
 
 import Components.Loading
 import Components.Svgs

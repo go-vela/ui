@@ -253,10 +253,10 @@ view shared route model =
                                                 "Dashboard \"" ++ route.params.dashboard ++ "\" not found. Please check the URL."
 
                                             _ ->
-                                                "No dashboard found; there was an error with the server"
+                                                "No dashboard found, there was an error with the server"
 
                                     _ ->
-                                        "No dashboard found; there was an error with the server"
+                                        "No dashboard found, there was an error with the server"
                             ]
                         ]
 
