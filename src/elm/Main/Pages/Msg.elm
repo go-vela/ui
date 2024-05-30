@@ -21,6 +21,8 @@ import Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Name_
 import Pages.Dash.Secrets.Engine_.Shared.Org_.Team_
 import Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Add
 import Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_
+import Pages.Dashboards
+import Pages.Dashboards.Dashboard_
 import Pages.Home_
 import Pages.NotFound_
 import Pages.Org_
@@ -59,6 +61,8 @@ type Msg
     | Dash_Secrets_Engine__Shared_Org__Team_ Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Msg
     | Dash_Secrets_Engine__Shared_Org__Team__Add Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Add.Msg
     | Dash_Secrets_Engine__Shared_Org__Team__Name_ Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_.Msg
+    | Dashboards Pages.Dashboards.Msg
+    | Dashboards_Dashboard_ Pages.Dashboards.Dashboard_.Msg
     | Org_ Pages.Org_.Msg
     | Org__Builds Pages.Org_.Builds.Msg
     | Org__Repo_ Pages.Org_.Repo_.Msg

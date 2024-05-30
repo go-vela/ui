@@ -30,7 +30,7 @@ a {
   }
 }
 
-header {
+.main-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -805,6 +805,52 @@ details.build-toggle {
   font-size: 0.8em;
 }
 
+.-icon {
+  fill: none;
+  stroke: var(--color-primary);
+
+  &.-check {
+    background-color: var(--color-primary);
+
+    stroke: var(--color-bg);
+  }
+
+  &.-check,
+  &.-radio {
+    fill: none;
+  }
+
+  &.-success {
+    stroke: var(--color-green);
+  }
+
+  &.-running {
+    stroke: var(--color-yellow);
+  }
+
+  &.-failure,
+  &.-error {
+    stroke: var(--color-red);
+  }
+
+  &.-canceled {
+    stroke: var(--color-cyan-dark);
+  }
+
+  &.-pending {
+    fill: var(--color-bg-light);
+    stroke: var(--color-bg-light);
+  }
+
+  .-inner {
+    fill: var(--color-primary);
+  }
+
+  &.-skip {
+    stroke: var(--color-lavender);
+  }
+}
+
 .recent-build {
   position: relative;
 
@@ -829,7 +875,7 @@ details.build-toggle {
   margin: 0 0.2rem 0 0;
 }
 
-.build-history .recent-build-link .-icon {
+.recent-build-link .-icon {
   fill: none;
   stroke: var(--color-bg);
 
@@ -1297,52 +1343,6 @@ details.build-toggle {
   justify-content: space-around;
 }
 
-.-icon {
-  fill: none;
-  stroke: var(--color-primary);
-
-  &.-check {
-    background-color: var(--color-primary);
-
-    stroke: var(--color-bg);
-  }
-
-  &.-check,
-  &.-radio {
-    fill: none;
-  }
-
-  &.-success {
-    stroke: var(--color-green);
-  }
-
-  &.-running {
-    stroke: var(--color-yellow);
-  }
-
-  &.-failure,
-  &.-error {
-    stroke: var(--color-red);
-  }
-
-  &.-canceled {
-    stroke: var(--color-cyan-dark);
-  }
-
-  &.-pending {
-    fill: var(--color-bg-light);
-    stroke: var(--color-bg-light);
-  }
-
-  .-inner {
-    fill: var(--color-primary);
-  }
-
-  &.-skip {
-    stroke: var(--color-lavender);
-  }
-}
-
 .pager-actions {
   display: flex;
   justify-content: flex-end;
@@ -1419,21 +1419,37 @@ details.build-toggle {
 }
 
 .cmd {
+  position: relative;
+
   display: flex;
   justify-content: space-between;
+
+  &::before {
+    position: absolute;
+    top: 52%;
+    left: 0.5rem;
+
+    display: block;
+
+    color: var(--color-green);
+
+    transform: translateY(-52%);
+
+    content: '$';
+  }
 }
 
 .cmd-text {
   flex: 1;
   margin: 0.2rem 0;
-  padding: 0.5rem;
+  padding: 0.5rem 0.5rem 0.5rem 1.5rem;
 
   color: var(--color-text);
 
   background-color: var(--color-bg);
   border: none;
 
-  + .button {
+  + .vert-icon-container {
     margin-left: 0.5rem;
   }
 }
@@ -1740,4 +1756,28 @@ details.build-toggle {
 
 .overflow-auto {
   overflow: auto;
+}
+
+code.shell {
+  position: relative;
+
+  display: inline-block;
+  margin: 1rem 0;
+  padding: 0.75rem 1rem 0.75rem 2rem;
+
+  background-color: var(--color-bg-dark);
+
+  &::before {
+    position: absolute;
+    top: 50%;
+    left: 0.8rem;
+
+    display: block;
+
+    color: var(--color-green);
+
+    transform: translateY(-50%);
+
+    content: '$';
+  }
 }

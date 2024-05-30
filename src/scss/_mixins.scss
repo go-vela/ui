@@ -36,3 +36,16 @@
     }
   }
 }
+
+// truncate text with ellipsis, units in characters
+@mixin truncate($chars: 15, $isBlock: true) {
+  @if $isBlock == false {
+    display: inline-block;
+  }
+
+  max-width: $chars * 1ch;
+  overflow: hidden;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

@@ -6,6 +6,7 @@
 // dark theme (default)
 body,
 body.theme-dark {
+  --color-bg-darkest: var(--color-coal-darkest);
   --color-bg-dark: var(--color-coal-dark);
   --color-bg: var(--color-coal);
   --color-bg-light: var(--color-coal-light);
@@ -27,6 +28,7 @@ body.theme-dark {
 
 // light theme
 body.theme-light {
+  --color-bg-darkest: var(--color-gray-lightest);
   --color-bg-dark: var(--color-gray-light);
   --color-bg: var(--color-offwhite);
   //   --color-bg-light: var(--color-white);
@@ -38,7 +40,7 @@ body.theme-light {
   --color-primary: var(--color-lavender); // ok for text
   --color-primary-light: var(--color-lavender-light);
 
-  --color-secondary-dark: var(--color-cyan-dark);
+  --color-secondary-dark: var(--color-cyan-semi-dark);
   --color-secondary: var(--color-cyan);
   --color-secondary-light: var(--color-cyan-light);
 
@@ -63,16 +65,16 @@ body.theme-light {
   }
 
   .status.-canceled {
-    background-color: var(--color-cyan-semi-dark);
+    background-color: var(--color-secondary-dark);
   }
 
   .recent-build-link .-icon.-canceled {
-    background-color: var(--color-cyan-semi-dark);
+    background-color: var(--color-secondary-dark);
   }
 
   .steps .-icon.-canceled,
   .services .-icon.-canceled {
-    stroke: var(--color-cyan-semi-dark);
+    stroke: var(--color-secondary-dark);
   }
 
   .hooks {
@@ -245,6 +247,28 @@ body.theme-light {
   &.-skipped {
     fill: var(--color-offwhite);
   }
+}
+
+// dashboards
+.theme-light .card-header .-canceled {
+  background-color: var(--color-cyan-semi-dark);
+}
+
+/* stylelint-disable selector-max-compound-selectors */
+.theme-light
+  .dashboard-recent-builds
+  .recent-build:not(:first-child)
+  .-canceled {
+  background-color: var(--color-gray-lightest);
+  border-color: var(--color-secondary-dark);
+
+  stroke: var(--color-secondary-dark);
+}
+
+/* stylelint-enable selector-max-compound-selectors */
+
+.theme-light .recent-build-link.-current:has(.-canceled)::before {
+  background-color: var(--color-secondary-dark);
 }
 
 /*! purgecss end ignore */

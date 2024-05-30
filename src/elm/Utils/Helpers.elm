@@ -230,7 +230,12 @@ formatRunTime now started finished =
         seconds =
             runTimeSeconds runtime
     in
-    String.join ":" [ minutes, seconds ]
+    -- treating 00:00 as an unreasonable runtime state
+    if minutes == "00" && seconds == "00" then
+        "--:--"
+
+    else
+        String.join ":" [ minutes, seconds ]
 
 
 {-| buildRunTime : calculates build runtime using current application time and build times, returned in seconds.
@@ -238,18 +243,33 @@ formatRunTime now started finished =
 buildRunTime : Posix -> Int -> Int -> Int
 buildRunTime now started finished =
     let
-        start =
-            started
+        isValid : Int -> Bool
+        isValid value =
+            value > 0
 
-        end =
-            if finished /= 0 then
-                finished
+        ( start, end ) =
+            case ( isValid started, isValid finished ) of
+                -- neither started nor finished
+                ( False, False ) ->
+                    ( 0, 0 )
 
-            else if started == 0 then
-                start
+                -- if finished but not started, we won't know duration
+                ( False, True ) ->
+                    ( 0, 0 )
 
-            else
-                millisToSeconds <| posixToMillis now
+                -- started, but not finished
+                ( True, False ) ->
+                    ( started, millisToSeconds <| posixToMillis now )
+
+                -- both started and finished are legit
+                -- if it finished before it started, something is very wrong
+                -- otherwise, return started and finished
+                ( True, True ) ->
+                    if started > finished then
+                        ( 0, 0 )
+
+                    else
+                        ( started, finished )
     in
     end - start
 
