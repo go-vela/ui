@@ -1,0 +1,225 @@
+// SPDX-License-Identifier: Apache-2.0
+
+// styles for the dashboard pages
+
+.dashboard-title {
+  border-bottom: var(--line-width) solid var(--color-secondary);
+}
+
+// holds all the dashboard cards
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+// an individual dashboard card
+.card {
+  flex: 0 0 27rem;
+  margin-right: 2rem;
+  margin-bottom: 2rem;
+  padding: 0.5rem;
+
+  background-color: var(--color-bg-dark);
+}
+
+// a dashboard card header containing org, repo, and status icon
+.card-header {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin: -0.5rem -0.5rem 0 -0.5rem; // to ignore .card padding
+  padding: 0 1rem;
+
+  line-height: 1.25;
+
+  background-color: var(--color-bg-darkest);
+
+  // custom styling for the status icon
+  .-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+
+    &.-pending {
+      background-color: var(--color-bg-light);
+
+      stroke: var(--color-bg-darkest);
+    }
+
+    &.-running {
+      background-color: var(--color-yellow);
+
+      stroke: var(--color-bg-darkest);
+    }
+
+    &.-success {
+      background-color: var(--color-green);
+
+      stroke: var(--color-bg-darkest);
+    }
+
+    &.-canceled {
+      background-color: var(--color-cyan-dark);
+
+      stroke: var(--color-bg-darkest);
+    }
+
+    &.-failure,
+    &.-error {
+      background-color: var(--color-red);
+
+      stroke: var(--color-bg-darkest);
+    }
+  }
+}
+
+// truncate repo name to avoid overflow
+// max characters for repo is 100 on GitHub
+.card-repo.-truncate {
+  @include truncate(25, false);
+}
+
+.card-build-data {
+  margin: 0;
+  padding: 0.5rem;
+
+  columns: 2;
+  column-gap: 0;
+
+  list-style-type: none;
+}
+
+// styling for the build data list items
+.card-build-data li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0;
+
+  // add vertical padding to list items,
+  // except the last one because it will throw off spacing
+  &:not(:last-child) {
+    margin-bottom: 0.5rem;
+  }
+
+  // 4th+ list item are right aligned
+  &:nth-child(n + 4) {
+    justify-content: flex-end;
+  }
+
+  // all nodes other than the icon are truncated
+  :not(svg) {
+    @include truncate();
+  }
+}
+
+// wraps the recent builds component
+.dashboard-recent-builds {
+  margin: 0.5rem;
+
+  // modifier for recent builds if there are no builds yet
+  &.-none {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 5rem;
+
+    background-color: var(--color-bg-darkest);
+  }
+
+  .build-history {
+    background-color: var(--color-bg-darkest);
+  }
+
+  // icons for recent builds are larger
+  .-icon {
+    width: 5rem;
+    height: 5rem;
+  }
+
+  // overrides for recent builds component due to custom styling
+  .recent-build:not(:first-child) .-icon {
+    background-color: var(--color-bg-darkest); // too many levels
+    border-style: solid;
+    border-width: 2px 0;
+
+    &.-pending {
+      border-color: var(--color-bg-light);
+
+      stroke: var(--color-bg-darkest);
+    }
+
+    &.-running {
+      border-color: var(--color-yellow);
+
+      stroke: var(--color-yellow);
+    }
+
+    &.-success {
+      border-color: var(--color-green);
+
+      stroke: var(--color-green);
+    }
+
+    &.-canceled {
+      border-color: var(--color-cyan-dark);
+
+      stroke: var(--color-cyan-dark);
+    }
+
+    &.-failure,
+    &.-error {
+      border-color: var(--color-red);
+
+      stroke: var(--color-red);
+    }
+  }
+
+  // zero out margin for first box for
+  // this implementation of recent build component
+  .recent-build:first-child .recent-build-link.-current {
+    margin: 0;
+  }
+
+  // add a triangle pointer to the most recent build status
+  .recent-build-link.-current::before {
+    position: absolute;
+    top: -0.4rem;
+    left: 50%;
+
+    display: block;
+    width: 0.8rem;
+
+    transform: translateX(-50%);
+
+    content: '';
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    aspect-ratio: 1 / 0.5;
+  }
+
+  // color the pointer based on the respective status
+  // using lookahead to check for status class;
+  // browser support: https://caniuse.com/css-has
+  // unsupported browsers won't show the pointer
+  .recent-build-link.-current {
+    &:has(.-success)::before {
+      background-color: var(--color-green);
+    }
+
+    &:has(.-pending)::before {
+      background-color: var(--color-bg-light);
+    }
+
+    &:has(.-running)::before {
+      background-color: var(--color-yellow);
+    }
+
+    &:has(.-canceled)::before {
+      background-color: var(--color-cyan-dark);
+    }
+
+    &:has(.-error)::before,
+    &:has(.-failure)::before {
+      background-color: var(--color-red);
+    }
+  }
+}

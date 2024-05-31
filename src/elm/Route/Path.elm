@@ -29,6 +29,8 @@ type Path
     | Dash_Secrets_Engine__Shared_Org__Team_ { engine : String, org : String, team : String }
     | Dash_Secrets_Engine__Shared_Org__Team__Add { engine : String, org : String, team : String }
     | Dash_Secrets_Engine__Shared_Org__Team__Name_ { engine : String, org : String, team : String, name : String }
+    | Dashboards
+    | Dashboards_Dashboard_ { dashboard : String }
     | Org_ { org : String }
     | Org__Builds { org : String }
     | Org__Repo_ { org : String, repo : String }
@@ -157,6 +159,15 @@ fromString urlPath =
                 , org = org_
                 , team = team_
                 , name = name_
+                }
+                |> Just
+
+        "dashboards" :: [] ->
+            Just Dashboards
+
+        "dashboards" :: dashboard_ :: [] ->
+            Dashboards_Dashboard_
+                { dashboard = dashboard_
                 }
                 |> Just
 
@@ -340,6 +351,12 @@ toString path =
 
                 Dash_Secrets_Engine__Shared_Org__Team__Name_ params ->
                     [ "-", "secrets", params.engine, "shared", params.org, params.team, params.name ]
+
+                Dashboards ->
+                    [ "dashboards" ]
+
+                Dashboards_Dashboard_ params ->
+                    [ "dashboards", params.dashboard ]
 
                 Org_ params ->
                     [ params.org ]
