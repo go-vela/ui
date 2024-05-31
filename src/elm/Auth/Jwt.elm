@@ -11,7 +11,7 @@ module Auth.Jwt exposing
     )
 
 import Json.Decode as Decode exposing (Decoder, bool, field, int, string)
-import Json.Decode.Pipeline exposing (required)
+import Json.Decode.Pipeline exposing (optional, required)
 import Time
 import Utils.Helpers as Util
 
@@ -45,7 +45,7 @@ type alias JwtAccessTokenClaims =
 decodeJwtAccessTokenClaims : Decoder JwtAccessTokenClaims
 decodeJwtAccessTokenClaims =
     Decode.succeed JwtAccessTokenClaims
-        |> required "is_admin" bool
+        |> optional "is_admin" bool False
         |> required "is_active" bool
         |> required "exp" posixFromInt
         |> required "iat" posixFromInt
