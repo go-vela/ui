@@ -71,7 +71,17 @@ toLayout user route model =
                         ++ route.params.repo
                         ++ " --build "
                         ++ route.params.build
-              , docs = Just "cli/pipeline/validate"
+              , docs = Just "build/view"
+              }
+            , { name = "Approve Build"
+              , content =
+                    "vela approve build --org "
+                        ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
+                        ++ " --build "
+                        ++ route.params.build
+              , docs = Just "build/approve"
               }
             , { name = "Restart Build"
               , content =
@@ -113,6 +123,31 @@ toLayout user route model =
                         ++ route.params.build
                         ++ " --service 1"
               , docs = Just "service/view"
+              }
+            , { name = "List Logs"
+              , content =
+                    "vela get logs --org "
+                        ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
+                        ++ " --build "
+                        ++ route.params.build
+              , docs = Just "log/get"
+              }
+            , { name = "View Log Help"
+              , content = "vela view log -h"
+              , docs = Just "log/view"
+              }
+            , { name = "View Service Log Example"
+              , content =
+                    "vela view log --org "
+                        ++ route.params.org
+                        ++ " --repo "
+                        ++ route.params.repo
+                        ++ " --build "
+                        ++ route.params.build
+                        ++ " --service 1"
+              , docs = Just "log/view"
               }
             ]
         , crumbs =
