@@ -36,6 +36,7 @@ import Route.Path
 import Shared
 import Time
 import Utils.Errors as Errors
+import Utils.Favicons as Favicons
 import Utils.Helpers as Util
 import Utils.Interval as Interval
 import Vela
@@ -111,12 +112,15 @@ type alias Model =
 init : Shared.Model -> Route { dashboard : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { dashboard = RemoteData.Loading }
-    , Effect.getDashboard
-        { baseUrl = shared.velaAPIBaseURL
-        , session = shared.session
-        , onResponse = GetDashboardResponse
-        , dashboardId = route.params.dashboard
-        }
+    , Effect.batch
+        [ Effect.updateFavicon { favicon = Favicons.defaultFavicon }
+        , Effect.getDashboard
+            { baseUrl = shared.velaAPIBaseURL
+            , session = shared.session
+            , onResponse = GetDashboardResponse
+            , dashboardId = route.params.dashboard
+            }
+        ]
     )
 
 
