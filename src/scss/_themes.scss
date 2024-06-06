@@ -117,9 +117,11 @@ body.theme-light {
     border-left: none;
   }
 
+  /* stylelint-disable selector-max-specificity */
   .build:not(.-canceled) .error {
     color: var(--color-red);
   }
+  /* stylelint-enable selector-max-specificity */
 
   .logs-container {
     background-color: var(--color-white);
@@ -254,7 +256,7 @@ body.theme-light {
   background-color: var(--color-cyan-semi-dark);
 }
 
-/* stylelint-disable selector-max-compound-selectors */
+/* stylelint-disable selector-max-compound-selectors,selector-max-specificity */
 .theme-light
   .dashboard-recent-builds
   .recent-build:not(:first-child)
@@ -265,7 +267,7 @@ body.theme-light {
   stroke: var(--color-secondary-dark);
 }
 
-/* stylelint-enable selector-max-compound-selectors */
+/* stylelint-enable selector-max-compound-selectors,selector-max-specificity */
 
 .theme-light .recent-build-link.-current:has(.-canceled)::before {
   background-color: var(--color-secondary-dark);
