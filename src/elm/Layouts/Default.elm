@@ -42,6 +42,7 @@ layout props shared route =
         , view = view props shared route
         , subscriptions = subscriptions
         }
+        |> Layout.withOnUrlChanged OnUrlChanged
 
 
 
@@ -75,6 +76,8 @@ init shared _ =
 -}
 type Msg
     = NoOp
+      -- BROWSER
+    | OnUrlChanged { from : Route (), to : Route () }
       -- HEADER
     | ShowHideIdentity (Maybe Bool)
     | ShowHideHelp (Maybe Bool)
@@ -93,6 +96,12 @@ update msg model =
         NoOp ->
             ( model
             , Effect.none
+            )
+
+        -- BROWSER
+        OnUrlChanged _ ->
+            ( model
+            , Effect.updateFavicon { favicon = Favicons.defaultFavicon }
             )
 
         -- HEADER
