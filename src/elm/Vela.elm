@@ -79,6 +79,7 @@ module Vela exposing
     , decodeSourceRepositories
     , decodeSteps
     , decodeUser
+    , decodeWorker
     , decodeWorkers
     , defaultAllowEvents
     , defaultCompilerPayload

@@ -47,6 +47,7 @@ type Path
     | Org__Repo__Build__Graph { org : String, repo : String, build : String }
     | Org__Repo__Build__Pipeline { org : String, repo : String, build : String }
     | Org__Repo__Build__Services { org : String, repo : String, build : String }
+    | Org__Repo__Build__Worker { org : String, repo : String, build : String }
     | NotFound_
 
 
@@ -286,6 +287,14 @@ fromString urlPath =
                 }
                 |> Just
 
+        org_ :: repo_ :: build_ :: "worker" :: [] ->
+            Org__Repo__Build__Worker
+                { org = org_
+                , repo = repo_
+                , build = build_
+                }
+                |> Just
+
         _ ->
             Nothing
 
@@ -405,6 +414,9 @@ toString path =
 
                 Org__Repo__Build__Services params ->
                     [ params.org, params.repo, params.build, "services" ]
+
+                Org__Repo__Build__Worker params ->
+                    [ params.org, params.repo, params.build, "worker" ]
 
                 NotFound_ ->
                     [ "not-found" ]

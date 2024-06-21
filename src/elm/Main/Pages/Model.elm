@@ -32,6 +32,7 @@ import Pages.Org_.Repo_.Build_
 import Pages.Org_.Repo_.Build_.Graph
 import Pages.Org_.Repo_.Build_.Pipeline
 import Pages.Org_.Repo_.Build_.Services
+import Pages.Org_.Repo_.Build_.Worker
 import Pages.Org_.Repo_.Deployments
 import Pages.Org_.Repo_.Deployments.Add
 import Pages.Org_.Repo_.Hooks
@@ -80,6 +81,7 @@ type Model
     | Org__Repo__Build__Graph { org : String, repo : String, build : String } Pages.Org_.Repo_.Build_.Graph.Model
     | Org__Repo__Build__Pipeline { org : String, repo : String, build : String } Pages.Org_.Repo_.Build_.Pipeline.Model
     | Org__Repo__Build__Services { org : String, repo : String, build : String } Pages.Org_.Repo_.Build_.Services.Model
+    | Org__Repo__Build__Worker { org : String, repo : String, build : String } Pages.Org_.Repo_.Build_.Worker.Model
     | NotFound_ Pages.NotFound_.Model
     | Redirecting_
     | Loading_

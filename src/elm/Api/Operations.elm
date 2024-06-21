@@ -47,6 +47,7 @@ module Api.Operations exposing
     , getSharedSecrets
     , getToken
     , getUserSourceRepos
+    , getWorker
     , getWorkers
     , logout
     , redeliverHook
@@ -288,6 +289,25 @@ getRepoBuilds baseUrl session options =
             options.repo
         )
         Vela.decodeBuilds
+        |> withAuth session
+
+
+{-| getWorker : retrieves worker.
+-}
+getWorker :
+    String
+    -> Session
+    ->
+        { a
+            | worker : String
+        }
+    -> Request Vela.Worker
+getWorker baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.Worker
+            options.worker
+        )
+        Vela.decodeWorker
         |> withAuth session
 
 

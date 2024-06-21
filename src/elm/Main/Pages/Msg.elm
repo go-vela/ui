@@ -32,6 +32,7 @@ import Pages.Org_.Repo_.Build_
 import Pages.Org_.Repo_.Build_.Graph
 import Pages.Org_.Repo_.Build_.Pipeline
 import Pages.Org_.Repo_.Build_.Services
+import Pages.Org_.Repo_.Build_.Worker
 import Pages.Org_.Repo_.Deployments
 import Pages.Org_.Repo_.Deployments.Add
 import Pages.Org_.Repo_.Hooks
@@ -79,4 +80,5 @@ type Msg
     | Org__Repo__Build__Graph Pages.Org_.Repo_.Build_.Graph.Msg
     | Org__Repo__Build__Pipeline Pages.Org_.Repo_.Build_.Pipeline.Msg
     | Org__Repo__Build__Services Pages.Org_.Repo_.Build_.Services.Msg
+    | Org__Repo__Build__Worker Pages.Org_.Repo_.Build_.Worker.Msg
     | NotFound_ Pages.NotFound_.Msg
