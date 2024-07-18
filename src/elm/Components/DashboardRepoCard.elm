@@ -101,6 +101,7 @@ view shared props =
                                             , build = b
                                             }
                                 , showTitle = False
+                                , pagination = Nothing
                                 }
                             ]
                     }

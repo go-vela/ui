@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.Pager exposing (defaultLabels, prevNextLabels, view)
+module Components.Pager exposing (defaultLabels, prevNextLabels, prevNext,view)
 
 import Api.Pagination as Pagination
 import FeatherIcons
@@ -11,7 +11,6 @@ import Html exposing (Html, button, div, text)
 import Html.Attributes exposing (attribute, class, disabled)
 import Html.Events exposing (onClick)
 import LinkHeader exposing (WebLink)
-import RemoteData exposing (WebData)
 import Utils.Helpers as Util
 
 
@@ -160,3 +159,59 @@ view props =
 
     else
         text ""
+
+
+{-| prevNext : returns pager state based on number of pages and current page.
+-}
+prevNext : List WebLink-> (Bool, Bool)
+prevNext links =
+    let
+        linkRels : List LinkHeader.LinkRel
+        linkRels =
+            List.map .rel links
+
+        -- note: list is empty if there's only one page
+        isFirst : Bool
+        isFirst =
+            List.member (LinkHeader.RelNext 2) linkRels
+
+        maybePrevPage : Maybe LinkHeader.LinkRel
+        maybePrevPage =
+            linkRels
+                |> List.filter
+                    (\link ->
+                        case link of
+                            LinkHeader.RelPrev _ ->
+                                True
+
+                            _ ->
+                                False
+                    )
+                |> List.head
+
+        maybeNextPage : Maybe LinkHeader.LinkRel
+        maybeNextPage =
+            linkRels
+                |> List.filter
+                    (\link ->
+                        case link of
+                            LinkHeader.RelNext _ ->
+                                True
+
+                            _ ->
+                                False
+                    )
+                |> List.head
+
+        isLast : Bool
+        isLast =
+            case ( maybePrevPage, maybeNextPage ) of
+                ( Just (LinkHeader.RelPrev _), Nothing ) ->
+                    True
+
+                _ ->
+                    False
+
+    in
+        (not <| isFirst || (List.length links == 0), not <| isLast || (List.length links == 0))
+   

@@ -14,6 +14,7 @@ import Toasty exposing (Stack)
 import Utils.Favicons as Favicons
 import Utils.Theme as Theme
 import Vela
+import LinkHeader
 
 
 {-| Model : The main shared model for the application.
@@ -61,6 +62,7 @@ type alias Model =
 
     -- BUILDS
     , builds : WebData (List Vela.Build)
+    , buildsPager : List LinkHeader.WebLink 
 
     -- HOOKS
     , hooks : WebData (List Vela.Hook)

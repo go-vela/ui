@@ -7,6 +7,7 @@ module Shared exposing (Flags, Model, Msg, decoder, init, subscriptions, update)
 
 import Api.Api as Api
 import Api.Operations
+import Api.Pagination
 import Auth.Jwt
 import Auth.Session
 import Browser.Dom
@@ -169,6 +170,7 @@ init flagsResult route =
 
       -- BUILDS
       , builds = RemoteData.NotAsked
+      , buildsPager = []
 
       -- HOOKS
       , hooks = RemoteData.NotAsked
@@ -575,8 +577,11 @@ update route msg model =
 
         Shared.Msg.GetRepoBuildsResponse response ->
             case response of
-                Ok ( _, builds ) ->
-                    ( { model | builds = RemoteData.succeed builds }
+                Ok ( meta, builds ) ->
+                    ( { model
+                        | builds = RemoteData.succeed builds
+                        , buildsPager = Api.Pagination.get meta.headers
+                      }
                     , Effect.none
                     )
 

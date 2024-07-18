@@ -3,12 +3,15 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.RecentBuilds exposing (view)
+module Components.RecentBuilds exposing (Pagination, view)
 
 import Components.Loading
+import Components.Pager
 import Components.Svgs
 import Html exposing (Html, a, div, em, li, p, span, text, ul)
 import Html.Attributes exposing (attribute, class)
+import Html.Events
+import LinkHeader exposing (WebLink)
 import RemoteData exposing (WebData)
 import Route.Path
 import Shared
@@ -22,12 +25,21 @@ import Vela
 
 {-| Props : alias for an object representing properties for the recent builds component.
 -}
-type alias Props =
+type alias Props msg =
     { builds : WebData (List Vela.Build)
     , build : WebData Vela.Build
     , num : Int
     , toPath : String -> Route.Path.Path
     , showTitle : Bool
+    , pagination : Maybe (Pagination msg)
+    }
+
+
+type alias Pagination msg =
+    { pageNumber : Int
+    , perPage : Int
+    , pager : List WebLink
+    , gotoPage : Int -> msg
     }
 
 
@@ -37,7 +49,7 @@ type alias Props =
 
 {-| view : renders recent builds history.
 -}
-view : Shared.Model -> Props -> Html msg
+view : Shared.Model -> Props msg -> Html msg
 view shared props =
     let
         viewTitle =
@@ -46,6 +58,36 @@ view shared props =
 
             else
                 text ""
+
+        ( prev, next ) =
+            case props.pagination of
+                Just pagination ->
+                    let
+                        ( a, b ) =
+                            Components.Pager.prevNext pagination.pager
+
+                        pagerBtn p label to d =
+                            Html.button
+                                [ Html.Attributes.disabled d
+                                , class "button"
+                                , Html.Attributes.style "background" "none"
+                                , Html.Attributes.style "border" "none"
+                                , Html.Attributes.style "color" <| if d then "var(--color-gray)" else "var(--color-cyan)" 
+                                , Html.Events.onClick <| p.gotoPage <| p.pageNumber + to
+                                ]
+                                [ text label ]
+                    in
+                    ( pagerBtn pagination "<" -1 (not a), pagerBtn pagination ">" 1 (not b) )
+
+                Nothing ->
+                    ( text "", text "" )
+
+        m a b c =
+            [ a ]
+                ++ (List.indexedMap (viewRecentBuild shared props) <|
+                        List.take props.num b
+                   )
+                ++ [ c ]
     in
     case props.builds of
         RemoteData.Success builds ->
@@ -53,8 +95,7 @@ view shared props =
                 div [ class "build-history" ]
                     [ viewTitle
                     , ul [ Util.testAttribute "build-history", class "previews" ] <|
-                        List.indexedMap (viewRecentBuild shared props) <|
-                            List.take props.num builds
+                        m prev builds next
                     ]
 
             else
@@ -69,7 +110,7 @@ view shared props =
     focusing or hovering the recent build icon will display a build info tooltip
 
 -}
-viewRecentBuild : Shared.Model -> Props -> Int -> Vela.Build -> Html msg
+viewRecentBuild : Shared.Model -> Props msg -> Int -> Vela.Build -> Html msg
 viewRecentBuild shared props idx build =
     li [ class "recent-build" ]
         [ recentBuildLink shared props idx build
@@ -82,7 +123,7 @@ viewRecentBuild shared props idx build =
     focusing and hovering this element will display the tooltip
 
 -}
-recentBuildLink : Shared.Model -> Props -> Int -> Vela.Build -> Html msg
+recentBuildLink : Shared.Model -> Props msg -> Int -> Vela.Build -> Html msg
 recentBuildLink shared props idx build =
     let
         icon =
@@ -115,7 +156,7 @@ recentBuildLink shared props idx build =
     tooltip is visible when the recent build link is focused or hovered
 
 -}
-recentBuildTooltip : Shared.Model -> Props -> Vela.Build -> Html msg
+recentBuildTooltip : Shared.Model -> Props msg -> Vela.Build -> Html msg
 recentBuildTooltip shared props build =
     div [ class "recent-build-tooltip", Util.testAttribute "build-history-tooltip" ]
         [ ul [ class "info" ]

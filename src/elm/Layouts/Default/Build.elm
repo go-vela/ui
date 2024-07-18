@@ -102,7 +102,7 @@ init props shared route _ =
     , Effect.batch
         [ Effect.getCurrentUserShared {}
         , Effect.getRepoBuildsShared
-            { pageNumber = Nothing
+            { pageNumber =  Dict.get "page" route.query |> Maybe.andThen String.toInt
             , perPage = Nothing
             , maybeEvent = Nothing
             , org = props.org
@@ -137,6 +137,8 @@ type Msg
     | CancelBuildResponse { org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
     | ApproveBuild { org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber }
     | ApproveBuildResponse { org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
+      -- RECENT BUILDS
+    | GotoPage Int
       -- REFRESH
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
@@ -154,7 +156,7 @@ update props shared route msg model =
               }
             , Effect.batch
                 [ Effect.getRepoBuildsShared
-                    { pageNumber = Nothing
+                    { pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
                     , perPage = Nothing
                     , maybeEvent = Nothing
                     , org = props.org
@@ -326,12 +328,32 @@ update props shared route msg model =
                         }
                     )
 
+        -- RECENT BUILDS
+        GotoPage pageNumber ->
+            ( model
+            , Effect.batch
+                [ Effect.pushRoute
+                    { path = route.path
+                    , query =
+                        Dict.update "page" (\_ -> Just <| String.fromInt pageNumber) route.query
+                    , hash = route.hash
+                    }
+                , Effect.getRepoBuildsShared
+                    { pageNumber = Just pageNumber
+                    , perPage = Nothing
+                    , maybeEvent = Nothing
+                    , org = props.org
+                    , repo = props.repo
+                    }
+                ]
+            )
+
         -- REFRESH
         Tick options ->
             ( model
             , Effect.batch
                 [ Effect.getRepoBuildsShared
-                    { pageNumber = Nothing
+                    { pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
                     , perPage = Nothing
                     , maybeEvent = Nothing
                     , org = props.org
@@ -447,8 +469,19 @@ view props shared route { toContentMsg, model, content } =
                 , build = model.build
                 , num = 10
                 , toPath = props.toBuildPath
-                , showTitle = True
+                , showTitle = False
+                , pagination =
+                    Just
+                        { pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt |> Maybe.withDefault 1
+                        , perPage = 1
+                        , gotoPage = GotoPage
+                        , pager = shared.buildsPager
+
+                        -- , perPage = 10
+                        -- , gotoPage = GotoPage
+                        }
                 }
+                |> Html.map toContentMsg
              , Components.Build.view shared
                 { build = model.build
                 , showFullTimestamps = False
