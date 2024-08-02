@@ -356,9 +356,16 @@ update shared route msg model =
 
         -- REFRESH
         Tick options ->
-            ( model
-            , Effect.sendMsg <| Refresh { freshDraw = False, setToLoading = False, clear = False }
-            )
+            case options.interval of
+                Interval.FiveSeconds ->
+                    ( model
+                    , Effect.sendMsg <| Refresh { freshDraw = False, setToLoading = False, clear = False }
+                    )
+
+                Interval.OneSecond ->
+                    ( model
+                    , Effect.sendCmd <| renderBuildGraph shared model { freshDraw = False }
+                    )
 
 
 
@@ -377,6 +384,7 @@ subscriptions model =
         , Browser.Events.onVisibilityChange
             (\visibility -> VisibilityChanged { visibility = visibility })
         , Interval.tickEveryFiveSeconds Tick
+        , Interval.tickEveryOneSecond Tick
         ]
 
 
