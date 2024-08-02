@@ -6,7 +6,6 @@ SPDX-License-Identifier: Apache-2.0
 module Api.Header exposing (get)
 
 import Dict exposing (Dict)
-import Http
 
 
 {-| get : looks for the specified header key and returns the value.
