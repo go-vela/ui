@@ -17,6 +17,7 @@ module Api.Api exposing
     )
 
 import Api.Endpoint as Endpoint exposing (Endpoint)
+import Api.Header exposing (userAgent, userAgentString)
 import Api.Pagination as Pagination
 import Auth.Session exposing (Session(..))
 import Http
@@ -215,7 +216,7 @@ get : String -> Endpoint -> Decoder b -> Request b
 get api endpoint decoder =
     request
         { method = "GET"
-        , headers = []
+        , headers = [ userAgent userAgentString ]
         , url = Endpoint.toUrl api endpoint
         , body = Http.emptyBody
         , decoder = decoder
@@ -228,7 +229,7 @@ post : String -> Endpoint -> Http.Body -> Decoder b -> Request b
 post api endpoint body decoder =
     request
         { method = "POST"
-        , headers = []
+        , headers = [ userAgent userAgentString ]
         , url = Endpoint.toUrl api endpoint
         , body = body
         , decoder = decoder
@@ -241,7 +242,7 @@ put : String -> Endpoint -> Http.Body -> Decoder b -> Request b
 put api endpoint body decoder =
     request
         { method = "PUT"
-        , headers = []
+        , headers = [ userAgent userAgentString ]
         , url = Endpoint.toUrl api endpoint
         , body = body
         , decoder = decoder
@@ -254,7 +255,7 @@ delete : String -> Endpoint -> Decoder b -> Request b
 delete api endpoint decoder =
     request
         { method = "DELETE"
-        , headers = []
+        , headers = [ userAgent userAgentString ]
         , url = Endpoint.toUrl api endpoint
         , body = Http.emptyBody
         , decoder = decoder
@@ -267,7 +268,7 @@ patch : String -> Endpoint -> Decoder b -> Request b
 patch api endpoint decoder =
     request
         { method = "PATCH"
-        , headers = []
+        , headers = [ userAgent userAgentString ]
         , url = Endpoint.toUrl api endpoint
         , body = Http.emptyBody
         , decoder = decoder

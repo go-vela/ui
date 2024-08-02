@@ -138,7 +138,7 @@ update msg model =
         -- REFRESH
         Tick options ->
             ( model
-            , Effect.getCurrentUserShared {}
+            , Effect.none
             )
 
 

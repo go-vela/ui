@@ -150,15 +150,7 @@ update props route msg model =
         Tick options ->
             ( model
             , Effect.batch
-                [ Effect.getCurrentUserShared {}
-                , Effect.getRepoBuildsShared
-                    { pageNumber = Nothing
-                    , perPage = Nothing
-                    , maybeEvent = Nothing
-                    , org = props.org
-                    , repo = props.repo
-                    }
-                , Effect.getRepoHooksShared
+                [ Effect.getRepoHooksShared
                     { pageNumber = Nothing
                     , perPage = Nothing
                     , maybeEvent = Nothing

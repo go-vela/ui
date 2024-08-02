@@ -328,24 +328,46 @@ update props shared route msg model =
 
         -- REFRESH
         Tick options ->
+            let
+                shouldRefresh =
+                    case model.build of
+                        RemoteData.Success build ->
+                            build.finished == 0
+
+                        _ ->
+                            True
+
+                runEffects =
+                    if shouldRefresh then
+                        [ Effect.getRepoBuildsShared
+                            { pageNumber = Nothing
+                            , perPage = Nothing
+                            , maybeEvent = Nothing
+                            , org = props.org
+                            , repo = props.repo
+                            }
+                        , Effect.getBuild
+                            { baseUrl = shared.velaAPIBaseURL
+                            , session = shared.session
+                            , onResponse = GetBuildResponse
+                            , org = props.org
+                            , repo = props.repo
+                            , build = props.build
+                            }
+                        ]
+
+                    else
+                        [ Effect.getRepoBuildsShared
+                            { pageNumber = Nothing
+                            , perPage = Nothing
+                            , maybeEvent = Nothing
+                            , org = props.org
+                            , repo = props.repo
+                            }
+                        ]
+            in
             ( model
-            , Effect.batch
-                [ Effect.getRepoBuildsShared
-                    { pageNumber = Nothing
-                    , perPage = Nothing
-                    , maybeEvent = Nothing
-                    , org = props.org
-                    , repo = props.repo
-                    }
-                , Effect.getBuild
-                    { baseUrl = shared.velaAPIBaseURL
-                    , session = shared.session
-                    , onResponse = GetBuildResponse
-                    , org = props.org
-                    , repo = props.repo
-                    , build = props.build
-                    }
-                ]
+            , Effect.batch runEffects
             )
 
 

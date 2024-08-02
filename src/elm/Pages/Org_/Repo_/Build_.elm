@@ -322,6 +322,7 @@ update shared route msg model =
                     ( { model | steps = RemoteData.succeed <| List.sortBy .number steps }
                     , steps
                         |> List.filter (\step -> List.member step.number model.viewing)
+                        |> List.filter (\step -> step.finished == 0)
                         |> List.map
                             (\step ->
                                 Effect.getBuildStepLog
@@ -546,17 +547,35 @@ update shared route msg model =
 
         -- REFRESH
         Tick options ->
+            let
+                shouldRefresh =
+                    case shared.builds of
+                        RemoteData.Success builds ->
+                            List.Extra.find (\b -> b.number == Maybe.withDefault 0 (String.toInt route.params.build)) builds
+                                |> Maybe.map (\b -> b.finished == 0)
+                                |> Maybe.withDefault False
+
+                        _ ->
+                            False
+
+                runEffect =
+                    if shouldRefresh then
+                        Effect.getBuildSteps
+                            { baseUrl = shared.velaAPIBaseURL
+                            , session = shared.session
+                            , onResponse = GetBuildStepsRefreshResponse
+                            , pageNumber = Nothing
+                            , perPage = Just 100
+                            , org = route.params.org
+                            , repo = route.params.repo
+                            , build = route.params.build
+                            }
+
+                    else
+                        Effect.none
+            in
             ( model
-            , Effect.getBuildSteps
-                { baseUrl = shared.velaAPIBaseURL
-                , session = shared.session
-                , onResponse = GetBuildStepsRefreshResponse
-                , pageNumber = Nothing
-                , perPage = Just 100
-                , org = route.params.org
-                , repo = route.params.repo
-                , build = route.params.build
-                }
+            , runEffect
             )
 
 

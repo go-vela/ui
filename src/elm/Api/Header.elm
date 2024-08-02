@@ -3,9 +3,10 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Api.Header exposing (get)
+module Api.Header exposing (get, userAgent, userAgentString)
 
 import Dict exposing (Dict)
+import Http
 
 
 {-| get : looks for the specified header key and returns the value.
@@ -25,3 +26,20 @@ get key headers =
                 |> Dict.fromList
     in
     Dict.get key_ headers_
+
+
+{-| userAgentString is the default User-Agent header value for the UI.
+
+TODO: pass this in via flags/config.
+
+-}
+userAgentString : String
+userAgentString =
+    "vela/ui"
+
+
+{-| userAgent creates a User-Agent header with the specified value.
+-}
+userAgent : String -> Http.Header
+userAgent value =
+    Http.header "user-agent" value
