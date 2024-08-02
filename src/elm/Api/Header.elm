@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Api.Header exposing (get, velaVersionHeader)
+module Api.Header exposing (get)
 
 import Dict exposing (Dict)
 import Http
@@ -26,13 +26,3 @@ get key headers =
                 |> Dict.fromList
     in
     Dict.get key_ headers_
-
-
-{-| velaVersionHeader creates a User-Agent header with the specified value.
-
-TODO: allow this to be controlled via flags/config
-
--}
-velaVersionHeader : Http.Header
-velaVersionHeader =
-    Http.header "x-vela-ui-version" "vela/ui"
