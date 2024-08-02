@@ -148,16 +148,25 @@ update props route msg model =
 
         -- REFRESH
         Tick options ->
+            let
+                shouldRefreshHooks =
+                    route.path /= Route.Path.Org__Repo__Hooks { org = props.org, repo = props.repo }
+
+                runEffect =
+                    if shouldRefreshHooks then
+                        Effect.getRepoHooksShared
+                            { pageNumber = Nothing
+                            , perPage = Nothing
+                            , maybeEvent = Nothing
+                            , org = props.org
+                            , repo = props.repo
+                            }
+
+                    else
+                        Effect.none
+            in
             ( model
-            , Effect.batch
-                [ Effect.getRepoHooksShared
-                    { pageNumber = Nothing
-                    , perPage = Nothing
-                    , maybeEvent = Nothing
-                    , org = props.org
-                    , repo = props.repo
-                    }
-                ]
+            , runEffect
             )
 
 
