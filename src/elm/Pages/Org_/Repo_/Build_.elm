@@ -548,18 +548,16 @@ update shared route msg model =
         -- REFRESH
         Tick options ->
             let
-                shouldRefresh =
-                    case shared.builds of
-                        RemoteData.Success builds ->
-                            List.Extra.find (\b -> b.number == Maybe.withDefault 0 (String.toInt route.params.build)) builds
-                                |> Maybe.map (\b -> b.finished == 0)
-                                |> Maybe.withDefault False
+                isAnyStepActive =
+                    case model.steps of
+                        RemoteData.Success steps ->
+                            List.any (\s -> s.finished == 0) steps
 
                         _ ->
                             False
 
                 runEffect =
-                    if shouldRefresh then
+                    if isAnyStepActive then
                         Effect.getBuildSteps
                             { baseUrl = shared.velaAPIBaseURL
                             , session = shared.session
