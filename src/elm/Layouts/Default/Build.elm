@@ -329,7 +329,7 @@ update props shared route msg model =
         -- REFRESH
         Tick options ->
             let
-                shouldRefresh =
+                isBuildRunning =
                     case model.build of
                         RemoteData.Success build ->
                             build.finished == 0
@@ -337,15 +337,18 @@ update props shared route msg model =
                         _ ->
                             True
 
+                getRepoBuildsEffect =
+                    Effect.getRepoBuildsShared
+                        { pageNumber = Nothing
+                        , perPage = Nothing
+                        , maybeEvent = Nothing
+                        , org = props.org
+                        , repo = props.repo
+                        }
+
                 runEffects =
-                    if shouldRefresh then
-                        [ Effect.getRepoBuildsShared
-                            { pageNumber = Nothing
-                            , perPage = Nothing
-                            , maybeEvent = Nothing
-                            , org = props.org
-                            , repo = props.repo
-                            }
+                    if isBuildRunning then
+                        [ getRepoBuildsEffect
                         , Effect.getBuild
                             { baseUrl = shared.velaAPIBaseURL
                             , session = shared.session
@@ -357,14 +360,7 @@ update props shared route msg model =
                         ]
 
                     else
-                        [ Effect.getRepoBuildsShared
-                            { pageNumber = Nothing
-                            , perPage = Nothing
-                            , maybeEvent = Nothing
-                            , org = props.org
-                            , repo = props.repo
-                            }
-                        ]
+                        [ getRepoBuildsEffect ]
             in
             ( model
             , Effect.batch runEffects
