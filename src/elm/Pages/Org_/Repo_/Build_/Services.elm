@@ -538,26 +538,16 @@ update shared route msg model =
         -- REFRESH
         Tick options ->
             let
-                shouldRefresh =
-                    case shared.builds of
-                        RemoteData.Success builds ->
-                            List.Extra.find (\b -> b.number == Maybe.withDefault 0 (String.toInt route.params.build)) builds
-                                |> Maybe.map (\b -> b.finished == 0)
-                                |> Maybe.withDefault False
-
-                        _ ->
-                            False
-
-                hasServices =
+                isAnyServiceRunning =
                     case model.services of
                         RemoteData.Success services ->
-                            List.length services > 0
+                            List.any (\s -> s.status == Vela.Running) services
 
                         _ ->
                             False
 
                 runEffect =
-                    if shouldRefresh && hasServices then
+                    if isAnyServiceRunning then
                         Effect.getBuildServices
                             { baseUrl = shared.velaAPIBaseURL
                             , session = shared.session
