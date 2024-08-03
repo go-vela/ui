@@ -548,7 +548,7 @@ update shared route msg model =
         -- REFRESH
         Tick options ->
             let
-                isAnyStepActive =
+                isAnyStepRunning =
                     case model.steps of
                         RemoteData.Success steps ->
                             List.any (\s -> s.finished == 0) steps
@@ -557,7 +557,7 @@ update shared route msg model =
                             False
 
                 runEffect =
-                    if isAnyStepActive then
+                    if isAnyStepRunning then
                         Effect.getBuildSteps
                             { baseUrl = shared.velaAPIBaseURL
                             , session = shared.session
