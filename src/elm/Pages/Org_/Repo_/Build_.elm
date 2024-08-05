@@ -545,12 +545,10 @@ update shared route msg model =
         -- REFRESH
         Tick options ->
             ( model
-            , Effect.getBuildSteps
+            , Effect.getAllBuildSteps
                 { baseUrl = shared.velaAPIBaseURL
                 , session = shared.session
                 , onResponse = GetBuildStepsRefreshResponse
-                , pageNumber = Nothing
-                , perPage = Just 100
                 , org = route.params.org
                 , repo = route.params.repo
                 , build = route.params.build
