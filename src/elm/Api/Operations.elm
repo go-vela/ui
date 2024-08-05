@@ -20,6 +20,7 @@ module Api.Operations exposing
     , enableRepo
     , expandPipelineConfig
     , finishAuthentication
+    , getAllBuildSteps
     , getBuild
     , getBuildGraph
     , getBuildServiceLog
@@ -678,6 +679,31 @@ getBuildSteps baseUrl session options =
             options.build
         )
         Vela.decodeSteps
+        |> withAuth session
+
+
+{-| getAllBuildSteps : retrieves all steps for a build.
+-}
+getAllBuildSteps :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , build : String
+        }
+    -> Request Vela.Step
+getAllBuildSteps baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.Steps
+            (Just 1)
+            (Just 100)
+            options.org
+            options.repo
+            options.build
+        )
+        Vela.decodeStep
         |> withAuth session
 
 

@@ -77,6 +77,7 @@ module Vela exposing
     , decodeServices
     , decodeSettings
     , decodeSourceRepositories
+    , decodeStep
     , decodeSteps
     , decodeUser
     , decodeWorkers
