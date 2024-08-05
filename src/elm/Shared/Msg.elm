@@ -59,6 +59,7 @@ type Msg
       -- HOOKS
     | GetRepoHooks { org : String, repo : String, pageNumber : Maybe Int, perPage : Maybe Int, maybeEvent : Maybe String }
     | GetRepoHooksResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Hook ))
+    | UpdateRepoHooks { hooks : WebData (List Vela.Hook) }
       -- THEME
     | SetTheme { theme : Theme.Theme }
       -- ALERTS

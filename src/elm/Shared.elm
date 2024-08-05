@@ -612,6 +612,11 @@ update route msg model =
                         }
                     )
 
+        Shared.Msg.UpdateRepoHooks options ->
+            ( { model | hooks = options.hooks }
+            , Effect.none
+            )
+
         -- THEME
         Shared.Msg.SetTheme options ->
             if options.theme == model.theme then
