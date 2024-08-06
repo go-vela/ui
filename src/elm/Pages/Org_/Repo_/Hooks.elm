@@ -157,6 +157,7 @@ type Msg
 -}
 update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
+    -- persist any hooks updates to the shared model
     (\( m, e ) ->
         ( m, Effect.batch [ e, Effect.updateRepoHooksShared { hooks = m.hooks } ] )
     )
