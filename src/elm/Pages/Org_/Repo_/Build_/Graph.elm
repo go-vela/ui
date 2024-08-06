@@ -239,7 +239,7 @@ update shared route msg model =
 
         Refresh options ->
             let
-                shouldRefresh =
+                isBuildRunning =
                     case shared.builds of
                         RemoteData.Success builds ->
                             List.Extra.find (\b -> b.number == Maybe.withDefault 0 (String.toInt route.params.build)) builds
@@ -250,7 +250,7 @@ update shared route msg model =
                             False
 
                 runEffect =
-                    if shouldRefresh then
+                    if isBuildRunning then
                         Effect.getBuildGraph
                             { baseUrl = shared.velaAPIBaseURL
                             , session = shared.session
