@@ -667,21 +667,24 @@ update route msg model =
             let
                 ( shared, redirect ) =
                     case options.error of
-                        -- todo: maybe we pass in a status code we want to ignore
-                        --   so secrets can skip this alert for 401s
-                        --
-                        -- Http.Detailed.BadStatus meta _ ->
-                        --     case meta.statusCode of
-                        --         -- todo: FIX THIS! secrets can easily return a 401 for normal reasons
-                        --         401 ->
-                        --             ( { model
-                        --                 | session = Auth.Session.Unauthenticated
-                        --                 , velaRedirect = "/"
-                        --               }
-                        --                      , Effect.replacePath <| Route.Path.Account_Login
-                        --             )
-                        --         _ ->
-                        --             ( model, Effect.none )
+                        -- only handles token expiration on 401s
+                        -- TODO: handle 401s for access restriction reasons
+                        Http.Detailed.BadStatus meta body ->
+                            let
+                                isTokenExpired =
+                                    String.contains "token is expired" body
+                            in
+                            if meta.statusCode == 401 && isTokenExpired then
+                                ( { model
+                                    | session = Auth.Session.Unauthenticated
+                                    , velaRedirect = Route.Path.toString route.path
+                                  }
+                                , Effect.replacePath <| Route.Path.Account_Login
+                                )
+
+                            else
+                                ( model, Effect.none )
+
                         _ ->
                             ( model, Effect.none )
             in
