@@ -322,6 +322,12 @@ update shared route msg model =
                     ( { model | steps = RemoteData.succeed <| List.sortBy .number steps }
                     , steps
                         |> List.filter (\step -> List.member step.number model.viewing)
+                        -- note: it's possible that there are log updates in flight
+                        -- even after the step has a status of finished, especially
+                        -- for large logs. we get the most recent version of logs
+                        -- on page load or when a step log is expanded, so potentially
+                        -- seeing incomplete logs here is only a concern when someone
+                        -- is following the logs live.
                         |> List.filter (\step -> step.finished == 0)
                         |> List.map
                             (\step ->
