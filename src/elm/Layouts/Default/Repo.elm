@@ -149,11 +149,13 @@ update props route msg model =
         -- REFRESH
         Tick options ->
             let
-                shouldRefreshHooks =
+                -- the hooks page has its own refresh call for hooks;
+                -- this is to prevent double calls
+                isNotOnHooksPage =
                     route.path /= Route.Path.Org__Repo__Hooks { org = props.org, repo = props.repo }
 
                 runEffect =
-                    if shouldRefreshHooks then
+                    if isNotOnHooksPage then
                         Effect.getRepoHooksShared
                             { pageNumber = Nothing
                             , perPage = Nothing
