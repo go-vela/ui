@@ -487,7 +487,7 @@ update shared route msg model =
 
                 -- hash will change when no line is selected and the selected group changes
                 -- this means expansion msg will double up on fetching logs unless instructed not to
-                willHashChange =
+                willFocusChange =
                     case ( model.focus.group, model.focus.a, model.focus.b ) of
                         ( Just g, Nothing, _ ) ->
                             g /= options.step.number
@@ -504,7 +504,7 @@ update shared route msg model =
                 -- triggered by a click that will change the hash
                 -- the focus changes and the logs are not loaded
                 fetchLogs =
-                    not (options.triggeredFromClick && willHashChange)
+                    not (options.triggeredFromClick && willFocusChange)
                         && ((didFocusChange && not isLogLoaded) || not isFromHashChanged)
 
                 getLogEffect =
