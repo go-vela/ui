@@ -195,12 +195,10 @@ init shared route () =
       , logFollow = 0
       }
     , Effect.batch
-        [ Effect.getBuildServices
+        [ Effect.getAllBuildServices
             { baseUrl = shared.velaAPIBaseURL
             , session = shared.session
             , onResponse = GetBuildServicesResponse
-            , pageNumber = Nothing
-            , perPage = Just 100
             , org = route.params.org
             , repo = route.params.repo
             , build = route.params.build
@@ -617,12 +615,10 @@ update shared route msg model =
 
                 runEffect =
                     if isAnyServiceRunning then
-                        Effect.getBuildServices
+                        Effect.getAllBuildServices
                             { baseUrl = shared.velaAPIBaseURL
                             , session = shared.session
                             , onResponse = GetBuildServicesRefreshResponse
-                            , pageNumber = Nothing
-                            , perPage = Just 100
                             , org = route.params.org
                             , repo = route.params.repo
                             , build = route.params.build

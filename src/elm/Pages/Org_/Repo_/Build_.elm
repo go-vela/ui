@@ -195,7 +195,7 @@ init shared route () =
       , logFollow = 0
       }
     , Effect.batch
-        [ Effect.getBuildSteps
+        [ Effect.getAllBuildSteps
             { baseUrl = shared.velaAPIBaseURL
             , session = shared.session
             , onResponse =
@@ -206,8 +206,6 @@ init shared route () =
                             |> Maybe.withDefault "false"
                             |> (==) "false"
                     }
-            , pageNumber = Nothing
-            , perPage = Just 100
             , org = route.params.org
             , repo = route.params.repo
             , build = route.params.build
@@ -625,12 +623,10 @@ update shared route msg model =
 
                 runEffect =
                     if isAnyStepRunning then
-                        Effect.getBuildSteps
+                        Effect.getAllBuildSteps
                             { baseUrl = shared.velaAPIBaseURL
                             , session = shared.session
                             , onResponse = GetBuildStepsRefreshResponse
-                            , pageNumber = Nothing
-                            , perPage = Just 100
                             , org = route.params.org
                             , repo = route.params.repo
                             , build = route.params.build
