@@ -235,7 +235,7 @@ type Msg
     | GetBuildStepLogResponse { step : Vela.Step, applyDomFocus : Bool, previousFocus : Maybe Focus.Focus } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Log ))
     | GetBuildStepLogRefreshResponse { step : Vela.Step } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Log ))
     | ClickStep { step : Vela.Step }
-    | ExpandStep { step : Vela.Step, applyDomFocus : Bool, previousFocus : Maybe Focus.Focus }
+    | ExpandStep { step : Vela.Step, applyDomFocus : Bool, previousFocus : Maybe Focus.Focus, fetchLog : Bool }
     | CollapseStep { step : Vela.Step }
     | ExpandAll
     | CollapseAll
@@ -265,7 +265,7 @@ update shared route msg model =
               }
             , RemoteData.withDefault [] model.steps
                 |> List.filter (\s -> Maybe.withDefault -1 focus.group == s.number)
-                |> List.map (\s -> ExpandStep { step = s, applyDomFocus = True, previousFocus = Just model.focus })
+                |> List.map (\s -> ExpandStep { step = s, applyDomFocus = True, previousFocus = Just model.focus, fetchLog = True })
                 |> List.map Effect.sendMsg
                 |> Effect.batch
             )
@@ -302,6 +302,7 @@ update shared route msg model =
                                     { step = step
                                     , applyDomFocus = options.applyDomFocus
                                     , previousFocus = Nothing
+                                    , fetchLog = True
                                     }
                                     |> Effect.sendMsg
                             )
@@ -439,7 +440,7 @@ update shared route msg model =
 
               else
                 Effect.batch
-                    [ ExpandStep { step = options.step, applyDomFocus = False, previousFocus = Nothing }
+                    [ ExpandStep { step = options.step, applyDomFocus = False, previousFocus = Nothing, fetchLog = False }
                         |> Effect.sendMsg
                     , case model.focus.a of
                         Nothing ->
@@ -459,25 +460,24 @@ update shared route msg model =
             )
 
         ExpandStep options ->
-            ( { model
-                | viewing = List.Extra.unique <| options.step.number :: model.viewing
-              }
-            , Effect.batch
-                [ Effect.getBuildStepLog
-                    { baseUrl = shared.velaAPIBaseURL
-                    , session = shared.session
-                    , onResponse =
-                        GetBuildStepLogResponse
-                            { step = options.step
-                            , applyDomFocus = options.applyDomFocus
-                            , previousFocus = options.previousFocus
-                            }
-                    , org = route.params.org
-                    , repo = route.params.repo
-                    , build = route.params.build
-                    , stepNumber = String.fromInt options.step.number
-                    }
-                , if options.applyDomFocus then
+            let
+                getBuildStepLogEffect =
+                    Effect.getBuildStepLog
+                        { baseUrl = shared.velaAPIBaseURL
+                        , session = shared.session
+                        , onResponse =
+                            GetBuildStepLogResponse
+                                { step = options.step
+                                , applyDomFocus = options.applyDomFocus
+                                , previousFocus = options.previousFocus
+                                }
+                        , org = route.params.org
+                        , repo = route.params.repo
+                        , build = route.params.build
+                        , stepNumber = String.fromInt options.step.number
+                        }
+
+                applyDomFocusEffect =
                     case ( model.focus.group, model.focus.a, model.focus.b ) of
                         ( Just g, Nothing, Nothing ) ->
                             FocusOn
@@ -493,9 +493,23 @@ update shared route msg model =
                         _ ->
                             Effect.none
 
-                  else
-                    Effect.none
-                ]
+                runEffects =
+                    [ if options.fetchLog then
+                        getBuildStepLogEffect
+
+                      else
+                        Effect.none
+                    , if options.applyDomFocus then
+                        applyDomFocusEffect
+
+                      else
+                        Effect.none
+                    ]
+            in
+            ( { model
+                | viewing = List.Extra.unique <| options.step.number :: model.viewing
+              }
+            , Effect.batch runEffects
             )
 
         CollapseStep options ->
@@ -525,6 +539,7 @@ update shared route msg model =
                             { step = step
                             , applyDomFocus = False
                             , previousFocus = Nothing
+                            , fetchLog = True
                             }
                     )
                 |> List.map Effect.sendMsg

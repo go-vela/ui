@@ -227,7 +227,7 @@ type Msg
     | GetBuildServiceLogResponse { service : Vela.Service, applyDomFocus : Bool, previousFocus : Maybe Focus.Focus } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Log ))
     | GetBuildServiceLogRefreshResponse { service : Vela.Service } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Log ))
     | ClickService { service : Vela.Service }
-    | ExpandService { service : Vela.Service, applyDomFocus : Bool, previousFocus : Maybe Focus.Focus }
+    | ExpandService { service : Vela.Service, applyDomFocus : Bool, previousFocus : Maybe Focus.Focus, fetchLog : Bool }
     | CollapseService { service : Vela.Service }
     | ExpandAll
     | CollapseAll
@@ -257,7 +257,7 @@ update shared route msg model =
               }
             , RemoteData.withDefault [] model.services
                 |> List.filter (\s -> Maybe.withDefault -1 focus.group == s.number)
-                |> List.map (\s -> ExpandService { service = s, applyDomFocus = True, previousFocus = Just model.focus })
+                |> List.map (\s -> ExpandService { service = s, applyDomFocus = True, previousFocus = Just model.focus, fetchLog = True })
                 |> List.map Effect.sendMsg
                 |> Effect.batch
             )
@@ -293,6 +293,7 @@ update shared route msg model =
                                     { service = service
                                     , applyDomFocus = True
                                     , previousFocus = Nothing
+                                    , fetchLog = False
                                     }
                                     |> Effect.sendMsg
                             )
@@ -430,7 +431,7 @@ update shared route msg model =
 
               else
                 Effect.batch
-                    [ ExpandService { service = options.service, applyDomFocus = False, previousFocus = Nothing }
+                    [ ExpandService { service = options.service, applyDomFocus = False, previousFocus = Nothing, fetchLog = False }
                         |> Effect.sendMsg
                     , case model.focus.a of
                         Nothing ->
@@ -450,25 +451,24 @@ update shared route msg model =
             )
 
         ExpandService options ->
-            ( { model
-                | viewing = List.Extra.unique <| options.service.number :: model.viewing
-              }
-            , Effect.batch
-                [ Effect.getBuildServiceLog
-                    { baseUrl = shared.velaAPIBaseURL
-                    , session = shared.session
-                    , onResponse =
-                        GetBuildServiceLogResponse
-                            { service = options.service
-                            , applyDomFocus = options.applyDomFocus
-                            , previousFocus = options.previousFocus
-                            }
-                    , org = route.params.org
-                    , repo = route.params.repo
-                    , build = route.params.build
-                    , serviceNumber = String.fromInt options.service.number
-                    }
-                , if options.applyDomFocus then
+            let
+                getBuildServiceLogEffect =
+                    Effect.getBuildServiceLog
+                        { baseUrl = shared.velaAPIBaseURL
+                        , session = shared.session
+                        , onResponse =
+                            GetBuildServiceLogResponse
+                                { service = options.service
+                                , applyDomFocus = options.applyDomFocus
+                                , previousFocus = options.previousFocus
+                                }
+                        , org = route.params.org
+                        , repo = route.params.repo
+                        , build = route.params.build
+                        , serviceNumber = String.fromInt options.service.number
+                        }
+
+                applyDomFocusEffect =
                     case ( model.focus.group, model.focus.a, model.focus.b ) of
                         ( Just g, Nothing, Nothing ) ->
                             FocusOn
@@ -484,9 +484,23 @@ update shared route msg model =
                         _ ->
                             Effect.none
 
-                  else
-                    Effect.none
-                ]
+                runEffects =
+                    [ if options.fetchLog then
+                        getBuildServiceLogEffect
+
+                      else
+                        Effect.none
+                    , if options.applyDomFocus then
+                        applyDomFocusEffect
+
+                      else
+                        Effect.none
+                    ]
+            in
+            ( { model
+                | viewing = List.Extra.unique <| options.service.number :: model.viewing
+              }
+            , Effect.batch runEffects
             )
 
         CollapseService options ->
@@ -516,6 +530,7 @@ update shared route msg model =
                             { service = service
                             , applyDomFocus = False
                             , previousFocus = Nothing
+                            , fetchLog = True
                             }
                     )
                 |> List.map Effect.sendMsg
