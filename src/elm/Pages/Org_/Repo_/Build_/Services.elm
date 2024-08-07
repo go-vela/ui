@@ -227,7 +227,7 @@ type Msg
     | GetBuildServiceLogResponse { service : Vela.Service, applyDomFocus : Bool, previousFocus : Maybe Focus.Focus } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Log ))
     | GetBuildServiceLogRefreshResponse { service : Vela.Service } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Log ))
     | ClickService { service : Vela.Service }
-    | ExpandService { service : Vela.Service, applyDomFocus : Bool, previousFocus : Maybe Focus.Focus }
+    | ExpandService { service : Vela.Service, applyDomFocus : Bool, previousFocus : Maybe Focus.Focus, triggeredFromClick : Bool }
     | CollapseService { service : Vela.Service }
     | ExpandAll
     | CollapseAll
@@ -257,7 +257,15 @@ update shared route msg model =
               }
             , RemoteData.withDefault [] model.services
                 |> List.filter (\s -> Maybe.withDefault -1 focus.group == s.number)
-                |> List.map (\s -> ExpandService { service = s, applyDomFocus = True, previousFocus = Just model.focus })
+                |> List.map
+                    (\s ->
+                        ExpandService
+                            { service = s
+                            , applyDomFocus = True
+                            , previousFocus = Just model.focus
+                            , triggeredFromClick = False
+                            }
+                    )
                 |> List.map Effect.sendMsg
                 |> Effect.batch
             )
@@ -293,6 +301,7 @@ update shared route msg model =
                                     { service = service
                                     , applyDomFocus = True
                                     , previousFocus = Nothing
+                                    , triggeredFromClick = False
                                     }
                                     |> Effect.sendMsg
                             )
@@ -430,7 +439,12 @@ update shared route msg model =
 
               else
                 Effect.batch
-                    [ ExpandService { service = options.service, applyDomFocus = False, previousFocus = Nothing }
+                    [ ExpandService
+                        { service = options.service
+                        , applyDomFocus = False
+                        , previousFocus = Nothing
+                        , triggeredFromClick = True
+                        }
                         |> Effect.sendMsg
                     , case model.focus.a of
                         Nothing ->
@@ -451,18 +465,38 @@ update shared route msg model =
 
         ExpandService options ->
             let
-                ( isFromHashChanged, didFocusChange ) =
+                isFromHashChanged =
+                    options.previousFocus /= Nothing
+
+                didFocusChange =
                     case options.previousFocus of
                         Just f ->
-                            ( True, f.group /= model.focus.group )
+                            f.group /= model.focus.group
 
                         Nothing ->
-                            ( False, False )
+                            False
+
+                -- hash will change when no line is selected and the selected group changes
+                -- this means the expansion msg will double up on fetching logs unless instructed not to
+                willHashChange =
+                    case ( model.focus.group, model.focus.a, model.focus.b ) of
+                        ( Just g, Nothing, _ ) ->
+                            g /= options.service.number
+
+                        _ ->
+                            False
 
                 isLogLoaded =
                     Dict.get options.service.id model.logs
                         |> Maybe.withDefault RemoteData.Loading
                         |> Util.isLoaded
+
+                -- fetch logs when expansion msg meets the criteria:
+                -- triggered by a click that will change the hash
+                -- the focus changes and the logs are not loaded
+                fetchLogs =
+                    not (options.triggeredFromClick && willHashChange)
+                        && ((didFocusChange && not isLogLoaded) || not isFromHashChanged)
 
                 getLogEffect =
                     Effect.getBuildServiceLog
@@ -497,9 +531,7 @@ update shared route msg model =
                             Effect.none
 
                 runEffects =
-                    [ -- fetch logs when the resource is expanded via header click
-                      -- OR when the hash changes and the requested log is not loaded
-                      if (didFocusChange && not isLogLoaded) || not isFromHashChanged then
+                    [ if fetchLogs then
                         getLogEffect
 
                       else
@@ -545,6 +577,7 @@ update shared route msg model =
                             { service = service
                             , applyDomFocus = False
                             , previousFocus = Nothing
+                            , triggeredFromClick = False
                             }
                     )
                 |> List.map Effect.sendMsg

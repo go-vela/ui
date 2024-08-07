@@ -235,7 +235,7 @@ type Msg
     | GetBuildStepLogResponse { step : Vela.Step, applyDomFocus : Bool, previousFocus : Maybe Focus.Focus } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Log ))
     | GetBuildStepLogRefreshResponse { step : Vela.Step } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Log ))
     | ClickStep { step : Vela.Step }
-    | ExpandStep { step : Vela.Step, applyDomFocus : Bool, previousFocus : Maybe Focus.Focus }
+    | ExpandStep { step : Vela.Step, applyDomFocus : Bool, previousFocus : Maybe Focus.Focus, triggeredFromClick : Bool }
     | CollapseStep { step : Vela.Step }
     | ExpandAll
     | CollapseAll
@@ -265,7 +265,15 @@ update shared route msg model =
               }
             , RemoteData.withDefault [] model.steps
                 |> List.filter (\s -> Maybe.withDefault -1 focus.group == s.number)
-                |> List.map (\s -> ExpandStep { step = s, applyDomFocus = True, previousFocus = Just model.focus })
+                |> List.map
+                    (\s ->
+                        ExpandStep
+                            { step = s
+                            , applyDomFocus = True
+                            , previousFocus = Just model.focus
+                            , triggeredFromClick = False
+                            }
+                    )
                 |> List.map Effect.sendMsg
                 |> Effect.batch
             )
@@ -302,6 +310,7 @@ update shared route msg model =
                                     { step = step
                                     , applyDomFocus = options.applyDomFocus
                                     , previousFocus = Nothing
+                                    , triggeredFromClick = False
                                     }
                                     |> Effect.sendMsg
                             )
@@ -439,7 +448,12 @@ update shared route msg model =
 
               else
                 Effect.batch
-                    [ ExpandStep { step = options.step, applyDomFocus = False, previousFocus = Nothing }
+                    [ ExpandStep
+                        { step = options.step
+                        , applyDomFocus = False
+                        , previousFocus = Nothing
+                        , triggeredFromClick = True
+                        }
                         |> Effect.sendMsg
                     , case model.focus.a of
                         Nothing ->
@@ -460,18 +474,38 @@ update shared route msg model =
 
         ExpandStep options ->
             let
-                ( isFromHashChanged, didFocusChange ) =
+                isFromHashChanged =
+                    options.previousFocus /= Nothing
+
+                didFocusChange =
                     case options.previousFocus of
                         Just f ->
-                            ( True, f.group /= model.focus.group )
+                            f.group /= model.focus.group
 
                         Nothing ->
-                            ( False, False )
+                            False
+
+                -- hash will change when no line is selected and the selected group changes
+                -- this means expansion msg will double up on fetching logs unless instructed not to
+                willHashChange =
+                    case ( model.focus.group, model.focus.a, model.focus.b ) of
+                        ( Just g, Nothing, _ ) ->
+                            g /= options.step.number
+
+                        _ ->
+                            False
 
                 isLogLoaded =
                     Dict.get options.step.id model.logs
                         |> Maybe.withDefault RemoteData.Loading
                         |> Util.isLoaded
+
+                -- fetch logs when expansion msg meets the criteria:
+                -- triggered by a click that will change the hash
+                -- the focus changes and the logs are not loaded
+                fetchLogs =
+                    not (options.triggeredFromClick && willHashChange)
+                        && ((didFocusChange && not isLogLoaded) || not isFromHashChanged)
 
                 getLogEffect =
                     Effect.getBuildStepLog
@@ -506,9 +540,7 @@ update shared route msg model =
                             Effect.none
 
                 runEffects =
-                    [ -- fetch logs when the resource is expanded via header click
-                      -- OR when the hash changes and the requested log is not loaded
-                      if (didFocusChange && not isLogLoaded) || not isFromHashChanged then
+                    [ if fetchLogs then
                         getLogEffect
 
                       else
@@ -553,6 +585,7 @@ update shared route msg model =
                             { step = step
                             , applyDomFocus = False
                             , previousFocus = Nothing
+                            , triggeredFromClick = False
                             }
                     )
                 |> List.map Effect.sendMsg
