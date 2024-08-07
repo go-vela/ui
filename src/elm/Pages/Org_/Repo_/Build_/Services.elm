@@ -257,7 +257,18 @@ update shared route msg model =
               }
             , RemoteData.withDefault [] model.services
                 |> List.filter (\s -> Maybe.withDefault -1 focus.group == s.number)
-                |> List.map (\s -> ExpandService { service = s, applyDomFocus = True, previousFocus = Just model.focus, fetchLog = model.focus /= focus })
+                |> List.map
+                    (\s ->
+                        ExpandService
+                            { service = s
+                            , applyDomFocus = True
+                            , previousFocus = Just model.focus
+
+                            -- prevent double fetching logs when hash changed but the group is the same
+                            -- ex, #2:1 -> #2:2
+                            , fetchLog = model.focus /= focus
+                            }
+                    )
                 |> List.map Effect.sendMsg
                 |> Effect.batch
             )
@@ -293,6 +304,8 @@ update shared route msg model =
                                     { service = service
                                     , applyDomFocus = True
                                     , previousFocus = Nothing
+
+                                    -- no reason to fetch logs in this scenario
                                     , fetchLog = False
                                     }
                                     |> Effect.sendMsg
@@ -431,7 +444,14 @@ update shared route msg model =
 
               else
                 Effect.batch
-                    [ ExpandService { service = options.service, applyDomFocus = False, previousFocus = Nothing, fetchLog = model.focus.group == Just options.service.number }
+                    [ ExpandService
+                        { service = options.service
+                        , applyDomFocus = False
+                        , previousFocus = Nothing
+
+                        -- OnHashChanged handles fetching logs when the focus has changed
+                        , fetchLog = model.focus.group == Just options.service.number
+                        }
                         |> Effect.sendMsg
                     , case model.focus.a of
                         Nothing ->
@@ -530,6 +550,8 @@ update shared route msg model =
                             { service = service
                             , applyDomFocus = False
                             , previousFocus = Nothing
+
+                            -- OnHashChanged will not fetch logs in this scenario
                             , fetchLog = True
                             }
                     )
