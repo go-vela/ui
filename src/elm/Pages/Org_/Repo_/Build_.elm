@@ -460,16 +460,13 @@ update shared route msg model =
 
         ExpandStep options ->
             let
-                isFromHashChanged =
-                    options.previousFocus /= Nothing
-
-                focusChanged =
+                ( isFromHashChanged, didFocusChange ) =
                     case options.previousFocus of
                         Just f ->
-                            f.group /= model.focus.group
+                            ( True, f.group /= model.focus.group )
 
                         Nothing ->
-                            False
+                            ( False, False )
 
                 isLogLoaded =
                     Dict.get options.step.id model.logs
@@ -511,7 +508,7 @@ update shared route msg model =
                 runEffects =
                     [ -- fetch logs when the resource is expanded via header click
                       -- OR when the hash changes and the requested log is not loaded
-                      if (focusChanged && not isLogLoaded) || not isFromHashChanged then
+                      if (didFocusChange && not isLogLoaded) || not isFromHashChanged then
                         getLogEffect
 
                       else
