@@ -459,25 +459,40 @@ update shared route msg model =
             )
 
         ExpandStep options ->
-            ( { model
-                | viewing = List.Extra.unique <| options.step.number :: model.viewing
-              }
-            , Effect.batch
-                [ Effect.getBuildStepLog
-                    { baseUrl = shared.velaAPIBaseURL
-                    , session = shared.session
-                    , onResponse =
-                        GetBuildStepLogResponse
-                            { step = options.step
-                            , applyDomFocus = options.applyDomFocus
-                            , previousFocus = options.previousFocus
-                            }
-                    , org = route.params.org
-                    , repo = route.params.repo
-                    , build = route.params.build
-                    , stepNumber = String.fromInt options.step.number
-                    }
-                , if options.applyDomFocus then
+            let
+                isFromHashChanged =
+                    options.previousFocus /= Nothing
+
+                focusChanged =
+                    case options.previousFocus of
+                        Just f ->
+                            f.group /= model.focus.group
+
+                        Nothing ->
+                            False
+
+                isLogLoaded =
+                    Dict.get options.step.id model.logs
+                        |> Maybe.withDefault RemoteData.Loading
+                        |> Util.isLoaded
+
+                getLogEffect =
+                    Effect.getBuildStepLog
+                        { baseUrl = shared.velaAPIBaseURL
+                        , session = shared.session
+                        , onResponse =
+                            GetBuildStepLogResponse
+                                { step = options.step
+                                , applyDomFocus = options.applyDomFocus
+                                , previousFocus = options.previousFocus
+                                }
+                        , org = route.params.org
+                        , repo = route.params.repo
+                        , build = route.params.build
+                        , stepNumber = String.fromInt options.step.number
+                        }
+
+                applyDomFocusEffect =
                     case ( model.focus.group, model.focus.a, model.focus.b ) of
                         ( Just g, Nothing, Nothing ) ->
                             FocusOn
@@ -493,9 +508,25 @@ update shared route msg model =
                         _ ->
                             Effect.none
 
-                  else
-                    Effect.none
-                ]
+                runEffects =
+                    [ -- fetch logs when the resource is expanded via header click
+                      -- OR when the hash changes and the requested log is not loaded
+                      if (focusChanged && not isLogLoaded) || not isFromHashChanged then
+                        getLogEffect
+
+                      else
+                        Effect.none
+                    , if options.applyDomFocus then
+                        applyDomFocusEffect
+
+                      else
+                        Effect.none
+                    ]
+            in
+            ( { model
+                | viewing = List.Extra.unique <| options.step.number :: model.viewing
+              }
+            , Effect.batch runEffects
             )
 
         CollapseStep options ->

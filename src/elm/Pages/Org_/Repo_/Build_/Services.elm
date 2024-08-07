@@ -450,25 +450,40 @@ update shared route msg model =
             )
 
         ExpandService options ->
-            ( { model
-                | viewing = List.Extra.unique <| options.service.number :: model.viewing
-              }
-            , Effect.batch
-                [ Effect.getBuildServiceLog
-                    { baseUrl = shared.velaAPIBaseURL
-                    , session = shared.session
-                    , onResponse =
-                        GetBuildServiceLogResponse
-                            { service = options.service
-                            , applyDomFocus = options.applyDomFocus
-                            , previousFocus = options.previousFocus
-                            }
-                    , org = route.params.org
-                    , repo = route.params.repo
-                    , build = route.params.build
-                    , serviceNumber = String.fromInt options.service.number
-                    }
-                , if options.applyDomFocus then
+            let
+                isFromHashChanged =
+                    options.previousFocus /= Nothing
+
+                focusChanged =
+                    case options.previousFocus of
+                        Just f ->
+                            f.group /= model.focus.group
+
+                        Nothing ->
+                            False
+
+                isLogLoaded =
+                    Dict.get options.service.id model.logs
+                        |> Maybe.withDefault RemoteData.Loading
+                        |> Util.isLoaded
+
+                getLogEffect =
+                    Effect.getBuildServiceLog
+                        { baseUrl = shared.velaAPIBaseURL
+                        , session = shared.session
+                        , onResponse =
+                            GetBuildServiceLogResponse
+                                { service = options.service
+                                , applyDomFocus = options.applyDomFocus
+                                , previousFocus = options.previousFocus
+                                }
+                        , org = route.params.org
+                        , repo = route.params.repo
+                        , build = route.params.build
+                        , serviceNumber = String.fromInt options.service.number
+                        }
+
+                applyDomFocusEffect =
                     case ( model.focus.group, model.focus.a, model.focus.b ) of
                         ( Just g, Nothing, Nothing ) ->
                             FocusOn
@@ -484,9 +499,26 @@ update shared route msg model =
                         _ ->
                             Effect.none
 
-                  else
-                    Effect.none
-                ]
+                runEffects =
+                    [ -- fetch logs when the resource is expanded via header click
+                      -- OR when the hash changes and the requested log is not loaded
+                      if (focusChanged && not isLogLoaded) || not isFromHashChanged then
+                        getLogEffect
+
+                      else
+                        Effect.none
+                    , if options.applyDomFocus then
+                        applyDomFocusEffect
+
+                      else
+                        Effect.none
+                    ]
+            in
+            ( { model
+                | viewing = List.Extra.unique <| options.service.number :: model.viewing
+              }
+            , Effect.batch
+                runEffects
             )
 
         CollapseService options ->
