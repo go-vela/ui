@@ -265,7 +265,7 @@ update shared route msg model =
               }
             , RemoteData.withDefault [] model.steps
                 |> List.filter (\s -> Maybe.withDefault -1 focus.group == s.number)
-                |> List.map (\s -> ExpandStep { step = s, applyDomFocus = True, previousFocus = Just model.focus, fetchLog = True })
+                |> List.map (\s -> ExpandStep { step = s, applyDomFocus = True, previousFocus = Just model.focus, fetchLog = model.focus /= focus })
                 |> List.map Effect.sendMsg
                 |> Effect.batch
             )
@@ -440,7 +440,7 @@ update shared route msg model =
 
               else
                 Effect.batch
-                    [ ExpandStep { step = options.step, applyDomFocus = False, previousFocus = Nothing, fetchLog = False }
+                    [ ExpandStep { step = options.step, applyDomFocus = False, previousFocus = Nothing, fetchLog = model.focus.group == Just options.step.number }
                         |> Effect.sendMsg
                     , case model.focus.a of
                         Nothing ->

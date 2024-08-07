@@ -257,7 +257,7 @@ update shared route msg model =
               }
             , RemoteData.withDefault [] model.services
                 |> List.filter (\s -> Maybe.withDefault -1 focus.group == s.number)
-                |> List.map (\s -> ExpandService { service = s, applyDomFocus = True, previousFocus = Just model.focus, fetchLog = True })
+                |> List.map (\s -> ExpandService { service = s, applyDomFocus = True, previousFocus = Just model.focus, fetchLog = model.focus /= focus })
                 |> List.map Effect.sendMsg
                 |> Effect.batch
             )
@@ -431,7 +431,7 @@ update shared route msg model =
 
               else
                 Effect.batch
-                    [ ExpandService { service = options.service, applyDomFocus = False, previousFocus = Nothing, fetchLog = False }
+                    [ ExpandService { service = options.service, applyDomFocus = False, previousFocus = Nothing, fetchLog = model.focus.group == Just options.service.number }
                         |> Effect.sendMsg
                     , case model.focus.a of
                         Nothing ->
