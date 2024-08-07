@@ -26,7 +26,7 @@ module Utils.Helpers exposing
     , humanReadableDateTimeFormatter
     , humanReadableDateTimeWithDefault
     , humanReadableDateWithDefault
-    , isLoading
+    , isLoaded
     , isSuccess
     , mergeListsById
     , noBlanks
@@ -375,16 +375,19 @@ fiveSecondsMillis =
     oneSecondMillis * 5
 
 
-{-| isLoading : takes WebData and returns true if it is in a Loading state.
+{-| isLoaded : takes WebData and returns true if it is in a 'loaded' state, meaning its anything but NotAsked or Loading.
 -}
-isLoading : WebData a -> Bool
-isLoading status =
+isLoaded : WebData a -> Bool
+isLoaded status =
     case status of
         RemoteData.Loading ->
-            True
+            False
+
+        RemoteData.NotAsked ->
+            False
 
         _ ->
-            False
+            True
 
 
 {-| isSuccess : takes WebData and returns true if it is in a Success state.

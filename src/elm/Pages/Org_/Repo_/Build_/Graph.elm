@@ -20,6 +20,7 @@ import Http
 import Http.Detailed
 import Interop
 import Layouts
+import List.Extra
 import Page exposing (Page)
 import Pages.Account.Login exposing (Msg(..))
 import RemoteData exposing (RemoteData(..), WebData)
@@ -237,6 +238,31 @@ update shared route msg model =
                     )
 
         Refresh options ->
+            let
+                isBuildRunning =
+                    case shared.builds of
+                        RemoteData.Success builds ->
+                            List.Extra.find (\b -> b.number == Maybe.withDefault 0 (String.toInt route.params.build)) builds
+                                |> Maybe.map (\b -> b.finished == 0)
+                                |> Maybe.withDefault False
+
+                        _ ->
+                            False
+
+                runEffect =
+                    if isBuildRunning then
+                        Effect.getBuildGraph
+                            { baseUrl = shared.velaAPIBaseURL
+                            , session = shared.session
+                            , onResponse = GetBuildGraphResponse { freshDraw = options.freshDraw }
+                            , org = route.params.org
+                            , repo = route.params.repo
+                            , build = route.params.build
+                            }
+
+                    else
+                        Effect.none
+            in
             ( { model
                 | graph =
                     if options.setToLoading then
@@ -246,14 +272,7 @@ update shared route msg model =
                         model.graph
               }
             , Effect.batch
-                [ Effect.getBuildGraph
-                    { baseUrl = shared.velaAPIBaseURL
-                    , session = shared.session
-                    , onResponse = GetBuildGraphResponse { freshDraw = options.freshDraw }
-                    , org = route.params.org
-                    , repo = route.params.repo
-                    , build = route.params.build
-                    }
+                [ runEffect
                 , if options.clear then
                     Effect.sendCmd clearBuildGraph
 
@@ -337,9 +356,16 @@ update shared route msg model =
 
         -- REFRESH
         Tick options ->
-            ( model
-            , Effect.sendMsg <| Refresh { freshDraw = False, setToLoading = False, clear = False }
-            )
+            case options.interval of
+                Interval.FiveSeconds ->
+                    ( model
+                    , Effect.sendMsg <| Refresh { freshDraw = False, setToLoading = False, clear = False }
+                    )
+
+                Interval.OneSecond ->
+                    ( model
+                    , Effect.sendCmd <| renderBuildGraph shared model { freshDraw = False }
+                    )
 
 
 
@@ -357,6 +383,7 @@ subscriptions model =
         -- on visiblity changed, same as shared
         , Browser.Events.onVisibilityChange
             (\visibility -> VisibilityChanged { visibility = visibility })
+        , Interval.tickEveryFiveSeconds Tick
         , Interval.tickEveryOneSecond Tick
         ]
 

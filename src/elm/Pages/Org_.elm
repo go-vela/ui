@@ -168,16 +168,7 @@ update shared route msg model =
 
         -- REFRESH
         Tick options ->
-            ( model
-            , Effect.getOrgRepos
-                { baseUrl = shared.velaAPIBaseURL
-                , session = shared.session
-                , onResponse = GetOrgReposResponse
-                , org = route.params.org
-                , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
-                , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
-                }
-            )
+            ( model, Effect.none )
 
 
 

@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, addDeployment, addFavorites, addOrgSecret, addRepoSchedule, addRepoSecret, addSharedSecret, alertsUpdate, approveBuild, cancelBuild, chownRepo, clearRedirect, deleteOrgSecret, deleteRepoSchedule, deleteRepoSecret, deleteSharedSecret, disableRepo, downloadFile, enableRepo, expandPipelineConfig, finishAuthentication, focusOn, getAllBuildServices, getAllBuildSteps, getBuild, getBuildGraph, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getCurrentUserShared, getDashboard, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoBuildsShared, getRepoDeployments, getRepoHooks, getRepoHooksShared, getRepoSchedule, getRepoSchedules, getRepoSecret, getRepoSecrets, getSettings, getSharedSecret, getSharedSecrets, getWorkers, handleHttpError, logout, pushPath, redeliverHook, repairRepo, replacePath, replaceRouteRemoveTabHistorySkipDomFocus, restartBuild, setRedirect, setTheme, updateFavicon, updateFavorite, updateOrgSecret, updateRepo, updateRepoSchedule, updateRepoSecret, updateSettings, updateSharedSecret, updateSourceReposShared
+    , addAlertError, addAlertSuccess, addDeployment, addFavorites, addOrgSecret, addRepoSchedule, addRepoSecret, addSharedSecret, alertsUpdate, approveBuild, cancelBuild, chownRepo, clearRedirect, deleteOrgSecret, deleteRepoSchedule, deleteRepoSecret, deleteSharedSecret, disableRepo, downloadFile, enableRepo, expandPipelineConfig, finishAuthentication, focusOn, getAllBuildServices, getAllBuildSteps, getBuild, getBuildGraph, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getCurrentUserShared, getDashboard, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoBuildsShared, getRepoDeployments, getRepoHooks, getRepoHooksShared, getRepoSchedule, getRepoSchedules, getRepoSecret, getRepoSecrets, getSettings, getSharedSecret, getSharedSecrets, getWorkers, handleHttpError, logout, pushPath, redeliverHook, repairRepo, replacePath, replaceRouteRemoveTabHistorySkipDomFocus, restartBuild, setRedirect, setTheme, updateFavicon, updateFavorite, updateOrgSecret, updateRepo, updateRepoHooksShared, updateRepoSchedule, updateRepoSecret, updateSettings, updateSharedSecret, updateSourceReposShared
     )
 
 {-|
@@ -624,6 +624,11 @@ getRepoHooksShared :
     -> Effect msg
 getRepoHooksShared options =
     SendSharedMsg <| Shared.Msg.GetRepoHooks options
+
+
+updateRepoHooksShared : { hooks : WebData (List Vela.Hook) } -> Effect msg
+updateRepoHooksShared options =
+    SendSharedMsg <| Shared.Msg.UpdateRepoHooks options
 
 
 redeliverHook :
