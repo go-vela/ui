@@ -313,6 +313,13 @@ update shared route msg model =
                     ( { model | services = RemoteData.succeed services }
                     , services
                         |> List.filter (\service -> List.member service.number model.viewing)
+                        -- note: it's possible that there are log updates in flight
+                        -- even after the service has a status of finished, especially
+                        -- for large logs. we get the most recent version of logs
+                        -- on page load or when a service log is expanded, so potentially
+                        -- seeing incomplete logs here is only a concern when someone
+                        -- is following the logs live.
+                        |> List.filter (\service -> service.finished == 0)
                         |> List.map
                             (\service ->
                                 Effect.getBuildServiceLog
