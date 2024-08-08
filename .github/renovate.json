@@ -3,8 +3,8 @@
   "extends": ["local>go-vela/renovate-config"],
   "packageRules": [
     {
-      "matchPackagePatterns": "^@?parcel",
-      "allowedVersions": "!/nightly\\.\\d+$/"
+      "allowedVersions": "!/nightly\\.\\d+$/",
+      "matchPackageNames": ["/^@?parcel/"]
     }
   ]
 }
