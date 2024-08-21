@@ -57,7 +57,10 @@ const flags: Flags = {
   ),
   velaMaxStarlarkExecLimit: Number(
     process.env.VELA_MAX_STARLARK_EXEC_LIMIT ||
-      envOrNull('VELA_MAX_STARLARK_EXEC_LIMIT', '$VELA_MAX_STARLARK_EXEC_LIMIT') ||
+      envOrNull(
+        'VELA_MAX_STARLARK_EXEC_LIMIT',
+        '$VELA_MAX_STARLARK_EXEC_LIMIT',
+      ) ||
       maximumStarlarkExecLimit,
   ),
   velaScheduleAllowlist:
