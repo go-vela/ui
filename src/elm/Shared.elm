@@ -57,6 +57,7 @@ type alias Flags =
     , velaRedirect : String
     , velaLogBytesLimit : Int
     , velaMaxBuildLimit : Int
+    , velaMaxStarlarkExecLimit : Int
     , velaScheduleAllowlist : String
     }
 
@@ -72,6 +73,7 @@ decoder =
         |> required "velaRedirect" Json.Decode.string
         |> required "velaLogBytesLimit" Json.Decode.int
         |> required "velaMaxBuildLimit" Json.Decode.int
+        |> required "velaMaxStarlarkExecLimit" Json.Decode.int
         |> required "velaScheduleAllowlist" Json.Decode.string
 
 
@@ -95,6 +97,7 @@ init flagsResult route =
                     , velaRedirect = ""
                     , velaLogBytesLimit = 0
                     , velaMaxBuildLimit = 0
+                    , velaMaxStarlarkExecLimit = 0
                     , velaScheduleAllowlist = ""
                     }
 
@@ -134,6 +137,7 @@ init flagsResult route =
       , velaRedirect = flags.velaRedirect
       , velaLogBytesLimit = flags.velaLogBytesLimit
       , velaMaxBuildLimit = flags.velaMaxBuildLimit
+      , velaMaxStarlarkExecLimit = flags.velaMaxStarlarkExecLimit
       , velaScheduleAllowlist = Util.stringToAllowlist flags.velaScheduleAllowlist
 
       -- BASE URL

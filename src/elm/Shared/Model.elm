@@ -26,6 +26,7 @@ type alias Model =
     , velaRedirect : String
     , velaLogBytesLimit : Int
     , velaMaxBuildLimit : Int
+    , velaMaxStarlarkExecLimit : Int
     , velaScheduleAllowlist : List ( String, String )
 
     -- BASE URL
