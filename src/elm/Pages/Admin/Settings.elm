@@ -876,14 +876,14 @@ view shared route model =
                 [ viewFieldHeader "Starlark Exec Limit"
                 , viewFieldDescription "The number of executions allowed for Starlark scripts."
                 , viewFieldEnvKeyValue "VELA_COMPILER_STARLARK_EXEC_LIMIT"
-                , viewFieldLimits <| text <| numberBoundsToString starlarkExecLimitMin starlarkExecLimitMax
+                , viewFieldLimits <| text <| numberBoundsToString starlarkExecLimitMin <| starlarkExecLimitMax shared
                 , div [ class "form-controls" ]
                     [ Components.Form.viewNumberInput
                         { title = Nothing
                         , subtitle = Nothing
                         , id_ = starlarkExecLimitHtmlId
                         , val = model.starlarkExecLimitIn
-                        , placeholder_ = numberBoundsToString starlarkExecLimitMin starlarkExecLimitMax
+                        , placeholder_ = numberBoundsToString starlarkExecLimitMin <| starlarkExecLimitMax shared
                         , wrapperClassList = [ ( "-wide", True ) ]
                         , classList_ = []
                         , rows_ = Nothing
@@ -891,7 +891,7 @@ view shared route model =
                         , msg = StarlarkExecLimitOnInput
                         , disabled_ = False
                         , min = Just starlarkExecLimitMin
-                        , max = Just starlarkExecLimitMax
+                        , max = Just <| starlarkExecLimitMax shared
                         }
                     , Components.Form.viewButton
                         { id_ = starlarkExecLimitHtmlId ++ "-update"
@@ -908,7 +908,7 @@ view shared route model =
                                             limit
                                                 == s.compiler.starlarkExecLimit
                                                 || (limit < starlarkExecLimitMin)
-                                                || (limit > starlarkExecLimitMax)
+                                                || (limit > starlarkExecLimitMax shared)
 
                                         Nothing ->
                                             True
@@ -1269,6 +1269,6 @@ starlarkExecLimitMin =
 
 {-| starlarkExecLimitMax : returns the maximum value for the starlark exec limit
 -}
-starlarkExecLimitMax : Int
-starlarkExecLimitMax =
-    99999
+starlarkExecLimitMax : Shared.Model -> Int
+starlarkExecLimitMax shared =
+    shared.velaMaxStarlarkExecLimit

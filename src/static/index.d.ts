@@ -56,6 +56,8 @@ export type Flags = {
   readonly velaLogBytesLimit: number;
   /** @property velaMaxBuildLimit: number */
   readonly velaMaxBuildLimit: number;
+  /** @property velaMaxStarlarkExecLimit: number */
+  readonly velaMaxStarlarkExecLimit: number;
   /** @property velaScheduleAllowlist: string */
   readonly velaScheduleAllowlist: string;
 };
