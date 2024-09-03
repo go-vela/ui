@@ -54,6 +54,7 @@ view shared props =
         [ summary
             [ class "summary"
             , class "-no-pad"
+            , attribute "aria-label" "show/hide contextual CLI tips"
             , Util.testAttribute "help-trigger"
             , tabindex 0
             , Util.onClickPreventDefault (props.showHide Nothing)
