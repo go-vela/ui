@@ -20,6 +20,7 @@ import Html
         , a
         , div
         , span
+        , td
         , text
         , tr
         )
@@ -29,6 +30,7 @@ import Html.Attributes
         , class
         , href
         , rows
+        , scope
         )
 import Http
 import Http.Detailed
@@ -369,6 +371,7 @@ tableHeaders =
     , ( Nothing, "commit" )
     , ( Nothing, "ref" )
     , ( Nothing, "description" )
+    , ( Nothing, "parameters" )
     , ( Nothing, "builds" )
     , ( Nothing, "created by" )
     , ( Nothing, "created at" )
@@ -432,6 +435,21 @@ viewDeployment shared repo deployment =
                 [ text deployment.description
                 ]
             }
+        , td
+            [ attribute "data-label" "parameters"
+            , scope "row"
+            , class "break-word"
+            ]
+            [ Components.Table.viewListCell
+                { dataLabel = "parameters"
+                , items =
+                    deployment.payload
+                        |> Maybe.withDefault []
+                        |> List.map (\parameter -> parameter.key ++ "=" ++ parameter.value)
+                , none = "no parameters"
+                , itemWrapperClassList = []
+                }
+            ]
         , Components.Table.viewItemCell
             { dataLabel = "builds"
             , parentClassList = []
