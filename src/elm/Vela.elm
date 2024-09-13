@@ -259,6 +259,7 @@ type alias User =
     { id : Int
     , name : String
     , favorites : List String
+    , dashboards : List String
     , active : Bool
     , admin : Bool
     }
@@ -270,13 +271,14 @@ decodeUser =
         |> required "id" int
         |> required "name" string
         |> optional "favorites" (Json.Decode.list string) []
+        |> optional "dashboards" (Json.Decode.list string) []
         |> required "active" bool
         |> optional "admin" bool False
 
 
 emptyUser : User
 emptyUser =
-    { id = -1, name = "", favorites = [], active = False, admin = False }
+    { id = -1, name = "", favorites = [], dashboards = [], active = False, admin = False }
 
 
 type alias UpdateUserPayload =

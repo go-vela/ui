@@ -9,14 +9,17 @@ import Auth
 import Components.Crumbs
 import Components.Nav
 import Effect exposing (Effect)
-import Html exposing (code, h1, h2, main_, p, text)
+import Html exposing (Html, a, code, div, h1, h2, li, main_, p, text, ul)
 import Html.Attributes exposing (class)
 import Layouts
 import Page exposing (Page)
+import RemoteData
 import Route exposing (Route)
 import Route.Path
 import Shared
+import Time
 import Utils.Helpers as Util
+import Utils.Interval as Interval
 import View exposing (View)
 
 
@@ -82,7 +85,7 @@ type alias Model =
 init : Shared.Model -> Route () -> () -> ( Model, Effect Msg )
 init shared route () =
     ( {}
-    , Effect.none
+    , Effect.getCurrentUserShared {}
     )
 
 
@@ -94,6 +97,8 @@ init shared route () =
 -}
 type Msg
     = NoOp
+      -- REFRESH
+    | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
 {-| update : takes current model, message, and returns an updated model and effect.
@@ -102,6 +107,12 @@ update : Shared.Model -> Route () -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
         NoOp ->
+            ( model
+            , Effect.none
+            )
+
+        -- REFRESH
+        Tick options ->
             ( model
             , Effect.none
             )
@@ -115,7 +126,7 @@ update shared route msg model =
 -}
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Interval.tickEveryFiveSeconds Tick
 
 
 
@@ -140,17 +151,61 @@ view shared route model =
             { buttons = []
             , crumbs = Components.Crumbs.view route.path crumbs
             }
-        , main_ [ class "content-wrap", Util.testAttribute "dashboards" ]
-            [ h1 [] [ text "Welcome to dashboards!" ]
-            , h2 [] [ text "✨ Want to create a new dashboard?" ]
-            , p [] [ text "Use the Vela CLI to add a new dashboard:" ]
-            , code [ class "shell" ] [ text "vela add dashboard --help" ]
-            , h2 [] [ text "🚀 Already have a dashboard?" ]
-            , p [] [ text "Check your available dashboards with:" ]
-            , code [ class "shell" ] [ text "vela get dashboards" ]
-            , p [] [ text "Take note of your dashboard ID you are interested in and and add it to the current URL to view it." ]
-            , h2 [] [ text "💬 Got Feedback?" ]
-            , p [] [ text "Follow the link in the top right to let us know your thoughts and ideas." ]
+        , main_ [ class "content-wrap" ]
+            [ div [ Util.testAttribute "dashboards" ] <|
+                case shared.user of
+                    RemoteData.Success u ->
+                        if List.length u.dashboards > 0 then
+                            [ div []
+                                [ h1 [] [ text "BETA something" ]
+                                , h2 [] [ text "Dashboards" ]
+                                , p [] [ text "UI Dashboard functionality is very minimal in this Vela version." ]
+                                , ul []
+                                    [ li []
+                                        [ text "Manage dashboards with the CLI or API"
+                                        ]
+                                    , li []
+                                        [ text "Dashboard names do not display on this page yet"
+                                        ]
+                                    , li []
+                                        [ text "You'll only see dashboards you created"
+                                        ]
+                                    , li []
+                                        [ text "You won't see dashboards that were shared with you, or you were added to as an admin; so you might want to save those links!"
+                                        ]
+                                    ]
+                                , h2 [] [ text "💬 Got Feedback?" ]
+                                , p [] [ text "Follow the feedback link in the top right to let us know your thoughts and ideas. We really need your feedback on the whole dashboard experience to prioritize what we'll focus on for the next version." ]
+                                , viewDashboards u.dashboards
+                                ]
+                            ]
+
+                        else
+                            [ div [ class "dashboards" ]
+                                [ h1 [] [ text "Welcome to dashboards!" ]
+                                , h2 [] [ text "✨ Want to create a new dashboard?" ]
+                                , p [] [ text "Use the Vela CLI to add a new dashboard:" ]
+                                , code [ class "shell" ] [ text "vela add dashboard --help" ]
+                                , h2 [] [ text "🚀 Already have a dashboard?" ]
+                                , p [] [ text "Check your available dashboards with:" ]
+                                , code [ class "shell" ] [ text "vela get dashboards" ]
+                                , p [] [ text "Take note of your dashboard ID you are interested in and and add it to the current URL to view it." ]
+                                , h2 [] [ text "💬 Got Feedback?" ]
+                                , p [] [ text "Follow the link in the top right to let us know your thoughts and ideas." ]
+                                ]
+                            ]
+
+                    _ ->
+                        [ div [] [ text "no dashboards" ]
+                        ]
             ]
         ]
     }
+
+
+{-| viewDashboards : renders a list of dashboard id links.
+-}
+viewDashboards : List String -> Html Msg
+viewDashboards dashboards =
+    div []
+        (List.map (\dashboard -> div [] [ a [ Route.Path.href <| Route.Path.Dashboards_Dashboard_ { dashboard = dashboard } ] [ text dashboard ] ]) dashboards)
