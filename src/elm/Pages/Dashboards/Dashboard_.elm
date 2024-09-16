@@ -201,7 +201,7 @@ view shared route model =
 
         crumbs =
             [ ( "Overview", Just Route.Path.Home_ )
-            , ( "Dashboards", Nothing )
+            , ( "Dashboards", Just Route.Path.Dashboards )
             , ( dashboardName, Nothing )
             ]
     in
