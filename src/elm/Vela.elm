@@ -59,6 +59,7 @@ module Vela exposing
     , decodeBuildGraph
     , decodeBuilds
     , decodeDashboard
+    , decodeDashboards
     , decodeDeployment
     , decodeDeployments
     , decodeGraphInteraction
@@ -218,6 +219,11 @@ decodeDashboard =
     Json.Decode.succeed Dashboard
         |> optional "dashboard" decodeDashboardItem (DashboardItem "" "" 0 "" 0 "" [] [])
         |> optional "repos" (Json.Decode.list decodeDashboardRepoCard) []
+
+
+decodeDashboards : Decoder (List Dashboard)
+decodeDashboards =
+    Json.Decode.list decodeDashboard
 
 
 decodeDashboardItem : Decoder DashboardItem

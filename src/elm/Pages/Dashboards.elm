@@ -7,19 +7,24 @@ module Pages.Dashboards exposing (Model, Msg, page)
 
 import Auth
 import Components.Crumbs
+import Components.Loading
 import Components.Nav
 import Effect exposing (Effect)
-import Html exposing (Html, a, code, div, h1, h2, li, main_, p, text, ul)
+import Html exposing (Html, a, code, div, h1, h2, li, main_, p, span, text, ul)
 import Html.Attributes exposing (class)
+import Http
+import Http.Detailed
 import Layouts
 import Page exposing (Page)
-import RemoteData
+import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Route.Path
 import Shared
 import Time
+import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Utils.Interval as Interval
+import Vela
 import View exposing (View)
 
 
@@ -77,15 +82,19 @@ toLayout user route model =
 {-| Model : alias for a model object for the dashboards page.
 -}
 type alias Model =
-    {}
+    { dashboards : WebData (List Vela.Dashboard) }
 
 
 {-| init : takes shared model and initializes dashboards page input arguments.
 -}
 init : Shared.Model -> Route () -> () -> ( Model, Effect Msg )
 init shared route () =
-    ( {}
-    , Effect.getCurrentUserShared {}
+    ( { dashboards = RemoteData.Loading }
+    , Effect.getDashboards
+        { baseUrl = shared.velaAPIBaseURL
+        , session = shared.session
+        , onResponse = GetDashboardsResponse
+        }
     )
 
 
@@ -96,7 +105,7 @@ init shared route () =
 {-| Msg : custom type with possible messages.
 -}
 type Msg
-    = NoOp
+    = GetDashboardsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Dashboard ))
       -- REFRESH
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
@@ -106,10 +115,20 @@ type Msg
 update : Shared.Model -> Route () -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
-        NoOp ->
-            ( model
-            , Effect.none
-            )
+        GetDashboardsResponse response ->
+            case response of
+                Ok ( _, dashboards ) ->
+                    ( { model | dashboards = RemoteData.Success dashboards }
+                    , Effect.none
+                    )
+
+                Err error ->
+                    ( { model | dashboards = Errors.toFailure error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Errors.showAlertAlways
+                        }
+                    )
 
         -- REFRESH
         Tick options ->
@@ -153,9 +172,9 @@ view shared route model =
             }
         , main_ [ class "content-wrap" ]
             [ div [ Util.testAttribute "dashboards" ] <|
-                case shared.user of
-                    RemoteData.Success u ->
-                        if List.length u.dashboards > 0 then
+                case model.dashboards of
+                    RemoteData.Success dashboards ->
+                        if List.length dashboards > 0 then
                             [ div []
                                 [ h1 [] [ text "BETA something" ]
                                 , h2 [] [ text "Dashboards" ]
@@ -176,7 +195,7 @@ view shared route model =
                                     ]
                                 , h2 [] [ text "💬 Got Feedback?" ]
                                 , p [] [ text "Follow the feedback link in the top right to let us know your thoughts and ideas. We really need your feedback on the whole dashboard experience to prioritize what we'll focus on for the next version." ]
-                                , viewDashboards u.dashboards
+                                , viewDashboards dashboards
                                 ]
                             ]
 
@@ -195,9 +214,25 @@ view shared route model =
                                 ]
                             ]
 
-                    _ ->
-                        [ div [] [ text "no dashboards" ]
+                    RemoteData.Failure error ->
+                        [ span []
+                            [ text <|
+                                case error of
+                                    Http.BadStatus statusCode ->
+                                        case statusCode of
+                                            401 ->
+                                                "Unauthorized to retrieve dashboards"
+
+                                            _ ->
+                                                "No dashboards found, there was an error with the server"
+
+                                    _ ->
+                                        "No dashboards found, there was an error with the server"
+                            ]
                         ]
+
+                    _ ->
+                        [ Components.Loading.viewSmallLoader ]
             ]
         ]
     }
@@ -205,7 +240,15 @@ view shared route model =
 
 {-| viewDashboards : renders a list of dashboard id links.
 -}
-viewDashboards : List String -> Html Msg
+viewDashboards : List Vela.Dashboard -> Html Msg
 viewDashboards dashboards =
     div []
-        (List.map (\dashboard -> div [] [ a [ Route.Path.href <| Route.Path.Dashboards_Dashboard_ { dashboard = dashboard } ] [ text dashboard ] ]) dashboards)
+        (List.map
+            (\dashboard ->
+                div []
+                    [ a [ Route.Path.href <| Route.Path.Dashboards_Dashboard_ { dashboard = dashboard.dashboard.id } ]
+                        [ text dashboard.dashboard.name ]
+                    ]
+            )
+            dashboards
+        )

@@ -30,6 +30,7 @@ module Api.Operations exposing
     , getBuildSteps
     , getCurrentUser
     , getDashboard
+    , getDashboards
     , getOrgBuilds
     , getOrgRepos
     , getOrgSecret
@@ -1315,4 +1316,17 @@ getDashboard baseUrl session options =
             options.dashboardId
         )
         Vela.decodeDashboard
+        |> withAuth session
+
+
+{-| getDashboards : retrieves the dashboards for the current user.
+-}
+getDashboards :
+    String
+    -> Session
+    -> Request (List Vela.Dashboard)
+getDashboards baseUrl session =
+    get baseUrl
+        Api.Endpoint.Dashboards
+        Vela.decodeDashboards
         |> withAuth session
