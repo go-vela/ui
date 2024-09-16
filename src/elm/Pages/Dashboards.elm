@@ -10,7 +10,7 @@ import Components.Crumbs
 import Components.Loading
 import Components.Nav
 import Effect exposing (Effect)
-import Html exposing (Html, a, code, div, h1, h2, li, main_, p, span, text, ul)
+import Html exposing (Html, a, code, div, h1, h2, hr, li, main_, p, span, text, ul)
 import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
@@ -175,16 +175,13 @@ view shared route model =
                 case model.dashboards of
                     RemoteData.Success dashboards ->
                         if List.length dashboards > 0 then
-                            [ div []
+                            [ div [ class "dashboards" ]
                                 [ h1 [] [ text "BETA something" ]
                                 , h2 [] [ text "Dashboards" ]
                                 , p [] [ text "UI Dashboard functionality is very minimal in this Vela version." ]
                                 , ul []
                                     [ li []
                                         [ text "Manage dashboards with the CLI or API"
-                                        ]
-                                    , li []
-                                        [ text "Dashboard names do not display on this page yet"
                                         ]
                                     , li []
                                         [ text "You'll only see dashboards you created"
@@ -242,12 +239,15 @@ view shared route model =
 -}
 viewDashboards : List Vela.Dashboard -> Html Msg
 viewDashboards dashboards =
-    div []
+    div [ class "repo-list" ]
         (List.map
             (\dashboard ->
-                div []
+                div [ class "item" ]
                     [ a [ Route.Path.href <| Route.Path.Dashboards_Dashboard_ { dashboard = dashboard.dashboard.id } ]
                         [ text dashboard.dashboard.name ]
+                    , div [ class "buttons" ]
+                        [ a [ class "button", Route.Path.href <| Route.Path.Dashboards_Dashboard_ { dashboard = dashboard.dashboard.id } ] [ text "View" ]
+                        ]
                     ]
             )
             dashboards
