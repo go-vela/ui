@@ -176,36 +176,26 @@ view shared route model =
                     RemoteData.Success dashboards ->
                         if List.length dashboards > 0 then
                             [ div [ class "dashboards" ]
-                                [ h1 [] [ text "BETA something" ]
-                                , h2 [] [ text "Dashboards" ]
-                                , p [] [ text "UI Dashboard functionality is very minimal in this Vela version." ]
+                                [ h1 [] [ text "Dashboards (beta)" ]
+                                , viewDashboards dashboards
+                                , h2 [] [ text "🧪 Beta Limitations" ]
+                                , p [] [ text "This is an early version of Dashboards. Please be aware of the following:" ]
                                 , ul []
-                                    [ li []
-                                        [ text "Manage dashboards with the CLI or API"
-                                        ]
-                                    , li []
-                                        [ text "You'll only see dashboards you created"
-                                        ]
-                                    , li []
-                                        [ text "You won't see dashboards that were shared with you, or you were added to as an admin; so you might want to save those links!"
-                                        ]
+                                    [ li [] [ text "You have to use CLI/API to manage dashboards" ]
+                                    , li [] [ text "You can only list dashboards you created" ]
+                                    , li [] [ text "Bookmark or save links to dashboards you didn't create" ]
                                     ]
                                 , h2 [] [ text "💬 Got Feedback?" ]
-                                , p [] [ text "Follow the feedback link in the top right to let us know your thoughts and ideas. We really need your feedback on the whole dashboard experience to prioritize what we'll focus on for the next version." ]
-                                , viewDashboards dashboards
+                                , p [] [ text "Help us shape Dashboards. What do you want to see? Use the \"feedback\" link in the top right!" ]
                                 ]
                             ]
 
                         else
                             [ div [ class "dashboards" ]
-                                [ h1 [] [ text "Welcome to dashboards!" ]
+                                [ h1 [] [ text "Welcome to Dashboards (beta)!" ]
                                 , h2 [] [ text "✨ Want to create a new dashboard?" ]
                                 , p [] [ text "Use the Vela CLI to add a new dashboard:" ]
                                 , code [ class "shell" ] [ text "vela add dashboard --help" ]
-                                , h2 [] [ text "🚀 Already have a dashboard?" ]
-                                , p [] [ text "Check your available dashboards with:" ]
-                                , code [ class "shell" ] [ text "vela get dashboards" ]
-                                , p [] [ text "Take note of your dashboard ID you are interested in and and add it to the current URL to view it." ]
                                 , h2 [] [ text "💬 Got Feedback?" ]
                                 , p [] [ text "Follow the link in the top right to let us know your thoughts and ideas." ]
                                 ]
