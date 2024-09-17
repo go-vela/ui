@@ -210,6 +210,7 @@ type alias DashboardRepoCard =
     { org : String
     , name : String
     , counter : Int
+    , active : Bool
     , builds : List Build
     }
 
@@ -245,6 +246,7 @@ decodeDashboardRepoCard =
         |> optional "org" string ""
         |> optional "name" string ""
         |> optional "counter" int -1
+        |> optional "active" bool False
         |> optional "builds" (Json.Decode.list decodeBuild) []
 
 

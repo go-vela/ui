@@ -133,7 +133,11 @@ update shared route msg model =
         -- REFRESH
         Tick options ->
             ( model
-            , Effect.none
+            , Effect.getDashboards
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse = GetDashboardsResponse
+                }
             )
 
 
@@ -176,28 +180,30 @@ view shared route model =
                     RemoteData.Success dashboards ->
                         if List.length dashboards > 0 then
                             [ div [ class "dashboards" ]
-                                [ h1 [] [ text "Dashboards (beta)" ]
-                                , viewDashboards dashboards
-                                , h2 [] [ text "🧪 Beta Limitations" ]
-                                , p [] [ text "This is an early version of Dashboards. Please be aware of the following:" ]
-                                , ul []
-                                    [ li [] [ text "You have to use CLI/API to manage dashboards" ]
-                                    , li [] [ text "You can only list dashboards you created" ]
-                                    , li [] [ text "Bookmark or save links to dashboards you didn't create" ]
-                                    ]
-                                , h2 [] [ text "💬 Got Feedback?" ]
-                                , p [] [ text "Help us shape Dashboards. What do you want to see? Use the \"feedback\" link in the top right!" ]
-                                ]
+                                (h1 [] [ text "Dashboards", span [ class "beta" ] [ text "beta" ] ]
+                                    :: viewDashboards dashboards
+                                    ++ [ h2 [] [ text "🧪 Beta Limitations" ]
+                                       , p [] [ text "This is an early version of Dashboards. Please be aware of the following:" ]
+                                       , ul []
+                                            [ li [] [ text "You have to use CLI/API to manage (add, edit, etc) dashboards" ]
+                                            , li [] [ text "This page will only show dashboards you created" ]
+                                            , li [] [ text "Bookmark or save links to dashboards you didn't create" ]
+                                            ]
+                                       , h2 [] [ text "💬 Got Feedback?" ]
+                                       , p [] [ text "Help us shape Dashboards. What do you want to see? Use the \"feedback\" link in the top right!" ]
+                                       ]
+                                )
                             ]
 
                         else
                             [ div [ class "dashboards" ]
-                                [ h1 [] [ text "Welcome to Dashboards (beta)!" ]
+                                [ h1 [] [ text "Welcome to Dashboards", span [ class "beta" ] [ text "beta" ] ]
                                 , h2 [] [ text "✨ Want to create a new dashboard?" ]
                                 , p [] [ text "Use the Vela CLI to add a new dashboard:" ]
                                 , code [ class "shell" ] [ text "vela add dashboard --help" ]
+                                , p [] [ text "Once you added dashboards, they will show on this page." ]
                                 , h2 [] [ text "💬 Got Feedback?" ]
-                                , p [] [ text "Follow the link in the top right to let us know your thoughts and ideas." ]
+                                , p [] [ text "Follow the \"feedback\" link in the top right to let us know your thoughts and ideas." ]
                                 ]
                             ]
 
@@ -225,20 +231,37 @@ view shared route model =
     }
 
 
-{-| viewDashboards : renders a list of dashboard id links.
+{-| viewDashboards : renders a list of dashboard links.
 -}
-viewDashboards : List Vela.Dashboard -> Html Msg
+viewDashboards : List Vela.Dashboard -> List (Html Msg)
 viewDashboards dashboards =
-    div [ class "repo-list" ]
-        (List.map
+    dashboards
+        |> List.map
             (\dashboard ->
+                let
+                    dashboardLink =
+                        Route.Path.Dashboards_Dashboard_ { dashboard = dashboard.dashboard.id }
+                            |> Route.Path.href
+                in
                 div [ class "item" ]
-                    [ a [ Route.Path.href <| Route.Path.Dashboards_Dashboard_ { dashboard = dashboard.dashboard.id } ]
+                    [ a [ dashboardLink ]
                         [ text dashboard.dashboard.name ]
                     , div [ class "buttons" ]
-                        [ a [ class "button", Route.Path.href <| Route.Path.Dashboards_Dashboard_ { dashboard = dashboard.dashboard.id } ] [ text "View" ]
+                        [ a [ class "button", dashboardLink ] [ text "View" ]
                         ]
+                    , viewDashboardRepos dashboard.repos
                     ]
             )
-            dashboards
+
+
+{-| viewDashboards : renders a list of repos belonging to a dashboard.
+-}
+viewDashboardRepos : List Vela.DashboardRepoCard -> Html Msg
+viewDashboardRepos repos =
+    div [ class "dashboard-repos" ]
+        (repos
+            |> List.map
+                (\repo ->
+                    div [ class "dashboard-repos-item" ] [ text (repo.org ++ "/" ++ repo.name ++ " (" ++ String.fromInt (List.length repo.builds) ++ ")") ]
+                )
         )
