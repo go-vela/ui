@@ -17,22 +17,71 @@
 }
 
 .dashboard-repos {
+  display: flex;
   flex-basis: 100%;
+  flex-wrap: wrap;
+  gap: 1rem;
   margin-top: 1rem;
   padding: 1rem 1rem 0 0;
 
   border-top: 2px dotted var(--color-bg-light);
 }
 
+.dashboard-item-title code {
+  margin-left: 1rem;
+
+  color: var(--color-bg-light);
+  font-size: 1rem;
+}
+
 .dashboard-repos-item {
-  display: inline-block;
-  margin-right: 1rem;
-  margin-bottom: .5rem;
+  display: flex;
+  gap: .5rem;
+  align-items: center;
   padding: .25rem .5rem;
 
   font-size: .8rem;
 
   background-color: var(--color-bg-darkest);
+
+  .-icon {
+    width: 1rem;
+    height: 1rem;
+
+    fill: none;
+
+    &.-running {
+      background-color: var(--color-yellow);
+
+      stroke: var(--color-bg);
+    }
+
+    &.-failure,
+    &.-error {
+      background-color: var(--color-red);
+
+      stroke: var(--color-bg);
+    }
+
+    &.-canceled {
+      background-color: var(--color-cyan-dark);
+
+      stroke: var(--color-bg);
+    }
+
+    &.-success {
+      background-color: var(--color-green);
+
+      stroke: var(--color-bg);
+    }
+
+    &.-pending {
+      background-color: var(--color-bg-light);
+
+      fill: var(--color-bg);
+      stroke: var(--color-bg);
+    }
+  }
 }
 
 .dashboard-title {

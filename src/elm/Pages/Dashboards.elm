@@ -9,8 +9,9 @@ import Auth
 import Components.Crumbs
 import Components.Loading
 import Components.Nav
+import Components.Svgs
 import Effect exposing (Effect)
-import Html exposing (Html, a, code, div, h1, h2, hr, li, main_, p, span, text, ul)
+import Html exposing (Html, a, code, div, h1, h2, li, main_, p, span, text, ul)
 import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
@@ -244,8 +245,10 @@ viewDashboards dashboards =
                             |> Route.Path.href
                 in
                 div [ class "item" ]
-                    [ a [ dashboardLink ]
-                        [ text dashboard.dashboard.name ]
+                    [ span [ class "dashboard-item-title" ]
+                        [ a [ dashboardLink ] [ text dashboard.dashboard.name ]
+                        , code [] [ text dashboard.dashboard.id ]
+                        ]
                     , div [ class "buttons" ]
                         [ a [ class "button", dashboardLink ] [ text "View" ]
                         ]
@@ -254,7 +257,7 @@ viewDashboards dashboards =
             )
 
 
-{-| viewDashboards : renders a list of repos belonging to a dashboard.
+{-| viewDashboardRepos : renders a list of repos belonging to a dashboard.
 -}
 viewDashboardRepos : List Vela.DashboardRepoCard -> Html Msg
 viewDashboardRepos repos =
@@ -262,6 +265,19 @@ viewDashboardRepos repos =
         (repos
             |> List.map
                 (\repo ->
-                    div [ class "dashboard-repos-item" ] [ text (repo.org ++ "/" ++ repo.name ++ " (" ++ String.fromInt (List.length repo.builds) ++ ")") ]
+                    let
+                        statusIcon =
+                            case List.head repo.builds of
+                                Just build ->
+                                    Components.Svgs.recentBuildStatusToIcon build.status 0
+
+                                Nothing ->
+                                    Components.Svgs.recentBuildStatusToIcon Vela.Pending 0
+                    in
+                    div
+                        [ class "dashboard-repos-item" ]
+                        [ statusIcon
+                        , text (repo.org ++ "/" ++ repo.name ++ " (" ++ String.fromInt (List.length repo.builds) ++ ")")
+                        ]
                 )
         )
