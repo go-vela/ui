@@ -281,8 +281,11 @@ viewDashboardRepos repos dashboardId =
                             , text (repo.org ++ "/" ++ repo.name ++ " (" ++ String.fromInt (List.length repo.builds) ++ ")")
                             ]
                     )
-            
-        else
-            [ text <| "⚠️ No repositories in this dashboard. Use the CLI to add some: vela update dashboard --id "
-                ++ dashboardId ++ " --add-repos org/repo" ]
+
+         else
+            [ text <|
+                "⚠️ No repositories in this dashboard. Use the CLI to add some: vela update dashboard --id "
+                    ++ dashboardId
+                    ++ " --add-repos org/repo"
+            ]
         )
