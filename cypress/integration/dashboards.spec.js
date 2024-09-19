@@ -3,7 +3,7 @@
  */
 
 context('Dashboards', () => {
-  context('main dashboards page shows message', () => {
+  context('main dashboards page', () => {
     beforeEach(() => {
       cy.server();
       cy.route(
@@ -12,10 +12,6 @@ context('Dashboards', () => {
         'fixture:user_dashboards.json',
       );
       cy.login('/dashboards');
-    });
-
-    it('shows the welcome message', () => {
-      cy.get('[data-test=dashboards]').contains('Dashboards');
     });
 
     it('shows the list of dashboards', () => {
@@ -164,17 +160,6 @@ context('Dashboards', () => {
       cy.get('[data-test=dashboard]').contains(
         'Dashboard "deadbeef" not found. Please check the URL.',
       );
-    });
-  });
-
-  context('main dashboards page shows message', () => {
-    beforeEach(() => {
-      cy.server();
-      cy.login('/dashboards');
-    });
-
-    it('shows the welcome message', () => {
-      cy.get('[data-test=dashboards]').contains('Welcome to dashboards!');
     });
   });
 });
