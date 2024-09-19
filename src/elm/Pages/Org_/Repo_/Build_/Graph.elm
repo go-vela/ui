@@ -250,7 +250,7 @@ update shared route msg model =
                             False
 
                 runEffect =
-                    if isBuildRunning then
+                    if isBuildRunning || options.freshDraw then
                         Effect.getBuildGraph
                             { baseUrl = shared.velaAPIBaseURL
                             , session = shared.session
