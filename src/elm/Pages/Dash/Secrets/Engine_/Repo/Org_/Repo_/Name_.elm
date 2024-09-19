@@ -171,7 +171,10 @@ update shared route msg model =
         UpdateSecretResponse response ->
             case response of
                 Ok ( _, secret ) ->
-                    ( model
+                    ( { model
+                        | secret = RemoteData.succeed secret
+                        , form = Components.SecretForm.toForm secret
+                      }
                     , Effect.addAlertSuccess
                         { content = "Updated repo secret '" ++ route.params.name ++ "'."
                         , addToastIfUnique = True
