@@ -174,6 +174,13 @@ view shared route model =
                 [ a
                     [ class "button"
                     , class "-outline"
+                    , Util.testAttribute "dashboards-button"
+                    , Route.Path.href Route.Path.Dashboards
+                    ]
+                    [ text "Dashboards" ]
+                , a
+                    [ class "button"
+                    , class "-outline"
                     , Util.testAttribute "source-repos"
                     , Route.Path.href Route.Path.Account_SourceRepos
                     ]

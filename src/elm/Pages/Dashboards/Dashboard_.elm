@@ -36,7 +36,6 @@ import Route.Path
 import Shared
 import Time
 import Utils.Errors as Errors
-import Utils.Favicons as Favicons
 import Utils.Helpers as Util
 import Utils.Interval as Interval
 import Vela
@@ -202,7 +201,7 @@ view shared route model =
 
         crumbs =
             [ ( "Overview", Just Route.Path.Home_ )
-            , ( "Dashboards", Nothing )
+            , ( "Dashboards", Just Route.Path.Dashboards )
             , ( dashboardName, Nothing )
             ]
     in

@@ -26,6 +26,7 @@ type Endpoint
     | Logout
     | CurrentUser
     | Dashboard String
+    | Dashboards
     | Deployment Vela.Org Vela.Repo (Maybe String)
     | Deployments (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Org Vela.Repo
     | Token
@@ -163,6 +164,9 @@ toUrl api endpoint =
 
         Deployments maybePage maybePerPage org repo ->
             url api [ "deployments", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage
+
+        Dashboards ->
+            url api [ "user", "dashboards" ] []
 
         Dashboard dashboard ->
             url api [ "dashboards", dashboard ] []
