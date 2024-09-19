@@ -57,6 +57,7 @@ type alias Flags =
     , velaRedirect : String
     , velaLogBytesLimit : Int
     , velaMaxBuildLimit : Int
+    , velaMaxStarlarkExecLimit : Int
     , velaScheduleAllowlist : String
     }
 
@@ -72,6 +73,7 @@ decoder =
         |> required "velaRedirect" Json.Decode.string
         |> required "velaLogBytesLimit" Json.Decode.int
         |> required "velaMaxBuildLimit" Json.Decode.int
+        |> required "velaMaxStarlarkExecLimit" Json.Decode.int
         |> required "velaScheduleAllowlist" Json.Decode.string
 
 
@@ -95,6 +97,7 @@ init flagsResult route =
                     , velaRedirect = ""
                     , velaLogBytesLimit = 0
                     , velaMaxBuildLimit = 0
+                    , velaMaxStarlarkExecLimit = 0
                     , velaScheduleAllowlist = ""
                     }
 
@@ -134,6 +137,7 @@ init flagsResult route =
       , velaRedirect = flags.velaRedirect
       , velaLogBytesLimit = flags.velaLogBytesLimit
       , velaMaxBuildLimit = flags.velaMaxBuildLimit
+      , velaMaxStarlarkExecLimit = flags.velaMaxStarlarkExecLimit
       , velaScheduleAllowlist = Util.stringToAllowlist flags.velaScheduleAllowlist
 
       -- BASE URL
@@ -612,6 +616,11 @@ update route msg model =
                         }
                     )
 
+        Shared.Msg.UpdateRepoHooks options ->
+            ( { model | hooks = options.hooks }
+            , Effect.none
+            )
+
         -- THEME
         Shared.Msg.SetTheme options ->
             if options.theme == model.theme then
@@ -662,21 +671,24 @@ update route msg model =
             let
                 ( shared, redirect ) =
                     case options.error of
-                        -- todo: maybe we pass in a status code we want to ignore
-                        --   so secrets can skip this alert for 401s
-                        --
-                        -- Http.Detailed.BadStatus meta _ ->
-                        --     case meta.statusCode of
-                        --         -- todo: FIX THIS! secrets can easily return a 401 for normal reasons
-                        --         401 ->
-                        --             ( { model
-                        --                 | session = Auth.Session.Unauthenticated
-                        --                 , velaRedirect = "/"
-                        --               }
-                        --                      , Effect.replacePath <| Route.Path.Account_Login
-                        --             )
-                        --         _ ->
-                        --             ( model, Effect.none )
+                        -- only handles token expiration on 401s
+                        -- TODO: handle 401s for access restriction reasons
+                        Http.Detailed.BadStatus meta body ->
+                            let
+                                isTokenExpired =
+                                    String.contains "token is expired" body
+                            in
+                            if meta.statusCode == 401 && isTokenExpired then
+                                ( { model
+                                    | session = Auth.Session.Unauthenticated
+                                    , velaRedirect = Route.Path.toString route.path
+                                  }
+                                , Effect.replacePath <| Route.Path.Account_Login
+                                )
+
+                            else
+                                ( model, Effect.none )
+
                         _ ->
                             ( model, Effect.none )
             in

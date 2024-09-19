@@ -157,91 +157,96 @@ type Msg
 -}
 update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
-    case msg of
-        -- HOOKS
-        GetRepoHooksResponse response ->
-            case response of
-                Ok ( meta, hooks ) ->
-                    ( { model
-                        | hooks = RemoteData.succeed hooks
-                        , pager = Api.Pagination.get meta.headers
-                      }
-                    , Effect.none
-                    )
+    -- persist any hooks updates to the shared model
+    (\( m, e ) ->
+        ( m, Effect.batch [ e, Effect.updateRepoHooksShared { hooks = m.hooks } ] )
+    )
+    <|
+        case msg of
+            -- HOOKS
+            GetRepoHooksResponse response ->
+                case response of
+                    Ok ( meta, hooks ) ->
+                        ( { model
+                            | hooks = RemoteData.succeed hooks
+                            , pager = Api.Pagination.get meta.headers
+                          }
+                        , Effect.none
+                        )
 
-                Err error ->
-                    ( { model | hooks = Errors.toFailure error }
-                    , Effect.handleHttpError
-                        { error = error
-                        , shouldShowAlertFn = Errors.showAlertAlways
-                        }
-                    )
+                    Err error ->
+                        ( { model | hooks = Errors.toFailure error }
+                        , Effect.handleHttpError
+                            { error = error
+                            , shouldShowAlertFn = Errors.showAlertAlways
+                            }
+                        )
 
-        RedeliverRepoHook options ->
-            ( model
-            , Effect.redeliverHook
-                { baseUrl = shared.velaAPIBaseURL
-                , session = shared.session
-                , onResponse = RedeliverRepoHookResponse options
-                , org = route.params.org
-                , repo = route.params.repo
-                , hookNumber = String.fromInt <| options.hook.number
-                }
-            )
-
-        RedeliverRepoHookResponse options response ->
-            case response of
-                Ok ( _, result ) ->
-                    ( model
-                    , Effect.addAlertSuccess
-                        { content = "Hook #" ++ (String.fromInt <| options.hook.number) ++ " redelivered successfully."
-                        , addToastIfUnique = False
-                        , link = Nothing
-                        }
-                    )
-
-                Err error ->
-                    ( model
-                    , Effect.handleHttpError
-                        { error = error
-                        , shouldShowAlertFn = Errors.showAlertAlways
-                        }
-                    )
-
-        GotoPage pageNumber ->
-            ( model
-            , Effect.batch
-                [ Effect.replaceRoute
-                    { path = route.path
-                    , query =
-                        Dict.update "page" (\_ -> Just <| String.fromInt pageNumber) route.query
-                    , hash = route.hash
+            RedeliverRepoHook options ->
+                ( model
+                , Effect.redeliverHook
+                    { baseUrl = shared.velaAPIBaseURL
+                    , session = shared.session
+                    , onResponse = RedeliverRepoHookResponse options
+                    , org = route.params.org
+                    , repo = route.params.repo
+                    , hookNumber = String.fromInt <| options.hook.number
                     }
+                )
+
+            RedeliverRepoHookResponse options response ->
+                case response of
+                    Ok ( _, result ) ->
+                        ( model
+                        , Effect.addAlertSuccess
+                            { content = "Hook #" ++ (String.fromInt <| options.hook.number) ++ " redelivered successfully."
+                            , addToastIfUnique = False
+                            , link = Nothing
+                            }
+                        )
+
+                    Err error ->
+                        ( model
+                        , Effect.handleHttpError
+                            { error = error
+                            , shouldShowAlertFn = Errors.showAlertAlways
+                            }
+                        )
+
+            GotoPage pageNumber ->
+                ( model
+                , Effect.batch
+                    [ Effect.replaceRoute
+                        { path = route.path
+                        , query =
+                            Dict.update "page" (\_ -> Just <| String.fromInt pageNumber) route.query
+                        , hash = route.hash
+                        }
+                    , Effect.getRepoHooks
+                        { baseUrl = shared.velaAPIBaseURL
+                        , session = shared.session
+                        , onResponse = GetRepoHooksResponse
+                        , pageNumber = Just pageNumber
+                        , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+                        , org = route.params.org
+                        , repo = route.params.repo
+                        }
+                    ]
+                )
+
+            -- REFRESH
+            Tick options ->
+                ( model
                 , Effect.getRepoHooks
                     { baseUrl = shared.velaAPIBaseURL
                     , session = shared.session
                     , onResponse = GetRepoHooksResponse
-                    , pageNumber = Just pageNumber
+                    , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
                     , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
                     , org = route.params.org
                     , repo = route.params.repo
                     }
-                ]
-            )
-
-        -- REFRESH
-        Tick options ->
-            ( model
-            , Effect.getRepoHooks
-                { baseUrl = shared.velaAPIBaseURL
-                , session = shared.session
-                , onResponse = GetRepoHooksResponse
-                , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
-                , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
-                , org = route.params.org
-                , repo = route.params.repo
-                }
-            )
+                )
 
 
 

@@ -138,7 +138,7 @@ update msg model =
         -- REFRESH
         Tick options ->
             ( model
-            , Effect.getCurrentUserShared {}
+            , Effect.none
             )
 
 
@@ -172,6 +172,13 @@ view shared route model =
             route
             { buttons =
                 [ a
+                    [ class "button"
+                    , class "-outline"
+                    , Util.testAttribute "dashboards-button"
+                    , Route.Path.href Route.Path.Dashboards
+                    ]
+                    [ text "Dashboards" ]
+                , a
                     [ class "button"
                     , class "-outline"
                     , Util.testAttribute "source-repos"

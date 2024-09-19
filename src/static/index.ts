@@ -3,7 +3,7 @@
 // import types
 import * as ClipboardJS from 'clipboard';
 import * as d3 from 'd3';
-import { Graphviz } from '@hpcc-js/wasm';
+import { Graphviz } from '@hpcc-js/wasm-graphviz';
 
 import { Elm } from '../elm/Main.elm';
 import '../scss/style.scss';
@@ -16,6 +16,7 @@ const feedbackURL: string =
 const docsURL: string = 'https://go-vela.github.io/docs';
 const defaultLogBytesLimit: number = 2000000; // 2mb
 const maximumBuildLimit: number = 30;
+const maximumStarlarkExecLimit: number = 99999;
 const scheduleAllowlist: string = '*';
 
 // setup for auth redirect
@@ -51,10 +52,17 @@ const flags: Flags = {
   ),
   velaMaxBuildLimit: Number(
     process.env.VELA_MAX_BUILD_LIMIT ||
-      envOrNull('VELA_MAX_BUILD_LIMIT', 'VELA_MAX_BUILD_LIMIT') ||
+      envOrNull('VELA_MAX_BUILD_LIMIT', '$VELA_MAX_BUILD_LIMIT') ||
       maximumBuildLimit,
   ),
-
+  velaMaxStarlarkExecLimit: Number(
+    process.env.VELA_MAX_STARLARK_EXEC_LIMIT ||
+      envOrNull(
+        'VELA_MAX_STARLARK_EXEC_LIMIT',
+        '$VELA_MAX_STARLARK_EXEC_LIMIT',
+      ) ||
+      maximumStarlarkExecLimit,
+  ),
   velaScheduleAllowlist:
     (window.Cypress && window.Cypress.env('VELA_SCHEDULE_ALLOWLIST')) ||
     process.env.VELA_SCHEDULE_ALLOWLIST ||

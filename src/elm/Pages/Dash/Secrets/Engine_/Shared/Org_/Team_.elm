@@ -176,18 +176,7 @@ update shared route msg model =
 
         -- REFRESH
         Tick options ->
-            ( model
-            , Effect.getSharedSecrets
-                { baseUrl = shared.velaAPIBaseURL
-                , session = shared.session
-                , onResponse = GetSharedSecretsResponse
-                , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
-                , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
-                , engine = route.params.engine
-                , org = route.params.org
-                , team = route.params.team
-                }
-            )
+            ( model, Effect.none )
 
 
 
