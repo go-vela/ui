@@ -244,7 +244,7 @@ viewDashboards dashboards =
                         Route.Path.Dashboards_Dashboard_ { dashboard = dashboard.dashboard.id }
                             |> Route.Path.href
                 in
-                div [ class "item" ]
+                div [ class "item", Util.testAttribute "dashboard-item" ]
                     [ span [ class "dashboard-item-title" ]
                         [ a [ dashboardLink ] [ text dashboard.dashboard.name ]
                         , code [] [ text dashboard.dashboard.id ]
@@ -252,32 +252,37 @@ viewDashboards dashboards =
                     , div [ class "buttons" ]
                         [ a [ class "button", dashboardLink ] [ text "View" ]
                         ]
-                    , viewDashboardRepos dashboard.repos
+                    , viewDashboardRepos dashboard.repos dashboard.dashboard.id
                     ]
             )
 
 
 {-| viewDashboardRepos : renders a list of repos belonging to a dashboard.
 -}
-viewDashboardRepos : List Vela.DashboardRepoCard -> Html Msg
-viewDashboardRepos repos =
-    div [ class "dashboard-repos" ]
-        (repos
-            |> List.map
-                (\repo ->
-                    let
-                        statusIcon =
-                            case List.head repo.builds of
-                                Just build ->
-                                    Components.Svgs.recentBuildStatusToIcon build.status 0
+viewDashboardRepos : List Vela.DashboardRepoCard -> String -> Html Msg
+viewDashboardRepos repos dashboardId =
+    div [ class "dashboard-repos", Util.testAttribute "dashboard-repos" ]
+        (if List.length repos > 0 then
+            repos
+                |> List.map
+                    (\repo ->
+                        let
+                            statusIcon =
+                                case List.head repo.builds of
+                                    Just build ->
+                                        Components.Svgs.recentBuildStatusToIcon build.status 0
 
-                                Nothing ->
-                                    Components.Svgs.recentBuildStatusToIcon Vela.Pending 0
-                    in
-                    div
-                        [ class "dashboard-repos-item" ]
-                        [ statusIcon
-                        , text (repo.org ++ "/" ++ repo.name ++ " (" ++ String.fromInt (List.length repo.builds) ++ ")")
-                        ]
-                )
+                                    Nothing ->
+                                        Components.Svgs.recentBuildStatusToIcon Vela.Pending 0
+                        in
+                        div
+                            [ class "dashboard-repos-item" ]
+                            [ statusIcon
+                            , text (repo.org ++ "/" ++ repo.name ++ " (" ++ String.fromInt (List.length repo.builds) ++ ")")
+                            ]
+                    )
+            
+        else
+            [ text <| "⚠️ No repositories in this dashboard. Use the CLI to add some: vela update dashboard --id "
+                ++ dashboardId ++ " --add-repos org/repo" ]
         )

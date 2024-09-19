@@ -3,6 +3,60 @@
  */
 
 context('Dashboards', () => {
+  context('main dashboards page shows message', () => {
+    beforeEach(() => {
+      cy.server();
+      cy.route(
+        'GET',
+        '*api/v1/user/dashboards',
+        'fixture:user_dashboards.json',
+      );
+      cy.login('/dashboards');
+    });
+
+    it('shows the welcome message', () => {
+      cy.get('[data-test=dashboards]').contains('Dashboards');
+    });
+
+    it('shows the list of dashboards', () => {
+      cy.get('[data-test=dashboard-item]').should('have.length', 2);
+    });
+
+    it('shows the repos within a dashboard', () => {
+      cy.get('[data-test=dashboard-repos]').first().contains('github/repo1');
+    });
+
+    it('shows a message when there are no repos', () => {
+      cy.get('[data-test=dashboard-repos]')
+        .eq(1)
+        .contains('No repositories in this dashboard');
+    });
+
+    it('clicking dashoard name navigates to dashboard page', () => {
+      cy.get('[data-test=dashboard-item]')
+        .first()
+        .within(() => {
+          cy.get('a').first().click();
+          cy.location('pathname').should(
+            'eq',
+            '/dashboards/6e26a6d0-2fc3-4531-a04d-678a58135288',
+          );
+        });
+    });
+  });
+
+  context('main dashboards page shows message', () => {
+    beforeEach(() => {
+      cy.server();
+      cy.route(
+        'GET',
+        '*api/v1/user/dashboards',
+        'fixture:user_dashboards.json',
+      );
+      cy.login('/dashboards');
+    });
+  });
+
   context('server returns dashboard with 3 cards, one without builds', () => {
     beforeEach(() => {
       cy.server();
