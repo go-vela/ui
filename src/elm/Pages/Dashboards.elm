@@ -278,7 +278,7 @@ viewDashboardRepos repos dashboardId =
                         div
                             [ class "dashboard-repos-item" ]
                             [ statusIcon
-                            , text (repo.org ++ "/" ++ repo.name ++ " (" ++ String.fromInt (List.length repo.builds) ++ ")")
+                            , text (repo.org ++ "/" ++ repo.name)
                             ]
                     )
 
