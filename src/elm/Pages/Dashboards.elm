@@ -252,18 +252,18 @@ viewDashboards dashboards =
                     , div [ class "buttons" ]
                         [ a [ class "button", dashboardLink ] [ text "View" ]
                         ]
-                    , viewDashboardRepos dashboard.repos dashboard.dashboard.id
+                    , viewDashboardRepos dashboard
                     ]
             )
 
 
 {-| viewDashboardRepos : renders a list of repos belonging to a dashboard.
 -}
-viewDashboardRepos : List Vela.DashboardRepoCard -> String -> Html Msg
-viewDashboardRepos repos dashboardId =
+viewDashboardRepos : Vela.Dashboard -> Html Msg
+viewDashboardRepos dashboard =
     div [ class "dashboard-repos", Util.testAttribute "dashboard-repos" ]
-        (if List.length repos > 0 then
-            repos
+        (if List.length dashboard.repos > 0 then
+            dashboard.repos
                 |> List.map
                     (\repo ->
                         let
@@ -282,10 +282,16 @@ viewDashboardRepos repos dashboardId =
                             ]
                     )
 
+         else if String.contains "(not found)" dashboard.dashboard.name then
+            [ text <|
+                "⚠️ This dashboard has been deleted. You can remove it from your list: vela update user --drop-dashboards "
+                    ++ dashboard.dashboard.id
+            ]
+
          else
             [ text <|
-                "⚠️ No repositories in this dashboard. Use the CLI to add some: vela update dashboard --id "
-                    ++ dashboardId
+                "ℹ️ No repositories in this dashboard. Use the CLI to add some: vela update dashboard --id "
+                    ++ dashboard.dashboard.id
                     ++ " --add-repos org/repo"
             ]
         )
