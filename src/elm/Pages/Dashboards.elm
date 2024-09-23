@@ -245,15 +245,25 @@ viewDashboards dashboards =
                             |> Route.Path.href
                 in
                 div [ class "item", Util.testAttribute "dashboard-item" ]
-                    [ span [ class "dashboard-item-title" ]
-                        [ a [ dashboardLink ] [ text dashboard.dashboard.name ]
-                        , code [] [ text dashboard.dashboard.id ]
+                    (if String.contains "(not found)" dashboard.dashboard.name then
+                        [ span [ class "dashboard-item-title" ]
+                            [ text dashboard.dashboard.name
+                            , code [] [ text dashboard.dashboard.id ]
+                            ]
+                        , viewDashboardRepos dashboard
                         ]
-                    , div [ class "buttons" ]
-                        [ a [ class "button", dashboardLink ] [ text "View" ]
+
+                     else
+                        [ span [ class "dashboard-item-title" ]
+                            [ a [ dashboardLink ] [ text dashboard.dashboard.name ]
+                            , code [] [ text dashboard.dashboard.id ]
+                            ]
+                        , div [ class "buttons" ]
+                            [ a [ class "button", dashboardLink ] [ text "View" ]
+                            ]
+                        , viewDashboardRepos dashboard
                         ]
-                    , viewDashboardRepos dashboard
-                    ]
+                    )
             )
 
 
