@@ -54,9 +54,9 @@ toLayout : Auth.User -> Model -> Layouts.Layout Msg
 toLayout user model =
     Layouts.Default
         { helpCommands =
-            [ { name = ""
-              , content = "resources on this page not yet supported via the CLI"
-              , docs = Nothing
+            [ { name = "List Workers"
+              , content = "vela get workers"
+              , docs = Just "cli/worker/get"
               }
             ]
         }
