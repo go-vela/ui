@@ -331,11 +331,6 @@ viewAdminTabs shared props =
               , isAlerting = False
               , show = True
               }
-            , { name = "Workers"
-              , toPath = Route.Path.Admin_Workers
-              , isAlerting = False
-              , show = True
-              }
             ]
     in
     view props.tabHistory props.currentPath tabs "jump-bar-admin"

@@ -34,7 +34,6 @@ import Pages.Account.Logout
 import Pages.Account.Settings
 import Pages.Account.SourceRepos
 import Pages.Admin.Settings
-import Pages.Admin.Workers
 import Pages.Dash.Secrets.Engine_.Org.Org_
 import Pages.Dash.Secrets.Engine_.Org.Org_.Add
 import Pages.Dash.Secrets.Engine_.Org.Org_.Name_
@@ -64,6 +63,7 @@ import Pages.Org_.Repo_.Schedules.Add
 import Pages.Org_.Repo_.Schedules.Name_
 import Pages.Org_.Repo_.Settings
 import Pages.Org_.Repo_.Tags
+import Pages.Status.Workers
 import Route exposing (Route)
 import Route.Path
 import Shared
@@ -704,30 +704,6 @@ initPageAndLayout model =
                     }
                 )
 
-        Route.Path.Admin_Workers ->
-            runWhenAuthenticatedWithLayout
-                model
-                (\user ->
-                    let
-                        page : Page.Page Pages.Admin.Workers.Model Pages.Admin.Workers.Msg
-                        page =
-                            Pages.Admin.Workers.page user model.shared (Route.fromUrl () model.url)
-
-                        ( pageModel, pageEffect ) =
-                            Page.init page ()
-                    in
-                    { page =
-                        Tuple.mapBoth
-                            Main.Pages.Model.Admin_Workers
-                            (Effect.map Main.Pages.Msg.Admin_Workers >> fromPageEffect model)
-                            ( pageModel, pageEffect )
-                    , layout =
-                        Page.layout pageModel page
-                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Admin_Workers >> Page))
-                            |> Maybe.map (initLayout model)
-                    }
-                )
-
         Route.Path.Dash_Secrets_Engine__Org_Org_ params ->
             runWhenAuthenticatedWithLayout
                 model
@@ -988,6 +964,30 @@ initPageAndLayout model =
                     , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Dashboards_Dashboard_ >> Page))
+                            |> Maybe.map (initLayout model)
+                    }
+                )
+
+        Route.Path.Status_Workers ->
+            runWhenAuthenticatedWithLayout
+                model
+                (\user ->
+                    let
+                        page : Page.Page Pages.Status.Workers.Model Pages.Status.Workers.Msg
+                        page =
+                            Pages.Status.Workers.page user model.shared (Route.fromUrl () model.url)
+
+                        ( pageModel, pageEffect ) =
+                            Page.init page ()
+                    in
+                    { page =
+                        Tuple.mapBoth
+                            Main.Pages.Model.Status_Workers
+                            (Effect.map Main.Pages.Msg.Status_Workers >> fromPageEffect model)
+                            ( pageModel, pageEffect )
+                    , layout =
+                        Page.layout pageModel page
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Status_Workers >> Page))
                             |> Maybe.map (initLayout model)
                     }
                 )
@@ -1670,16 +1670,6 @@ updateFromPage msg model =
                         (Page.update (Pages.Admin.Settings.page user model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
                 )
 
-        ( Main.Pages.Msg.Admin_Workers pageMsg, Main.Pages.Model.Admin_Workers pageModel ) ->
-            runWhenAuthenticated
-                model
-                (\user ->
-                    Tuple.mapBoth
-                        Main.Pages.Model.Admin_Workers
-                        (Effect.map Main.Pages.Msg.Admin_Workers >> fromPageEffect model)
-                        (Page.update (Pages.Admin.Workers.page user model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
-                )
-
         ( Main.Pages.Msg.Dash_Secrets_Engine__Org_Org_ pageMsg, Main.Pages.Model.Dash_Secrets_Engine__Org_Org_ params pageModel ) ->
             runWhenAuthenticated
                 model
@@ -1788,6 +1778,16 @@ updateFromPage msg model =
                         (Main.Pages.Model.Dashboards_Dashboard_ params)
                         (Effect.map Main.Pages.Msg.Dashboards_Dashboard_ >> fromPageEffect model)
                         (Page.update (Pages.Dashboards.Dashboard_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
+                )
+
+        ( Main.Pages.Msg.Status_Workers pageMsg, Main.Pages.Model.Status_Workers pageModel ) ->
+            runWhenAuthenticated
+                model
+                (\user ->
+                    Tuple.mapBoth
+                        Main.Pages.Model.Status_Workers
+                        (Effect.map Main.Pages.Msg.Status_Workers >> fromPageEffect model)
+                        (Page.update (Pages.Status.Workers.page user model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
                 )
 
         ( Main.Pages.Msg.Org_ pageMsg, Main.Pages.Model.Org_ params pageModel ) ->
@@ -2087,12 +2087,6 @@ toLayoutFromPage model =
                 |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.Admin_Settings >> Page))
 
-        Main.Pages.Model.Admin_Workers pageModel ->
-            Route.fromUrl () model.url
-                |> toAuthProtectedPage model Pages.Admin.Workers.page
-                |> Maybe.andThen (Page.layout pageModel)
-                |> Maybe.map (Layouts.map (Main.Pages.Msg.Admin_Workers >> Page))
-
         Main.Pages.Model.Dash_Secrets_Engine__Org_Org_ params pageModel ->
             Route.fromUrl params model.url
                 |> toAuthProtectedPage model Pages.Dash.Secrets.Engine_.Org.Org_.page
@@ -2158,6 +2152,12 @@ toLayoutFromPage model =
                 |> toAuthProtectedPage model Pages.Dashboards.Dashboard_.page
                 |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.Dashboards_Dashboard_ >> Page))
+
+        Main.Pages.Model.Status_Workers pageModel ->
+            Route.fromUrl () model.url
+                |> toAuthProtectedPage model Pages.Status.Workers.page
+                |> Maybe.andThen (Page.layout pageModel)
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.Status_Workers >> Page))
 
         Main.Pages.Model.Org_ params pageModel ->
             Route.fromUrl params model.url
@@ -2357,15 +2357,6 @@ subscriptions model =
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-                Main.Pages.Model.Admin_Workers pageModel ->
-                    Auth.Action.subscriptions
-                        (\user ->
-                            Page.subscriptions (Pages.Admin.Workers.page user model.shared (Route.fromUrl () model.url)) pageModel
-                                |> Sub.map Main.Pages.Msg.Admin_Workers
-                                |> Sub.map Page
-                        )
-                        (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
-
                 Main.Pages.Model.Dash_Secrets_Engine__Org_Org_ params pageModel ->
                     Auth.Action.subscriptions
                         (\user ->
@@ -2461,6 +2452,15 @@ subscriptions model =
                         (\user ->
                             Page.subscriptions (Pages.Dashboards.Dashboard_.page user model.shared (Route.fromUrl params model.url)) pageModel
                                 |> Sub.map Main.Pages.Msg.Dashboards_Dashboard_
+                                |> Sub.map Page
+                        )
+                        (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+                Main.Pages.Model.Status_Workers pageModel ->
+                    Auth.Action.subscriptions
+                        (\user ->
+                            Page.subscriptions (Pages.Status.Workers.page user model.shared (Route.fromUrl () model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.Status_Workers
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -2867,15 +2867,6 @@ viewPage model =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.Admin_Workers pageModel ->
-            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
-                (\user ->
-                    Page.view (Pages.Admin.Workers.page user model.shared (Route.fromUrl () model.url)) pageModel
-                        |> View.map Main.Pages.Msg.Admin_Workers
-                        |> View.map Page
-                )
-                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
-
         Main.Pages.Model.Dash_Secrets_Engine__Org_Org_ params pageModel ->
             Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
@@ -2971,6 +2962,15 @@ viewPage model =
                 (\user ->
                     Page.view (Pages.Dashboards.Dashboard_.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Dashboards_Dashboard_
+                        |> View.map Page
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+        Main.Pages.Model.Status_Workers pageModel ->
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
+                (\user ->
+                    Page.view (Pages.Status.Workers.page user model.shared (Route.fromUrl () model.url)) pageModel
+                        |> View.map Main.Pages.Msg.Status_Workers
                         |> View.map Page
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -3238,16 +3238,6 @@ toPageUrlHookCmd model routes =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.Admin_Workers pageModel ->
-            Auth.Action.command
-                (\user ->
-                    Page.toUrlMessages routes (Pages.Admin.Workers.page user model.shared (Route.fromUrl () model.url))
-                        |> List.map Main.Pages.Msg.Admin_Workers
-                        |> List.map Page
-                        |> toCommands
-                )
-                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
-
         Main.Pages.Model.Dash_Secrets_Engine__Org_Org_ params pageModel ->
             Auth.Action.command
                 (\user ->
@@ -3353,6 +3343,16 @@ toPageUrlHookCmd model routes =
                 (\user ->
                     Page.toUrlMessages routes (Pages.Dashboards.Dashboard_.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Dashboards_Dashboard_
+                        |> List.map Page
+                        |> toCommands
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+        Main.Pages.Model.Status_Workers pageModel ->
+            Auth.Action.command
+                (\user ->
+                    Page.toUrlMessages routes (Pages.Status.Workers.page user model.shared (Route.fromUrl () model.url))
+                        |> List.map Main.Pages.Msg.Status_Workers
                         |> List.map Page
                         |> toCommands
                 )
@@ -3688,9 +3688,6 @@ isAuthProtected routePath =
         Route.Path.Admin_Settings ->
             True
 
-        Route.Path.Admin_Workers ->
-            True
-
         Route.Path.Dash_Secrets_Engine__Org_Org_ _ ->
             True
 
@@ -3722,6 +3719,9 @@ isAuthProtected routePath =
             True
 
         Route.Path.Dashboards_Dashboard_ _ ->
+            True
+
+        Route.Path.Status_Workers ->
             True
 
         Route.Path.Org_ _ ->

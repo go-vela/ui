@@ -11,7 +11,6 @@ import Pages.Account.Logout
 import Pages.Account.Settings
 import Pages.Account.SourceRepos
 import Pages.Admin.Settings
-import Pages.Admin.Workers
 import Pages.Dash.Secrets.Engine_.Org.Org_
 import Pages.Dash.Secrets.Engine_.Org.Org_.Add
 import Pages.Dash.Secrets.Engine_.Org.Org_.Name_
@@ -41,6 +40,7 @@ import Pages.Org_.Repo_.Schedules.Add
 import Pages.Org_.Repo_.Schedules.Name_
 import Pages.Org_.Repo_.Settings
 import Pages.Org_.Repo_.Tags
+import Pages.Status.Workers
 
 
 type Msg
@@ -51,7 +51,6 @@ type Msg
     | Account_Settings Pages.Account.Settings.Msg
     | Account_SourceRepos Pages.Account.SourceRepos.Msg
     | Admin_Settings Pages.Admin.Settings.Msg
-    | Admin_Workers Pages.Admin.Workers.Msg
     | Dash_Secrets_Engine__Org_Org_ Pages.Dash.Secrets.Engine_.Org.Org_.Msg
     | Dash_Secrets_Engine__Org_Org__Add Pages.Dash.Secrets.Engine_.Org.Org_.Add.Msg
     | Dash_Secrets_Engine__Org_Org__Name_ Pages.Dash.Secrets.Engine_.Org.Org_.Name_.Msg
@@ -63,6 +62,7 @@ type Msg
     | Dash_Secrets_Engine__Shared_Org__Team__Name_ Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_.Msg
     | Dashboards Pages.Dashboards.Msg
     | Dashboards_Dashboard_ Pages.Dashboards.Dashboard_.Msg
+    | Status_Workers Pages.Status.Workers.Msg
     | Org_ Pages.Org_.Msg
     | Org__Builds Pages.Org_.Builds.Msg
     | Org__Repo_ Pages.Org_.Repo_.Msg

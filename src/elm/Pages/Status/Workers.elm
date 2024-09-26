@@ -3,29 +3,19 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Admin.Workers exposing (Model, Msg, page)
+module Pages.Status.Workers exposing (Model, Msg, page)
 
 import Api.Pagination
 import Auth
+import Components.Crumbs
 import Components.Loading
+import Components.Nav
 import Components.Pager
 import Components.Table
 import Dict
 import Effect exposing (Effect)
-import Html
-    exposing
-        ( Html
-        , a
-        , div
-        , span
-        , text
-        , tr
-        )
-import Html.Attributes
-    exposing
-        ( class
-        , href
-        )
+import Html exposing (Html, a, div, main_, span, text, tr)
+import Html.Attributes exposing (class, href)
 import Http
 import Http.Detailed
 import Layouts
@@ -33,6 +23,7 @@ import LinkHeader exposing (WebLink)
 import Page exposing (Page)
 import RemoteData exposing (WebData)
 import Route exposing (Route)
+import Route.Path
 import Shared
 import Time
 import Utils.Errors as Errors
@@ -42,8 +33,6 @@ import Vela
 import View exposing (View)
 
 
-{-| page : shared model, route, and returns the page.
--}
 page : Auth.User -> Shared.Model -> Route () -> Page Model Msg
 page user shared route =
     Page.new
@@ -59,21 +48,16 @@ page user shared route =
 -- LAYOUT
 
 
-{-| toLayout : takes model and passes the page info to Layouts.
+{-| toLayout : takes user, model, and passes the home page info to Layouts.
 -}
 toLayout : Auth.User -> Model -> Layouts.Layout Msg
 toLayout user model =
-    Layouts.Default_Admin
-        { navButtons = []
-        , utilButtons = []
-        , helpCommands =
-            [ { name = "List Workers"
-              , content = "vela get workers"
-              , docs = Just "cli/worker/get"
+    Layouts.Default
+        { helpCommands =
+            [ { name = ""
+              , content = "resources on this page not yet supported via the CLI"
+              , docs = Nothing
               }
-            ]
-        , crumbs =
-            [ ( "Admin", Nothing )
             ]
         }
 
@@ -82,16 +66,12 @@ toLayout user model =
 -- INIT
 
 
-{-| Model : alias for model for the page.
--}
 type alias Model =
     { workers : WebData (List Vela.Worker)
     , pager : List WebLink
     }
 
 
-{-| init : initializes page with no arguments.
--}
 init : Shared.Model -> Route () -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { workers = RemoteData.Loading
@@ -111,8 +91,6 @@ init shared route () =
 -- UPDATE
 
 
-{-| Msg : custom type with possible messages.
--}
 type Msg
     = -- WORKERS
       GetWorkersResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Worker ))
@@ -121,12 +99,9 @@ type Msg
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
-{-| update : takes current models, message, and returns an updated model and effect.
--}
 update : Shared.Model -> Route () -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
-        -- WORKERS
         GetWorkersResponse response ->
             case response of
                 Ok ( meta, workers ) ->
@@ -181,8 +156,6 @@ update shared route msg model =
 -- SUBSCRIPTIONS
 
 
-{-| subscriptions : takes model and returns subscriptions.
--}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Interval.tickEveryFiveSeconds Tick
@@ -192,19 +165,30 @@ subscriptions model =
 -- VIEW
 
 
-{-| view : takes models, route, and creates the html for the page.
--}
 view : Shared.Model -> Route () -> Model -> View Msg
 view shared route model =
-    { title = ""
+    let
+        crumbs =
+            [ ( "Overview", Just Route.Path.Home_ )
+            , ( "Status", Nothing )
+            , ( "Workers", Nothing )
+            ]
+    in
+    { title = "Worker Status"
     , body =
-        [ viewWorkers shared model route
-        , Components.Pager.view
-            { show = True
-            , links = model.pager
-            , labels = Components.Pager.defaultLabels
-            , msg = GotoPage
-            }
+        [ Components.Nav.view
+            shared
+            route
+            { buttons = [], crumbs = Components.Crumbs.view route.path crumbs }
+        , main_ [ class "content-wrap" ]
+            [ viewWorkers shared model route
+            , Components.Pager.view
+                { show = True
+                , links = model.pager
+                , labels = Components.Pager.defaultLabels
+                , msg = GotoPage
+                }
+            ]
         ]
     }
 

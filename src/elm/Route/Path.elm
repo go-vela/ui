@@ -19,7 +19,6 @@ type Path
     | Account_Settings
     | Account_SourceRepos
     | Admin_Settings
-    | Admin_Workers
     | Dash_Secrets_Engine__Org_Org_ { engine : String, org : String }
     | Dash_Secrets_Engine__Org_Org__Add { engine : String, org : String }
     | Dash_Secrets_Engine__Org_Org__Name_ { engine : String, org : String, name : String }
@@ -31,6 +30,7 @@ type Path
     | Dash_Secrets_Engine__Shared_Org__Team__Name_ { engine : String, org : String, team : String, name : String }
     | Dashboards
     | Dashboards_Dashboard_ { dashboard : String }
+    | Status_Workers
     | Org_ { org : String }
     | Org__Builds { org : String }
     | Org__Repo_ { org : String, repo : String }
@@ -86,9 +86,6 @@ fromString urlPath =
 
         "admin" :: "settings" :: [] ->
             Just Admin_Settings
-
-        "admin" :: "workers" :: [] ->
-            Just Admin_Workers
 
         "-" :: "secrets" :: engine_ :: "org" :: org_ :: [] ->
             Dash_Secrets_Engine__Org_Org_
@@ -170,6 +167,9 @@ fromString urlPath =
                 { dashboard = dashboard_
                 }
                 |> Just
+
+        "status" :: "workers" :: [] ->
+            Just Status_Workers
 
         org_ :: [] ->
             Org_
@@ -322,9 +322,6 @@ toString path =
                 Admin_Settings ->
                     [ "admin", "settings" ]
 
-                Admin_Workers ->
-                    [ "admin", "workers" ]
-
                 Dash_Secrets_Engine__Org_Org_ params ->
                     [ "-", "secrets", params.engine, "org", params.org ]
 
@@ -357,6 +354,9 @@ toString path =
 
                 Dashboards_Dashboard_ params ->
                     [ "dashboards", params.dashboard ]
+
+                Status_Workers ->
+                    [ "status", "workers" ]
 
                 Org_ params ->
                     [ params.org ]

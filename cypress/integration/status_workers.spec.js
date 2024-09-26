@@ -9,7 +9,7 @@ context('Workers', () => {
       method: 'GET',
       url: '*api/v1/user*',
       status: 200,
-      response: 'fixture:user_admin.json',
+      response: 'fixture:user.json',
     });
   });
   context('server returning workers error', () => {
@@ -20,7 +20,7 @@ context('Workers', () => {
         status: 500,
         response: 'server error',
       });
-      cy.loginAdmin('/admin/workers');
+      cy.login('/status/workers');
     });
     it('workers table should not show', () => {
       cy.get('[data-test=workers]').should('not.be.visible');
@@ -40,7 +40,7 @@ context('Workers', () => {
       cy.route('GET', '*api/v1/workers*', 'fixture:workers_5.json').as(
         'workers',
       );
-      cy.loginAdmin('/admin/workers');
+      cy.login('/status/workers');
     });
     it('workers table should show', () => {
       cy.get('[data-test=workers-table]').should('be.visible');
@@ -73,23 +73,23 @@ context('Workers', () => {
     beforeEach(() => {
       cy.server();
       cy.workerPages();
-      cy.loginAdmin('/admin/workers');
+      cy.login('/status/workers');
     });
     it('workers table should show 10 workers', () => {
       cy.get('[data-test=workers-row]').should('have.length', 10);
     });
     it('shows page 2 of the workers', () => {
-      cy.visit('/admin/workers?page=2');
+      cy.visit('/status/workers?page=2');
       cy.get('[data-test=workers-row]').should('have.length', 10);
       cy.get('[data-test=pager-next]').should('be.disabled');
     });
     it("loads the first page when hitting the 'previous' button", () => {
-      cy.visit('/admin/workers?page=2');
+      cy.visit('/status/workers?page=2');
       cy.get('[data-test=pager-previous]')
         .should('have.length', 2)
         .first()
         .click();
-      cy.location('pathname').should('eq', '/admin/workers');
+      cy.location('pathname').should('eq', '/status/workers');
     });
     context('force 550, 750 resolution', () => {
       beforeEach(() => {
