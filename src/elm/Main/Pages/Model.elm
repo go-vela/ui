@@ -11,7 +11,6 @@ import Pages.Account.Logout
 import Pages.Account.Settings
 import Pages.Account.SourceRepos
 import Pages.Admin.Settings
-import Pages.Admin.Workers
 import Pages.Dash.Secrets.Engine_.Org.Org_
 import Pages.Dash.Secrets.Engine_.Org.Org_.Add
 import Pages.Dash.Secrets.Engine_.Org.Org_.Name_
@@ -41,6 +40,7 @@ import Pages.Org_.Repo_.Schedules.Add
 import Pages.Org_.Repo_.Schedules.Name_
 import Pages.Org_.Repo_.Settings
 import Pages.Org_.Repo_.Tags
+import Pages.Status.Workers
 import View exposing (View)
 
 
@@ -52,7 +52,6 @@ type Model
     | Account_Settings Pages.Account.Settings.Model
     | Account_SourceRepos Pages.Account.SourceRepos.Model
     | Admin_Settings Pages.Admin.Settings.Model
-    | Admin_Workers Pages.Admin.Workers.Model
     | Dash_Secrets_Engine__Org_Org_ { engine : String, org : String } Pages.Dash.Secrets.Engine_.Org.Org_.Model
     | Dash_Secrets_Engine__Org_Org__Add { engine : String, org : String } Pages.Dash.Secrets.Engine_.Org.Org_.Add.Model
     | Dash_Secrets_Engine__Org_Org__Name_ { engine : String, org : String, name : String } Pages.Dash.Secrets.Engine_.Org.Org_.Name_.Model
@@ -64,6 +63,7 @@ type Model
     | Dash_Secrets_Engine__Shared_Org__Team__Name_ { engine : String, org : String, team : String, name : String } Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_.Model
     | Dashboards Pages.Dashboards.Model
     | Dashboards_Dashboard_ { dashboard : String } Pages.Dashboards.Dashboard_.Model
+    | Status_Workers Pages.Status.Workers.Model
     | Org_ { org : String } Pages.Org_.Model
     | Org__Builds { org : String } Pages.Org_.Builds.Model
     | Org__Repo_ { org : String, repo : String } Pages.Org_.Repo_.Model
