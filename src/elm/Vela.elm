@@ -327,6 +327,7 @@ buildRepoPayload repo =
         repo.trusted
         repo.active
         repo.allowEvents
+        repo.install_id
 
 
 encodeEnableRepository : EnableRepoPayload -> Json.Encode.Value
@@ -341,6 +342,7 @@ encodeEnableRepository repo =
         , ( "trusted", Json.Encode.bool <| repo.trusted )
         , ( "active", Json.Encode.bool <| repo.active )
         , ( "allow_events", encodeAllowEvents repo.allowEvents )
+        , ( "install_id", Json.Encode.int repo.install_id )
         ]
 
 
@@ -404,6 +406,7 @@ type alias EnableRepoPayload =
     , trusted : Bool
     , active : Bool
     , allowEvents : AllowEvents
+    , install_id : Int
     }
 
 
@@ -455,6 +458,7 @@ type alias Repository =
     , allowEvents : AllowEvents
     , enabled : Enabled
     , pipeline_type : String
+    , install_id : Int
     }
 
 
@@ -480,6 +484,7 @@ emptyRepository =
     , allowEvents = defaultAllowEvents
     , enabled = Disabled
     , pipeline_type = ""
+    , install_id = 0
     }
 
 
@@ -507,6 +512,7 @@ decodeRepository =
         -- "enabled"
         |> optional "active" enabledDecoder Disabled
         |> optional "pipeline_type" string ""
+        |> optional "install_id" int 0
 
 
 decodeRepositories : Decoder (List Repository)
