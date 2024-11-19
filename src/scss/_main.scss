@@ -1781,3 +1781,27 @@ code.shell {
     content: '$';
   }
 }
+
+.metric {
+  display: inline-block;
+  width: 25rem;
+  margin: 1rem;
+  padding: 1rem 1rem;
+
+  background: var(--color-bg-dark);
+}
+
+.metric > * {
+  margin: 0;
+}
+
+.metric-value {
+  display: block;
+
+  font-size: xxx-large;
+}
+
+.chart-container {
+  max-width: 10rem;
+  margin: 1rem 3rem;
+}

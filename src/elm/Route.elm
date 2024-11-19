@@ -44,6 +44,6 @@ toString route =
         [ Route.Path.toString route.path
         , Route.Query.toString route.query
         , route.hash
-            |> Maybe.map (String.append "#")
-            |> Maybe.withDefault ""
+              |> Maybe.map (String.append "#")
+              |> Maybe.withDefault ""
         ]

@@ -22,6 +22,8 @@ module Utils.Helpers exposing
     , formatFilesize
     , formatRunTime
     , formatTestTag
+    , formatTimeFromFloat
+    , formatTimeFromInt
     , getNameFromRef
     , humanReadableDateTimeFormatter
     , humanReadableDateTimeWithDefault
@@ -214,6 +216,54 @@ toUtcString time =
 noSomeSecondsAgo : Int -> String
 noSomeSecondsAgo _ =
     "just now"
+
+
+formatTimeFromInt : Int -> String
+formatTimeFromInt number =
+    formatTime number
+
+
+formatTimeFromFloat : Float -> String
+formatTimeFromFloat number =
+    number
+        |> floor
+        |> formatTime
+
+
+formatTime : Int -> String
+formatTime totalSeconds =
+    let
+        hours =
+            totalSeconds // 3600
+
+        remainingSeconds =
+            Basics.remainderBy 3600 totalSeconds
+
+        minutes =
+            remainingSeconds // 60
+
+        seconds =
+            Basics.remainderBy 60 remainingSeconds
+
+        hoursString =
+            if hours > 0 then
+                String.fromInt hours ++ "h "
+
+            else
+                ""
+
+        minutesString =
+            if minutes > 0 then
+                String.fromInt minutes ++ "m "
+
+            else
+                ""
+    in
+    if totalSeconds == 0 then
+        "0s"
+
+    else
+        hoursString ++ minutesString ++ String.fromInt seconds ++ "s"
 
 
 {-| formatRunTime : calculates build runtime using current application time and build times.

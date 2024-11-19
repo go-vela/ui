@@ -5,6 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 module Main.Pages.Model exposing (Model(..))
 
+import Pages.Home_
 import Pages.Account.Authenticate
 import Pages.Account.Login
 import Pages.Account.Logout
@@ -22,25 +23,25 @@ import Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Add
 import Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_
 import Pages.Dashboards
 import Pages.Dashboards.Dashboard_
-import Pages.Home_
-import Pages.NotFound_
+import Pages.Status.Workers
 import Pages.Org_
 import Pages.Org_.Builds
 import Pages.Org_.Repo_
-import Pages.Org_.Repo_.Build_
-import Pages.Org_.Repo_.Build_.Graph
-import Pages.Org_.Repo_.Build_.Pipeline
-import Pages.Org_.Repo_.Build_.Services
 import Pages.Org_.Repo_.Deployments
 import Pages.Org_.Repo_.Deployments.Add
 import Pages.Org_.Repo_.Hooks
+import Pages.Org_.Repo_.Insights
 import Pages.Org_.Repo_.Pulls
 import Pages.Org_.Repo_.Schedules
 import Pages.Org_.Repo_.Schedules.Add
 import Pages.Org_.Repo_.Schedules.Name_
 import Pages.Org_.Repo_.Settings
 import Pages.Org_.Repo_.Tags
-import Pages.Status.Workers
+import Pages.Org_.Repo_.Build_
+import Pages.Org_.Repo_.Build_.Graph
+import Pages.Org_.Repo_.Build_.Pipeline
+import Pages.Org_.Repo_.Build_.Services
+import Pages.NotFound_
 import View exposing (View)
 
 
@@ -70,6 +71,7 @@ type Model
     | Org__Repo__Deployments { org : String, repo : String } Pages.Org_.Repo_.Deployments.Model
     | Org__Repo__Deployments_Add { org : String, repo : String } Pages.Org_.Repo_.Deployments.Add.Model
     | Org__Repo__Hooks { org : String, repo : String } Pages.Org_.Repo_.Hooks.Model
+    | Org__Repo__Insights { org : String, repo : String } Pages.Org_.Repo_.Insights.Model
     | Org__Repo__Pulls { org : String, repo : String } Pages.Org_.Repo_.Pulls.Model
     | Org__Repo__Schedules { org : String, repo : String } Pages.Org_.Repo_.Schedules.Model
     | Org__Repo__Schedules_Add { org : String, repo : String } Pages.Org_.Repo_.Schedules.Add.Model
