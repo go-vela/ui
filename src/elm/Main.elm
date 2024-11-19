@@ -28,7 +28,6 @@ import Main.Pages.Model
 import Main.Pages.Msg
 import Maybe.Extra
 import Page
-import Pages.Home_
 import Pages.Account.Authenticate
 import Pages.Account.Login
 import Pages.Account.Logout
@@ -46,10 +45,15 @@ import Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Add
 import Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_
 import Pages.Dashboards
 import Pages.Dashboards.Dashboard_
-import Pages.Status.Workers
+import Pages.Home_
+import Pages.NotFound_
 import Pages.Org_
 import Pages.Org_.Builds
 import Pages.Org_.Repo_
+import Pages.Org_.Repo_.Build_
+import Pages.Org_.Repo_.Build_.Graph
+import Pages.Org_.Repo_.Build_.Pipeline
+import Pages.Org_.Repo_.Build_.Services
 import Pages.Org_.Repo_.Deployments
 import Pages.Org_.Repo_.Deployments.Add
 import Pages.Org_.Repo_.Hooks
@@ -60,12 +64,7 @@ import Pages.Org_.Repo_.Schedules.Add
 import Pages.Org_.Repo_.Schedules.Name_
 import Pages.Org_.Repo_.Settings
 import Pages.Org_.Repo_.Tags
-import Pages.Org_.Repo_.Build_
-import Pages.Org_.Repo_.Build_.Graph
-import Pages.Org_.Repo_.Build_.Pipeline
-import Pages.Org_.Repo_.Build_.Services
-import Pages.NotFound_
-import Pages.NotFound_
+import Pages.Status.Workers
 import Route exposing (Route)
 import Route.Path
 import Shared
@@ -119,10 +118,10 @@ init json url key =
       , shared = sharedModel
       }
     , Cmd.batch
-          [ Tuple.second page
-          , layout |> Maybe.map Tuple.second |> Maybe.withDefault Cmd.none
-          , fromSharedEffect { key = key, url = url, shared = sharedModel } sharedEffect
-          ]
+        [ Tuple.second page
+        , layout |> Maybe.map Tuple.second |> Maybe.withDefault Cmd.none
+        , fromSharedEffect { key = key, url = url, shared = sharedModel } sharedEffect
+        ]
     )
 
 
@@ -258,9 +257,10 @@ initLayout model layout =
                     Layout.init defaultLayout ()
             in
             ( Main.Layouts.Model.Default_Admin { default = defaultLayoutModel, admin = adminLayoutModel }
-            , Cmd.batch [ fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Admin adminLayoutEffect)
-              , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default defaultLayoutEffect)
-              ]
+            , Cmd.batch
+                [ fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Admin adminLayoutEffect)
+                , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default defaultLayoutEffect)
+                ]
             )
 
         ( Layouts.Default_Build props, Just (Main.Layouts.Model.Default existing) ) ->
@@ -351,9 +351,10 @@ initLayout model layout =
                     Layout.init defaultLayout ()
             in
             ( Main.Layouts.Model.Default_Build { default = defaultLayoutModel, build = buildLayoutModel }
-            , Cmd.batch [ fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Build buildLayoutEffect)
-              , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default defaultLayoutEffect)
-              ]
+            , Cmd.batch
+                [ fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Build buildLayoutEffect)
+                , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default defaultLayoutEffect)
+                ]
             )
 
         ( Layouts.Default_Org props, Just (Main.Layouts.Model.Default existing) ) ->
@@ -444,9 +445,10 @@ initLayout model layout =
                     Layout.init defaultLayout ()
             in
             ( Main.Layouts.Model.Default_Org { default = defaultLayoutModel, org = orgLayoutModel }
-            , Cmd.batch [ fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Org orgLayoutEffect)
-              , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default defaultLayoutEffect)
-              ]
+            , Cmd.batch
+                [ fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Org orgLayoutEffect)
+                , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default defaultLayoutEffect)
+                ]
             )
 
         ( Layouts.Default_Repo props, Just (Main.Layouts.Model.Default existing) ) ->
@@ -537,9 +539,10 @@ initLayout model layout =
                     Layout.init defaultLayout ()
             in
             ( Main.Layouts.Model.Default_Repo { default = defaultLayoutModel, repo = repoLayoutModel }
-            , Cmd.batch [ fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Repo repoLayoutEffect)
-              , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default defaultLayoutEffect)
-              ]
+            , Cmd.batch
+                [ fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Repo repoLayoutEffect)
+                , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default defaultLayoutEffect)
+                ]
             )
 
 
@@ -558,12 +561,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             Main.Pages.Model.Home_
                             (Effect.map Main.Pages.Msg.Home_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Home_ >> Page))
                             |> Maybe.map (initLayout model)
@@ -579,12 +582,12 @@ initPageAndLayout model =
                 ( pageModel, pageEffect ) =
                     Page.init page ()
             in
-            { page = 
+            { page =
                 Tuple.mapBoth
                     Main.Pages.Model.Account_Authenticate
                     (Effect.map Main.Pages.Msg.Account_Authenticate >> fromPageEffect model)
                     ( pageModel, pageEffect )
-            , layout = 
+            , layout =
                 Page.layout pageModel page
                     |> Maybe.map (Layouts.map (Main.Pages.Msg.Account_Authenticate >> Page))
                     |> Maybe.map (initLayout model)
@@ -599,12 +602,12 @@ initPageAndLayout model =
                 ( pageModel, pageEffect ) =
                     Page.init page ()
             in
-            { page = 
+            { page =
                 Tuple.mapBoth
                     Main.Pages.Model.Account_Login
                     (Effect.map Main.Pages.Msg.Account_Login >> fromPageEffect model)
                     ( pageModel, pageEffect )
-            , layout = 
+            , layout =
                 Page.layout pageModel page
                     |> Maybe.map (Layouts.map (Main.Pages.Msg.Account_Login >> Page))
                     |> Maybe.map (initLayout model)
@@ -619,12 +622,12 @@ initPageAndLayout model =
                 ( pageModel, pageEffect ) =
                     Page.init page ()
             in
-            { page = 
+            { page =
                 Tuple.mapBoth
                     Main.Pages.Model.Account_Logout
                     (Effect.map Main.Pages.Msg.Account_Logout >> fromPageEffect model)
                     ( pageModel, pageEffect )
-            , layout = 
+            , layout =
                 Page.layout pageModel page
                     |> Maybe.map (Layouts.map (Main.Pages.Msg.Account_Logout >> Page))
                     |> Maybe.map (initLayout model)
@@ -642,12 +645,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             Main.Pages.Model.Account_Settings
                             (Effect.map Main.Pages.Msg.Account_Settings >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Account_Settings >> Page))
                             |> Maybe.map (initLayout model)
@@ -666,12 +669,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             Main.Pages.Model.Account_SourceRepos
                             (Effect.map Main.Pages.Msg.Account_SourceRepos >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Account_SourceRepos >> Page))
                             |> Maybe.map (initLayout model)
@@ -690,12 +693,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             Main.Pages.Model.Admin_Settings
                             (Effect.map Main.Pages.Msg.Admin_Settings >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Admin_Settings >> Page))
                             |> Maybe.map (initLayout model)
@@ -714,12 +717,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Dash_Secrets_Engine__Org_Org_ params)
                             (Effect.map Main.Pages.Msg.Dash_Secrets_Engine__Org_Org_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Dash_Secrets_Engine__Org_Org_ >> Page))
                             |> Maybe.map (initLayout model)
@@ -738,12 +741,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Dash_Secrets_Engine__Org_Org__Add params)
                             (Effect.map Main.Pages.Msg.Dash_Secrets_Engine__Org_Org__Add >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Dash_Secrets_Engine__Org_Org__Add >> Page))
                             |> Maybe.map (initLayout model)
@@ -762,12 +765,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Dash_Secrets_Engine__Org_Org__Name_ params)
                             (Effect.map Main.Pages.Msg.Dash_Secrets_Engine__Org_Org__Name_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Dash_Secrets_Engine__Org_Org__Name_ >> Page))
                             |> Maybe.map (initLayout model)
@@ -786,12 +789,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Dash_Secrets_Engine__Repo_Org__Repo_ params)
                             (Effect.map Main.Pages.Msg.Dash_Secrets_Engine__Repo_Org__Repo_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Dash_Secrets_Engine__Repo_Org__Repo_ >> Page))
                             |> Maybe.map (initLayout model)
@@ -810,12 +813,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Dash_Secrets_Engine__Repo_Org__Repo__Add params)
                             (Effect.map Main.Pages.Msg.Dash_Secrets_Engine__Repo_Org__Repo__Add >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Dash_Secrets_Engine__Repo_Org__Repo__Add >> Page))
                             |> Maybe.map (initLayout model)
@@ -834,12 +837,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Dash_Secrets_Engine__Repo_Org__Repo__Name_ params)
                             (Effect.map Main.Pages.Msg.Dash_Secrets_Engine__Repo_Org__Repo__Name_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Dash_Secrets_Engine__Repo_Org__Repo__Name_ >> Page))
                             |> Maybe.map (initLayout model)
@@ -858,12 +861,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Dash_Secrets_Engine__Shared_Org__Team_ params)
                             (Effect.map Main.Pages.Msg.Dash_Secrets_Engine__Shared_Org__Team_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Dash_Secrets_Engine__Shared_Org__Team_ >> Page))
                             |> Maybe.map (initLayout model)
@@ -882,12 +885,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Dash_Secrets_Engine__Shared_Org__Team__Add params)
                             (Effect.map Main.Pages.Msg.Dash_Secrets_Engine__Shared_Org__Team__Add >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Dash_Secrets_Engine__Shared_Org__Team__Add >> Page))
                             |> Maybe.map (initLayout model)
@@ -906,12 +909,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Dash_Secrets_Engine__Shared_Org__Team__Name_ params)
                             (Effect.map Main.Pages.Msg.Dash_Secrets_Engine__Shared_Org__Team__Name_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Dash_Secrets_Engine__Shared_Org__Team__Name_ >> Page))
                             |> Maybe.map (initLayout model)
@@ -930,12 +933,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             Main.Pages.Model.Dashboards
                             (Effect.map Main.Pages.Msg.Dashboards >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Dashboards >> Page))
                             |> Maybe.map (initLayout model)
@@ -954,12 +957,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Dashboards_Dashboard_ params)
                             (Effect.map Main.Pages.Msg.Dashboards_Dashboard_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Dashboards_Dashboard_ >> Page))
                             |> Maybe.map (initLayout model)
@@ -978,12 +981,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             Main.Pages.Model.Status_Workers
                             (Effect.map Main.Pages.Msg.Status_Workers >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Status_Workers >> Page))
                             |> Maybe.map (initLayout model)
@@ -1002,12 +1005,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Org_ params)
                             (Effect.map Main.Pages.Msg.Org_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_ >> Page))
                             |> Maybe.map (initLayout model)
@@ -1026,12 +1029,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Org__Builds params)
                             (Effect.map Main.Pages.Msg.Org__Builds >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Builds >> Page))
                             |> Maybe.map (initLayout model)
@@ -1050,12 +1053,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Org__Repo_ params)
                             (Effect.map Main.Pages.Msg.Org__Repo_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Repo_ >> Page))
                             |> Maybe.map (initLayout model)
@@ -1074,12 +1077,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Org__Repo__Deployments params)
                             (Effect.map Main.Pages.Msg.Org__Repo__Deployments >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Repo__Deployments >> Page))
                             |> Maybe.map (initLayout model)
@@ -1098,12 +1101,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Org__Repo__Deployments_Add params)
                             (Effect.map Main.Pages.Msg.Org__Repo__Deployments_Add >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Repo__Deployments_Add >> Page))
                             |> Maybe.map (initLayout model)
@@ -1122,12 +1125,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Org__Repo__Hooks params)
                             (Effect.map Main.Pages.Msg.Org__Repo__Hooks >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Repo__Hooks >> Page))
                             |> Maybe.map (initLayout model)
@@ -1146,12 +1149,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Org__Repo__Insights params)
                             (Effect.map Main.Pages.Msg.Org__Repo__Insights >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Repo__Insights >> Page))
                             |> Maybe.map (initLayout model)
@@ -1167,12 +1170,12 @@ initPageAndLayout model =
                 ( pageModel, pageEffect ) =
                     Page.init page ()
             in
-            { page = 
+            { page =
                 Tuple.mapBoth
                     (Main.Pages.Model.Org__Repo__Pulls params)
                     (Effect.map Main.Pages.Msg.Org__Repo__Pulls >> fromPageEffect model)
                     ( pageModel, pageEffect )
-            , layout = 
+            , layout =
                 Page.layout pageModel page
                     |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Repo__Pulls >> Page))
                     |> Maybe.map (initLayout model)
@@ -1190,12 +1193,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Org__Repo__Schedules params)
                             (Effect.map Main.Pages.Msg.Org__Repo__Schedules >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Repo__Schedules >> Page))
                             |> Maybe.map (initLayout model)
@@ -1214,12 +1217,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Org__Repo__Schedules_Add params)
                             (Effect.map Main.Pages.Msg.Org__Repo__Schedules_Add >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Repo__Schedules_Add >> Page))
                             |> Maybe.map (initLayout model)
@@ -1238,12 +1241,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Org__Repo__Schedules_Name_ params)
                             (Effect.map Main.Pages.Msg.Org__Repo__Schedules_Name_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Repo__Schedules_Name_ >> Page))
                             |> Maybe.map (initLayout model)
@@ -1262,12 +1265,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Org__Repo__Settings params)
                             (Effect.map Main.Pages.Msg.Org__Repo__Settings >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Repo__Settings >> Page))
                             |> Maybe.map (initLayout model)
@@ -1283,12 +1286,12 @@ initPageAndLayout model =
                 ( pageModel, pageEffect ) =
                     Page.init page ()
             in
-            { page = 
+            { page =
                 Tuple.mapBoth
                     (Main.Pages.Model.Org__Repo__Tags params)
                     (Effect.map Main.Pages.Msg.Org__Repo__Tags >> fromPageEffect model)
                     ( pageModel, pageEffect )
-            , layout = 
+            , layout =
                 Page.layout pageModel page
                     |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Repo__Tags >> Page))
                     |> Maybe.map (initLayout model)
@@ -1306,12 +1309,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Org__Repo__Build_ params)
                             (Effect.map Main.Pages.Msg.Org__Repo__Build_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Repo__Build_ >> Page))
                             |> Maybe.map (initLayout model)
@@ -1330,12 +1333,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Org__Repo__Build__Graph params)
                             (Effect.map Main.Pages.Msg.Org__Repo__Build__Graph >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Repo__Build__Graph >> Page))
                             |> Maybe.map (initLayout model)
@@ -1354,12 +1357,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Org__Repo__Build__Pipeline params)
                             (Effect.map Main.Pages.Msg.Org__Repo__Build__Pipeline >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Repo__Build__Pipeline >> Page))
                             |> Maybe.map (initLayout model)
@@ -1378,12 +1381,12 @@ initPageAndLayout model =
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
-                    { page = 
+                    { page =
                         Tuple.mapBoth
                             (Main.Pages.Model.Org__Repo__Build__Services params)
                             (Effect.map Main.Pages.Msg.Org__Repo__Build__Services >> fromPageEffect model)
                             ( pageModel, pageEffect )
-                    , layout = 
+                    , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Repo__Build__Services >> Page))
                             |> Maybe.map (initLayout model)
@@ -1399,12 +1402,12 @@ initPageAndLayout model =
                 ( pageModel, pageEffect ) =
                     Page.init page ()
             in
-            { page = 
+            { page =
                 Tuple.mapBoth
                     Main.Pages.Model.NotFound_
                     (Effect.map Main.Pages.Msg.NotFound_ >> fromPageEffect model)
                     ( pageModel, pageEffect )
-            , layout = 
+            , layout =
                 Page.layout pageModel page
                     |> Maybe.map (Layouts.map (Main.Pages.Msg.NotFound_ >> Page))
                     |> Maybe.map (initLayout model)
@@ -1443,7 +1446,7 @@ runWhenAuthenticatedWithLayout model toRecord =
             toRecord user
 
         Auth.Action.LoadCustomPage ->
-            { page = 
+            { page =
                 ( Main.Pages.Model.Loading_
                 , Cmd.none
                 )
@@ -1451,35 +1454,35 @@ runWhenAuthenticatedWithLayout model toRecord =
             }
 
         Auth.Action.ReplaceRoute options ->
-            { page = 
+            { page =
                 ( Main.Pages.Model.Redirecting_
                 , Cmd.batch
-                      [ toCmd (Effect.replaceRoute options)
-                      , Maybe.Extra.unwrap
-                            Cmd.none
-                            (\from -> Interop.setRedirect <| Json.Encode.string from)
-                            (Dict.get "from" options.query)
-                      ]
+                    [ toCmd (Effect.replaceRoute options)
+                    , Maybe.Extra.unwrap
+                        Cmd.none
+                        (\from -> Interop.setRedirect <| Json.Encode.string from)
+                        (Dict.get "from" options.query)
+                    ]
                 )
             , layout = Nothing
             }
 
         Auth.Action.PushRoute options ->
-            { page = 
+            { page =
                 ( Main.Pages.Model.Redirecting_
                 , Cmd.batch
-                      [ toCmd (Effect.pushRoute options)
-                      , Maybe.Extra.unwrap
-                            Cmd.none
-                            (\from -> Interop.setRedirect <| Json.Encode.string from)
-                            (Dict.get "from" options.query)
-                      ]
+                    [ toCmd (Effect.pushRoute options)
+                    , Maybe.Extra.unwrap
+                        Cmd.none
+                        (\from -> Interop.setRedirect <| Json.Encode.string from)
+                        (Dict.get "from" options.query)
+                    ]
                 )
             , layout = Nothing
             }
 
         Auth.Action.LoadExternalUrl externalUrl ->
-            { page = 
+            { page =
                 ( Main.Pages.Model.Redirecting_
                 , Browser.Navigation.load externalUrl
                 )
@@ -1526,15 +1529,16 @@ update msg model =
                 in
                 ( newModel
                 , Cmd.batch
-                      [ toPageUrlHookCmd newModel
-                            { from = Route.fromUrl () model.url
-                            , to = Route.fromUrl () newModel.url
-                            }
-                      , toLayoutUrlHookCmd model newModel
-                            { from = Route.fromUrl () model.url
-                            , to = Route.fromUrl () newModel.url
-                            }
-                      ]
+                    [ toPageUrlHookCmd newModel
+                        { from = Route.fromUrl () model.url
+                        , to = Route.fromUrl () newModel.url
+                        }
+                    , toLayoutUrlHookCmd model
+                        newModel
+                        { from = Route.fromUrl () model.url
+                        , to = Route.fromUrl () newModel.url
+                        }
+                    ]
                 )
 
             else
@@ -1558,13 +1562,14 @@ update msg model =
                 in
                 ( newModel
                 , Cmd.batch
-                      [ pageCmd
-                      , layoutCmd
-                      , toLayoutUrlHookCmd model newModel
-                            { from = Route.fromUrl () model.url
-                            , to = Route.fromUrl () newModel.url
-                            }
-                      ]
+                    [ pageCmd
+                    , layoutCmd
+                    , toLayoutUrlHookCmd model
+                        newModel
+                        { from = Route.fromUrl () model.url
+                        , to = Route.fromUrl () newModel.url
+                        }
+                    ]
                 )
 
         Page pageMsg ->
@@ -1595,7 +1600,7 @@ update msg model =
                     , Auth.onPageLoad sharedModel (Route.fromUrl () model.url)
                     )
             in
-            if isAuthProtected (Route.fromUrl () model.url).path && (hasActionTypeChanged oldAction newAction) then
+            if isAuthProtected (Route.fromUrl () model.url).path && hasActionTypeChanged oldAction newAction then
                 let
                     { layout, page } =
                         initPageAndLayout { key = model.key, shared = sharedModel, url = model.url, layout = model.layout }
@@ -1610,10 +1615,10 @@ update msg model =
                 in
                 ( { model | shared = sharedModel, page = pageModel, layout = layoutModel }
                 , Cmd.batch
-                      [ pageCmd
-                      , layoutCmd
-                      , fromSharedEffect { model | shared = sharedModel } sharedEffect
-                      ]
+                    [ pageCmd
+                    , layoutCmd
+                    , fromSharedEffect { model | shared = sharedModel } sharedEffect
+                    ]
                 )
 
             else
@@ -1624,8 +1629,8 @@ update msg model =
         Batch messages ->
             ( model
             , messages
-                  |> List.map (Task.succeed >> Task.perform identity)
-                  |> Cmd.batch
+                |> List.map (Task.succeed >> Task.perform identity)
+                |> Cmd.batch
             )
 
 
@@ -2332,7 +2337,7 @@ hasActionTypeChanged oldAction newAction =
         ( Auth.Action.LoadExternalUrl _, Auth.Action.LoadExternalUrl _ ) ->
             False
 
-        ( _,  _ ) ->
+        ( _, _ ) ->
             True
 
 
@@ -2681,11 +2686,11 @@ subscriptions model =
                     in
                     Sub.batch
                         [ Layout.subscriptions (Layouts.Default.layout defaultProps model.shared route) layoutModel.default
-                              |> Sub.map Main.Layouts.Msg.Default
-                              |> Sub.map Layout
+                            |> Sub.map Main.Layouts.Msg.Default
+                            |> Sub.map Layout
                         , Layout.subscriptions (Layouts.Default.Admin.layout props model.shared route) layoutModel.admin
-                              |> Sub.map Main.Layouts.Msg.Default_Admin
-                              |> Sub.map Layout
+                            |> Sub.map Main.Layouts.Msg.Default_Admin
+                            |> Sub.map Layout
                         ]
 
                 ( Just (Layouts.Default_Build props), Just (Main.Layouts.Model.Default_Build layoutModel) ) ->
@@ -2696,11 +2701,11 @@ subscriptions model =
                     in
                     Sub.batch
                         [ Layout.subscriptions (Layouts.Default.layout defaultProps model.shared route) layoutModel.default
-                              |> Sub.map Main.Layouts.Msg.Default
-                              |> Sub.map Layout
+                            |> Sub.map Main.Layouts.Msg.Default
+                            |> Sub.map Layout
                         , Layout.subscriptions (Layouts.Default.Build.layout props model.shared route) layoutModel.build
-                              |> Sub.map Main.Layouts.Msg.Default_Build
-                              |> Sub.map Layout
+                            |> Sub.map Main.Layouts.Msg.Default_Build
+                            |> Sub.map Layout
                         ]
 
                 ( Just (Layouts.Default_Org props), Just (Main.Layouts.Model.Default_Org layoutModel) ) ->
@@ -2711,11 +2716,11 @@ subscriptions model =
                     in
                     Sub.batch
                         [ Layout.subscriptions (Layouts.Default.layout defaultProps model.shared route) layoutModel.default
-                              |> Sub.map Main.Layouts.Msg.Default
-                              |> Sub.map Layout
+                            |> Sub.map Main.Layouts.Msg.Default
+                            |> Sub.map Layout
                         , Layout.subscriptions (Layouts.Default.Org.layout props model.shared route) layoutModel.org
-                              |> Sub.map Main.Layouts.Msg.Default_Org
-                              |> Sub.map Layout
+                            |> Sub.map Main.Layouts.Msg.Default_Org
+                            |> Sub.map Layout
                         ]
 
                 ( Just (Layouts.Default_Repo props), Just (Main.Layouts.Model.Default_Repo layoutModel) ) ->
@@ -2726,11 +2731,11 @@ subscriptions model =
                     in
                     Sub.batch
                         [ Layout.subscriptions (Layouts.Default.layout defaultProps model.shared route) layoutModel.default
-                              |> Sub.map Main.Layouts.Msg.Default
-                              |> Sub.map Layout
+                            |> Sub.map Main.Layouts.Msg.Default
+                            |> Sub.map Layout
                         , Layout.subscriptions (Layouts.Default.Repo.layout props model.shared route) layoutModel.repo
-                              |> Sub.map Main.Layouts.Msg.Default_Repo
-                              |> Sub.map Layout
+                            |> Sub.map Main.Layouts.Msg.Default_Repo
+                            |> Sub.map Layout
                         ]
 
                 _ ->
@@ -2738,7 +2743,7 @@ subscriptions model =
     in
     Sub.batch
         [ Shared.subscriptions route model.shared
-              |> Sub.map Shared
+            |> Sub.map Shared
         , subscriptionsFromPage
         , subscriptionsFromLayout
         ]
@@ -2788,7 +2793,7 @@ toView model =
                 (Layouts.Default.layout defaultProps model.shared route)
                 { model = layoutModel.default
                 , toContentMsg = Main.Layouts.Msg.Default >> Layout
-                , content = 
+                , content =
                     Layout.view
                         (Layouts.Default.Admin.layout props model.shared route)
                         { model = layoutModel.admin
@@ -2807,7 +2812,7 @@ toView model =
                 (Layouts.Default.layout defaultProps model.shared route)
                 { model = layoutModel.default
                 , toContentMsg = Main.Layouts.Msg.Default >> Layout
-                , content = 
+                , content =
                     Layout.view
                         (Layouts.Default.Build.layout props model.shared route)
                         { model = layoutModel.build
@@ -2826,7 +2831,7 @@ toView model =
                 (Layouts.Default.layout defaultProps model.shared route)
                 { model = layoutModel.default
                 , toContentMsg = Main.Layouts.Msg.Default >> Layout
-                , content = 
+                , content =
                     Layout.view
                         (Layouts.Default.Org.layout props model.shared route)
                         { model = layoutModel.org
@@ -2845,7 +2850,7 @@ toView model =
                 (Layouts.Default.layout defaultProps model.shared route)
                 { model = layoutModel.default
                 , toContentMsg = Main.Layouts.Msg.Default >> Layout
-                , content = 
+                , content =
                     Layout.view
                         (Layouts.Default.Repo.layout props model.shared route)
                         { model = layoutModel.repo
@@ -3237,7 +3242,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Home_ pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Home_.page user model.shared (Route.fromUrl () model.url)) 
+                    Page.toUrlMessages routes (Pages.Home_.page user model.shared (Route.fromUrl () model.url))
                         |> List.map Main.Pages.Msg.Home_
                         |> List.map Page
                         |> toCommands
@@ -3245,19 +3250,19 @@ toPageUrlHookCmd model routes =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Account_Authenticate pageModel ->
-            Page.toUrlMessages routes (Pages.Account.Authenticate.page model.shared (Route.fromUrl () model.url)) 
+            Page.toUrlMessages routes (Pages.Account.Authenticate.page model.shared (Route.fromUrl () model.url))
                 |> List.map Main.Pages.Msg.Account_Authenticate
                 |> List.map Page
                 |> toCommands
 
         Main.Pages.Model.Account_Login pageModel ->
-            Page.toUrlMessages routes (Pages.Account.Login.page model.shared (Route.fromUrl () model.url)) 
+            Page.toUrlMessages routes (Pages.Account.Login.page model.shared (Route.fromUrl () model.url))
                 |> List.map Main.Pages.Msg.Account_Login
                 |> List.map Page
                 |> toCommands
 
         Main.Pages.Model.Account_Logout pageModel ->
-            Page.toUrlMessages routes (Pages.Account.Logout.page model.shared (Route.fromUrl () model.url)) 
+            Page.toUrlMessages routes (Pages.Account.Logout.page model.shared (Route.fromUrl () model.url))
                 |> List.map Main.Pages.Msg.Account_Logout
                 |> List.map Page
                 |> toCommands
@@ -3265,7 +3270,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Account_Settings pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Account.Settings.page user model.shared (Route.fromUrl () model.url)) 
+                    Page.toUrlMessages routes (Pages.Account.Settings.page user model.shared (Route.fromUrl () model.url))
                         |> List.map Main.Pages.Msg.Account_Settings
                         |> List.map Page
                         |> toCommands
@@ -3275,7 +3280,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Account_SourceRepos pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Account.SourceRepos.page user model.shared (Route.fromUrl () model.url)) 
+                    Page.toUrlMessages routes (Pages.Account.SourceRepos.page user model.shared (Route.fromUrl () model.url))
                         |> List.map Main.Pages.Msg.Account_SourceRepos
                         |> List.map Page
                         |> toCommands
@@ -3285,7 +3290,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Admin_Settings pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Admin.Settings.page user model.shared (Route.fromUrl () model.url)) 
+                    Page.toUrlMessages routes (Pages.Admin.Settings.page user model.shared (Route.fromUrl () model.url))
                         |> List.map Main.Pages.Msg.Admin_Settings
                         |> List.map Page
                         |> toCommands
@@ -3295,7 +3300,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Dash_Secrets_Engine__Org_Org_ params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Org.Org_.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Org.Org_.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Dash_Secrets_Engine__Org_Org_
                         |> List.map Page
                         |> toCommands
@@ -3305,7 +3310,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Dash_Secrets_Engine__Org_Org__Add params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Org.Org_.Add.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Org.Org_.Add.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Dash_Secrets_Engine__Org_Org__Add
                         |> List.map Page
                         |> toCommands
@@ -3315,7 +3320,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Dash_Secrets_Engine__Org_Org__Name_ params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Org.Org_.Name_.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Org.Org_.Name_.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Dash_Secrets_Engine__Org_Org__Name_
                         |> List.map Page
                         |> toCommands
@@ -3325,7 +3330,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Dash_Secrets_Engine__Repo_Org__Repo_ params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Dash_Secrets_Engine__Repo_Org__Repo_
                         |> List.map Page
                         |> toCommands
@@ -3335,7 +3340,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Dash_Secrets_Engine__Repo_Org__Repo__Add params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Add.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Add.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Dash_Secrets_Engine__Repo_Org__Repo__Add
                         |> List.map Page
                         |> toCommands
@@ -3345,7 +3350,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Dash_Secrets_Engine__Repo_Org__Repo__Name_ params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Name_.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Repo.Org_.Repo_.Name_.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Dash_Secrets_Engine__Repo_Org__Repo__Name_
                         |> List.map Page
                         |> toCommands
@@ -3355,7 +3360,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Dash_Secrets_Engine__Shared_Org__Team_ params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Dash_Secrets_Engine__Shared_Org__Team_
                         |> List.map Page
                         |> toCommands
@@ -3365,7 +3370,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Dash_Secrets_Engine__Shared_Org__Team__Add params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Add.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Add.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Dash_Secrets_Engine__Shared_Org__Team__Add
                         |> List.map Page
                         |> toCommands
@@ -3375,7 +3380,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Dash_Secrets_Engine__Shared_Org__Team__Name_ params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Dash.Secrets.Engine_.Shared.Org_.Team_.Name_.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Dash_Secrets_Engine__Shared_Org__Team__Name_
                         |> List.map Page
                         |> toCommands
@@ -3385,7 +3390,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Dashboards pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Dashboards.page user model.shared (Route.fromUrl () model.url)) 
+                    Page.toUrlMessages routes (Pages.Dashboards.page user model.shared (Route.fromUrl () model.url))
                         |> List.map Main.Pages.Msg.Dashboards
                         |> List.map Page
                         |> toCommands
@@ -3395,7 +3400,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Dashboards_Dashboard_ params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Dashboards.Dashboard_.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Dashboards.Dashboard_.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Dashboards_Dashboard_
                         |> List.map Page
                         |> toCommands
@@ -3405,7 +3410,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Status_Workers pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Status.Workers.page user model.shared (Route.fromUrl () model.url)) 
+                    Page.toUrlMessages routes (Pages.Status.Workers.page user model.shared (Route.fromUrl () model.url))
                         |> List.map Main.Pages.Msg.Status_Workers
                         |> List.map Page
                         |> toCommands
@@ -3415,7 +3420,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Org_ params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Org_.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Org_.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Org_
                         |> List.map Page
                         |> toCommands
@@ -3425,7 +3430,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Org__Builds params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Org_.Builds.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Org_.Builds.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Org__Builds
                         |> List.map Page
                         |> toCommands
@@ -3435,7 +3440,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Org__Repo_ params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Org_.Repo_.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Org__Repo_
                         |> List.map Page
                         |> toCommands
@@ -3445,7 +3450,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Org__Repo__Deployments params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Org_.Repo_.Deployments.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.Deployments.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Org__Repo__Deployments
                         |> List.map Page
                         |> toCommands
@@ -3455,7 +3460,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Org__Repo__Deployments_Add params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Org_.Repo_.Deployments.Add.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.Deployments.Add.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Org__Repo__Deployments_Add
                         |> List.map Page
                         |> toCommands
@@ -3465,7 +3470,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Org__Repo__Hooks params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Org_.Repo_.Hooks.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.Hooks.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Org__Repo__Hooks
                         |> List.map Page
                         |> toCommands
@@ -3475,7 +3480,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Org__Repo__Insights params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Org_.Repo_.Insights.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.Insights.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Org__Repo__Insights
                         |> List.map Page
                         |> toCommands
@@ -3483,7 +3488,7 @@ toPageUrlHookCmd model routes =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Org__Repo__Pulls params pageModel ->
-            Page.toUrlMessages routes (Pages.Org_.Repo_.Pulls.page model.shared (Route.fromUrl params model.url)) 
+            Page.toUrlMessages routes (Pages.Org_.Repo_.Pulls.page model.shared (Route.fromUrl params model.url))
                 |> List.map Main.Pages.Msg.Org__Repo__Pulls
                 |> List.map Page
                 |> toCommands
@@ -3491,7 +3496,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Org__Repo__Schedules params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Org_.Repo_.Schedules.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.Schedules.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Org__Repo__Schedules
                         |> List.map Page
                         |> toCommands
@@ -3501,7 +3506,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Org__Repo__Schedules_Add params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Org_.Repo_.Schedules.Add.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.Schedules.Add.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Org__Repo__Schedules_Add
                         |> List.map Page
                         |> toCommands
@@ -3511,7 +3516,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Org__Repo__Schedules_Name_ params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Org_.Repo_.Schedules.Name_.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.Schedules.Name_.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Org__Repo__Schedules_Name_
                         |> List.map Page
                         |> toCommands
@@ -3521,7 +3526,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Org__Repo__Settings params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Org_.Repo_.Settings.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.Settings.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Org__Repo__Settings
                         |> List.map Page
                         |> toCommands
@@ -3529,7 +3534,7 @@ toPageUrlHookCmd model routes =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Org__Repo__Tags params pageModel ->
-            Page.toUrlMessages routes (Pages.Org_.Repo_.Tags.page model.shared (Route.fromUrl params model.url)) 
+            Page.toUrlMessages routes (Pages.Org_.Repo_.Tags.page model.shared (Route.fromUrl params model.url))
                 |> List.map Main.Pages.Msg.Org__Repo__Tags
                 |> List.map Page
                 |> toCommands
@@ -3537,7 +3542,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Org__Repo__Build_ params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Org_.Repo_.Build_.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.Build_.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Org__Repo__Build_
                         |> List.map Page
                         |> toCommands
@@ -3547,7 +3552,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Org__Repo__Build__Graph params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Org_.Repo_.Build_.Graph.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.Build_.Graph.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Org__Repo__Build__Graph
                         |> List.map Page
                         |> toCommands
@@ -3557,7 +3562,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Org__Repo__Build__Pipeline params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Org_.Repo_.Build_.Pipeline.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.Build_.Pipeline.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Org__Repo__Build__Pipeline
                         |> List.map Page
                         |> toCommands
@@ -3567,7 +3572,7 @@ toPageUrlHookCmd model routes =
         Main.Pages.Model.Org__Repo__Build__Services params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Org_.Repo_.Build_.Services.page user model.shared (Route.fromUrl params model.url)) 
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.Build_.Services.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Org__Repo__Build__Services
                         |> List.map Page
                         |> toCommands
@@ -3575,7 +3580,7 @@ toPageUrlHookCmd model routes =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.NotFound_ pageModel ->
-            Page.toUrlMessages routes (Pages.NotFound_.page model.shared (Route.fromUrl () model.url)) 
+            Page.toUrlMessages routes (Pages.NotFound_.page model.shared (Route.fromUrl () model.url))
                 |> List.map Main.Pages.Msg.NotFound_
                 |> List.map Page
                 |> toCommands
@@ -3623,13 +3628,13 @@ toLayoutUrlHookCmd oldModel model routes =
             in
             Cmd.batch
                 [ Layout.toUrlMessages routes (Layouts.Default.layout defaultProps model.shared route)
-                      |> List.map Main.Layouts.Msg.Default
-                      |> List.map Layout
-                      |> toCommands
+                    |> List.map Main.Layouts.Msg.Default
+                    |> List.map Layout
+                    |> toCommands
                 , Layout.toUrlMessages routes (Layouts.Default.Admin.layout props model.shared route)
-                      |> List.map Main.Layouts.Msg.Default_Admin
-                      |> List.map Layout
-                      |> toCommands
+                    |> List.map Main.Layouts.Msg.Default_Admin
+                    |> List.map Layout
+                    |> toCommands
                 ]
 
         ( Just (Layouts.Default_Build props), Just (Main.Layouts.Model.Default_Build layoutModel) ) ->
@@ -3640,13 +3645,13 @@ toLayoutUrlHookCmd oldModel model routes =
             in
             Cmd.batch
                 [ Layout.toUrlMessages routes (Layouts.Default.layout defaultProps model.shared route)
-                      |> List.map Main.Layouts.Msg.Default
-                      |> List.map Layout
-                      |> toCommands
+                    |> List.map Main.Layouts.Msg.Default
+                    |> List.map Layout
+                    |> toCommands
                 , Layout.toUrlMessages routes (Layouts.Default.Build.layout props model.shared route)
-                      |> List.map Main.Layouts.Msg.Default_Build
-                      |> List.map Layout
-                      |> toCommands
+                    |> List.map Main.Layouts.Msg.Default_Build
+                    |> List.map Layout
+                    |> toCommands
                 ]
 
         ( Just (Layouts.Default_Org props), Just (Main.Layouts.Model.Default_Org layoutModel) ) ->
@@ -3657,13 +3662,13 @@ toLayoutUrlHookCmd oldModel model routes =
             in
             Cmd.batch
                 [ Layout.toUrlMessages routes (Layouts.Default.layout defaultProps model.shared route)
-                      |> List.map Main.Layouts.Msg.Default
-                      |> List.map Layout
-                      |> toCommands
+                    |> List.map Main.Layouts.Msg.Default
+                    |> List.map Layout
+                    |> toCommands
                 , Layout.toUrlMessages routes (Layouts.Default.Org.layout props model.shared route)
-                      |> List.map Main.Layouts.Msg.Default_Org
-                      |> List.map Layout
-                      |> toCommands
+                    |> List.map Main.Layouts.Msg.Default_Org
+                    |> List.map Layout
+                    |> toCommands
                 ]
 
         ( Just (Layouts.Default_Repo props), Just (Main.Layouts.Model.Default_Repo layoutModel) ) ->
@@ -3674,13 +3679,13 @@ toLayoutUrlHookCmd oldModel model routes =
             in
             Cmd.batch
                 [ Layout.toUrlMessages routes (Layouts.Default.layout defaultProps model.shared route)
-                      |> List.map Main.Layouts.Msg.Default
-                      |> List.map Layout
-                      |> toCommands
+                    |> List.map Main.Layouts.Msg.Default
+                    |> List.map Layout
+                    |> toCommands
                 , Layout.toUrlMessages routes (Layouts.Default.Repo.layout props model.shared route)
-                      |> List.map Main.Layouts.Msg.Default_Repo
-                      |> List.map Layout
-                      |> toCommands
+                    |> List.map Main.Layouts.Msg.Default_Repo
+                    |> List.map Layout
+                    |> toCommands
                 ]
 
         _ ->
