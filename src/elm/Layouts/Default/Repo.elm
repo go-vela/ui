@@ -15,16 +15,21 @@ import Dict exposing (Dict)
 import Effect exposing (Effect)
 import Html exposing (Html, main_)
 import Html.Attributes exposing (class)
+import Http
+import Http.Detailed
 import Layout exposing (Layout)
 import Layouts.Default
+import RemoteData exposing (RemoteData, WebData)
 import Route exposing (Route)
 import Route.Path
 import Shared
 import Time
 import Url exposing (Url)
+import Utils.Errors as Errors
 import Utils.Favicons as Favicons
 import Utils.Favorites as Favorites
 import Utils.Interval as Interval
+import Vela
 import View exposing (View)
 
 
@@ -77,7 +82,7 @@ layout props shared route =
 {-| Model : alias for a model object for the default repo layout.
 -}
 type alias Model =
-    { tabHistory : Dict String Url }
+    { tabHistory : Dict String Url, repo : WebData Vela.Repository }
 
 
 {-| init : takes in properties, shared model, route, and a content object and returns a model and effect.
@@ -85,10 +90,18 @@ type alias Model =
 init : Props contentMsg -> Shared.Model -> Route () -> () -> ( Model, Effect Msg )
 init props shared route _ =
     ( { tabHistory = Dict.empty
+      , repo = RemoteData.NotAsked
       }
     , Effect.batch
         [ Effect.updateFavicon { favicon = Favicons.defaultFavicon }
         , Effect.getCurrentUserShared {}
+        , Effect.getRepo
+            { baseUrl = shared.velaAPIBaseURL
+            , session = shared.session
+            , onResponse = GetRepoResponse
+            , org = props.org
+            , repo = props.repo
+            }
         , Effect.getRepoBuildsShared
             { pageNumber = Nothing
             , perPage = Nothing
@@ -116,6 +129,8 @@ init props shared route _ =
 type Msg
     = -- BROWSER
       OnUrlChanged { from : Route (), to : Route () }
+      -- REPO
+    | GetRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
       -- FAVORITES
     | ToggleFavorite String (Maybe String)
       -- REFRESH
@@ -135,6 +150,27 @@ update props route msg model =
               }
             , Effect.replaceRouteRemoveTabHistorySkipDomFocus route
             )
+
+        -- REPO
+        GetRepoResponse response ->
+            case response of
+                Ok ( _, repo ) ->
+                    ( { model
+                        | repo = RemoteData.Success repo
+                      }
+                    , Effect.none
+                    )
+
+                Err error ->
+                    ( { model | repo = Errors.toFailure error }
+                    , Effect.batch
+                        [ Effect.handleHttpError
+                            { error = error
+                            , shouldShowAlertFn = Errors.showAlertAlways
+                            }
+                        , Effect.none
+                        ]
+                    )
 
         -- FAVORITES
         ToggleFavorite org maybeRepo ->
@@ -183,6 +219,49 @@ subscriptions model =
 -- VIEW
 
 
+toT : WebData Vela.Repository -> Html msg
+toT data =
+    case data of
+        RemoteData.NotAsked ->
+            Html.text ""
+
+        RemoteData.Loading ->
+            Html.text ""
+
+        RemoteData.Failure _ ->
+            Html.text ""
+
+        RemoteData.Success r ->
+            if r.install_id == 0 then
+                installBanner r
+
+            else
+                Html.text ""
+
+
+installBanner : Vela.Repository -> Html msg
+installBanner repo =
+    Html.div
+        [ class "banner" ]
+        [ Html.div [ Html.Attributes.class "warning" ]
+            [ Html.text "Please "
+            , Html.a
+                [ Html.Attributes.href "https://git.target.com/github-apps/vela-local/installations/new"
+                ]
+                [ Html.text "install" ]
+            , Html.text " the Vela GitHub App to this organization and make sure the repository is added."
+            ]
+        , Html.div []
+            [ Html.text "If you've already added this repository to the installation, try clicking \"Sync Install\" in "
+            , Html.a
+                [ Route.Path.href <| Route.Path.Org__Repo__Settings { org = repo.org, repo = repo.name }
+                ]
+                [ Html.text "Settings" ]
+            , Html.text "."
+            ]
+        ]
+
+
 {-| view : takes in properties, shared model, route, and a content object and returns a view.
 -}
 view : Props contentMsg -> Shared.Model -> Route () -> { toContentMsg : Msg -> contentMsg, content : View contentMsg, model : Model } -> View contentMsg
@@ -203,6 +282,7 @@ view props shared route { toContentMsg, model, content } =
                     :: props.navButtons
             , crumbs = Components.Crumbs.view route.path props.crumbs
             }
+        , toT model.repo
         , main_ [ class "content-wrap" ]
             (Components.Util.view shared
                 route

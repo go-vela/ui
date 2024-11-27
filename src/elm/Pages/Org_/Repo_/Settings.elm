@@ -1201,6 +1201,23 @@ viewAdminActions repo disableRepoMsg enableRepoMsg chownRepoMsg repairRepoMsg =
                 ]
             , viewEnableButton (disableRepoMsg { repo = repo }) (enableRepoMsg { repo = repo }) repo
             ]
+        , div [ class "admin-action-container" ]
+            [ div [ class "admin-action-description" ]
+                [ text "Sync GitHub App Integration"
+                , small []
+                    [ em [] [ text "This will synchronize the Vela repository with installations and access given to the GitHub App.",
+                    text " It will start the installation flow in the browser if GitHub changes are required." ] ]
+                ]
+            , button
+                [ class "button"
+                , class "-outline"
+                , attribute "aria-label" <| "sync the repo with the app installation for " ++ repo.full_name
+                , Util.testAttribute "repo-install-sync"
+                -- , onClick (chownRepoMsg { repo = repo })
+                ]
+                [ text "Sync" ]
+            -- , viewEnableButton (disableRepoMsg { repo = repo }) (enableRepoMsg { repo = repo }) repo
+            ]
         ]
 
 

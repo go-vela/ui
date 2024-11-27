@@ -1781,3 +1781,30 @@ code.shell {
     content: '$';
   }
 }
+
+.banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0rem 1rem 1rem;
+  margin-top: 1rem;
+
+  background-color: var(--color-bg-dark);
+
+  border-top: 2px solid var(--color-yellow);
+  border-bottom: 2px solid var(--color-yellow);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  div {
+    margin-left: 1.2rem;
+  }
+  .warning::before{
+    position: absolute;
+    left: 0.6rem;
+    content :'⚠️';
+  }
+  & > *:not(:first-child) {
+    margin-top: 0.5rem;
+  }
+}
