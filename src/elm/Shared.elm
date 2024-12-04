@@ -128,7 +128,15 @@ init flagsResult route =
                 Effect.none
 
         uiBaseURL =
-            route.url |> (\entryUrl -> Url.toString { entryUrl | path = "" })
+            route.url
+                |> (\entryUrl ->
+                        Url.toString
+                            { entryUrl
+                                | path = ""
+                                , query = Nothing
+                                , fragment = Nothing
+                            }
+                   )
     in
     ( { -- FLAGS
         velaAPIBaseURL = flags.velaAPI
