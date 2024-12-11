@@ -54,6 +54,7 @@ type Endpoint
     | Secret Vela.Engine Vela.Type Vela.Org String Vela.Name
     | PipelineConfig Vela.Org Vela.Repo Vela.Ref
     | ExpandPipelineConfig Vela.Org Vela.Repo Vela.Ref
+    | ExplainPipelineConfig Vela.Org Vela.Repo Vela.Ref
     | PipelineTemplates Vela.Org Vela.Repo Vela.Ref
     | Workers (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Settings
@@ -150,6 +151,9 @@ toUrl api endpoint =
 
         ExpandPipelineConfig org repo ref ->
             url api [ "pipelines", org, repo, ref, "expand" ] []
+        
+        ExplainPipelineConfig org repo ref ->
+            url api [ "pipelines", org, repo, ref, "explain" ] []
 
         PipelineTemplates org repo ref ->
             url api [ "pipelines", org, repo, ref, "templates" ] [ UB.string "output" "json" ]

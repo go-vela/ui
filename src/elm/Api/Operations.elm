@@ -19,6 +19,7 @@ module Api.Operations exposing
     , disableRepo
     , enableRepo
     , expandPipelineConfig
+    , explainPipelineConfig
     , finishAuthentication
     , getAllBuildServices
     , getAllBuildSteps
@@ -857,6 +858,26 @@ expandPipelineConfig baseUrl session options =
         Json.Decode.string
         |> withAuth session
 
+explainPipelineConfig :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , ref : String
+        }
+    -> Request Vela.PipelineExplanation
+explainPipelineConfig baseUrl session options =
+    post baseUrl
+        (Api.Endpoint.ExplainPipelineConfig
+            options.org
+            options.repo
+            options.ref
+        )
+        Http.emptyBody
+        Vela.decodePipelineExplanation
+        |> withAuth session
 
 {-| getPipelineTemplates : retrieves templates for a pipeline ref.
 -}

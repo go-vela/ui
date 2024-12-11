@@ -28,6 +28,7 @@ module Vela exposing
     , Name
     , Org
     , PipelineConfig
+    , PipelineExplanation
     , PlatformSettings
     , PlatformSettingsFieldUpdate(..)
     , Ref
@@ -67,6 +68,7 @@ module Vela exposing
     , decodeLog
     , decodeOnGraphInteraction
     , decodePipelineConfig
+    , decodePipelineExplanation
     , decodePipelineExpand
     , decodePipelineTemplates
     , decodeRepositories
@@ -1113,6 +1115,11 @@ type alias PipelineConfig =
     , decodedData : String
     }
 
+type alias PipelineExplanation =
+    { explanation : String 
+    , sources : List String
+    }
+
 
 type alias Template =
     { link : String
@@ -1136,6 +1143,12 @@ decodePipelineConfig =
                 ""
         )
         |> optional "data" string ""
+
+decodePipelineExplanation : Json.Decode.Decoder PipelineExplanation
+decodePipelineExplanation =
+    Json.Decode.succeed PipelineExplanation
+        |> required "explanation" string
+        |> required "sources" (Json.Decode.list string)
 
 
 decodePipelineExpand : Json.Decode.Decoder String

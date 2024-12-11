@@ -12,7 +12,7 @@ import Components.Loading
 import Dict exposing (Dict)
 import Effect exposing (Effect)
 import FeatherIcons
-import Html exposing (Html, a, button, code, details, div, small, span, strong, summary, table, td, text, tr)
+import Html exposing (Html, a, button, code, details, div, pre, small, span, strong, summary, table, td, text, tr)
 import Html.Attributes exposing (attribute, class, href, id, target)
 import Html.Events exposing (onClick)
 import Http
@@ -133,6 +133,7 @@ type alias Model =
     , showTemplates : Bool
     , expand : Bool
     , expanding : Bool
+    , explanation : WebData Vela.PipelineExplanation
     }
 
 
@@ -151,6 +152,7 @@ init shared route () =
                 |> Maybe.Extra.unwrap False
                     (\e -> String.toLower e == "true")
       , expanding = False
+      , explanation = RemoteData.NotAsked
       }
     , Effect.batch
         [ Effect.getBuild
@@ -191,7 +193,9 @@ type Msg
       -- PIPELINE
     | GetBuildPipelineConfigResponse { applyDomFocus : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.PipelineConfig ))
     | GetExpandBuildPipelineConfigResponse { applyDomFocus : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | GetExplainBuildPipelineConfigResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.PipelineExplanation ))
     | ToggleExpand
+    | ExplainPipeline
     | DownloadPipeline { filename : String, content : String, map : String -> String }
       -- TEMPLATES
     | GetBuildPipelineTemplatesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Dict String Vela.Template ))
@@ -413,6 +417,46 @@ update shared route msg model =
                         }
                     )
 
+        GetExplainBuildPipelineConfigResponse response ->
+            case response of
+                Ok ( _, explanation ) ->
+                    ( { model
+                        | explanation = RemoteData.Success explanation
+                      }
+                    , Effect.none
+                    )
+
+                Err error ->
+                    ( { model | explanation = Errors.toFailure error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Errors.showAlertAlways
+                        }
+                    )
+
+        ExplainPipeline ->
+            let
+                ( newModel, sideEffect ) =
+                    case model.build of
+                        RemoteData.Success build ->
+                            ( { model | explanation = RemoteData.Loading }
+                            , Effect.explainPipelineConfig <|
+                                { baseUrl = shared.velaAPIBaseURL
+                                , session = shared.session
+                                , onResponse = GetExplainBuildPipelineConfigResponse
+                                , org = route.params.org
+                                , repo = route.params.repo
+                                , ref = build.commit
+                                }
+                            )
+
+                        _ ->
+                            ( model, Effect.none )
+            in
+            ( newModel
+            , sideEffect
+            )
+
         ToggleExpand ->
             let
                 value =
@@ -487,9 +531,32 @@ view shared route model =
                           else
                             div [ class "icon" ] [ FeatherIcons.circle |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [] ]
                         , small [ class "tip" ] [ text "note: yaml fields will be sorted alphabetically when the pipeline is expanded." ]
+                        , viewExplainPipeline model
                         ]
 
                 _ ->
+                    text ""
+
+        explanation = 
+            case model.explanation of
+                RemoteData.Success exp ->
+                    div [ class "explanation" ]
+                        [ div [ class "content" ]
+                            [ div [ Util.testAttribute "pipeline-explanation" ]
+                                [ pre [class "ai-explanation"] [text exp.explanation] ] 
+                            ]
+                        ]
+                RemoteData.Loading ->
+                    div [ class "explanation" ]
+                        [ div [ class "content" ]
+                            [ Components.Loading.viewSmallLoaderWithText "explaining pipeline" ]
+                        ]
+                RemoteData.Failure _ ->
+                    div [ class "explanation" ]
+                        [ div [ class "content" ]
+                            [ text "something went wrong :/" ]
+                        ]
+                _->
                     text ""
 
         downloadButton =
@@ -572,6 +639,9 @@ view shared route model =
                         [ viewExpandToggle
                         , downloadButton
                         ]
+                    , div [ class "actions" ]
+                        [ explanation
+                        ]
                     , case model.pipeline of
                         RemoteData.Success pipeline ->
                             if String.length pipeline.decodedData > 0 then
@@ -641,6 +711,18 @@ viewExpandToggleButton model =
 
           else
             text "expand pipeline"
+        ]
+
+
+{-| viewExplainPipeline : explains the pipeline.
+-}
+viewExplainPipeline : Model -> Html Msg
+viewExplainPipeline model =
+    button
+        [ class "button"
+        , Util.onClickPreventDefault ExplainPipeline
+        ]
+        [ text "explain pipeline"
         ]
 
 
