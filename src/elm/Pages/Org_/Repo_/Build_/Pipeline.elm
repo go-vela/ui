@@ -12,8 +12,8 @@ import Components.Loading
 import Dict exposing (Dict)
 import Effect exposing (Effect)
 import FeatherIcons
-import Html exposing (Html, a, button, code, details, div, pre, small, span, strong, summary, table, td, text, tr)
-import Html.Attributes exposing (attribute, class, href, id, target)
+import Html exposing (Html, a, button, code, details, div, h3, p, pre, small, span, strong, summary, table, td, text, tr)
+import Html.Attributes exposing (attribute, class, href, id, style, target)
 import Html.Events exposing (onClick)
 import Http
 import Http.Detailed
@@ -531,32 +531,34 @@ view shared route model =
                           else
                             div [ class "icon" ] [ FeatherIcons.circle |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [] ]
                         , small [ class "tip" ] [ text "note: yaml fields will be sorted alphabetically when the pipeline is expanded." ]
-                        , viewExplainPipeline model
                         ]
 
                 _ ->
                     text ""
 
-        explanation = 
+        explanation =
             case model.explanation of
                 RemoteData.Success exp ->
                     div [ class "explanation" ]
                         [ div [ class "content" ]
                             [ div [ Util.testAttribute "pipeline-explanation" ]
-                                [ pre [class "ai-explanation"] [text exp.explanation] ] 
+                                [ pre [ class "ai-explanation" ] [ text exp.explanation ] ]
                             ]
                         ]
+
                 RemoteData.Loading ->
                     div [ class "explanation" ]
                         [ div [ class "content" ]
-                            [ Components.Loading.viewSmallLoaderWithText "explaining pipeline" ]
+                            [ Components.Loading.viewSmallLoaderWithText "explaining pipeline..." ]
                         ]
+
                 RemoteData.Failure _ ->
                     div [ class "explanation" ]
                         [ div [ class "content" ]
                             [ text "something went wrong :/" ]
                         ]
-                _->
+
+                _ ->
                     text ""
 
         downloadButton =
@@ -630,7 +632,12 @@ view shared route model =
                     [ class "logs-table"
                     , class "pipeline"
                     ]
-                    [ div [ class "header" ]
+                    [ div [ class "header", style "display" "block" ]
+                        [ span [] [ text "Pipeline Explanation" ]
+                        , p [] [ viewExplainPipeline model ]
+                        , explanation
+                        ]
+                    , div [ class "header" ]
                         [ span []
                             [ text "Pipeline Configuration"
                             ]
@@ -638,9 +645,6 @@ view shared route model =
                     , div [ class "actions" ]
                         [ viewExpandToggle
                         , downloadButton
-                        ]
-                    , div [ class "actions" ]
-                        [ explanation
                         ]
                     , case model.pipeline of
                         RemoteData.Success pipeline ->
@@ -718,11 +722,25 @@ viewExpandToggleButton model =
 -}
 viewExplainPipeline : Model -> Html Msg
 viewExplainPipeline model =
+    let
+        disabled =
+            case model.explanation of
+                RemoteData.Loading ->
+                    True
+
+                RemoteData.Success _ ->
+                    True
+
+                _ ->
+                    False
+    in
     button
         [ class "button"
+        , class "-outline"
+        , Html.Attributes.disabled disabled
         , Util.onClickPreventDefault ExplainPipeline
         ]
-        [ text "explain pipeline"
+        [ text "✨ Explain Pipeline"
         ]
 
 
