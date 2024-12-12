@@ -592,7 +592,14 @@ view shared route model =
     { title = "Pipeline"
     , body =
         [ div [ class "pipeline" ]
-            [ case model.templates of
+            [ div [ class "logs-container", class "-pipeline" ]
+                [ div [ class "header", style "display" "block" ]
+                    [ span [] [ text "Pipeline Explanation" ]
+                    , p [] [ viewExplainPipeline model ]
+                    , explanation
+                    ]
+                ]
+            , case model.templates of
                 RemoteData.Success templates ->
                     if not <| Dict.isEmpty templates then
                         viewTemplatesDetails model <|
@@ -632,12 +639,7 @@ view shared route model =
                     [ class "logs-table"
                     , class "pipeline"
                     ]
-                    [ div [ class "header", style "display" "block" ]
-                        [ span [] [ text "Pipeline Explanation" ]
-                        , p [] [ viewExplainPipeline model ]
-                        , explanation
-                        ]
-                    , div [ class "header" ]
+                    [ div [ class "header" ]
                         [ span []
                             [ text "Pipeline Configuration"
                             ]
