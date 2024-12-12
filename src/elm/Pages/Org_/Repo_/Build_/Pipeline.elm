@@ -12,8 +12,8 @@ import Components.Loading
 import Dict exposing (Dict)
 import Effect exposing (Effect)
 import FeatherIcons
-import Html exposing (Html, a, button, code, details, div, h3, p, pre, small, span, strong, summary, table, td, text, tr)
-import Html.Attributes exposing (attribute, class, href, id, style, target)
+import Html exposing (Html, a, button, code, details, div, p, pre, small, span, strong, summary, table, td, text, tr)
+import Html.Attributes exposing (attribute, class, href, id, style)
 import Html.Events exposing (onClick)
 import Http
 import Http.Detailed
