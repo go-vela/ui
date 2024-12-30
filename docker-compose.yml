@@ -9,21 +9,21 @@ services:
   # interface for triggering actions in the Vela system.
   #
   # https://go-vela.github.io/docs/administration/ui/
-  # ui:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.local
-  #   container_name: ui
-  #   image: hub.docker.target.com/ui:local
-  #   networks:
-  #     - vela
-  #   env_file:
-  #     - .env
-  #   restart: always
-  #   ports:
-  #     - '8888:80'
-  #   depends_on:
-  #     - server
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    container_name: ui
+    image: ui:local
+    networks:
+      - vela
+    env_file:
+      - .env
+    restart: always
+    ports:
+      - '8888:80'
+    depends_on:
+      - server
 
   # The `server` compose service hosts the Vela server and API.
   #
@@ -34,7 +34,7 @@ services:
   # https://go-vela.github.io/docs/administration/server/
   server:
     container_name: server
-    image: server:local
+    image: target/vela-server:latest
     networks:
       - vela
     environment:
