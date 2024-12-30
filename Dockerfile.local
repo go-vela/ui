@@ -1,5 +1,5 @@
 FROM fholzer/nginx-brotli:v1.26.2@sha256:54300ef5ddd64ea877bb363bf56c42a6f402089392b3b9b746e891193394b571
-ADD http://browserconfig.target.com/tgt-certs/tgt-ca-bundle.crt /etc/ssl/certs/ca-certificates.crt
+
 RUN apk update && \
     apk add --no-cache ca-certificates && \
     rm -rf /var/cache/apk/*
