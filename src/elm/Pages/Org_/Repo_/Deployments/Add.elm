@@ -29,6 +29,7 @@ import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Vela exposing (defaultDeploymentPayload)
 import View exposing (View)
+import Components.Loading as Loading
 
 
 {-| page : takes user, shared model, route, and returns an add deployment page.
@@ -81,6 +82,7 @@ type alias Model =
     , parameterKey : String
     , parameterValue : String
     , parameters : List Vela.KeyValuePair
+    , config : WebData Vela.DeploymentConfig
     }
 
 
@@ -88,6 +90,15 @@ type alias Model =
 -}
 init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
 init shared route () =
+    let
+        ref =
+            "deployments"
+
+        -- if String.trim model.ref == "" then
+        --     RemoteData.unwrap "main" .branch model.repo
+        -- else
+        --     model.ref
+    in
     ( { repo = RemoteData.Loading
       , target = Maybe.withDefault "" <| Dict.get "target" route.query
       , ref = Maybe.withDefault "" <| Dict.get "ref" route.query
@@ -112,14 +123,25 @@ init shared route () =
                                 Nothing
                     )
                 |> List.filterMap identity
+      , config = RemoteData.Loading
       }
-    , Effect.getRepo
-        { baseUrl = shared.velaAPIBaseURL
-        , session = shared.session
-        , onResponse = GetRepoResponse
-        , org = route.params.org
-        , repo = route.params.repo
-        }
+    , Effect.batch
+        [ Effect.getRepo
+            { baseUrl = shared.velaAPIBaseURL
+            , session = shared.session
+            , onResponse = GetRepoResponse
+            , org = route.params.org
+            , repo = route.params.repo
+            }
+        , Effect.getDeploymentConfig
+            { baseUrl = shared.velaAPIBaseURL
+            , session = shared.session
+            , onResponse = GetDeploymentConfigResponse
+            , org = route.params.org
+            , repo = route.params.repo
+            , ref = Just ref
+            }
+        ]
     )
 
 
@@ -136,6 +158,7 @@ type Msg
     | GetRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
       -- DEPLOYMENTS
     | AddDeploymentResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Deployment ))
+    | GetDeploymentConfigResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.DeploymentConfig ))
     | TargetOnInput String
     | RefOnInput String
     | DescriptionOnInput String
@@ -144,6 +167,7 @@ type Msg
     | ParameterValueOnInput String
     | AddParameter
     | RemoveParameter Vela.KeyValuePair
+    | DeploymentConfigTargetOnToggle String
     | SubmitForm
 
 
@@ -194,6 +218,29 @@ update shared route msg model =
                         , Effect.replacePath <|
                             Route.Path.Org__Repo__Deployments { org = route.params.org, repo = route.params.repo }
                         ]
+                    )
+
+                Err error ->
+                    ( model
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Errors.showAlertAlways
+                        }
+                    )
+
+        GetDeploymentConfigResponse response ->
+            case response of
+                Ok ( _, config ) ->
+                    ( { model | config = RemoteData.succeed config }
+                    , if List.length config.targets > 0 then
+                        Effect.addAlertSuccess
+                            { content = "Found dynamic parameters for this deployment ref!"
+                            , addToastIfUnique = True
+                            , link = Nothing
+                            }
+
+                      else
+                        Effect.none
                     )
 
                 Err error ->
@@ -290,6 +337,9 @@ update shared route msg model =
                 }
             )
 
+        DeploymentConfigTargetOnToggle _ ->
+            ( model, Effect.none )
+
 
 
 -- SUBSCRIPTIONS
@@ -347,18 +397,6 @@ view shared route model =
                             _ ->
                                 text ""
                         , Components.Form.viewTextareaSection
-                            { title = Just "Target"
-                            , subtitle = Nothing
-                            , id_ = "target"
-                            , val = model.target
-                            , placeholder_ = "Provide the name for the target deployment environment (default: \"production\")"
-                            , classList_ = [ ( "secret-value", True ) ]
-                            , disabled_ = False
-                            , rows_ = Just 2
-                            , wrap_ = Just "soft"
-                            , msg = TargetOnInput
-                            }
-                        , Components.Form.viewTextareaSection
                             { title = Just "Ref"
                             , subtitle = Nothing
                             , id_ = "ref"
@@ -385,6 +423,27 @@ view shared route model =
                             , wrap_ = Just "soft"
                             , msg = DescriptionOnInput
                             }
+                        , case model.config of
+                            RemoteData.Success config ->
+                                if List.length config.targets > 0 then
+                                    viewDeploymentConfigTarget config.targets "" DeploymentConfigTargetOnToggle
+
+                                else
+                                    Components.Form.viewTextareaSection
+                                        { title = Just "Target"
+                                        , subtitle = Nothing
+                                        , id_ = "target"
+                                        , val = model.target
+                                        , placeholder_ = "Provide the name for the target deployment environment (default: \"production\")"
+                                        , classList_ = [ ( "secret-value", True ) ]
+                                        , disabled_ = False
+                                        , rows_ = Just 2
+                                        , wrap_ = Just "soft"
+                                        , msg = TargetOnInput
+                                        }
+
+                            _ ->
+                                Loading.viewSmallLoaderWithText "loading config..."
                         , Components.Form.viewTextareaSection
                             { title = Just "Task"
                             , subtitle = Nothing
@@ -500,3 +559,50 @@ view shared route model =
             ]
         ]
     }
+
+
+viewDeploymentConfigTarget : List String -> String -> (String -> Msg) -> Html.Html Msg
+viewDeploymentConfigTarget targets current msg =
+    section [ class "settings", Util.testAttribute "repo-settings-pipeline-type" ]
+        [ Html.label [ class "form-label" ] [ Html.strong [] [ text "Target" ] ]
+        , div
+            [ class "form-controls", class "-stack" ]
+          <|
+            List.map
+                (\target ->
+                    Components.Form.viewRadio
+                        { value = current
+                        , field = "target"
+                        , title = target
+                        , subtitle = Nothing
+                        , msg = msg target
+                        , disabled_ = False
+                        , id_ = "target"
+                        }
+                )
+                targets
+        ]
+
+
+
+-- viewDeploymentConfigParameter : String -> Vela.DeploymentConfigParameter -> String -> (String -> String -> Msg) -> View Msg
+-- viewDeploymentConfigParameter key param current msg =
+--     section [ class "settings", Util.testAttribute "repo-settings-pipeline-type" ]
+--         [ h2 [ class "settings-title" ] [ text param.name ]
+--         , p [ class "settings-description" ] [ text param.description ]
+--         , div [ class "form-controls", class "-stack" ]
+--             List.map
+--             (\option ->
+--                 [ Components.Form.viewRadio
+--                     { value = current
+--                     , field = key
+--                     , title = param.name
+--                     , subtitle = Nothing
+--                     , msg = msg param.name option
+--                     , disabled_ = False
+--                     , id_ = "type-yaml"
+--                     }
+--                 ]
+--             )
+--             param.options
+--         ]

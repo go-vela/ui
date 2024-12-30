@@ -15,6 +15,8 @@ module Vela exposing
     , Dashboard
     , DashboardRepoCard
     , Deployment
+    , DeploymentConfig
+    , DeploymentConfigParameter
     , DeploymentPayload
     , EnableRepoPayload
     , Enabled(..)
@@ -62,14 +64,15 @@ module Vela exposing
     , decodeDashboard
     , decodeDashboards
     , decodeDeployment
+    , decodeDeploymentConfig
     , decodeDeployments
     , decodeGraphInteraction
     , decodeHooks
     , decodeLog
     , decodeOnGraphInteraction
     , decodePipelineConfig
-    , decodePipelineExplanation
     , decodePipelineExpand
+    , decodePipelineExplanation
     , decodePipelineTemplates
     , decodeRepositories
     , decodeRepository
@@ -1115,8 +1118,9 @@ type alias PipelineConfig =
     , decodedData : String
     }
 
+
 type alias PipelineExplanation =
-    { explanation : String 
+    { explanation : String
     , sources : List String
     }
 
@@ -1143,6 +1147,7 @@ decodePipelineConfig =
                 ""
         )
         |> optional "data" string ""
+
 
 decodePipelineExplanation : Json.Decode.Decoder PipelineExplanation
 decodePipelineExplanation =
@@ -1969,6 +1974,44 @@ encodeDeploymentPayload deployment =
 decodeDeploymentParameters : Decoder (Maybe (List KeyValuePair))
 decodeDeploymentParameters =
     Json.Decode.map decodeKeyValuePairs <| Json.Decode.keyValuePairs Json.Decode.string
+
+
+
+-- DEPLOYMENT CONFIG
+
+
+type alias DeploymentConfig =
+    { targets : List String
+    , parameters : Dict String DeploymentConfigParameter
+    }
+
+
+decodeDeploymentConfig : Decoder DeploymentConfig
+decodeDeploymentConfig =
+    Json.Decode.succeed DeploymentConfig
+        |> optional "targets" (Json.Decode.list Json.Decode.string) []
+        |> optional "parameters" (Json.Decode.dict decodeDeploymentConfigParameter) Dict.empty
+
+
+type alias DeploymentConfigParameter =
+    { description : String
+    , type_ : String
+    , required : Bool
+    , options : List String
+    , min : Int
+    , max : Int
+    }
+
+
+decodeDeploymentConfigParameter : Decoder DeploymentConfigParameter
+decodeDeploymentConfigParameter =
+    Json.Decode.succeed DeploymentConfigParameter
+        |> required "description" string
+        |> required "type" string
+        |> required "required" bool
+        |> optional "options" (Json.Decode.list Json.Decode.string) []
+        |> optional "min" int 0
+        |> optional "max" int 0
 
 
 type alias Worker =

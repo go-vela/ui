@@ -28,6 +28,7 @@ type Endpoint
     | Dashboard String
     | Dashboards
     | Deployment Vela.Org Vela.Repo (Maybe String)
+    | DeploymentConfig Vela.Org Vela.Repo (Maybe String)
     | Deployments (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Org Vela.Repo
     | Token
     | Repositories (Maybe Pagination.Page) (Maybe Pagination.PerPage)
@@ -151,7 +152,7 @@ toUrl api endpoint =
 
         ExpandPipelineConfig org repo ref ->
             url api [ "pipelines", org, repo, ref, "expand" ] []
-        
+
         ExplainPipelineConfig org repo ref ->
             url api [ "pipelines", org, repo, ref, "explain" ] []
 
@@ -165,6 +166,9 @@ toUrl api endpoint =
 
                 Nothing ->
                     url api [ "deployments", org, repo ] []
+
+        DeploymentConfig org repo maybeRef ->
+            url api [ "deployments", org, repo, "config" ] [ UB.string "ref" <| Maybe.withDefault "" maybeRef ]
 
         Deployments maybePage maybePerPage org repo ->
             url api [ "deployments", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage
