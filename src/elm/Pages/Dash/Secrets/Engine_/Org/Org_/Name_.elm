@@ -408,6 +408,7 @@ view shared route model =
                             , wrap_ = Just "soft"
                             , msg = ValueOnInput
                             , disabled_ = not <| RemoteData.isSuccess model.secret
+                            , focusOutFunc = Nothing
                             }
                         , Components.SecretForm.viewAllowEventsSelect
                             shared

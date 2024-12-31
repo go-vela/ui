@@ -265,6 +265,7 @@ view shared route model =
                             , wrap_ = Just "soft"
                             , msg = EntryOnInput
                             , disabled_ = formDisabled
+                            , focusOutFunc = Nothing
                             }
                         , Components.ScheduleForm.viewEnabledInput
                             { msg = EnabledOnClick

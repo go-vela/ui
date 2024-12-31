@@ -1990,9 +1990,9 @@ type alias DeploymentConfigParameter =
 decodeDeploymentConfigParameter : Decoder DeploymentConfigParameter
 decodeDeploymentConfigParameter =
     Json.Decode.succeed DeploymentConfigParameter
-        |> required "description" string
-        |> required "type" string
-        |> required "required" bool
+        |> optional "description" string ""
+        |> optional "type" string "string"
+        |> optional "required" bool False
         |> optional "options" (Json.Decode.list Json.Decode.string) []
         |> optional "min" int 0
         |> optional "max" int 0

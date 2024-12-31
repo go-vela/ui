@@ -17,6 +17,8 @@ import RemoteData exposing (WebData)
 import Shared
 import Utils.Helpers as Util
 import Vela
+import Effect exposing (Effect)
+import Json.Decode
 
 
 
@@ -188,9 +190,10 @@ viewTextareaSection :
     , wrap_ : Maybe String
     , msg : String -> msg
     , disabled_ : Bool
+    , focusOutFunc : Maybe msg
     }
     -> Html msg
-viewTextareaSection { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, msg, disabled_ } =
+viewTextareaSection { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, msg, disabled_, focusOutFunc } =
     let
         target =
             String.join "-" [ "textarea", id_ ]
@@ -214,6 +217,7 @@ viewTextareaSection { id_, title, subtitle, val, placeholder_, classList_, rows_
             , Maybe.Extra.unwrap Util.attrNone wrap wrap_
             , onInput msg
             , disabled disabled_
+            , Maybe.Extra.unwrap Util.attrNone (Html.Events.on "focusout" << Json.Decode.succeed) focusOutFunc
             , Util.testAttribute target
             ]
             []

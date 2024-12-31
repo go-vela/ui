@@ -162,6 +162,7 @@ type Msg
     | AddParameter
     | RemoveParameter Vela.KeyValuePair
     | CfgParameterValueOnInput String String
+    | UpdateRef
     | AddConfigParameter String String
     | DeploymentConfigTargetOnToggle String
     | SubmitForm
@@ -308,6 +309,18 @@ update shared route msg model =
             , Effect.none
             )
 
+        UpdateRef ->
+            ( model
+            , Effect.getDeploymentConfig
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse = GetDeploymentConfigResponse
+                , org = route.params.org
+                , repo = route.params.repo
+                , ref = Just model.ref
+                }
+            )
+
         SubmitForm ->
             let
                 payload =
@@ -421,6 +434,7 @@ view shared route model =
                             , rows_ = Just 3
                             , wrap_ = Just "soft"
                             , msg = RefOnInput
+                            , focusOutFunc = Just UpdateRef
                             }
                         , Components.Form.viewTextareaSection
                             { title = Just "Description"
@@ -433,6 +447,7 @@ view shared route model =
                             , rows_ = Just 5
                             , wrap_ = Just "soft"
                             , msg = DescriptionOnInput
+                            , focusOutFunc = Nothing
                             }
                         , case model.config of
                             RemoteData.Success config ->
@@ -451,6 +466,7 @@ view shared route model =
                                         , rows_ = Just 2
                                         , wrap_ = Just "soft"
                                         , msg = TargetOnInput
+                                        , focusOutFunc = Nothing
                                         }
 
                             _ ->
@@ -466,6 +482,7 @@ view shared route model =
                             , rows_ = Just 2
                             , wrap_ = Just "soft"
                             , msg = TaskOnInput
+                            , focusOutFunc = Nothing
                             }
                         , section []
                             [ div [ class "parameters-inputs", Util.testAttribute "parameters-list" ]

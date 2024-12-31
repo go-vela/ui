@@ -301,6 +301,7 @@ view shared route model =
                             , wrap_ = Just "soft"
                             , msg = ValueOnInput
                             , disabled_ = False
+                            , focusOutFunc = Nothing
                             }
                         , Components.SecretForm.viewAllowEventsSelect
                             shared
