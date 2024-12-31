@@ -36,9 +36,12 @@ viewInputSection :
     , wrap_ : Maybe String
     , msg : String -> msg
     , disabled_ : Bool
+    , min : Maybe String
+    , max : Maybe String
+    , required : Bool
     }
     -> Html msg
-viewInputSection { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, msg, disabled_ } =
+viewInputSection { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, msg, disabled_, min, max, required } =
     let
         target =
             String.join "-" [ "input", id_ ]
@@ -62,6 +65,9 @@ viewInputSection { id_, title, subtitle, val, placeholder_, classList_, rows_, w
             , Maybe.Extra.unwrap Util.attrNone wrap wrap_
             , onInput msg
             , disabled disabled_
+            , Maybe.Extra.unwrap Util.attrNone Html.Attributes.min min
+            , Maybe.Extra.unwrap Util.attrNone Html.Attributes.max max
+            , Html.Attributes.required required
             , Util.testAttribute target
             ]
             []

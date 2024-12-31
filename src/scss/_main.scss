@@ -1610,6 +1610,12 @@ details.build-toggle {
   margin-top: 0.2rem;
 }
 
+.config-parameters-input {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
 .image-input,
 .parameter-input {
   margin-right: 1rem;

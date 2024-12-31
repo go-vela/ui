@@ -29,6 +29,8 @@ import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Vela exposing (defaultDeploymentPayload)
 import View exposing (View)
+import Components.Loading as Loading
+import Dict exposing (Dict)
 
 
 {-| page : takes user, shared model, route, and returns an add deployment page.
@@ -81,6 +83,8 @@ type alias Model =
     , parameterKey : String
     , parameterValue : String
     , parameters : List Vela.KeyValuePair
+    , config : WebData Vela.DeploymentConfig
+    , configParameters : Dict String String
     }
 
 
@@ -112,14 +116,26 @@ init shared route () =
                                 Nothing
                     )
                 |> List.filterMap identity
+      , config = RemoteData.Loading
+      , configParameters = Dict.empty
       }
-    , Effect.getRepo
-        { baseUrl = shared.velaAPIBaseURL
-        , session = shared.session
-        , onResponse = GetRepoResponse
-        , org = route.params.org
-        , repo = route.params.repo
-        }
+    , Effect.batch
+        [ Effect.getRepo
+            { baseUrl = shared.velaAPIBaseURL
+            , session = shared.session
+            , onResponse = GetRepoResponse
+            , org = route.params.org
+            , repo = route.params.repo
+            }
+        , Effect.getDeploymentConfig
+            { baseUrl = shared.velaAPIBaseURL
+            , session = shared.session
+            , onResponse = GetDeploymentConfigResponse
+            , org = route.params.org
+            , repo = route.params.repo
+            , ref = Nothing
+            }
+        ]
     )
 
 
@@ -136,6 +152,7 @@ type Msg
     | GetRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
       -- DEPLOYMENTS
     | AddDeploymentResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Deployment ))
+    | GetDeploymentConfigResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.DeploymentConfig ))
     | TargetOnInput String
     | RefOnInput String
     | DescriptionOnInput String
@@ -144,6 +161,9 @@ type Msg
     | ParameterValueOnInput String
     | AddParameter
     | RemoveParameter Vela.KeyValuePair
+    | CfgParameterValueOnInput String String
+    | AddConfigParameter String String
+    | DeploymentConfigTargetOnToggle String
     | SubmitForm
 
 
@@ -204,6 +224,31 @@ update shared route msg model =
                         }
                     )
 
+        GetDeploymentConfigResponse response ->
+            case response of
+                Ok ( _, config ) ->
+                    ( { model 
+                        | config = RemoteData.succeed config
+                        , configParameters = Dict.fromList <| List.map (\(k, _) -> (k, "")) (Dict.toList config.parameters)}
+                    , if List.length config.targets > 0 then
+                        Effect.addAlertSuccess
+                            { content = "Found dynamic parameters for this deployment ref!"
+                            , addToastIfUnique = True
+                            , link = Nothing
+                            }
+
+                      else
+                        Effect.none
+                    )
+
+                Err error ->
+                    ( model
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Errors.showAlertAlways
+                        }
+                    )
+
         TargetOnInput val ->
             ( { model | target = val }
             , Effect.none
@@ -243,10 +288,23 @@ update shared route msg model =
             , Effect.none
             )
 
+        AddConfigParameter k val ->
+            ( { model
+                 | configParameters = Dict.remove k model.configParameters 
+                 , parameters = { key = k, value = val } :: model.parameters
+            }
+            , Effect.none
+            )
+
         RemoveParameter parameter ->
             ( { model
                 | parameters = List.Extra.remove parameter model.parameters
               }
+            , Effect.none
+            )
+
+        CfgParameterValueOnInput k val ->
+            ( { model | configParameters = Dict.insert k val model.configParameters }
             , Effect.none
             )
 
@@ -289,6 +347,9 @@ update shared route msg model =
                 , body = body
                 }
             )
+
+        DeploymentConfigTargetOnToggle _ ->
+            ( model, Effect.none )
 
 
 
@@ -347,18 +408,6 @@ view shared route model =
                             _ ->
                                 text ""
                         , Components.Form.viewTextareaSection
-                            { title = Just "Target"
-                            , subtitle = Nothing
-                            , id_ = "target"
-                            , val = model.target
-                            , placeholder_ = "Provide the name for the target deployment environment (default: \"production\")"
-                            , classList_ = [ ( "secret-value", True ) ]
-                            , disabled_ = False
-                            , rows_ = Just 2
-                            , wrap_ = Just "soft"
-                            , msg = TargetOnInput
-                            }
-                        , Components.Form.viewTextareaSection
                             { title = Just "Ref"
                             , subtitle = Nothing
                             , id_ = "ref"
@@ -385,6 +434,27 @@ view shared route model =
                             , wrap_ = Just "soft"
                             , msg = DescriptionOnInput
                             }
+                        , case model.config of
+                            RemoteData.Success config ->
+                                if List.length config.targets > 0 then
+                                    viewDeploymentConfigTarget config.targets "" DeploymentConfigTargetOnToggle
+
+                                else
+                                    Components.Form.viewTextareaSection
+                                        { title = Just "Target"
+                                        , subtitle = Nothing
+                                        , id_ = "target"
+                                        , val = model.target
+                                        , placeholder_ = "Provide the name for the target deployment environment (default: \"production\")"
+                                        , classList_ = [ ( "secret-value", True ) ]
+                                        , disabled_ = False
+                                        , rows_ = Just 2
+                                        , wrap_ = Just "soft"
+                                        , msg = TargetOnInput
+                                        }
+
+                            _ ->
+                                Loading.viewSmallLoaderWithText "loading config..."
                         , Components.Form.viewTextareaSection
                             { title = Just "Task"
                             , subtitle = Nothing
@@ -398,22 +468,44 @@ view shared route model =
                             , msg = TaskOnInput
                             }
                         , section []
-                            [ div
-                                [ id "parameter-select"
-                                , class "form-control"
-                                , class "-stack"
-                                , class "parameters-container"
-                                ]
-                                [ label
+                            [ div [ class "parameters-inputs", Util.testAttribute "parameters-list" ]
+                                    [ case model.config of
+                                        RemoteData.Success config ->
+                                            if Dict.size model.configParameters > 0 then
+                                                div [ id "parameter-select"
+                                                    , class "form-control"
+                                                    , class "-stack"
+                                                    , class "parameters-container"
+                                                    ]
+                                                    [ label
+                                                        [ for "parameter-select"
+                                                        , class "form-label"
+                                                        ]
+                                                        [ strong [] [ text "Add Config Parameters" ]
+                                                    ]
+                                                    , div [ class "parameters-inputs", Util.testAttribute "parameters-list" ]
+                                                        (Dict.toList model.configParameters
+                                                            |> List.concatMap
+                                                                (\( key, value ) ->
+                                                                    case Dict.get key config.parameters of
+                                                                        Just param ->
+                                                                            [ viewDeploymentConfigParameter model key param value CfgParameterValueOnInput ]
+                                                                        Nothing ->
+                                                                            []
+                                                                )
+                                                        )
+                                                    ]
+                                            else
+                                                text ""
+                                        _ ->
+                                            text ""
+                                    ]
+                                , label
                                     [ for "parameter-select"
                                     , class "form-label"
                                     ]
                                     [ strong [] [ text "Add Parameters" ]
-                                    , span
-                                        [ class "field-description" ]
-                                        [ em [] [ text "(Optional)" ]
-                                        ]
-                                    ]
+                                ]
                                 , div [ class "parameters-inputs" ]
                                     [ Components.Form.viewInputSection
                                         { title = Nothing
@@ -426,6 +518,9 @@ view shared route model =
                                         , rows_ = Just 2
                                         , wrap_ = Just "soft"
                                         , msg = ParameterKeyOnInput
+                                        , min = Nothing
+                                        , max = Nothing
+                                        , required = False
                                         }
                                     , Components.Form.viewInputSection
                                         { title = Nothing
@@ -438,6 +533,9 @@ view shared route model =
                                         , rows_ = Just 2
                                         , wrap_ = Just "soft"
                                         , msg = ParameterValueOnInput
+                                        , min = Nothing
+                                        , max = Nothing
+                                        , required = False
                                         }
                                     , button
                                         [ class "button"
@@ -498,5 +596,93 @@ view shared route model =
                     ]
                 ]
             ]
-        ]
     }
+
+
+viewDeploymentConfigTarget : List String -> String -> (String -> Msg) -> Html.Html Msg
+viewDeploymentConfigTarget targets current msg =
+    section [ class "settings", Util.testAttribute "repo-settings-pipeline-type" ]
+        [ Html.label [ class "form-label" ] [ Html.strong [] [ text "Target" ] ]
+        , div
+            [ class "form-controls", class "-stack" ]
+          <|
+            List.map
+                (\target ->
+                    Components.Form.viewRadio
+                        { value = current
+                        , field = "target"
+                        , title = target
+                        , subtitle = Nothing
+                        , msg = msg target
+                        , disabled_ = False
+                        , id_ = "target"
+                        }
+                )
+                targets
+        ]
+
+
+
+viewDeploymentConfigParameter : Model -> String -> Vela.DeploymentConfigParameter -> String -> (String -> String -> Msg) -> Html.Html Msg
+viewDeploymentConfigParameter mdl key param current msg =
+    
+    if param.options == [] then
+        div [ class "config-parameters-input" ]
+        [ Components.Form.viewInputSection
+            { title = Nothing
+            , subtitle = Nothing
+            , id_ = "parameter-key"
+            , val = key
+            , placeholder_ = key
+            , classList_ = [ ( "parameter-input", True ) ]
+            , disabled_ = True
+            , rows_ = Just 2
+            , wrap_ = Just "soft"
+            , msg = ParameterKeyOnInput
+            , min = Nothing
+            , max = Nothing
+            , required = False
+            }
+        , Components.Form.viewInputSection
+            { title = Nothing
+            , subtitle = Nothing
+            , id_ = "parameter-value"
+            , val = mdl.configParameters |> Dict.get key |> Maybe.withDefault ""
+            , placeholder_ = "value"
+            , classList_ = [ ( "parameter-input", True ) ]
+            , disabled_ = False
+            , rows_ = Just 2
+            , wrap_ = Just "soft"
+            , msg = CfgParameterValueOnInput key
+            , min = if param.min == -1 then Nothing else Just (String.fromInt param.min)
+            , max = if param.max == -1 then Nothing else Just (String.fromInt param.max)
+            , required = param.required
+            }
+        , button
+            [ class "button"
+            , class "-outline"
+            , onClick <| AddConfigParameter key (Dict.get key mdl.configParameters |> Maybe.withDefault "")
+            , Util.testAttribute "button-parameter-add"
+            , disabled <| (String.length (Dict.get key mdl.configParameters |> Maybe.withDefault "")) == 0
+            ]
+            [ text "Add"
+            ]
+        ]
+    else
+        div [ class "parameters-inputs" ]
+        [Components.Form.viewInputSection
+            { title = Nothing
+            , subtitle = Nothing
+            , id_ = "parameter-key"
+            , val = key
+            , placeholder_ = "key"
+            , classList_ = [ ( "parameter-input", True ) ]
+            , disabled_ = False
+            , rows_ = Just 2
+            , wrap_ = Just "soft"
+            , msg = ParameterKeyOnInput
+            , min = Nothing
+            , max = Nothing
+            , required = False
+            }
+        ]

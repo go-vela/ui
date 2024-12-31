@@ -12,7 +12,7 @@ services:
   ui:
     build:
       context: .
-      dockerfile: Dockerfile.local
+      dockerfile: ${VELA_UI_DOCKERFILE:-Dockerfile}
     container_name: ui
     image: ui:local
     networks:
@@ -34,7 +34,7 @@ services:
   # https://go-vela.github.io/docs/administration/server/
   server:
     container_name: server
-    image: target/vela-server:latest
+    image: server:local
     networks:
       - vela
     environment:

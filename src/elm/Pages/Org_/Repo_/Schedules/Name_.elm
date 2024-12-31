@@ -369,6 +369,9 @@ view shared route model =
                             , wrap_ = Nothing
                             , msg = \_ -> NoOp
                             , disabled_ = True
+                            , min = Nothing
+                            , max = Nothing
+                            , required = False
                             }
                         , Components.Form.viewTextareaSection
                             { title = Just "Cron Expression"
@@ -403,6 +406,9 @@ view shared route model =
                             , wrap_ = Nothing
                             , msg = BranchOnInput
                             , disabled_ = formDisabled
+                            , min = Nothing
+                            , max = Nothing
+                            , required = False
                             }
                         , Components.ScheduleForm.viewHelp shared.velaDocsURL
                         , div [ class "buttons" ]

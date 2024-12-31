@@ -385,6 +385,9 @@ view shared route model =
                             , wrap_ = Nothing
                             , msg = \_ -> NoOp
                             , disabled_ = True
+                            , min = Nothing
+                            , max = Nothing
+                            , required = False
                             }
                         , Components.Form.viewTextareaSection
                             { title = Just "Value"
