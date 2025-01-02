@@ -53,6 +53,7 @@ import Pages.Org_.Repo_
 import Pages.Org_.Repo_.Build_
 import Pages.Org_.Repo_.Build_.Graph
 import Pages.Org_.Repo_.Build_.Pipeline
+import Pages.Org_.Repo_.Build_.Reports
 import Pages.Org_.Repo_.Build_.Services
 import Pages.Org_.Repo_.Deployments
 import Pages.Org_.Repo_.Deployments.Add
@@ -1344,6 +1345,30 @@ initPageAndLayout model =
                     }
                 )
 
+        Route.Path.Org__Repo__Build__Reports params ->
+            runWhenAuthenticatedWithLayout
+                model
+                (\user ->
+                    let
+                        page : Page.Page Pages.Org_.Repo_.Build_.Reports.Model Pages.Org_.Repo_.Build_.Reports.Msg
+                        page =
+                            Pages.Org_.Repo_.Build_.Reports.page user model.shared (Route.fromUrl params model.url)
+
+                        ( pageModel, pageEffect ) =
+                            Page.init page ()
+                    in
+                    { page =
+                        Tuple.mapBoth
+                            (Main.Pages.Model.Org__Repo__Build__Reports params)
+                            (Effect.map Main.Pages.Msg.Org__Repo__Build__Reports >> fromPageEffect model)
+                            ( pageModel, pageEffect )
+                    , layout =
+                        Page.layout pageModel page
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Repo__Build__Reports >> Page))
+                            |> Maybe.map (initLayout model)
+                    }
+                )
+
         Route.Path.Org__Repo__Build__Services params ->
             runWhenAuthenticatedWithLayout
                 model
@@ -1932,6 +1957,16 @@ updateFromPage msg model =
                         (Page.update (Pages.Org_.Repo_.Build_.Pipeline.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
+        ( Main.Pages.Msg.Org__Repo__Build__Reports pageMsg, Main.Pages.Model.Org__Repo__Build__Reports params pageModel ) ->
+            runWhenAuthenticated
+                model
+                (\user ->
+                    Tuple.mapBoth
+                        (Main.Pages.Model.Org__Repo__Build__Reports params)
+                        (Effect.map Main.Pages.Msg.Org__Repo__Build__Reports >> fromPageEffect model)
+                        (Page.update (Pages.Org_.Repo_.Build_.Reports.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
+                )
+
         ( Main.Pages.Msg.Org__Repo__Build__Services pageMsg, Main.Pages.Model.Org__Repo__Build__Services params pageModel ) ->
             runWhenAuthenticated
                 model
@@ -2248,6 +2283,12 @@ toLayoutFromPage model =
                 |> toAuthProtectedPage model Pages.Org_.Repo_.Build_.Pipeline.page
                 |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Repo__Build__Pipeline >> Page))
+
+        Main.Pages.Model.Org__Repo__Build__Reports params pageModel ->
+            Route.fromUrl params model.url
+                |> toAuthProtectedPage model Pages.Org_.Repo_.Build_.Reports.page
+                |> Maybe.andThen (Page.layout pageModel)
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Repo__Build__Reports >> Page))
 
         Main.Pages.Model.Org__Repo__Build__Services params pageModel ->
             Route.fromUrl params model.url
@@ -2588,6 +2629,15 @@ subscriptions model =
                         (\user ->
                             Page.subscriptions (Pages.Org_.Repo_.Build_.Pipeline.page user model.shared (Route.fromUrl params model.url)) pageModel
                                 |> Sub.map Main.Pages.Msg.Org__Repo__Build__Pipeline
+                                |> Sub.map Page
+                        )
+                        (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+                Main.Pages.Model.Org__Repo__Build__Reports params pageModel ->
+                    Auth.Action.subscriptions
+                        (\user ->
+                            Page.subscriptions (Pages.Org_.Repo_.Build_.Reports.page user model.shared (Route.fromUrl params model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.Org__Repo__Build__Reports
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -3102,6 +3152,15 @@ viewPage model =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
+        Main.Pages.Model.Org__Repo__Build__Reports params pageModel ->
+            Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
+                (\user ->
+                    Page.view (Pages.Org_.Repo_.Build_.Reports.page user model.shared (Route.fromUrl params model.url)) pageModel
+                        |> View.map Main.Pages.Msg.Org__Repo__Build__Reports
+                        |> View.map Page
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
         Main.Pages.Model.Org__Repo__Build__Services params pageModel ->
             Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
@@ -3500,6 +3559,16 @@ toPageUrlHookCmd model routes =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
+        Main.Pages.Model.Org__Repo__Build__Reports params pageModel ->
+            Auth.Action.command
+                (\user ->
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.Build_.Reports.page user model.shared (Route.fromUrl params model.url))
+                        |> List.map Main.Pages.Msg.Org__Repo__Build__Reports
+                        |> List.map Page
+                        |> toCommands
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
         Main.Pages.Model.Org__Repo__Build__Services params pageModel ->
             Auth.Action.command
                 (\user ->
@@ -3767,6 +3836,9 @@ isAuthProtected routePath =
             True
 
         Route.Path.Org__Repo__Build__Pipeline _ ->
+            True
+
+        Route.Path.Org__Repo__Build__Reports _ ->
             True
 
         Route.Path.Org__Repo__Build__Services _ ->

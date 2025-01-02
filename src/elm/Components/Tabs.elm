@@ -305,6 +305,16 @@ viewBuildTabs shared props =
               , isAlerting = False
               , show = True
               }
+            , { name = "Reports"
+              , toPath =
+                    Route.Path.Org__Repo__Build__Reports
+                        { org = props.org
+                        , repo = props.repo
+                        , build = props.build
+                        }
+              , isAlerting = False
+              , show = True
+              }
             ]
     in
     view props.tabHistory props.currentPath tabs "jump-bar-build"
