@@ -1092,7 +1092,7 @@ details.build-toggle {
 .logs .line {
   display: flex;
   align-items: flex-start;
-  margin: 0 0.5em;
+  margin: 0 0.5em 0 0;
 
   .no-data {
     margin-left: 1rem;
@@ -1138,7 +1138,7 @@ details.build-toggle {
   scrollbar-width: thin;
 }
 
-.logs-table tr td:nth-child(2) {
+.logs-table .line-content {
   padding-left: 1rem;
 }
 
