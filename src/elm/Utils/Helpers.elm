@@ -23,7 +23,6 @@ module Utils.Helpers exposing
     , formatRunTime
     , formatTestTag
     , formatTimeFromFloat
-    , formatTimeFromInt
     , getNameFromRef
     , humanReadableDateTimeFormatter
     , humanReadableDateTimeWithDefault
@@ -220,15 +219,11 @@ noSomeSecondsAgo _ =
     "just now"
 
 
-formatTimeFromInt : Int -> String
-formatTimeFromInt number =
-    formatTime number
-
-
 formatTimeFromFloat : Float -> String
 formatTimeFromFloat number =
     number
         |> floor
+        |> max 0
         |> formatTime
 
 

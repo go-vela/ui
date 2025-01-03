@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module BuildMetricsTest exposing (..)
+module BuildMetricsTest exposing (suite)
 
 import Dict
 import Expect
