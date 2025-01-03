@@ -34,6 +34,8 @@ module Utils.Helpers exposing
     , noBlanks
     , onClickPreventDefault
     , onMouseDownSubscription
+    , oneDayMillis
+    , oneDaySeconds
     , oneSecondMillis
     , open
     , orgRepoFromBuildLink
@@ -423,6 +425,20 @@ oneSecondMillis =
 fiveSecondsMillis : Float
 fiveSecondsMillis =
     oneSecondMillis * 5
+
+
+{-| oneDaySeconds : 86400 seconds in a day
+-}
+oneDaySeconds : Int
+oneDaySeconds =
+    86400
+
+
+{-| oneDayMillis : oneDaySeconds in milliseconds
+-}
+oneDayMillis : Int
+oneDayMillis =
+    secondsToMillis oneDaySeconds
 
 
 {-| isLoaded : takes WebData and returns true if it is in a 'loaded' state, meaning its anything but NotAsked or Loading.
