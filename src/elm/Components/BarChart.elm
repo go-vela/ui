@@ -222,8 +222,6 @@ view (BarChartConfig { title, width, height, padding, data, maybeMaxY, unit }) =
     in
     div [ class "metrics-chart", Util.testAttribute "metrics-chart" ]
         [ div [ class "chart-header" ] [ text title ]
-
-        -- , div [ class "chart-subheader" ] [ text "Number of builds per day" ]
         , TypedSvg.svg [ TypedSvg.Attributes.viewBox 0 0 width height ]
             [ TypedSvg.g
                 [ TypedSvg.Attributes.transform [ Translate (padding - 1) (height - padding) ]
