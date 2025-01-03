@@ -393,13 +393,13 @@ update shared route msg model =
             case response of
                 Ok ( _, expandedPipeline ) ->
                     let
-                        p =
+                        basePipeline =
                             RemoteData.withDefault Vela.defaultPipelineConfig model.pipeline
                     in
                     ( { model
                         | pipeline =
                             RemoteData.succeed
-                                { p
+                                { basePipeline
                                     | rawData = ""
                                     , decodedData = expandedPipeline
                                 }

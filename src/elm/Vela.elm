@@ -1132,6 +1132,11 @@ type alias PipelineConfig =
     }
 
 
+defaultPipelineConfig : PipelineConfig
+defaultPipelineConfig =
+    PipelineConfig "" "" "" "" "" "" False False False False False False [] "" "" Dict.empty
+
+
 type alias Template =
     { link : String
     , name : String
@@ -1142,27 +1147,6 @@ type alias Template =
 
 type alias Templates =
     Dict String Template
-
-
-defaultPipelineConfig : PipelineConfig
-defaultPipelineConfig =
-    PipelineConfig
-        ""
-        ""
-        ""
-        ""
-        ""
-        ""
-        False
-        False
-        False
-        False
-        False
-        False
-        []
-        ""
-        ""
-        Dict.empty
 
 
 lineNumberWarningfromWarningString : String -> ( Maybe Int, String )
@@ -1202,32 +1186,35 @@ decodePipelineConfig =
         |> optional "warnings"
             (Json.Decode.list string
                 |> Json.Decode.andThen
-                    (\warnings ->
-                        Json.Decode.succeed
-                            (List.foldl
-                                (\warning dict ->
-                                    case lineNumberWarningfromWarningString warning of
-                                        ( Just line, w ) ->
-                                            Dict.update line
-                                                (\maybeWarnings ->
-                                                    case maybeWarnings of
-                                                        Just existingWarnings ->
-                                                            Just (w :: existingWarnings)
-
-                                                        Nothing ->
-                                                            Just [ w ]
-                                                )
-                                                dict
-
-                                        _ ->
-                                            dict
-                                )
-                                Dict.empty
-                                warnings
-                            )
-                    )
+                    decodeAndCollapsePipelineWarnings
             )
             Dict.empty
+
+
+decodeAndCollapsePipelineWarnings : List String -> Json.Decode.Decoder (Dict Int (List String))
+decodeAndCollapsePipelineWarnings warnings =
+    Json.Decode.succeed
+        (List.foldl
+            (\warning dict ->
+                case lineNumberWarningfromWarningString warning of
+                    ( Just line, w ) ->
+                        Dict.update line
+                            (\maybeWarnings ->
+                                case maybeWarnings of
+                                    Just existingWarnings ->
+                                        Just (w :: existingWarnings)
+
+                                    Nothing ->
+                                        Just [ w ]
+                            )
+                            dict
+
+                    _ ->
+                        dict
+            )
+            Dict.empty
+            warnings
+        )
 
 
 decodePipelineExpand : Json.Decode.Decoder String
