@@ -9,11 +9,12 @@ import Ansi.Log
 import Array
 import Auth
 import Components.Loading
+import Components.Svgs
 import Dict exposing (Dict)
 import Effect exposing (Effect)
 import FeatherIcons
 import Html exposing (Html, a, button, code, details, div, small, span, strong, summary, table, td, text, tr)
-import Html.Attributes exposing (attribute, class, href, id, target)
+import Html.Attributes exposing (attribute, class, disabled, href, id, title)
 import Html.Events exposing (onClick)
 import Http
 import Http.Detailed
@@ -220,18 +221,8 @@ update shared route msg model =
                 sideEffect =
                     case model.build of
                         RemoteData.Success build ->
-                            if expand then
-                                Effect.expandPipelineConfig
-                                    { baseUrl = shared.velaAPIBaseURL
-                                    , session = shared.session
-                                    , onResponse = GetExpandBuildPipelineConfigResponse { applyDomFocus = False }
-                                    , org = route.params.org
-                                    , repo = route.params.repo
-                                    , ref = build.commit
-                                    }
-
-                            else
-                                Effect.getPipelineConfig
+                            Effect.batch
+                                [ Effect.getPipelineConfig
                                     { baseUrl = shared.velaAPIBaseURL
                                     , session = shared.session
                                     , onResponse = GetBuildPipelineConfigResponse { applyDomFocus = False }
@@ -239,6 +230,19 @@ update shared route msg model =
                                     , repo = route.params.repo
                                     , ref = build.commit
                                     }
+                                , if expand then
+                                    Effect.expandPipelineConfig
+                                        { baseUrl = shared.velaAPIBaseURL
+                                        , session = shared.session
+                                        , onResponse = GetExpandBuildPipelineConfigResponse { applyDomFocus = False }
+                                        , org = route.params.org
+                                        , repo = route.params.repo
+                                        , ref = build.commit
+                                        }
+
+                                  else
+                                    Effect.none
+                                ]
 
                         _ ->
                             Effect.getBuild
@@ -314,31 +318,16 @@ update shared route msg model =
         GetBuildResponse options response ->
             case response of
                 Ok ( _, build ) ->
-                    let
-                        getPipelineConfigEffect =
-                            if model.expand then
-                                Effect.expandPipelineConfig
-                                    { baseUrl = shared.velaAPIBaseURL
-                                    , session = shared.session
-                                    , onResponse = GetExpandBuildPipelineConfigResponse { applyDomFocus = options.applyDomFocus }
-                                    , org = route.params.org
-                                    , repo = route.params.repo
-                                    , ref = build.commit
-                                    }
-
-                            else
-                                Effect.getPipelineConfig
-                                    { baseUrl = shared.velaAPIBaseURL
-                                    , session = shared.session
-                                    , onResponse = GetBuildPipelineConfigResponse { applyDomFocus = options.applyDomFocus }
-                                    , org = route.params.org
-                                    , repo = route.params.repo
-                                    , ref = build.commit
-                                    }
-                    in
                     ( { model | build = RemoteData.Success build }
                     , Effect.batch
-                        [ getPipelineConfigEffect
+                        [ Effect.getPipelineConfig
+                            { baseUrl = shared.velaAPIBaseURL
+                            , session = shared.session
+                            , onResponse = GetBuildPipelineConfigResponse { applyDomFocus = options.applyDomFocus }
+                            , org = route.params.org
+                            , repo = route.params.repo
+                            , ref = build.commit
+                            }
                         , Effect.getPipelineTemplates
                             { baseUrl = shared.velaAPIBaseURL
                             , session = shared.session
@@ -370,12 +359,26 @@ update shared route msg model =
                                 }
                         , expanding = False
                       }
-                    , if Focus.canTarget model.focus && options.applyDomFocus then
-                        FocusOn { target = Focus.toDomTarget model.focus }
-                            |> Effect.sendMsg
+                    , Effect.batch
+                        [ if model.expand then
+                            Effect.expandPipelineConfig
+                                { baseUrl = shared.velaAPIBaseURL
+                                , session = shared.session
+                                , onResponse = GetExpandBuildPipelineConfigResponse { applyDomFocus = options.applyDomFocus }
+                                , org = route.params.org
+                                , repo = route.params.repo
+                                , ref = pipeline.commit
+                                }
 
-                      else
-                        Effect.none
+                          else
+                            Effect.none
+                        , if Focus.canTarget model.focus && options.applyDomFocus then
+                            FocusOn { target = Focus.toDomTarget model.focus }
+                                |> Effect.sendMsg
+
+                          else
+                            Effect.none
+                        ]
                     )
 
                 Err error ->
@@ -389,11 +392,16 @@ update shared route msg model =
         GetExpandBuildPipelineConfigResponse options response ->
             case response of
                 Ok ( _, expandedPipeline ) ->
+                    let
+                        p =
+                            RemoteData.withDefault Vela.defaultPipelineConfig model.pipeline
+                    in
                     ( { model
                         | pipeline =
-                            RemoteData.Success
-                                { rawData = ""
-                                , decodedData = expandedPipeline
+                            RemoteData.succeed
+                                { p
+                                    | rawData = ""
+                                    , decodedData = expandedPipeline
                                 }
                         , expanding = False
                       }
@@ -486,7 +494,7 @@ view shared route model =
 
                           else
                             div [ class "icon" ] [ FeatherIcons.circle |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [] ]
-                        , small [ class "tip" ] [ text "note: yaml fields will be sorted alphabetically when the pipeline is expanded." ]
+                        , small [] [ text "note: yaml fields will be sorted alphabetically when the pipeline is expanded." ]
                         ]
 
                 _ ->
@@ -522,7 +530,39 @@ view shared route model =
     in
     { title = "Pipeline"
     , body =
-        [ div [ class "pipeline" ]
+        [ case model.pipeline of
+            RemoteData.Success p ->
+                if List.length p.warnings > 0 then
+                    div [ class "logs-container", class "-pipeline" ]
+                        [ table
+                            [ class "logs-table"
+                            , class "pipeline"
+                            ]
+                            [ div [ class "header" ]
+                                [ span []
+                                    [ text "Warnings"
+                                    ]
+                                ]
+                            , if model.expand then
+                                span [ class "tip" ]
+                                    [ small []
+                                        [ text "note: this pipeline is expanded, the line numbers shown only apply to the base pipeline configuration, they are not accurate when viewing an expanded pipeline." ]
+                                    ]
+
+                              else
+                                text ""
+                            , div [ class "warnings" ] <|
+                                List.map (viewWarningAsLogLine model shared) <|
+                                    List.sort p.warnings
+                            ]
+                        ]
+
+                else
+                    text ""
+
+            _ ->
+                text ""
+        , div [ class "pipeline" ]
             [ case model.templates of
                 RemoteData.Success templates ->
                     if not <| Dict.isEmpty templates then
@@ -566,6 +606,7 @@ view shared route model =
                     [ div [ class "header" ]
                         [ span []
                             [ text "Pipeline Configuration"
+                            , RemoteData.unwrap (text "") (\p -> span [ class "commit" ] [ text p.commit ]) model.pipeline
                             ]
                         ]
                     , div [ class "actions" ]
@@ -576,7 +617,7 @@ view shared route model =
                         RemoteData.Success pipeline ->
                             if String.length pipeline.decodedData > 0 then
                                 div [ class "logs", Util.testAttribute "pipeline-configuration-data" ] <|
-                                    viewLines pipeline model.focus shared.shift
+                                    viewLines pipeline model.expand model.focus shared.shift
 
                             else
                                 div [ class "no-pipeline" ] [ small [] [ code [] [ text "The pipeline found for this build/ref contains no data." ] ] ]
@@ -660,17 +701,19 @@ viewTemplate ( _, t ) =
 
 {-| viewLines : creates a list of lines for a template.
 -}
-viewLines : Vela.PipelineConfig -> Focus.Focus -> Bool -> List (Html Msg)
-viewLines config focus shift =
+viewLines : Vela.PipelineConfig -> Bool -> Focus.Focus -> Bool -> List (Html Msg)
+viewLines config expand focus shiftKeyDown =
     config.decodedData
         |> Utils.Ansi.decodeAnsi
         |> Array.indexedMap
             (\idx line ->
                 Just <|
                     viewLine
-                        shift
+                        expand
+                        shiftKeyDown
                         (idx + 1)
                         (Just line)
+                        (Dict.get (idx + 1) config.lineWarnings)
                         focus
             )
         |> Array.toList
@@ -679,11 +722,12 @@ viewLines config focus shift =
 
 {-| viewLine : creates a numbered, linkable line for a template.
 -}
-viewLine : Bool -> Int -> Maybe Ansi.Log.Line -> Focus.Focus -> Html Msg
-viewLine shiftKeyDown lineNumber line focus =
+viewLine : Bool -> Bool -> Int -> Maybe Ansi.Log.Line -> Maybe (List String) -> Focus.Focus -> Html Msg
+viewLine expand shiftKeyDown lineNumber line warnings focus =
     tr
         [ id <| String.fromInt lineNumber
         , class "line"
+        , Maybe.Extra.unwrap (class "") (\_ -> class "-warning") warnings
         ]
         [ case line of
             Just l ->
@@ -692,7 +736,16 @@ viewLine shiftKeyDown lineNumber line focus =
                     , Util.testAttribute <| String.join "-" [ "config", "line", String.fromInt lineNumber ]
                     , class <| Focus.lineRangeStyles Nothing lineNumber focus
                     ]
-                    [ td []
+                    [ td
+                        [ class "annotation"
+                        , warnings
+                            |> Maybe.Extra.filter (\_ -> not expand)
+                            |> Maybe.Extra.unwrap (class "-hide") (\_ -> class "-show")
+                        ]
+                        [ Components.Svgs.annotationCircle "-warning" ]
+                    , td
+                        [ Html.Attributes.title <| "Jump to line " ++ String.fromInt lineNumber
+                        ]
                         [ button
                             [ Util.onClickPreventDefault <|
                                 PushUrlHash
@@ -709,10 +762,11 @@ viewLine shiftKeyDown lineNumber line focus =
                             , class "button"
                             , class "-link"
                             , attribute "aria-label" "focus this line"
+                            , title <| "Focus line " ++ String.fromInt lineNumber
                             ]
                             [ span [] [ text <| String.fromInt lineNumber ] ]
                         ]
-                    , td [ class "break-text", class "overflow-auto" ]
+                    , td [ class "break-text", class "overflow-auto", class "line-content" ]
                         [ code [ Util.testAttribute <| String.join "-" [ "config", "data", String.fromInt lineNumber ] ]
                             [ Ansi.Log.viewLine l
                             ]
@@ -721,4 +775,61 @@ viewLine shiftKeyDown lineNumber line focus =
 
             Nothing ->
                 text ""
+        ]
+
+
+{-| viewWarningAsLogLine : renders a warning as a log line.
+-}
+viewWarningAsLogLine : Model -> Shared.Model -> String -> Html Msg
+viewWarningAsLogLine model shared warning =
+    let
+        ( maybeLineNumber, content ) =
+            Vela.lineNumberWarningfromWarningString warning
+    in
+    tr [ class "warning" ]
+        [ td [ class "annotation", class "-show" ]
+            [ Components.Svgs.annotationCircle "-warning"
+            ]
+        , td []
+            [ case maybeLineNumber of
+                Just lineNumber ->
+                    let
+                        -- control focus behaviour so that the button always snaps to the right page location
+                        focusChanged =
+                            Maybe.Extra.unwrap False (\a -> a == lineNumber) model.focus.a
+                    in
+                    button
+                        [ Util.onClickPreventDefault <|
+                            if model.expand then
+                                NoOp
+
+                            else if focusChanged then
+                                FocusOn { target = Focus.toDomTarget { group = Nothing, a = Just lineNumber, b = Nothing } }
+
+                            else
+                                PushUrlHash
+                                    { hash =
+                                        Focus.toString <| Focus.updateLineRange shared.shift Nothing lineNumber model.focus
+                                    }
+                        , Util.testAttribute <| String.join "-" [ "warning", "line", "num", String.fromInt lineNumber ]
+                        , class "button"
+                        , class "-link"
+                        , if model.expand then
+                            class "-disabled"
+
+                          else
+                            class ""
+                        , class "line-number"
+                        , attribute "aria-label" "jump to this line"
+                        , title <| "Jump to line " ++ String.fromInt lineNumber
+                        , disabled model.expand
+                        ]
+                        [ span [] [ text <| String.fromInt lineNumber ] ]
+
+                Nothing ->
+                    span [ class "no-line-number" ] [ text "-" ]
+            ]
+        , td [ class "line-content" ]
+            [ text content
+            ]
         ]
