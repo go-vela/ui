@@ -110,6 +110,7 @@ init shared route () =
         , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
         , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
         , maybeEvent = Dict.get "event" route.query
+        , maybeAfter = Dict.get "after" route.query |> Maybe.andThen String.toInt
         , org = route.params.org
         , repo = route.params.repo
         }
@@ -156,6 +157,7 @@ update shared route msg model =
                 , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
                 , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
                 , maybeEvent = options.to
+                , maybeAfter = Dict.get "after" route.query |> Maybe.andThen String.toInt
                 , org = route.params.org
                 , repo = route.params.repo
                 }
@@ -197,6 +199,7 @@ update shared route msg model =
                     , pageNumber = Just pageNumber
                     , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
                     , maybeEvent = Dict.get "event" route.query
+                    , maybeAfter = Dict.get "after" route.query |> Maybe.andThen String.toInt
                     , org = route.params.org
                     , repo = route.params.repo
                     }
@@ -238,6 +241,7 @@ update shared route msg model =
                             , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
                             , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
                             , maybeEvent = Dict.get "event" route.query
+                            , maybeAfter = Dict.get "after" route.query |> Maybe.andThen String.toInt
                             , org = route.params.org
                             , repo = route.params.repo
                             }
@@ -281,6 +285,7 @@ update shared route msg model =
                             , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
                             , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
                             , maybeEvent = Dict.get "event" route.query
+                            , maybeAfter = Dict.get "after" route.query |> Maybe.andThen String.toInt
                             , org = route.params.org
                             , repo = route.params.repo
                             }
@@ -324,6 +329,7 @@ update shared route msg model =
                             , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
                             , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
                             , maybeEvent = Dict.get "event" route.query
+                            , maybeAfter = Dict.get "after" route.query |> Maybe.andThen String.toInt
                             , org = route.params.org
                             , repo = route.params.repo
                             }
@@ -392,6 +398,7 @@ update shared route msg model =
                     , pageNumber = Nothing
                     , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
                     , maybeEvent = maybeEvent
+                    , maybeAfter = Dict.get "after" route.query |> Maybe.andThen String.toInt
                     , org = route.params.org
                     , repo = route.params.repo
                     }
@@ -411,6 +418,7 @@ update shared route msg model =
                 , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
                 , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
                 , maybeEvent = Dict.get "event" route.query
+                , maybeAfter = Dict.get "after" route.query |> Maybe.andThen String.toInt
                 , org = route.params.org
                 , repo = route.params.repo
                 }

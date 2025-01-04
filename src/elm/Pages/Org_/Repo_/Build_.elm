@@ -10,7 +10,6 @@ import Browser.Dom exposing (focus)
 import Components.Loading
 import Components.Logs
 import Components.Svgs
-import Debug exposing (log)
 import Dict exposing (Dict)
 import Effect exposing (Effect)
 import FeatherIcons

@@ -37,6 +37,7 @@ type Path
     | Org__Repo__Deployments { org : String, repo : String }
     | Org__Repo__Deployments_Add { org : String, repo : String }
     | Org__Repo__Hooks { org : String, repo : String }
+    | Org__Repo__Insights { org : String, repo : String }
     | Org__Repo__Pulls { org : String, repo : String }
     | Org__Repo__Schedules { org : String, repo : String }
     | Org__Repo__Schedules_Add { org : String, repo : String }
@@ -211,6 +212,13 @@ fromString urlPath =
                 }
                 |> Just
 
+        org_ :: repo_ :: "insights" :: [] ->
+            Org__Repo__Insights
+                { org = org_
+                , repo = repo_
+                }
+                |> Just
+
         org_ :: repo_ :: "pulls" :: [] ->
             Org__Repo__Pulls
                 { org = org_
@@ -375,6 +383,9 @@ toString path =
 
                 Org__Repo__Hooks params ->
                     [ params.org, params.repo, "hooks" ]
+
+                Org__Repo__Insights params ->
+                    [ params.org, params.repo, "insights" ]
 
                 Org__Repo__Pulls params ->
                     [ params.org, params.repo, "pulls" ]

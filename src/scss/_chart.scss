@@ -1,0 +1,55 @@
+// SPDX-License-Identifier: Apache-2.0
+
+.metrics {
+  max-width: 66%;
+  padding: 1rem 2rem;
+
+  background-color: var(--color-bg-dark);
+}
+
+.metric {
+  flex: 1;
+}
+
+.metrics-quicklist {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.metric-value {
+  font-size: xx-large;
+}
+
+.metric-description {
+  margin: 0;
+
+  font-size: small;
+}
+
+.metrics svg path,
+.metrics svg line {
+  stroke: var(--color-text);
+}
+
+.metrics svg text {
+  fill: var(--color-text);
+}
+
+.metrics .column rect {
+  fill: var(--color-cyan-dark);
+}
+
+.metrics .column text {
+  display: none;
+}
+
+.metrics .column:hover rect,
+.metrics .column:focus rect {
+  fill: var(--color-cyan);
+}
+
+.metrics .column:hover text,
+.metrics .column:focus text {
+  display: inline;
+}

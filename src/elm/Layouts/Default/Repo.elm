@@ -93,6 +93,7 @@ init props shared route _ =
             { pageNumber = Nothing
             , perPage = Nothing
             , maybeEvent = Nothing
+            , maybeAfter = Nothing
             , org = props.org
             , repo = props.repo
             }
