@@ -27,7 +27,7 @@ currentTimeMillis =
 
 suite : Test
 suite =
-    describe "BuildMetrics"
+    describe "Helpers"
         [ describe "formatRunTime"
             [ test "started 1 second ago, finished is invalid (-1)" <|
                 \_ ->
