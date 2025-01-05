@@ -45,7 +45,7 @@ page user shared route =
 -- LAYOUT
 
 
-{-| toLayout : takes user, route, model, and passes the deployments page info to Layouts.
+{-| toLayout : takes user, route, model, and passes the insights page info to Layouts.
 -}
 toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
@@ -67,12 +67,17 @@ toLayout user route model =
 -- INIT
 
 
+{-| Model : alias for a model object for an insights page.
+we store the builds and calculated metrics.
+-}
 type alias Model =
     { builds : WebData (List Vela.Build)
     , metrics : Maybe Metrics
     }
 
 
+{-| init : takes shared model, route, and initializes an insights page input arguments.
+-}
 init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     let
@@ -104,10 +109,14 @@ init shared route () =
 -- UPDATE
 
 
+{-| Msg : custom type with possible messages.
+-}
 type Msg
     = GetRepoBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))
 
 
+{-| update : takes current models, route, message, and returns an updated model and effect.
+-}
 update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
@@ -138,6 +147,8 @@ update shared route msg model =
 -- SUBSCRIPTIONS
 
 
+{-| subscriptions : takes model and returns the subscriptions.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
@@ -147,6 +158,8 @@ subscriptions model =
 -- VIEW
 
 
+{-| view : takes models, route, and creates the html for the insights page.
+-}
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
     { title = "Pipeline Insights"
@@ -168,13 +181,15 @@ view shared route model =
                                 viewEmpty
 
                             _ ->
-                                viewInsights model shared.time shared.zone
+                                viewInsights model shared.time
                )
     }
 
 
-viewInsights : Model -> Time.Posix -> Time.Zone -> List (Html Msg)
-viewInsights model now time =
+{-| viewInsights : take model and current time and renders metrics.
+-}
+viewInsights : Model -> Time.Posix -> List (Html Msg)
+viewInsights model now =
     case ( model.metrics, model.builds ) of
         ( Just m, RemoteData.Success builds ) ->
             let
@@ -277,6 +292,8 @@ viewInsights model now time =
             [ h3 [] [ text "No Metrics to Show" ] ]
 
 
+{-| viewMetrics : takes a value and description as strings and renders a quick metric.
+-}
 viewMetric : String -> String -> Html msg
 viewMetric value description =
     div [ class "metric" ]
@@ -285,6 +302,8 @@ viewMetric value description =
         ]
 
 
+{-| viewEmpty : renders information when there are no builds returned.
+-}
 viewEmpty : List (Html msg)
 viewEmpty =
     [ h3 [ Helpers.testAttribute "no-builds" ] [ text "No builds found" ]
@@ -292,6 +311,8 @@ viewEmpty =
     ]
 
 
+{-| viewError : renders information when there was an error retrieving the builds.
+-}
 viewError : List (Html msg)
 viewError =
     [ h3 [] [ text "There was an error retrieving builds :(" ]

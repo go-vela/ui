@@ -31,6 +31,10 @@ import TypedSvg.Types exposing (AnchorAlignment(..), Transform(..))
 import Utils.Helpers as Util
 
 
+
+-- TYPES
+
+
 {-| UnitFormat defines what format the values in the chart should be displayed in.
 -}
 type UnitFormat
@@ -158,6 +162,10 @@ with the given decimal places.
 withNumberUnit : Int -> BarChartConfig -> BarChartConfig
 withNumberUnit v (BarChartConfig config) =
     BarChartConfig { config | unit = number v }
+
+
+
+-- VIEW
 
 
 {-| view: takes title, width (optional), height (optional), data, optional maximum y-axis value,

@@ -3,9 +3,19 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Metrics.BuildMetrics exposing (Metrics, calculateAverageRuntime, calculateAverageTimeToRecovery, calculateBuildFrequency, calculateEventBranchMetrics, calculateFailureRate, calculateMetrics)
+module Metrics.BuildMetrics exposing
+    ( Metrics
+    , calculateAverageRuntime
+    , calculateAverageTimeToRecovery
+    , calculateBuildFrequency
+    , calculateEventBranchMetrics
+    , calculateFailureRate
+    , calculateMetrics
+    , filterCompletedBuilds
+    )
 
 import Dict exposing (Dict)
+import Html exposing (b)
 import Statistics
 import Vela
 
@@ -25,17 +35,26 @@ type alias StatusMetrics =
 
 
 type alias OverallMetrics =
-    { failureRate : Float
-    , averageQueueTime : Float
-    , averageRuntime : Float
-    , timeUsedOnFailedBuilds : Float
-    , successRate : Float
-    , medianQueueTime : Float
-    , medianRuntime : Float
-    , stdDeviationRuntime : Float
-    , buildFrequency : Int
+    { -- frequency metrics
+      buildFrequency : Int
     , deployFrequency : Int
+
+    -- duration metrics
+    , averageRuntime : Float
+    , stdDeviationRuntime : Float
+    , medianRuntime : Float
+    , timeUsedOnFailedBuilds : Float
+
+    -- relability
+    , successRate : Float
+    , failureRate : Float
     , averageTimeToRecovery : Float
+
+    -- queue metrics
+    , averageQueueTime : Float
+    , medianQueueTime : Float
+
+    -- aggregrates
     , eventBranchMetrics : Dict ( String, String ) EventBranchMetrics
     }
 
@@ -52,6 +71,9 @@ type alias TimeSeriesData =
     }
 
 
+{-| calculateMetrics : calculates metrics based on the list of builds passed in.
+returns Nothing when the list is empty.
+-}
 calculateMetrics : List Vela.Build -> Maybe Metrics
 calculateMetrics builds =
     if List.isEmpty builds then
@@ -59,39 +81,47 @@ calculateMetrics builds =
 
     else
         let
-            failureRate =
-                calculateFailureRate builds
+            completedBuilds =
+                filterCompletedBuilds builds
 
-            averageQueueTime =
-                calculateAverageQueueTime builds
-
-            averageRuntime =
-                calculateAverageRuntime builds
-
-            timeUsedOnFailedBuilds =
-                calculateTimeUsedOnFailedBuilds builds
-
-            successRate =
-                calculateSuccessRate builds
-
-            medianQueueTime =
-                calculateMedianQueueTime builds
-
-            medianRuntime =
-                calculateMedianRuntime builds
-
-            stdDeviationRuntime =
-                calculateStdDeviationRuntime builds
-
+            -- frequency
             buildFrequency =
                 calculateBuildFrequency builds
 
             deployFrequency =
                 calculateDeployFrequency builds
 
+            -- duration
+            averageRuntime =
+                calculateAverageRuntime completedBuilds
+
+            stdDeviationRuntime =
+                calculateStdDeviationRuntime completedBuilds
+
+            medianRuntime =
+                calculateMedianRuntime completedBuilds
+
+            timeUsedOnFailedBuilds =
+                calculateTimeUsedOnFailedBuilds builds
+
+            -- reliability
+            successRate =
+                calculateSuccessRate builds
+
+            failureRate =
+                calculateFailureRate builds
+
             averageTimeToRecovery =
                 calculateAverageTimeToRecovery builds
 
+            -- queue metrics
+            averageQueueTime =
+                calculateAverageQueueTime builds
+
+            medianQueueTime =
+                calculateMedianQueueTime builds
+
+            -- aggregrates
             eventBranchMetrics =
                 calculateEventBranchMetrics builds
 
@@ -100,191 +130,33 @@ calculateMetrics builds =
         in
         Just
             { overall =
-                { failureRate = failureRate
-                , averageQueueTime = averageQueueTime
+                { buildFrequency = buildFrequency
+                , deployFrequency = deployFrequency
                 , averageRuntime = averageRuntime
+                , stdDeviationRuntime = stdDeviationRuntime
+                , medianRuntime = medianRuntime
                 , timeUsedOnFailedBuilds = timeUsedOnFailedBuilds
                 , successRate = successRate
-                , medianQueueTime = medianQueueTime
-                , medianRuntime = medianRuntime
-                , stdDeviationRuntime = stdDeviationRuntime
-                , buildFrequency = buildFrequency
-                , deployFrequency = deployFrequency
+                , failureRate = failureRate
                 , averageTimeToRecovery = averageTimeToRecovery
+                , averageQueueTime = averageQueueTime
+                , medianQueueTime = medianQueueTime
                 , eventBranchMetrics = eventBranchMetrics
                 }
             , byStatus = byStatus
             }
 
 
-calculateMedianRuntime : List Vela.Build -> Float
-calculateMedianRuntime builds =
-    let
-        legitBuilds =
-            builds
-                |> List.filter (\build -> build.status /= Vela.Pending)
-                |> List.filter (\build -> build.status /= Vela.Running)
-
-        runTimes =
-            List.map (\build -> toFloat (build.finished - build.started)) legitBuilds
-    in
-    calculateMedian runTimes
+filterCompletedBuilds : List Vela.Build -> List Vela.Build
+filterCompletedBuilds builds =
+    builds
+        |> List.filter (\build -> build.status /= Vela.Pending)
+        |> List.filter (\build -> build.status /= Vela.PendingApproval)
+        |> List.filter (\build -> build.status /= Vela.Running)
 
 
-calculateStdDeviationRuntime : List Vela.Build -> Float
-calculateStdDeviationRuntime builds =
-    let
-        legitBuilds =
-            builds
-                |> List.filter (\build -> build.status /= Vela.Pending)
-                |> List.filter (\build -> build.status /= Vela.Running)
 
-        runTimes =
-            List.map (\build -> toFloat (build.finished - build.started)) legitBuilds
-    in
-    calculateStdDeviation runTimes
-
-
-calculateMedianQueueTime : List Vela.Build -> Float
-calculateMedianQueueTime builds =
-    let
-        legitBuilds =
-            builds
-                |> List.filter (\build -> build.started > 0)
-
-        queueTimes =
-            List.map (\build -> toFloat (build.started - build.enqueued)) legitBuilds
-    in
-    calculateMedian queueTimes
-
-
-calculateSuccessRate : List Vela.Build -> Float
-calculateSuccessRate builds =
-    let
-        total =
-            List.length builds
-
-        succeeded =
-            List.length (List.filter (\build -> build.status == Vela.Success) builds)
-    in
-    if total == 0 then
-        0
-
-    else
-        (toFloat succeeded / toFloat total) * 100
-
-
-calculateMetricsByStatus : List Vela.Build -> Dict String StatusMetrics
-calculateMetricsByStatus builds =
-    let
-        -- Group builds by status
-        groupedBuilds =
-            List.foldl
-                (\build acc ->
-                    let
-                        key =
-                            Vela.statusToString build.status
-                    in
-                    Dict.update key (Maybe.map (\lst -> Just (build :: lst)) >> Maybe.withDefault (Just [ build ])) acc
-                )
-                Dict.empty
-                builds
-
-        calculateMetricsForGroup b =
-            let
-                buildTimes =
-                    List.map (\build -> toFloat (build.finished - build.started)) b
-
-                medianRuntime =
-                    calculateMedian buildTimes
-
-                averageRuntime =
-                    calculateAverageRuntime b
-
-                buildFrequency =
-                    calculateBuildFrequency b
-
-                eventBranchMetrics =
-                    calculateEventBranchMetrics b
-            in
-            { averageRuntime = averageRuntime
-            , medianRuntime = medianRuntime
-            , buildFrequency = buildFrequency
-            , eventBranchMetrics = eventBranchMetrics
-            }
-    in
-    Dict.map (\_ buildss -> calculateMetricsForGroup buildss) groupedBuilds
-
-
-calculateAverageTimeToRecovery : List Vela.Build -> Float
-calculateAverageTimeToRecovery builds =
-    let
-        -- Filter the builds to get only failed and successful builds
-        failedBuilds =
-            List.filter (\build -> build.status == Vela.Failure) builds
-
-        successfulBuilds =
-            List.filter (\build -> build.status == Vela.Success) builds
-
-        -- Group builds by branch
-        groupByBranch b =
-            List.foldl
-                (\build acc ->
-                    Dict.update build.branch (Maybe.map (\lst -> Just (build :: lst)) >> Maybe.withDefault (Just [ build ])) acc
-                )
-                Dict.empty
-                b
-
-        groupedFailedBuilds =
-            groupByBranch failedBuilds
-
-        groupedSuccessfulBuilds =
-            groupByBranch successfulBuilds
-
-        -- Find pairs of failed and subsequent successful builds within each branch
-        findRecoveryTimes f s =
-            case ( f, s ) of
-                ( [], _ ) ->
-                    []
-
-                ( _, [] ) ->
-                    []
-
-                ( failed :: restFailed, success :: restSuccess ) ->
-                    if success.created > failed.created then
-                        (success.created - failed.created) :: findRecoveryTimes restFailed restSuccess
-
-                    else
-                        findRecoveryTimes f restSuccess
-
-        -- Calculate the time differences for each branch
-        calculateBranchRecoveryTimes branch =
-            let
-                f =
-                    Dict.get branch groupedFailedBuilds |> Maybe.withDefault []
-
-                s =
-                    Dict.get branch groupedSuccessfulBuilds |> Maybe.withDefault []
-            in
-            findRecoveryTimes (List.sortBy .created f) (List.sortBy .created s)
-
-        -- Aggregate recovery times across all branches
-        allRecoveryTimes =
-            Dict.keys groupedFailedBuilds
-                |> List.concatMap calculateBranchRecoveryTimes
-
-        -- Compute the average of the time differences
-        totalRecoveryTime =
-            List.sum allRecoveryTimes
-
-        count =
-            List.length allRecoveryTimes
-    in
-    if count == 0 then
-        0
-
-    else
-        toFloat totalRecoveryTime / toFloat count
+-- frequency calculations
 
 
 calculateBuildFrequency : List Vela.Build -> Int
@@ -321,7 +193,7 @@ calculateDeployFrequency builds =
     let
         sortedByCreated =
             builds
-                |> List.filter (\build -> not (String.isEmpty build.deploy))
+                |> List.filter (\build -> build.event == "deployment")
                 |> List.sortBy .created
 
         firstBuildTime =
@@ -346,23 +218,240 @@ calculateDeployFrequency builds =
         totalBuilds // totalDays
 
 
-calculateMedian : List Float -> Float
-calculateMedian list =
-    List.sort list
-        |> Statistics.quantile 0.5
-        |> Maybe.withDefault 0
+
+-- duration calculations
 
 
-calculateStdDeviation : List Float -> Float
-calculateStdDeviation list =
-    Statistics.deviation list
-        |> Maybe.withDefault 0
+calculateAverageRuntime : List Vela.Build -> Float
+calculateAverageRuntime builds =
+    let
+        total =
+            List.foldl (\build acc -> acc + (build.finished - build.started)) 0 builds
+
+        count =
+            List.length builds
+    in
+    if count == 0 then
+        0
+
+    else
+        toFloat (total // count)
+
+
+calculateStdDeviationRuntime : List Vela.Build -> Float
+calculateStdDeviationRuntime builds =
+    builds
+        |> List.map (\build -> toFloat (build.finished - build.started))
+        |> calculateStdDeviation
+
+
+calculateMedianRuntime : List Vela.Build -> Float
+calculateMedianRuntime builds =
+    builds
+        |> List.map (\build -> toFloat (build.finished - build.started))
+        |> calculateMedian
+
+
+calculateTimeUsedOnFailedBuilds : List Vela.Build -> Float
+calculateTimeUsedOnFailedBuilds builds =
+    builds
+        |> List.filter (\build -> build.status == Vela.Failure)
+        |> List.foldl (\build acc -> acc + (build.finished - build.started)) 0
+        |> toFloat
+
+
+
+-- reliability calculations
+
+
+calculateSuccessRate : List Vela.Build -> Float
+calculateSuccessRate builds =
+    let
+        total =
+            builds
+                |> List.length
+                |> toFloat
+
+        succeeded =
+            builds
+                |> List.filter (\build -> build.status == Vela.Success)
+                |> List.length
+                |> toFloat
+    in
+    if total == 0 then
+        0
+
+    else
+        (succeeded / total) * 100
+
+
+calculateFailureRate : List Vela.Build -> Float
+calculateFailureRate builds =
+    let
+        totalFailures =
+            builds
+                |> List.filter (\build -> build.status == Vela.Failure)
+                |> List.length
+                |> toFloat
+
+        count =
+            builds
+                |> List.length
+                |> toFloat
+    in
+    if count == 0 then
+        0
+
+    else
+        (totalFailures / count) * 100
+
+
+calculateAverageTimeToRecovery : List Vela.Build -> Float
+calculateAverageTimeToRecovery builds =
+    let
+        failedBuilds =
+            List.filter (\build -> build.status == Vela.Failure) builds
+
+        successfulBuilds =
+            List.filter (\build -> build.status == Vela.Success) builds
+
+        -- group builds by branch
+        groupByBranch b =
+            List.foldl
+                (\build acc ->
+                    Dict.update build.branch (Maybe.map (\lst -> Just (build :: lst)) >> Maybe.withDefault (Just [ build ])) acc
+                )
+                Dict.empty
+                b
+
+        groupedFailedBuilds =
+            groupByBranch failedBuilds
+
+        groupedSuccessfulBuilds =
+            groupByBranch successfulBuilds
+
+        -- find pairs of failed and subsequent successful builds within each branch
+        findRecoveryTimes f s =
+            case ( f, s ) of
+                ( [], _ ) ->
+                    []
+
+                ( _, [] ) ->
+                    []
+
+                ( failed :: restFailed, success :: restSuccess ) ->
+                    if success.created > failed.created then
+                        (success.created - failed.created) :: findRecoveryTimes restFailed restSuccess
+
+                    else
+                        findRecoveryTimes f restSuccess
+
+        -- calculate the time differences for each branch
+        calculateBranchRecoveryTimes branch =
+            let
+                f =
+                    Dict.get branch groupedFailedBuilds |> Maybe.withDefault []
+
+                s =
+                    Dict.get branch groupedSuccessfulBuilds |> Maybe.withDefault []
+            in
+            findRecoveryTimes (List.sortBy .created f) (List.sortBy .created s)
+
+        -- aggregate recovery times across all branches
+        allRecoveryTimes =
+            Dict.keys groupedFailedBuilds
+                |> List.concatMap calculateBranchRecoveryTimes
+
+        -- compute the average of the time differences
+        totalRecoveryTime =
+            toFloat (List.sum allRecoveryTimes)
+
+        count =
+            toFloat (List.length allRecoveryTimes)
+    in
+    if count == 0 then
+        0
+
+    else
+        totalRecoveryTime / count
+
+
+
+-- queue time calculations
+
+
+calculateAverageQueueTime : List Vela.Build -> Float
+calculateAverageQueueTime builds =
+    let
+        total =
+            builds
+                |> List.filter (\build -> build.started > 0)
+                |> List.foldl (\build acc -> acc + (build.started - build.enqueued)) 0
+
+        count =
+            List.length builds
+    in
+    if count == 0 then
+        0
+
+    else
+        toFloat (total // count)
+
+
+calculateMedianQueueTime : List Vela.Build -> Float
+calculateMedianQueueTime builds =
+    builds
+        |> List.filter (\build -> build.started > 0)
+        |> List.map (\build -> toFloat (build.started - build.enqueued))
+        |> calculateMedian
+
+
+calculateMetricsByStatus : List Vela.Build -> Dict String StatusMetrics
+calculateMetricsByStatus builds =
+    let
+        -- group builds by status
+        groupedBuilds =
+            List.foldl
+                (\build acc ->
+                    let
+                        key =
+                            Vela.statusToString build.status
+                    in
+                    Dict.update key (Maybe.map (\lst -> Just (build :: lst)) >> Maybe.withDefault (Just [ build ])) acc
+                )
+                Dict.empty
+                builds
+
+        calculateMetricsForGroup b =
+            let
+                buildTimes =
+                    List.map (\build -> toFloat (build.finished - build.started)) b
+
+                medianRuntime =
+                    calculateMedian buildTimes
+
+                averageRuntime =
+                    calculateAverageRuntime b
+
+                buildFrequency =
+                    calculateBuildFrequency b
+
+                eventBranchMetrics =
+                    calculateEventBranchMetrics b
+            in
+            { averageRuntime = averageRuntime
+            , medianRuntime = medianRuntime
+            , buildFrequency = buildFrequency
+            , eventBranchMetrics = eventBranchMetrics
+            }
+    in
+    Dict.map (\_ buildList -> calculateMetricsForGroup buildList) groupedBuilds
 
 
 calculateEventBranchMetrics : List Vela.Build -> Dict ( String, String ) EventBranchMetrics
 calculateEventBranchMetrics builds =
     let
-        -- Group builds by (event, branch)
+        -- group builds by (event, branch)
         groupedBuilds =
             List.foldl
                 (\build acc ->
@@ -375,7 +464,7 @@ calculateEventBranchMetrics builds =
                 Dict.empty
                 builds
 
-        -- Calculate metrics for each group
+        -- calculate metrics for each group
         calculateMetricsForGroup b =
             let
                 buildTimes =
@@ -396,66 +485,21 @@ calculateEventBranchMetrics builds =
             , buildTimesOverTime = buildTimesOverTime
             }
     in
-    Dict.map (\_ buildss -> calculateMetricsForGroup buildss) groupedBuilds
+    Dict.map (\_ buildsList -> calculateMetricsForGroup buildsList) groupedBuilds
 
 
-calculateAverageRuntime : List Vela.Build -> Float
-calculateAverageRuntime builds =
-    let
-        legitBuilds =
-            builds
-                |> List.filter (\build -> build.status /= Vela.Pending)
-                |> List.filter (\build -> build.status /= Vela.Running)
 
-        total =
-            legitBuilds
-                |> List.foldl (\build acc -> acc + (build.finished - build.started)) 0
-
-        count =
-            List.length legitBuilds
-    in
-    if count == 0 then
-        0
-
-    else
-        toFloat (total // count)
+-- generic helpers
 
 
-calculateAverageQueueTime : List Vela.Build -> Float
-calculateAverageQueueTime builds =
-    let
-        total =
-            builds |> List.filter (\build -> build.started > 0) |> List.foldl (\build acc -> acc + (build.started - build.enqueued)) 0
-
-        count =
-            List.length builds
-    in
-    if count == 0 then
-        0
-
-    else
-        toFloat (total // count)
+calculateMedian : List Float -> Float
+calculateMedian list =
+    List.sort list
+        |> Statistics.quantile 0.5
+        |> Maybe.withDefault 0
 
 
-calculateFailureRate : List Vela.Build -> Float
-calculateFailureRate builds =
-    let
-        totalFailures =
-            builds |> List.filter (\build -> build.status == Vela.Failure) |> List.length
-
-        count =
-            List.length builds
-    in
-    if count == 0 then
-        0
-
-    else
-        toFloat totalFailures / toFloat count * 100
-
-
-calculateTimeUsedOnFailedBuilds : List Vela.Build -> Float
-calculateTimeUsedOnFailedBuilds builds =
-    builds
-        |> List.filter (\build -> build.status == Vela.Failure)
-        |> List.foldl (\build acc -> acc + (build.finished - build.started)) 0
-        |> toFloat
+calculateStdDeviation : List Float -> Float
+calculateStdDeviation list =
+    Statistics.deviation list
+        |> Maybe.withDefault 0

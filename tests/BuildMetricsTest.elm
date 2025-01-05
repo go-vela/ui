@@ -131,7 +131,7 @@ suite =
                             , createSampleBuild 2 15 0 Vela.Pending "push" "main"
                             ]
                     in
-                    calculateAverageRuntime builds
+                    calculateAverageRuntime (filterCompletedBuilds builds)
                         |> Expect.equal 15
             , test "calculates average runtime for varied build run times" <|
                 \_ ->
@@ -142,7 +142,7 @@ suite =
                             , createSampleBuild 2 567 0 Vela.Pending "push" "main"
                             ]
                     in
-                    calculateAverageRuntime builds
+                    calculateAverageRuntime (filterCompletedBuilds builds)
                         |> Expect.equal 178
             ]
         , describe "calculateMetrics"
