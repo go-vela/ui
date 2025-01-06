@@ -219,14 +219,22 @@ noSomeSecondsAgo _ =
     "just now"
 
 
+{-| formatTimeFromFloat : takes a float (seconds) and passes it to formatTime
+for a string representation. the value is floored since we don't measure
+at sub-second accuraacy.
+-}
 formatTimeFromFloat : Float -> String
 formatTimeFromFloat number =
     number
         |> floor
-        |> max 0
         |> formatTime
 
 
+{-| formatTime : takes an int (seconds) and converts it to a string representation.
+
+example: 4000 -> 1h 6m 40s
+
+-}
 formatTime : Int -> String
 formatTime totalSeconds =
     let
@@ -256,7 +264,7 @@ formatTime totalSeconds =
             else
                 ""
     in
-    if totalSeconds == 0 then
+    if totalSeconds < 1 then
         "0s"
 
     else

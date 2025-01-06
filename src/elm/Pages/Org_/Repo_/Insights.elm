@@ -85,7 +85,7 @@ init shared route () =
             Time.posixToMillis shared.time // 1000
 
         sevenDaysInSeconds =
-            7 * 24 * 60 * 60
+            7 * Helpers.oneDaySeconds
 
         timeMinusSevenDaysInSeconds : Int
         timeMinusSevenDaysInSeconds =

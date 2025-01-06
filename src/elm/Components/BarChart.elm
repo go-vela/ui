@@ -92,7 +92,7 @@ type BarChartConfig
         }
 
 
-{-| newBarChart: creates a new BarChart configuration with default values.
+{-| newBarChartConfig : creates a new BarChart configuration with default values.
 -}
 newBarChartConfig : BarChartConfig
 newBarChartConfig =
@@ -107,56 +107,56 @@ newBarChartConfig =
         }
 
 
-{-| withWidth: override the width of the chart (in pixels).
+{-| withWidth : override the width of the chart (in pixels).
 -}
 withWidth : Float -> BarChartConfig -> BarChartConfig
 withWidth v (BarChartConfig config) =
     BarChartConfig { config | width = v }
 
 
-{-| withHeight: override the height of the chart (in pixels).
+{-| withHeight : override the height of the chart (in pixels).
 -}
 withHeight : Float -> BarChartConfig -> BarChartConfig
 withHeight v (BarChartConfig config) =
     BarChartConfig { config | height = v }
 
 
-{-| withPadding: override the padding of the chart (in pixels).
+{-| withPadding : override the padding of the chart (in pixels).
 -}
 withPadding : Float -> BarChartConfig -> BarChartConfig
 withPadding v (BarChartConfig config) =
     BarChartConfig { config | padding = v }
 
 
-{-| withTitle: override the title of the chart.
+{-| withTitle : override the title of the chart.
 -}
 withTitle : String -> BarChartConfig -> BarChartConfig
 withTitle v (BarChartConfig config) =
     BarChartConfig { config | title = v }
 
 
-{-| withTitle: set the data for the chart.
+{-| withData : set the data for the chart.
 -}
 withData : List ( Time.Posix, Float ) -> BarChartConfig -> BarChartConfig
 withData v (BarChartConfig config) =
     BarChartConfig { config | data = v }
 
 
-{-| withTitle: override the max y-axis value (default value is inferred based on dataset).
+{-| withMaxY : override the max y-axis value (default value is inferred based on dataset).
 -}
 withMaxY : Float -> BarChartConfig -> BarChartConfig
 withMaxY v (BarChartConfig config) =
     BarChartConfig { config | maybeMaxY = Just v }
 
 
-{-| withPercentUnit: override unit for the values in the dataset to be percentages (default is time values).
+{-| withPercentUnit : override unit for the values in the dataset to be percentages (default is time values).
 -}
 withPercentUnit : BarChartConfig -> BarChartConfig
 withPercentUnit (BarChartConfig config) =
     BarChartConfig { config | unit = percent }
 
 
-{-| withNumberUnit: override unit for the values in the dataset to be plain number format
+{-| withNumberUnit : override unit for the values in the dataset to be plain number format
 with the given decimal places.
 -}
 withNumberUnit : Int -> BarChartConfig -> BarChartConfig
@@ -168,7 +168,7 @@ withNumberUnit v (BarChartConfig config) =
 -- VIEW
 
 
-{-| view: takes title, width (optional), height (optional), data, optional maximum y-axis value,
+{-| view : takes title, width (optional), height (optional), data, optional maximum y-axis value,
 unit as string, and returns a chart.
 -}
 view : BarChartConfig -> Html msg
