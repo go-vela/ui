@@ -534,7 +534,10 @@ view shared route model =
         [ case model.pipeline of
             RemoteData.Success p ->
                 if List.length p.warnings > 0 then
-                    div [ class "logs-container", class "-pipeline" ]
+                    div
+                        [ class "logs-container"
+                        , class "-pipeline"
+                        ]
                         [ table
                             [ class "logs-table"
                             , class "pipeline"
@@ -545,15 +548,15 @@ view shared route model =
                                     ]
                                 ]
                             , if model.expand then
-                                span [ class "tip" ]
+                                span [ class "tip", Util.testAttribute "pipeline-warnings-expand-note" ]
                                     [ small []
                                         [ text "note: this pipeline is expanded, the line numbers shown only apply to the base pipeline configuration, they are not accurate when viewing an expanded pipeline." ]
                                     ]
 
                               else
                                 text ""
-                            , div [ class "warnings" ] <|
-                                List.map (viewWarningAsLogLine model shared) <|
+                            , div [ class "warnings", Util.testAttribute "pipeline-warnings" ] <|
+                                List.indexedMap (viewWarningAsLogLine model shared) <|
                                     List.sort p.warnings
                             ]
                         ]
@@ -739,6 +742,7 @@ viewLine expand shiftKeyDown lineNumber line warnings focus =
                     ]
                     [ td
                         [ class "annotation"
+                        , Util.testAttribute <| String.join "-" [ "warning", "annotation", "line", String.fromInt lineNumber ]
                         , warnings
                             |> Maybe.Extra.filter (\_ -> not expand)
                             |> Maybe.Extra.unwrap (class "-hide") (\_ -> class "-show")
@@ -781,13 +785,16 @@ viewLine expand shiftKeyDown lineNumber line warnings focus =
 
 {-| viewWarningAsLogLine : renders a warning as a log line.
 -}
-viewWarningAsLogLine : Model -> Shared.Model -> String -> Html Msg
-viewWarningAsLogLine model shared warning =
+viewWarningAsLogLine : Model -> Shared.Model -> Int -> String -> Html Msg
+viewWarningAsLogLine model shared idx warning =
     let
         { maybeLineNumber, content } =
             Warnings.fromString warning
     in
-    tr [ class "warning" ]
+    tr
+        [ class "warning"
+        , Util.testAttribute <| String.join "-" [ "warning", String.fromInt idx ]
+        ]
         [ td [ class "annotation", class "-show" ]
             [ Components.Svgs.annotationCircle "-warning"
             ]
@@ -828,7 +835,10 @@ viewWarningAsLogLine model shared warning =
                         [ span [] [ text <| String.fromInt lineNumber ] ]
 
                 Nothing ->
-                    span [ class "no-line-number" ] [ text "-" ]
+                    span
+                        [ class "no-line-number"
+                        ]
+                        [ text "-" ]
             ]
         , td [ class "line-content" ]
             [ text content
