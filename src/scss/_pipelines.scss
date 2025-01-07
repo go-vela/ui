@@ -212,14 +212,14 @@
   flex-direction: column;
   margin-bottom: 0.8rem;
   padding: 0.6rem 0.4rem 0.6rem 0;
+}
 
-  .no-line-number {
-    display: block;
-    width: 6ch;
+.warning .no-line-number {
+  display: block;
+  width: 6ch;
 
-    font-family: var(--font-code);
-    text-align: right;
-  }
+  font-family: var(--font-code);
+  text-align: right;
 }
 
 tr.warning,
