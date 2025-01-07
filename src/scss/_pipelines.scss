@@ -227,8 +227,12 @@ tr.warning,
   position: relative;
 }
 
-.warnings .-link.-disabled {
+.warnings .-disabled {
   color: var(--color-bg-light);
+}
+
+.theme-light .warnings .-disabled {
+  color: var(--color-coal-light);
 }
 
 .annotation {
