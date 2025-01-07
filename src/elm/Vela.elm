@@ -104,7 +104,6 @@ module Vela exposing
     , encodeSettingsPayload
     , encodeUpdateUser
     , getAllowEventField
-    , lineNumberWarningfromWarningString
     , platformSettingsFieldUpdateToResponseConfig
     , repoFieldUpdateToResponseConfig
     , secretToKey
@@ -120,6 +119,7 @@ import Json.Decode.Extra exposing (dict2)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode
 import RemoteData exposing (WebData)
+import Utils.Warnings as Warnings
 
 
 
@@ -1149,21 +1149,6 @@ type alias Templates =
     Dict String Template
 
 
-lineNumberWarningfromWarningString : String -> ( Maybe Int, String )
-lineNumberWarningfromWarningString warning =
-    case String.split ":" warning of
-        prefix :: content ->
-            case String.toInt prefix of
-                Just lineNumber ->
-                    ( Just lineNumber, String.join "" content )
-
-                Nothing ->
-                    ( Nothing, warning )
-
-        _ ->
-            ( Nothing, warning )
-
-
 decodePipelineConfig : Json.Decode.Decoder PipelineConfig
 decodePipelineConfig =
     Json.Decode.succeed
@@ -1196,7 +1181,11 @@ decodeAndCollapsePipelineWarnings warnings =
     Json.Decode.succeed
         (List.foldl
             (\warning dict ->
-                case lineNumberWarningfromWarningString warning of
+                let
+                    { maybeLineNumber, content } =
+                        Warnings.fromString warning
+                in
+                case ( maybeLineNumber, content ) of
                     ( Just line, w ) ->
                         Dict.update line
                             (\maybeWarnings ->

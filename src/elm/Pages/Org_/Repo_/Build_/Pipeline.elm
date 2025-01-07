@@ -29,6 +29,7 @@ import Utils.Ansi
 import Utils.Errors as Errors
 import Utils.Focus as Focus
 import Utils.Helpers as Util
+import Utils.Warnings as Warnings
 import Vela
 import View exposing (View)
 
@@ -783,8 +784,8 @@ viewLine expand shiftKeyDown lineNumber line warnings focus =
 viewWarningAsLogLine : Model -> Shared.Model -> String -> Html Msg
 viewWarningAsLogLine model shared warning =
     let
-        ( maybeLineNumber, content ) =
-            Vela.lineNumberWarningfromWarningString warning
+        { maybeLineNumber, content } =
+            Warnings.fromString warning
     in
     tr [ class "warning" ]
         [ td [ class "annotation", class "-show" ]
