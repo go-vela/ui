@@ -164,7 +164,6 @@ type Msg
     | CfgParameterValueOnInput String String
     | UpdateRef
     | AddConfigParameter String String
-    | DeploymentConfigTargetOnToggle String
     | SubmitForm
 
 
@@ -326,7 +325,6 @@ update shared route msg model =
                 payload =
                     { defaultDeploymentPayload
                         | org = Just route.params.org
-                        , repo = Just route.params.repo
                         , commit = Nothing
                         , description = Just model.description
                         , ref =
@@ -360,9 +358,6 @@ update shared route msg model =
                 , body = body
                 }
             )
-
-        DeploymentConfigTargetOnToggle _ ->
-            ( model, Effect.none )
 
 
 
@@ -452,7 +447,7 @@ view shared route model =
                         , case model.config of
                             RemoteData.Success config ->
                                 if List.length config.targets > 0 then
-                                    viewDeploymentConfigTarget config.targets "" DeploymentConfigTargetOnToggle
+                                    viewDeploymentConfigTarget config.targets model.target TargetOnInput
 
                                 else
                                     Components.Form.viewTextareaSection

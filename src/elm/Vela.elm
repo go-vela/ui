@@ -281,10 +281,10 @@ decodeUser : Decoder User
 decodeUser =
     Json.Decode.succeed User
         |> required "id" int
-        |> required "name" string
+        |> optional "name" string ""
         |> optional "favorites" (Json.Decode.list string) []
         |> optional "dashboards" (Json.Decode.list string) []
-        |> required "active" bool
+        |> optional "active" bool False
         |> optional "admin" bool False
 
 
@@ -1881,7 +1881,7 @@ encodeSecretPayload secret =
 type alias Deployment =
     { id : Int
     , number : Int
-    , repo_id : Int
+    , repo : Repository
     , url : String
     , created_by : String
     , created_at : Int
@@ -1900,7 +1900,7 @@ decodeDeployment =
     Json.Decode.succeed Deployment
         |> optional "id" int -1
         |> optional "number" int -1
-        |> optional "repo_id" int -1
+        |> optional "repo" decodeRepository emptyRepository
         |> optional "url" string ""
         |> optional "created_by" string ""
         |> optional "created_at" int 0
@@ -1920,7 +1920,6 @@ decodeDeployments =
 
 type alias DeploymentPayload =
     { org : Maybe String
-    , repo : Maybe String
     , commit : Maybe String
     , description : Maybe String
     , ref : Maybe String
@@ -1933,7 +1932,6 @@ type alias DeploymentPayload =
 defaultDeploymentPayload : DeploymentPayload
 defaultDeploymentPayload =
     { org = Nothing
-    , repo = Nothing
     , commit = Nothing
     , description = Nothing
     , ref = Nothing
@@ -1947,7 +1945,6 @@ encodeDeploymentPayload : DeploymentPayload -> Json.Encode.Value
 encodeDeploymentPayload deployment =
     Json.Encode.object
         [ ( "org", encodeOptional Json.Encode.string deployment.org )
-        , ( "repo", encodeOptional Json.Encode.string deployment.repo )
         , ( "commit", encodeOptional Json.Encode.string deployment.commit )
         , ( "description", encodeOptional Json.Encode.string deployment.description )
         , ( "ref", encodeOptional Json.Encode.string deployment.ref )
