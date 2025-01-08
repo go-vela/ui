@@ -479,7 +479,7 @@ view shared route model =
                             , msg = TaskOnInput
                             , focusOutFunc = Nothing
                             }
-                        , section []
+                        , div []
                             [ div [ class "parameters-inputs", Util.testAttribute "parameters-list" ]
                                     [ case model.config of
                                         RemoteData.Success config ->
@@ -495,7 +495,7 @@ view shared route model =
                                                         ]
                                                         [ strong [] [ text "Add Config Parameters" ]
                                                     ]
-                                                    , div [ class "parameters-inputs", Util.testAttribute "parameters-list" ]
+                                                    , div [ class "config-parameters-inputs", Util.testAttribute "parameters-list" ]
                                                         (Dict.toList model.configParameters
                                                             |> List.concatMap
                                                                 (\( key, value ) ->
@@ -622,12 +622,12 @@ viewDeploymentConfigTarget targets current msg =
                 (\target ->
                     Components.Form.viewRadio
                         { value = current
-                        , field = "target"
+                        , field = target
                         , title = target
                         , subtitle = Nothing
                         , msg = msg target
                         , disabled_ = False
-                        , id_ = "target"
+                        , id_ = target
                         }
                 )
                 targets
