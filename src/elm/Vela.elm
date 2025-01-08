@@ -12,6 +12,7 @@ module Vela exposing
     , BuildGraphInteraction
     , BuildGraphNode
     , BuildNumber
+    , ConfigParameterType(..)
     , Dashboard
     , DashboardRepoCard
     , Deployment
@@ -1973,10 +1974,43 @@ decodeDeploymentConfig =
         |> optional "targets" (Json.Decode.list Json.Decode.string) []
         |> optional "parameters" (Json.Decode.dict decodeDeploymentConfigParameter) Dict.empty
 
+type ConfigParameterType =
+    String_ | 
+    Int_ |
+    Bool_ 
+
+deployConfigTypeDecoder : Decoder ConfigParameterType
+deployConfigTypeDecoder =
+    string |> andThen toDeployConfigTypeDecoder
+
+
+toDeployConfigTypeDecoder : String -> Decoder ConfigParameterType
+toDeployConfigTypeDecoder type_ =
+    case type_ of
+        "integer" ->
+            succeed Int_ 
+
+        "int" ->
+            succeed Int_
+        
+        "number" ->
+            succeed Int_
+
+        "boolean" ->
+            succeed Bool_
+
+        "bool" ->
+            succeed Bool_
+
+        "string" ->
+            succeed String_
+
+        _ ->
+            Json.Decode.fail "unrecognized secret type"
 
 type alias DeploymentConfigParameter =
     { description : String
-    , type_ : String
+    , type_ : ConfigParameterType
     , required : Bool
     , options : List String
     , min : Int
@@ -1988,7 +2022,7 @@ decodeDeploymentConfigParameter : Decoder DeploymentConfigParameter
 decodeDeploymentConfigParameter =
     Json.Decode.succeed DeploymentConfigParameter
         |> optional "description" string ""
-        |> optional "type" string "string"
+        |> optional "type" deployConfigTypeDecoder String_
         |> optional "required" bool False
         |> optional "options" (Json.Decode.list Json.Decode.string) []
         |> optional "min" int 0
