@@ -1818,3 +1818,48 @@ select {
   background-color: var(--color-bg-dark);
   color: var(--color-text);
 }
+
+.custom-select-container {
+    flex: 1;
+    margin-right: 1rem;
+}
+
+.custom-select-selected {
+    background-color: var(--color-bg-dark);
+    border: 1px solid #ccc;
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.custom-select-selected .arrow {
+    margin-left: 10px;
+}
+
+.custom-select-options {
+    display: none;
+    position: absolute;
+    background-color: var(--color-bg-dark);
+    border: 1px solid #ccc;
+    z-index: 1;
+    width: 75%;
+}
+
+.custom-select-options .custom-select-option {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.custom-select-options .custom-select-option:hover {
+    background-color: var(--color-bg-light);
+}
+
+.custom-select-options.hidden {
+    display: none;
+}
+
+.custom-select-container .custom-select-options:not(.hidden) {
+    display: block;
+}

@@ -87,6 +87,7 @@ type alias Model =
     , parameters : List Vela.KeyValuePair
     , config : WebData Vela.DeploymentConfig
     , configParameters : Dict String String
+    , dropDownDict : Dict String Bool
     }
 
 
@@ -120,6 +121,7 @@ init shared route () =
                 |> List.filterMap identity
       , config = RemoteData.Loading
       , configParameters = Dict.empty
+      , dropDownDict = Dict.empty
       }
     , Effect.batch
         [ Effect.getRepo
@@ -166,6 +168,7 @@ type Msg
     | CfgParameterValueOnInput String String
     | UpdateRef
     | AddConfigParameter String String
+    | ToggleDropdown String
     | SubmitForm
 
 
@@ -231,7 +234,8 @@ update shared route msg model =
                 Ok ( _, config ) ->
                     ( { model 
                         | config = RemoteData.succeed config
-                        , configParameters = Dict.fromList <| List.map (\(k, _) -> (k, "")) (Dict.toList config.parameters)}
+                        , configParameters = Dict.fromList <| List.map (\(k, _) -> (k, "")) (Dict.toList config.parameters)
+                        , dropDownDict = Dict.fromList <| List.map (\(k, _) -> (k, False)) (Dict.toList config.parameters)}
                     , if List.length config.targets > 0 then
                         Effect.addAlertSuccess
                             { content = "Found dynamic parameters for this deployment ref!"
@@ -302,12 +306,15 @@ update shared route msg model =
             ( { model
                 | parameters = List.Extra.remove parameter model.parameters
                 , configParameters = Dict.insert parameter.key "" model.configParameters
+                , dropDownDict = Dict.update parameter.key (\_ -> Just False) model.dropDownDict
               }
             , Effect.none
             )
 
         CfgParameterValueOnInput k val -> 
-            ( { model | configParameters = Dict.insert k val model.configParameters }
+            ( { model 
+                | configParameters = Dict.insert k val model.configParameters
+                , dropDownDict = Dict.update k (\_ -> Just False) model.dropDownDict }
             , Effect.none
             )
 
@@ -321,6 +328,11 @@ update shared route msg model =
                 , repo = route.params.repo
                 , ref = Just model.ref
                 }
+            )
+
+        ToggleDropdown key ->
+            ( { model | dropDownDict = Dict.update key (\val -> Just <| Maybe.withDefault True <| Maybe.map not val) model.dropDownDict }
+            , Effect.none
             )
 
         SubmitForm ->
@@ -719,28 +731,30 @@ viewDeploymentConfigParameter mdl key param current msg =
                     , max = Nothing
                     , required = False
                     }
-                , Html.select
-                    [ class "form-control"
-                    , id key
-                    , Util.testAttribute "parameter-select"
-                    , Html.Events.onInput <| CfgParameterValueOnInput key
-                    ]
-                    [Html.option
-                        [ Html.Attributes.value ""
-                        , Html.Attributes.selected <| (Dict.get key mdl.configParameters |> Maybe.withDefault "") == ""
+                , div [ class "custom-select-container" ]
+                    [ div
+                        [ class "custom-select-selected"
+                        , Html.Events.onClick (ToggleDropdown key)
                         ]
-                        [ text "Select an option" ]
-                    ,
-                     Html.option
-                        [ Html.Attributes.value "true"
-                        , Html.Attributes.selected <| (Dict.get key mdl.configParameters |> Maybe.withDefault "") == "true"
+                        [ text (Dict.get key mdl.configParameters |> Maybe.withDefault "Select an option") ]
+                    , div
+                        [ class "custom-select-options"
+                        , class <| if Dict.get key mdl.dropDownDict |> Maybe.withDefault False then "" else "hidden"
                         ]
-                        [ text "true" ]
-                    , Html.option
-                        [ Html.Attributes.value "false"
-                        , Html.Attributes.selected <| (Dict.get key mdl.configParameters |> Maybe.withDefault "") == "false"
-                        ]
-                        [ text "false" ]
+                            [
+                                div
+                                    [ class "custom-select-option"
+                                    , Html.Attributes.value "True"
+                                    , Html.Events.onClick (CfgParameterValueOnInput key "True")
+                                    ]
+                                    [ text "True" ]
+                                , div
+                                    [ class "custom-select-option"
+                                    , Html.Attributes.value "False"
+                                    , Html.Events.onClick (CfgParameterValueOnInput key "False")
+                                    ]
+                                    [ text "False" ]
+                            ]
                     ]
                 , button
                     [ class "button"
@@ -807,6 +821,9 @@ viewDeploymentConfigParameter mdl key param current msg =
                     [ em [] [ text <| smallText ] ]
                 ]
     else
+        let 
+            selected = if (Dict.get key mdl.configParameters |> Maybe.withDefault "") == "" then "Select an option" else Dict.get key mdl.configParameters |> Maybe.withDefault ""
+        in
         div[ class "config-parameters-input-section" ]
         [
         div [ class "config-parameters-input" ]
@@ -826,28 +843,29 @@ viewDeploymentConfigParameter mdl key param current msg =
             , max = Nothing
             , required = False
             }
-        , Html.select
-            [ class "form-control"
-            , id key
-            , Util.testAttribute "parameter-select"
-            , Html.Events.onInput <| CfgParameterValueOnInput key
-            ]
-            <|  Html.option
-                [ Html.Attributes.value ""
-                , Html.Attributes.selected <| (Dict.get key mdl.configParameters |> Maybe.withDefault "") == ""
+        , div [ class "custom-select-container" ]
+            [ div
+                [ class "custom-select-selected"
+                , Html.Events.onClick (ToggleDropdown key)
                 ]
-                [ text "Select an option" ]
-            ::
-            (List.map
-                (\option ->
-                    Html.option
-                        [ Html.Attributes.value option
-                        , Html.Attributes.selected <| (Dict.get key mdl.configParameters |> Maybe.withDefault "") == option
-                        ]
-                        [ text option ]
+                [ text selected
+                , span [ class "arrow" ] [ text "▼" ] ]
+            , div
+                [ class "custom-select-options"
+                , class <| if Dict.get key mdl.dropDownDict |> Maybe.withDefault False then "" else "hidden"
+                ]
+                (List.map
+                    (\option ->
+                        div
+                            [ class "custom-select-option"
+                            , Html.Attributes.value option
+                            , Html.Events.onClick (CfgParameterValueOnInput key option)
+                            ]
+                            [ text option ]
+                    )
+                    param.options
                 )
-                param.options
-            )
+            ]
         , button
             [ class "button"
             , class "-outline"
