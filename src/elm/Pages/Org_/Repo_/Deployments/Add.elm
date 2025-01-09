@@ -823,6 +823,7 @@ viewDeploymentConfigParameter mdl key param current msg =
     else
         let 
             selected = if (Dict.get key mdl.configParameters |> Maybe.withDefault "") == "" then "Select an option" else Dict.get key mdl.configParameters |> Maybe.withDefault ""
+            arrow = if Dict.get key mdl.dropDownDict |> Maybe.withDefault False then "▲" else "▼"
         in
         div[ class "config-parameters-input-section" ]
         [
@@ -849,7 +850,7 @@ viewDeploymentConfigParameter mdl key param current msg =
                 , Html.Events.onClick (ToggleDropdown key)
                 ]
                 [ text selected
-                , span [ class "arrow" ] [ text "▼" ] ]
+                , span [ class "arrow" ] [ text arrow ] ]
             , div
                 [ class "custom-select-options"
                 , class <| if Dict.get key mdl.dropDownDict |> Maybe.withDefault False then "" else "hidden"
