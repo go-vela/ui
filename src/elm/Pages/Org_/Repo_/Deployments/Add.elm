@@ -8,10 +8,11 @@ module Pages.Org_.Repo_.Deployments.Add exposing (Model, Msg, page, view)
 import Auth
 import Components.Crumbs
 import Components.Form
+import Components.Loading as Loading
 import Components.Nav
-import Dict
+import Dict exposing (Dict, empty)
 import Effect exposing (Effect)
-import Html exposing (a, button, code, div, em, h2, label, main_, p, section, span, strong, text)
+import Html exposing (a, button, code, div, em, h2, label, main_, p, section, small, span, strong, text)
 import Html.Attributes exposing (class, disabled, for, href, id)
 import Html.Events exposing (onClick)
 import Http
@@ -29,10 +30,6 @@ import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Vela exposing (defaultDeploymentPayload)
 import View exposing (View)
-import Components.Loading as Loading
-import Dict exposing (Dict)
-import Dict exposing (empty)
-import Html exposing (small)
 
 
 {-| page : takes user, shared model, route, and returns an add deployment page.
@@ -232,10 +229,11 @@ update shared route msg model =
         GetDeploymentConfigResponse response ->
             case response of
                 Ok ( _, config ) ->
-                    ( { model 
+                    ( { model
                         | config = RemoteData.succeed config
-                        , configParameters = Dict.fromList <| List.map (\(k, _) -> (k, "")) (Dict.toList config.parameters)
-                        , dropDownDict = Dict.fromList <| List.map (\(k, _) -> (k, False)) (Dict.toList config.parameters)}
+                        , configParameters = Dict.fromList <| List.map (\( k, _ ) -> ( k, "" )) (Dict.toList config.parameters)
+                        , dropDownDict = Dict.fromList <| List.map (\( k, _ ) -> ( k, False )) (Dict.toList config.parameters)
+                      }
                     , if List.length config.targets > 0 then
                         Effect.addAlertSuccess
                             { content = "Found dynamic parameters for this deployment ref!"
@@ -296,9 +294,9 @@ update shared route msg model =
 
         AddConfigParameter k val ->
             ( { model
-                 | configParameters = Dict.remove k model.configParameters
-                 , parameters = { key = k, value = val } :: model.parameters
-            }
+                | configParameters = Dict.remove k model.configParameters
+                , parameters = { key = k, value = val } :: model.parameters
+              }
             , Effect.none
             )
 
@@ -311,10 +309,11 @@ update shared route msg model =
             , Effect.none
             )
 
-        CfgParameterValueOnInput k val -> 
-            ( { model 
+        CfgParameterValueOnInput k val ->
+            ( { model
                 | configParameters = Dict.insert k val model.configParameters
-                , dropDownDict = Dict.update k (\_ -> Just False) model.dropDownDict }
+                , dropDownDict = Dict.update k (\_ -> Just False) model.dropDownDict
+              }
             , Effect.none
             )
 
@@ -496,133 +495,137 @@ view shared route model =
                             }
                         , div []
                             [ div [ class "parameters-inputs", Util.testAttribute "parameters-list" ]
-                                    [ case model.config of
-                                        RemoteData.Success config ->
-                                            if Dict.size model.configParameters > 0 then
-                                                div [ id "parameter-select"
-                                                    , class "form-control"
-                                                    , class "-stack"
-                                                    , class "parameters-container"
-                                                    ]
-                                                    [ label
-                                                        [ for "parameter-select"
-                                                        , class "form-label"
-                                                        ]
-                                                        [ strong [] [ text "Add Config Parameters" ]
-                                                    ]
-                                                    , div [ class "config-parameters-inputs", Util.testAttribute "parameters-list" ]
-                                                        (Dict.toList model.configParameters
-                                                            |> List.concatMap
-                                                                (\( key, value ) ->
-                                                                    case Dict.get key config.parameters of
-                                                                        Just param ->
-                                                                            [ viewDeploymentConfigParameter model key param value CfgParameterValueOnInput ]
-                                                                        Nothing ->
-                                                                            []
-                                                                )
-                                                        )
-                                                    ]
-                                            else
-                                                text ""
-                                        _ ->
-                                            text ""
-                                    ]
-                                , label
-                                    [ for "parameter-select"
-                                    , class "form-label"
-                                    ]
-                                    [ strong [] [ text "Add Parameters" ]
-                                ]
-                                , div [ class "parameters-inputs" ]
-                                    [ Components.Form.viewInputSection
-                                        { title = Nothing
-                                        , subtitle = Nothing
-                                        , id_ = "parameter-key"
-                                        , val = model.parameterKey
-                                        , placeholder_ = "key"
-                                        , classList_ = [ ( "parameter-input", True ) ]
-                                        , disabled_ = False
-                                        , rows_ = Just 2
-                                        , wrap_ = Just "soft"
-                                        , msg = ParameterKeyOnInput
-                                        , min = Nothing
-                                        , max = Nothing
-                                        , required = False
-                                        }
-                                    , Components.Form.viewInputSection
-                                        { title = Nothing
-                                        , subtitle = Nothing
-                                        , id_ = "parameter-value"
-                                        , val = model.parameterValue
-                                        , placeholder_ = "value"
-                                        , classList_ = [ ( "parameter-input", True ) ]
-                                        , disabled_ = False
-                                        , rows_ = Just 2
-                                        , wrap_ = Just "soft"
-                                        , msg = ParameterValueOnInput
-                                        , min = Nothing
-                                        , max = Nothing
-                                        , required = False
-                                        }
-                                    , button
-                                        [ class "button"
-                                        , class "-outline"
-                                        , onClick <| AddParameter
-                                        , Util.testAttribute "button-parameter-add"
-                                        , disabled <| String.length model.parameterKey == 0 || String.length model.parameterValue == 0
-                                        ]
-                                        [ text "Add"
-                                        ]
-                                    ]
-                                ]
-                            , div [ class "parameters", Util.testAttribute "parameters-list" ] <|
-                                if List.length model.parameters > 0 then
-                                    let
-                                        viewParameter parameter =
-                                            div [ class "parameter", class "chevron" ]
-                                                [ div [ class "name" ] [ text (parameter.key ++ "=" ++ parameter.value) ]
-                                                , button
-                                                    [ class "button"
-                                                    , class "-outline"
-                                                    , onClick <| RemoveParameter parameter
-                                                    ]
-                                                    [ text "remove"
-                                                    ]
+                                [ case model.config of
+                                    RemoteData.Success config ->
+                                        if Dict.size model.configParameters > 0 then
+                                            div
+                                                [ id "parameter-select"
+                                                , class "form-control"
+                                                , class "-stack"
+                                                , class "parameters-container"
                                                 ]
-                                    in
-                                    List.map viewParameter <| List.reverse model.parameters
+                                                [ label
+                                                    [ for "parameter-select"
+                                                    , class "form-label"
+                                                    ]
+                                                    [ strong [] [ text "Add Config Parameters" ]
+                                                    ]
+                                                , div [ class "config-parameters-inputs", Util.testAttribute "parameters-list" ]
+                                                    (Dict.toList model.configParameters
+                                                        |> List.concatMap
+                                                            (\( key, value ) ->
+                                                                case Dict.get key config.parameters of
+                                                                    Just param ->
+                                                                        [ viewDeploymentConfigParameter model key param value CfgParameterValueOnInput ]
 
-                                else
-                                    [ div [ class "no-parameters" ]
-                                        [ div
-                                            [ class "none"
-                                            ]
-                                            [ code [] [ text "no parameters defined" ] ]
-                                        ]
-                                    ]
-                            ]
-                        , div [ class "help" ]
-                            [ text "Need help? Visit our "
-                            , a
-                                [ href <| shared.velaDocsURL ++ "/usage/deployments/"
+                                                                    Nothing ->
+                                                                        []
+                                                            )
+                                                    )
+                                                ]
+
+                                        else
+                                            text ""
+
+                                    _ ->
+                                        text ""
                                 ]
-                                [ text "docs" ]
-                            , text "!"
-                            ]
-                        , div [ class "buttons" ]
-                            [ div [ class "form-action" ]
-                                [ button
+                            , label
+                                [ for "parameter-select"
+                                , class "form-label"
+                                ]
+                                [ strong [] [ text "Add Parameters" ]
+                                ]
+                            , div [ class "parameters-inputs" ]
+                                [ Components.Form.viewInputSection
+                                    { title = Nothing
+                                    , subtitle = Nothing
+                                    , id_ = "parameter-key"
+                                    , val = model.parameterKey
+                                    , placeholder_ = "key"
+                                    , classList_ = [ ( "parameter-input", True ) ]
+                                    , disabled_ = False
+                                    , rows_ = Just 2
+                                    , wrap_ = Just "soft"
+                                    , msg = ParameterKeyOnInput
+                                    , min = Nothing
+                                    , max = Nothing
+                                    , required = False
+                                    }
+                                , Components.Form.viewInputSection
+                                    { title = Nothing
+                                    , subtitle = Nothing
+                                    , id_ = "parameter-value"
+                                    , val = model.parameterValue
+                                    , placeholder_ = "value"
+                                    , classList_ = [ ( "parameter-input", True ) ]
+                                    , disabled_ = False
+                                    , rows_ = Just 2
+                                    , wrap_ = Just "soft"
+                                    , msg = ParameterValueOnInput
+                                    , min = Nothing
+                                    , max = Nothing
+                                    , required = False
+                                    }
+                                , button
                                     [ class "button"
                                     , class "-outline"
-                                    , onClick SubmitForm
+                                    , onClick <| AddParameter
+                                    , Util.testAttribute "button-parameter-add"
+                                    , disabled <| String.length model.parameterKey == 0 || String.length model.parameterValue == 0
                                     ]
-                                    [ text "Add Deployment" ]
+                                    [ text "Add"
+                                    ]
                                 ]
+                            ]
+                        , div [ class "parameters", Util.testAttribute "parameters-list" ] <|
+                            if List.length model.parameters > 0 then
+                                let
+                                    viewParameter parameter =
+                                        div [ class "parameter", class "chevron" ]
+                                            [ div [ class "name" ] [ text (parameter.key ++ "=" ++ parameter.value) ]
+                                            , button
+                                                [ class "button"
+                                                , class "-outline"
+                                                , onClick <| RemoveParameter parameter
+                                                ]
+                                                [ text "remove"
+                                                ]
+                                            ]
+                                in
+                                List.map viewParameter <| List.reverse model.parameters
+
+                            else
+                                [ div [ class "no-parameters" ]
+                                    [ div
+                                        [ class "none"
+                                        ]
+                                        [ code [] [ text "no parameters defined" ] ]
+                                    ]
+                                ]
+                        ]
+                    , div [ class "help" ]
+                        [ text "Need help? Visit our "
+                        , a
+                            [ href <| shared.velaDocsURL ++ "/usage/deployments/"
+                            ]
+                            [ text "docs" ]
+                        , text "!"
+                        ]
+                    , div [ class "buttons" ]
+                        [ div [ class "form-action" ]
+                            [ button
+                                [ class "button"
+                                , class "-outline"
+                                , onClick SubmitForm
+                                ]
+                                [ text "Add Deployment" ]
                             ]
                         ]
                     ]
                 ]
             ]
+        ]
     }
 
 
@@ -649,72 +652,216 @@ viewDeploymentConfigTarget targets current msg =
         ]
 
 
-
 viewDeploymentConfigParameter : Model -> String -> Vela.DeploymentConfigParameter -> String -> (String -> String -> Msg) -> Html.Html Msg
 viewDeploymentConfigParameter mdl key param current msg =
     let
-        smallText = 
+        smallText =
             if param.description == "" then
                 ""
+
             else
                 "(" ++ param.description ++ ")"
     in
-    
     if param.options == [] then
         case param.type_ of
             Vela.Int_ ->
-                div[ class "config-parameters-input-section"]
-                [
-                div [ class "config-parameters-input" ]
-                [ Components.Form.viewInput
-                    { title = Nothing
-                    , subtitle = Nothing
-                    , id_ = "parameter-key"
-                    , val = key
-                    , placeholder_ = key
-                    , classList_ = []
-                    , wrapperClassList = [ ( "parameter-input", True ) ]
-                    , disabled_ = True
-                    , rows_ = Just 2
-                    , wrap_ = Just "soft"
-                    , msg = ParameterKeyOnInput
-                    , min = Nothing
-                    , max = Nothing
-                    , required = False
-                    }
-                , Components.Form.viewNumberInput
-                    { title = Nothing
-                    , subtitle = Nothing
-                    , id_ = "parameter-value"
-                    , val = mdl.configParameters |> Dict.get key |> Maybe.withDefault ""
-                    , placeholder_ = "value"
-                    , classList_ = []
-                    , wrapperClassList = [ ( "parameter-input-number", True ) ]
-                    , disabled_ = False
-                    , rows_ = Just 2
-                    , wrap_ = Just "soft"
-                    , msg = CfgParameterValueOnInput key
-                    , min = if param.min == -1 then Nothing else Just param.min
-                    , max = if param.max == -1 then Nothing else Just param.max
-                    , required = param.required
-                    }
-                , button
-                    [ class "button"
-                    , class "-outline"
-                    , onClick <| AddConfigParameter key (Dict.get key mdl.configParameters |> Maybe.withDefault "")
-                    , Util.testAttribute "button-parameter-add"
-                    , disabled <| (String.length (Dict.get key mdl.configParameters |> Maybe.withDefault "")) == 0
+                div [ class "config-parameters-input-section" ]
+                    [ div [ class "config-parameters-input" ]
+                        [ Components.Form.viewInput
+                            { title = Nothing
+                            , subtitle = Nothing
+                            , id_ = "parameter-key"
+                            , val = key
+                            , placeholder_ = key
+                            , classList_ = []
+                            , wrapperClassList = [ ( "parameter-input", True ) ]
+                            , disabled_ = True
+                            , rows_ = Just 2
+                            , wrap_ = Just "soft"
+                            , msg = ParameterKeyOnInput
+                            , min = Nothing
+                            , max = Nothing
+                            , required = False
+                            }
+                        , Components.Form.viewNumberInput
+                            { title = Nothing
+                            , subtitle = Nothing
+                            , id_ = "parameter-value"
+                            , val = mdl.configParameters |> Dict.get key |> Maybe.withDefault ""
+                            , placeholder_ = "value"
+                            , classList_ = []
+                            , wrapperClassList = [ ( "parameter-input-number", True ) ]
+                            , disabled_ = False
+                            , rows_ = Just 2
+                            , wrap_ = Just "soft"
+                            , msg = CfgParameterValueOnInput key
+                            , min =
+                                if param.min == -1 then
+                                    Nothing
+
+                                else
+                                    Just param.min
+                            , max =
+                                if param.max == -1 then
+                                    Nothing
+
+                                else
+                                    Just param.max
+                            , required = param.required
+                            }
+                        , button
+                            [ class "button"
+                            , class "-outline"
+                            , onClick <| AddConfigParameter key (Dict.get key mdl.configParameters |> Maybe.withDefault "")
+                            , Util.testAttribute "button-parameter-add"
+                            , disabled <| String.length (Dict.get key mdl.configParameters |> Maybe.withDefault "") == 0
+                            ]
+                            [ text "Add"
+                            ]
+                        ]
+                    , small []
+                        [ em [] [ text <| smallText ] ]
                     ]
-                    [ text "Add"
-                    ]
-                ]
-                , small []
-                    [ em [] [ text <| smallText ] ]
-                ]
+
             Vela.Bool_ ->
-                div[ class "config-parameters-input-section" ]
-                [
-                div [ class "config-parameters-input" ]
+                div [ class "config-parameters-input-section" ]
+                    [ div [ class "config-parameters-input" ]
+                        [ Components.Form.viewInput
+                            { title = Nothing
+                            , subtitle = Nothing
+                            , id_ = "parameter-key"
+                            , val = key
+                            , placeholder_ = key
+                            , classList_ = []
+                            , wrapperClassList = [ ( "parameter-input", True ) ]
+                            , disabled_ = True
+                            , rows_ = Just 2
+                            , wrap_ = Just "soft"
+                            , msg = ParameterKeyOnInput
+                            , min = Nothing
+                            , max = Nothing
+                            , required = False
+                            }
+                        , div [ class "custom-select-container" ]
+                            [ div
+                                [ class "custom-select-selected"
+                                , Html.Events.onClick (ToggleDropdown key)
+                                ]
+                                [ text (Dict.get key mdl.configParameters |> Maybe.withDefault "Select an option") ]
+                            , div
+                                [ class "custom-select-options"
+                                , class <|
+                                    if Dict.get key mdl.dropDownDict |> Maybe.withDefault False then
+                                        ""
+
+                                    else
+                                        "hidden"
+                                ]
+                                [ div
+                                    [ class "custom-select-option"
+                                    , Html.Attributes.value "True"
+                                    , Html.Events.onClick (CfgParameterValueOnInput key "True")
+                                    ]
+                                    [ text "True" ]
+                                , div
+                                    [ class "custom-select-option"
+                                    , Html.Attributes.value "False"
+                                    , Html.Events.onClick (CfgParameterValueOnInput key "False")
+                                    ]
+                                    [ text "False" ]
+                                ]
+                            ]
+                        , button
+                            [ class "button"
+                            , class "-outline"
+                            , onClick <| AddConfigParameter key (Dict.get key mdl.configParameters |> Maybe.withDefault "")
+                            , Util.testAttribute "button-parameter-add"
+                            , disabled <| String.length (Dict.get key mdl.configParameters |> Maybe.withDefault "") == 0
+                            ]
+                            [ text "Add"
+                            ]
+                        ]
+                    , small []
+                        [ em [] [ text <| smallText ] ]
+                    ]
+
+            _ ->
+                div [ class "config-parameters-input-section" ]
+                    [ div [ class "config-parameters-input" ]
+                        [ Components.Form.viewInput
+                            { title = Nothing
+                            , subtitle = Nothing
+                            , id_ = "parameter-key"
+                            , val = key
+                            , placeholder_ = key
+                            , classList_ = []
+                            , wrapperClassList = [ ( "parameter-input", True ) ]
+                            , disabled_ = True
+                            , rows_ = Just 2
+                            , wrap_ = Just "soft"
+                            , msg = ParameterKeyOnInput
+                            , min = Nothing
+                            , max = Nothing
+                            , required = False
+                            }
+                        , Components.Form.viewInput
+                            { title = Nothing
+                            , subtitle = Nothing
+                            , id_ = "parameter-value"
+                            , val = mdl.configParameters |> Dict.get key |> Maybe.withDefault ""
+                            , placeholder_ = "value"
+                            , classList_ = []
+                            , wrapperClassList = [ ( "parameter-input", True ) ]
+                            , disabled_ = False
+                            , rows_ = Just 2
+                            , wrap_ = Just "soft"
+                            , msg = CfgParameterValueOnInput key
+                            , min =
+                                if param.min == -1 then
+                                    Nothing
+
+                                else
+                                    Just (String.fromInt param.min)
+                            , max =
+                                if param.max == -1 then
+                                    Nothing
+
+                                else
+                                    Just (String.fromInt param.max)
+                            , required = param.required
+                            }
+                        , button
+                            [ class "button"
+                            , class "-outline"
+                            , onClick <| AddConfigParameter key (Dict.get key mdl.configParameters |> Maybe.withDefault "")
+                            , Util.testAttribute "button-parameter-add"
+                            , disabled <| String.length (Dict.get key mdl.configParameters |> Maybe.withDefault "") == 0
+                            ]
+                            [ text "Add"
+                            ]
+                        ]
+                    , small []
+                        [ em [] [ text <| smallText ] ]
+                    ]
+
+    else
+        let
+            selected =
+                if (Dict.get key mdl.configParameters |> Maybe.withDefault "") == "" then
+                    "Select an option"
+
+                else
+                    Dict.get key mdl.configParameters |> Maybe.withDefault ""
+
+            arrow =
+                if Dict.get key mdl.dropDownDict |> Maybe.withDefault False then
+                    "▲"
+
+                else
+                    "▼"
+        in
+        div [ class "config-parameters-input-section" ]
+            [ div [ class "config-parameters-input" ]
                 [ Components.Form.viewInput
                     { title = Nothing
                     , subtitle = Nothing
@@ -736,147 +883,40 @@ viewDeploymentConfigParameter mdl key param current msg =
                         [ class "custom-select-selected"
                         , Html.Events.onClick (ToggleDropdown key)
                         ]
-                        [ text (Dict.get key mdl.configParameters |> Maybe.withDefault "Select an option") ]
+                        [ text selected
+                        , span [ class "arrow" ] [ text arrow ]
+                        ]
                     , div
                         [ class "custom-select-options"
-                        , class <| if Dict.get key mdl.dropDownDict |> Maybe.withDefault False then "" else "hidden"
+                        , class <|
+                            if Dict.get key mdl.dropDownDict |> Maybe.withDefault False then
+                                ""
+
+                            else
+                                "hidden"
                         ]
-                            [
+                        (List.map
+                            (\option ->
                                 div
                                     [ class "custom-select-option"
-                                    , Html.Attributes.value "True"
-                                    , Html.Events.onClick (CfgParameterValueOnInput key "True")
+                                    , Html.Attributes.value option
+                                    , Html.Events.onClick (CfgParameterValueOnInput key option)
                                     ]
-                                    [ text "True" ]
-                                , div
-                                    [ class "custom-select-option"
-                                    , Html.Attributes.value "False"
-                                    , Html.Events.onClick (CfgParameterValueOnInput key "False")
-                                    ]
-                                    [ text "False" ]
-                            ]
+                                    [ text option ]
+                            )
+                            param.options
+                        )
                     ]
                 , button
                     [ class "button"
                     , class "-outline"
                     , onClick <| AddConfigParameter key (Dict.get key mdl.configParameters |> Maybe.withDefault "")
                     , Util.testAttribute "button-parameter-add"
-                    , disabled <| (String.length (Dict.get key mdl.configParameters |> Maybe.withDefault "")) == 0
+                    , disabled <| String.length (Dict.get key mdl.configParameters |> Maybe.withDefault "") == 0
                     ]
                     [ text "Add"
                     ]
                 ]
-                , small []
-                    [ em [] [ text <| smallText ] ]
-                ]
-                
-
-            _ ->
-                div[ class "config-parameters-input-section" ]
-                [
-                div [ class "config-parameters-input" ]
-                [ Components.Form.viewInput
-                    { title = Nothing
-                    , subtitle = Nothing
-                    , id_ = "parameter-key"
-                    , val = key
-                    , placeholder_ = key
-                    , classList_ = []
-                    , wrapperClassList = [ ( "parameter-input", True ) ]
-                    , disabled_ = True
-                    , rows_ = Just 2
-                    , wrap_ = Just "soft"
-                    , msg = ParameterKeyOnInput
-                    , min = Nothing
-                    , max = Nothing
-                    , required = False
-                    }
-                , Components.Form.viewInput
-                    { title = Nothing
-                    , subtitle = Nothing
-                    , id_ = "parameter-value"
-                    , val = mdl.configParameters |> Dict.get key |> Maybe.withDefault ""
-                    , placeholder_ = "value"
-                    , classList_ = []
-                    , wrapperClassList = [ ( "parameter-input", True ) ]
-                    , disabled_ = False
-                    , rows_ = Just 2
-                    , wrap_ = Just "soft"
-                    , msg = CfgParameterValueOnInput key
-                    , min = if param.min == -1 then Nothing else Just (String.fromInt param.min)
-                    , max = if param.max == -1 then Nothing else Just (String.fromInt param.max)
-                    , required = param.required
-                    }
-                , button
-                    [ class "button"
-                    , class "-outline"
-                    , onClick <| AddConfigParameter key (Dict.get key mdl.configParameters |> Maybe.withDefault "")
-                    , Util.testAttribute "button-parameter-add"
-                    , disabled <| (String.length (Dict.get key mdl.configParameters |> Maybe.withDefault "")) == 0
-                    ]
-                    [ text "Add"
-                    ]
-                ]
-                , small []
-                    [ em [] [ text <| smallText ] ]
-                ]
-    else
-        let 
-            selected = if (Dict.get key mdl.configParameters |> Maybe.withDefault "") == "" then "Select an option" else Dict.get key mdl.configParameters |> Maybe.withDefault ""
-            arrow = if Dict.get key mdl.dropDownDict |> Maybe.withDefault False then "▲" else "▼"
-        in
-        div[ class "config-parameters-input-section" ]
-        [
-        div [ class "config-parameters-input" ]
-        [ Components.Form.viewInput
-            { title = Nothing
-            , subtitle = Nothing
-            , id_ = "parameter-key"
-            , val = key
-            , placeholder_ = key
-            , classList_ = []
-            , wrapperClassList = [ ( "parameter-input", True ) ]
-            , disabled_ = True
-            , rows_ = Just 2
-            , wrap_ = Just "soft"
-            , msg = ParameterKeyOnInput
-            , min = Nothing
-            , max = Nothing
-            , required = False
-            }
-        , div [ class "custom-select-container" ]
-            [ div
-                [ class "custom-select-selected"
-                , Html.Events.onClick (ToggleDropdown key)
-                ]
-                [ text selected
-                , span [ class "arrow" ] [ text arrow ] ]
-            , div
-                [ class "custom-select-options"
-                , class <| if Dict.get key mdl.dropDownDict |> Maybe.withDefault False then "" else "hidden"
-                ]
-                (List.map
-                    (\option ->
-                        div
-                            [ class "custom-select-option"
-                            , Html.Attributes.value option
-                            , Html.Events.onClick (CfgParameterValueOnInput key option)
-                            ]
-                            [ text option ]
-                    )
-                    param.options
-                )
+            , small []
+                [ em [] [ text <| smallText ] ]
             ]
-        , button
-            [ class "button"
-            , class "-outline"
-            , onClick <| AddConfigParameter key (Dict.get key mdl.configParameters |> Maybe.withDefault "")
-            , Util.testAttribute "button-parameter-add"
-            , disabled <| (String.length (Dict.get key mdl.configParameters |> Maybe.withDefault "")) == 0
-            ]
-            [ text "Add"
-            ]
-        ]
-        , small []
-            [ em [] [ text <| smallText ] ]
-        ]

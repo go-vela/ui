@@ -166,10 +166,10 @@ toUrl api endpoint =
         DeploymentConfig org repo maybeRef ->
             case maybeRef of
                 Nothing ->
-                    url api ["deployments", org, repo, "config"] []
+                    url api [ "deployments", org, repo, "config" ] []
 
                 Just ref ->
-                    url api ["deployments", org, repo, "config"] [ UB.string "ref" ref ]
+                    url api [ "deployments", org, repo, "config" ] [ UB.string "ref" ref ]
 
         Deployments maybePage maybePerPage org repo ->
             url api [ "deployments", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage

@@ -1959,6 +1959,8 @@ decodeDeploymentParameters : Decoder (Maybe (List KeyValuePair))
 decodeDeploymentParameters =
     Json.Decode.map decodeKeyValuePairs <| Json.Decode.keyValuePairs Json.Decode.string
 
+
+
 -- DEPLOYMENT CONFIG
 
 
@@ -1974,10 +1976,12 @@ decodeDeploymentConfig =
         |> optional "targets" (Json.Decode.list Json.Decode.string) []
         |> optional "parameters" (Json.Decode.dict decodeDeploymentConfigParameter) Dict.empty
 
-type ConfigParameterType =
-    String_ | 
-    Int_ |
-    Bool_ 
+
+type ConfigParameterType
+    = String_
+    | Int_
+    | Bool_
+
 
 deployConfigTypeDecoder : Decoder ConfigParameterType
 deployConfigTypeDecoder =
@@ -1988,11 +1992,11 @@ toDeployConfigTypeDecoder : String -> Decoder ConfigParameterType
 toDeployConfigTypeDecoder type_ =
     case type_ of
         "integer" ->
-            succeed Int_ 
+            succeed Int_
 
         "int" ->
             succeed Int_
-        
+
         "number" ->
             succeed Int_
 
@@ -2007,6 +2011,7 @@ toDeployConfigTypeDecoder type_ =
 
         _ ->
             Json.Decode.fail "unrecognized secret type"
+
 
 type alias DeploymentConfigParameter =
     { description : String

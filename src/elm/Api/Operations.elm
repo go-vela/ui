@@ -490,6 +490,7 @@ getDeploymentConfig baseUrl session options =
         Vela.decodeDeploymentConfig
         |> withAuth session
 
+
 {-| getRepoHooks : retrieves hooks for a repo.
 -}
 getRepoHooks :

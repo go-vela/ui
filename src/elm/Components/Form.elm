@@ -7,18 +7,18 @@ module Components.Form exposing (EditableListForm, handleNumberInputString, view
 
 import Components.Loading
 import Dict exposing (Dict)
+import Effect exposing (Effect)
 import FeatherIcons
 import Html exposing (Html, button, div, h3, input, label, li, section, span, strong, text, textarea, ul)
 import Html.Attributes exposing (attribute, checked, class, classList, disabled, for, id, placeholder, rows, type_, value, wrap)
 import Html.Events exposing (onCheck, onClick, onInput)
 import Http
+import Json.Decode
 import Maybe.Extra
 import RemoteData exposing (WebData)
 import Shared
 import Utils.Helpers as Util
 import Vela
-import Effect exposing (Effect)
-import Json.Decode
 
 
 
@@ -95,7 +95,7 @@ viewInput :
     , required : Bool
     }
     -> Html msg
-viewInput { id_, title, subtitle, val, placeholder_, classList_, wrapperClassList, rows_, wrap_, msg, disabled_, min, max, required} =
+viewInput { id_, title, subtitle, val, placeholder_, classList_, wrapperClassList, rows_, wrap_, msg, disabled_, min, max, required } =
     let
         target =
             String.join "-" [ "input", id_ ]
