@@ -22,6 +22,7 @@ module Api.Operations exposing
     , finishAuthentication
     , getAllBuildServices
     , getAllBuildSteps
+    , getAllBuilds
     , getBuild
     , getBuildGraph
     , getBuildServiceLog
@@ -280,6 +281,7 @@ getRepoBuilds :
             , pageNumber : Maybe Int
             , perPage : Maybe Int
             , maybeEvent : Maybe String
+            , maybeAfter : Maybe Int
         }
     -> Request (List Vela.Build)
 getRepoBuilds baseUrl session options =
@@ -288,6 +290,7 @@ getRepoBuilds baseUrl session options =
             options.pageNumber
             options.perPage
             options.maybeEvent
+            options.maybeAfter
             options.org
             options.repo
         )
@@ -704,6 +707,32 @@ getBuildSteps baseUrl session options =
             options.build
         )
         Vela.decodeSteps
+        |> withAuth session
+
+
+{-| getAllBuilds : retrieves all builds.
+-}
+getAllBuilds :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , after : Int
+        }
+    -> Request Vela.Build
+getAllBuilds baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.Builds
+            (Just 1)
+            (Just 100)
+            Nothing
+            (Just options.after)
+            options.org
+            options.repo
+        )
+        Vela.decodeBuild
         |> withAuth session
 
 
