@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "@double-great/stylelint-a11y": "3.0.2",
-    "@fullhuman/postcss-purgecss": "6.0.0",
+    "@fullhuman/postcss-purgecss": "7.0.2",
     "@parcel/transformer-elm": "2.13.3",
     "@parcel/transformer-sass": "2.13.3",
     "axe-core": "4.10.2",
