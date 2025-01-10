@@ -54,7 +54,7 @@ type Msg
     | AddFavorites { favorites : List { org : String, maybeRepo : Maybe String } }
     | AddFavoritesResponse { favorites : List { org : String, maybeRepo : Maybe String } } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.User ))
       -- BUILDS
-    | GetRepoBuilds { org : String, repo : String, pageNumber : Maybe Int, perPage : Maybe Int, maybeEvent : Maybe String }
+    | GetRepoBuilds { org : String, repo : String, pageNumber : Maybe Int, perPage : Maybe Int, maybeEvent : Maybe String, maybeAfter : Maybe Int }
     | GetRepoBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))
       -- HOOKS
     | GetRepoHooks { org : String, repo : String, pageNumber : Maybe Int, perPage : Maybe Int, maybeEvent : Maybe String }
