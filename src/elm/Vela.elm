@@ -12,9 +12,12 @@ module Vela exposing
     , BuildGraphInteraction
     , BuildGraphNode
     , BuildNumber
+    , ConfigParameterType(..)
     , Dashboard
     , DashboardRepoCard
     , Deployment
+    , DeploymentConfig
+    , DeploymentConfigParameter
     , DeploymentPayload
     , EnableRepoPayload
     , Enabled(..)
@@ -61,6 +64,8 @@ module Vela exposing
     , decodeDashboard
     , decodeDashboards
     , decodeDeployment
+    , decodeDeploymentConfig
+    , decodeDeploymentConfigParameter
     , decodeDeployments
     , decodeGraphInteraction
     , decodeHooks
@@ -277,10 +282,10 @@ decodeUser : Decoder User
 decodeUser =
     Json.Decode.succeed User
         |> required "id" int
-        |> required "name" string
+        |> optional "name" string ""
         |> optional "favorites" (Json.Decode.list string) []
         |> optional "dashboards" (Json.Decode.list string) []
-        |> required "active" bool
+        |> optional "active" bool False
         |> optional "admin" bool False
 
 
@@ -1877,7 +1882,7 @@ encodeSecretPayload secret =
 type alias Deployment =
     { id : Int
     , number : Int
-    , repo_id : Int
+    , repo : Repository
     , url : String
     , created_by : String
     , created_at : Int
@@ -1896,7 +1901,7 @@ decodeDeployment =
     Json.Decode.succeed Deployment
         |> optional "id" int -1
         |> optional "number" int -1
-        |> optional "repo_id" int -1
+        |> optional "repo" decodeRepository emptyRepository
         |> optional "url" string ""
         |> optional "created_by" string ""
         |> optional "created_at" int 0
@@ -1916,7 +1921,6 @@ decodeDeployments =
 
 type alias DeploymentPayload =
     { org : Maybe String
-    , repo : Maybe String
     , commit : Maybe String
     , description : Maybe String
     , ref : Maybe String
@@ -1929,7 +1933,6 @@ type alias DeploymentPayload =
 defaultDeploymentPayload : DeploymentPayload
 defaultDeploymentPayload =
     { org = Nothing
-    , repo = Nothing
     , commit = Nothing
     , description = Nothing
     , ref = Nothing
@@ -1943,7 +1946,6 @@ encodeDeploymentPayload : DeploymentPayload -> Json.Encode.Value
 encodeDeploymentPayload deployment =
     Json.Encode.object
         [ ( "org", encodeOptional Json.Encode.string deployment.org )
-        , ( "repo", encodeOptional Json.Encode.string deployment.repo )
         , ( "commit", encodeOptional Json.Encode.string deployment.commit )
         , ( "description", encodeOptional Json.Encode.string deployment.description )
         , ( "ref", encodeOptional Json.Encode.string deployment.ref )
@@ -1956,6 +1958,80 @@ encodeDeploymentPayload deployment =
 decodeDeploymentParameters : Decoder (Maybe (List KeyValuePair))
 decodeDeploymentParameters =
     Json.Decode.map decodeKeyValuePairs <| Json.Decode.keyValuePairs Json.Decode.string
+
+
+
+-- DEPLOYMENT CONFIG
+
+
+type alias DeploymentConfig =
+    { targets : List String
+    , parameters : Dict String DeploymentConfigParameter
+    }
+
+
+decodeDeploymentConfig : Decoder DeploymentConfig
+decodeDeploymentConfig =
+    Json.Decode.succeed DeploymentConfig
+        |> optional "targets" (Json.Decode.list Json.Decode.string) []
+        |> optional "parameters" (Json.Decode.dict decodeDeploymentConfigParameter) Dict.empty
+
+
+type ConfigParameterType
+    = String_
+    | Int_
+    | Bool_
+
+
+deployConfigTypeDecoder : Decoder ConfigParameterType
+deployConfigTypeDecoder =
+    string |> andThen toDeployConfigTypeDecoder
+
+
+toDeployConfigTypeDecoder : String -> Decoder ConfigParameterType
+toDeployConfigTypeDecoder type_ =
+    case type_ of
+        "integer" ->
+            succeed Int_
+
+        "int" ->
+            succeed Int_
+
+        "number" ->
+            succeed Int_
+
+        "boolean" ->
+            succeed Bool_
+
+        "bool" ->
+            succeed Bool_
+
+        "string" ->
+            succeed String_
+
+        _ ->
+            Json.Decode.fail "unrecognized secret type"
+
+
+type alias DeploymentConfigParameter =
+    { description : String
+    , type_ : ConfigParameterType
+    , required : Bool
+    , options : List String
+    , min : Int
+    , max : Int
+    }
+
+
+decodeDeploymentConfigParameter : Decoder DeploymentConfigParameter
+decodeDeploymentConfigParameter =
+    Json.Decode.succeed DeploymentConfigParameter
+        |> optional "description" string ""
+        |> optional "type" deployConfigTypeDecoder String_
+        |> optional "required" bool False
+        |> optional "options" (Json.Decode.list Json.Decode.string) []
+        |> optional "min" int 0
+        |> optional "max" int 0
 
 
 type alias Worker =

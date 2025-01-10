@@ -848,6 +848,9 @@ view shared route model =
                         , wrap_ = Nothing
                         , msg = CloneImageOnInput
                         , disabled_ = False
+                        , min = Nothing
+                        , max = Nothing
+                        , required = False
                         }
                     , Components.Form.viewButton
                         { id_ = cloneImageHtmlId ++ "-update"
@@ -892,6 +895,7 @@ view shared route model =
                         , disabled_ = False
                         , min = Just starlarkExecLimitMin
                         , max = Just <| starlarkExecLimitMax shared
+                        , required = False
                         }
                     , Components.Form.viewButton
                         { id_ = starlarkExecLimitHtmlId ++ "-update"
@@ -942,6 +946,7 @@ view shared route model =
                         , disabled_ = False
                         , min = Just templateDepthLimitMin
                         , max = Just templateDepthLimitMax
+                        , required = False
                         }
                     , Components.Form.viewButton
                         { id_ = "template-depth-update"

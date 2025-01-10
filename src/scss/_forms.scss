@@ -193,6 +193,7 @@
 }
 
 // focus styles
+.form-control select:focus,
 .form-control [type='checkbox']:focus + .form-label::before,
 .form-control [type='radio']:focus + .form-label::before,
 .form-control input:focus:not([type='checkbox']):not([type='radio']),
