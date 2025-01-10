@@ -1622,9 +1622,10 @@ details.build-toggle {
   display: flex;
   flex-direction: row;
   width: 100%;
+
   select {
-    margin-right: 1rem;
     flex: 1;
+    margin-right: 1rem;
   }
 }
 
@@ -1636,6 +1637,7 @@ details.build-toggle {
 .parameter-input-number {
   flex: 1;
   margin-right: 1rem;
+
   input {
     flex: 1;
   }
@@ -1815,8 +1817,9 @@ code.shell {
 }
 
 select {
-  background-color: var(--color-bg-dark);
   color: var(--color-text);
+
+  background-color: var(--color-bg-dark);
 }
 
 .custom-select-container {
@@ -1825,13 +1828,14 @@ select {
 }
 
 .custom-select-selected {
-  background-color: var(--color-bg-dark);
-  border: 1px solid #ccc;
-  padding: 10px;
-  cursor: pointer;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+
+  background-color: var(--color-bg-dark);
+  border: 1px solid var(--color-bg-light);
+  cursor: pointer;
 }
 
 .custom-select-selected .arrow {
@@ -1839,20 +1843,24 @@ select {
 }
 
 .custom-select-options {
-  display: none;
   position: absolute;
-  background-color: var(--color-bg-dark);
-  border: 1px solid #ccc;
   z-index: 1;
+
+  display: none;
   width: 75%;
+
+  background-color: var(--color-bg-dark);
+  border: 1px solid var(--color-bg-light);
 }
 
 .custom-select-options .custom-select-option {
   padding: 10px;
+
   cursor: pointer;
 }
 
-.custom-select-options .custom-select-option:hover {
+.custom-select-options .custom-select-option:hover,
+.custom-select-options .custom-select-option:focus {
   background-color: var(--color-bg-light);
 }
 
