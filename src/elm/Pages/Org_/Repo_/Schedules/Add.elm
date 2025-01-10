@@ -250,6 +250,9 @@ view shared route model =
                             , wrap_ = Nothing
                             , msg = NameOnInput
                             , disabled_ = formDisabled
+                            , min = Nothing
+                            , max = Nothing
+                            , required = False
                             }
                         , Components.Form.viewTextareaSection
                             { title = Just "Cron Expression"
@@ -262,6 +265,7 @@ view shared route model =
                             , wrap_ = Just "soft"
                             , msg = EntryOnInput
                             , disabled_ = formDisabled
+                            , focusOutFunc = Nothing
                             }
                         , Components.ScheduleForm.viewEnabledInput
                             { msg = EnabledOnClick
@@ -284,6 +288,9 @@ view shared route model =
                             , wrap_ = Nothing
                             , msg = BranchOnInput
                             , disabled_ = formDisabled
+                            , min = Nothing
+                            , max = Nothing
+                            , required = False
                             }
                         , Components.ScheduleForm.viewHelp shared.velaDocsURL
                         , Components.Form.viewButton

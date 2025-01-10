@@ -32,6 +32,7 @@ module Api.Operations exposing
     , getCurrentUser
     , getDashboard
     , getDashboards
+    , getDeploymentConfig
     , getOrgBuilds
     , getOrgRepos
     , getOrgSecret
@@ -464,6 +465,29 @@ addDeployment baseUrl session options =
         )
         options.body
         Vela.decodeDeployment
+        |> withAuth session
+
+
+{-| getDeploymentConfig : retrieves deployment config for a repo and pipeline ref.
+-}
+getDeploymentConfig :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , ref : Maybe String
+        }
+    -> Request Vela.DeploymentConfig
+getDeploymentConfig baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.DeploymentConfig
+            options.org
+            options.repo
+            options.ref
+        )
+        Vela.decodeDeploymentConfig
         |> withAuth session
 
 

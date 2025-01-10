@@ -274,6 +274,9 @@ view shared route model =
                             , wrap_ = Nothing
                             , msg = NameOnInput
                             , disabled_ = False
+                            , min = Nothing
+                            , max = Nothing
+                            , required = False
                             }
                         , Components.Form.viewTextareaSection
                             { title = Just "Value"
@@ -286,6 +289,7 @@ view shared route model =
                             , wrap_ = Just "soft"
                             , msg = ValueOnInput
                             , disabled_ = False
+                            , focusOutFunc = Nothing
                             }
                         , Components.SecretForm.viewAllowEventsSelect
                             shared

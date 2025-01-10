@@ -386,6 +386,9 @@ view shared route model =
                             , wrap_ = Nothing
                             , msg = \_ -> NoOp
                             , disabled_ = True
+                            , min = Nothing
+                            , max = Nothing
+                            , required = False
                             }
                         , Components.Form.viewTextareaSection
                             { title = Just "Value"
@@ -398,6 +401,7 @@ view shared route model =
                             , wrap_ = Just "soft"
                             , msg = ValueOnInput
                             , disabled_ = not <| RemoteData.isSuccess model.secret
+                            , focusOutFunc = Nothing
                             }
                         , Components.SecretForm.viewAllowEventsSelect
                             shared
