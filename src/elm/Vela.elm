@@ -92,6 +92,7 @@ module Vela exposing
     , defaultCompilerPayload
     , defaultDeploymentPayload
     , defaultEnabledAllowEvents
+    , defaultPipelineConfig
     , defaultQueuePayload
     , defaultRepoPayload
     , defaultSchedulePayload
@@ -119,10 +120,11 @@ module Vela exposing
 import Bytes.Encode
 import Dict exposing (Dict)
 import Json.Decode exposing (Decoder, andThen, bool, int, string, succeed)
-import Json.Decode.Extra exposing (dict2, optionalField)
+import Json.Decode.Extra exposing (dict2)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode
 import RemoteData exposing (WebData)
+import Utils.Warnings as Warnings
 
 
 
@@ -1114,9 +1116,30 @@ allowEventsFilterQueryKeys =
 
 
 type alias PipelineConfig =
-    { rawData : String
+    { commit : String
+    , flavor : String
+    , platform : String
+    , ref : String
+    , type_ : String
+    , version : String
+    , externalSecrets : Bool
+    , internalSecrets : Bool
+    , services : Bool
+    , stages : Bool
+    , steps : Bool
+    , templates : Bool
+    , warnings : List String
+
+    -- decoded values
+    , rawData : String
     , decodedData : String
+    , lineWarnings : Dict Int (List String)
     }
+
+
+defaultPipelineConfig : PipelineConfig
+defaultPipelineConfig =
+    PipelineConfig "" "" "" "" "" "" False False False False False False [] "" "" Dict.empty
 
 
 type alias Template =
@@ -1134,13 +1157,58 @@ type alias Templates =
 decodePipelineConfig : Json.Decode.Decoder PipelineConfig
 decodePipelineConfig =
     Json.Decode.succeed
-        (\data ->
-            PipelineConfig
-                data
-                -- "decodedData"
-                ""
-        )
+        PipelineConfig
+        |> optional "commit" string ""
+        |> optional "flavor" string ""
+        |> optional "platform" string ""
+        |> optional "ref" string ""
+        |> optional "type" string ""
+        |> optional "version" string ""
+        |> optional "external_secrets" bool False
+        |> optional "internal_secrets" bool False
+        |> optional "services" bool False
+        |> optional "stages" bool False
+        |> optional "steps" bool False
+        |> optional "templates" bool False
+        |> optional "warnings" (Json.Decode.list string) []
         |> optional "data" string ""
+        |> optional "decodedData" string ""
+        |> optional "warnings"
+            (Json.Decode.list string
+                |> Json.Decode.andThen
+                    decodeAndCollapsePipelineWarnings
+            )
+            Dict.empty
+
+
+decodeAndCollapsePipelineWarnings : List String -> Json.Decode.Decoder (Dict Int (List String))
+decodeAndCollapsePipelineWarnings warnings =
+    Json.Decode.succeed
+        (List.foldl
+            (\warning dict ->
+                let
+                    { maybeLineNumber, content } =
+                        Warnings.fromString warning
+                in
+                case ( maybeLineNumber, content ) of
+                    ( Just line, w ) ->
+                        Dict.update line
+                            (\maybeWarnings ->
+                                case maybeWarnings of
+                                    Just existingWarnings ->
+                                        Just (w :: existingWarnings)
+
+                                    Nothing ->
+                                        Just [ w ]
+                            )
+                            dict
+
+                    _ ->
+                        dict
+            )
+            Dict.empty
+            warnings
+        )
 
 
 decodePipelineExpand : Json.Decode.Decoder String

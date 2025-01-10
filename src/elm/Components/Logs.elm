@@ -194,7 +194,7 @@ viewLine pushUrlHashMsg resourceType resourceNumber shift focus logLine lineNumb
                     ]
                     [ span [] [ text <| String.fromInt lineNumber ] ]
                 ]
-            , td [ class "break-text", class "overflow-auto" ]
+            , td [ class "break-text", class "overflow-auto", class "line-content" ]
                 [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resourceNumber, String.fromInt lineNumber ] ]
                     [ logLine.view
                     ]
