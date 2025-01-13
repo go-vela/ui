@@ -462,6 +462,7 @@ type alias Repository =
     , allowEvents : AllowEvents
     , enabled : Enabled
     , pipeline_type : String
+    , approval_timeout : Int
     }
 
 
@@ -487,6 +488,7 @@ emptyRepository =
     , allowEvents = defaultAllowEvents
     , enabled = Disabled
     , pipeline_type = ""
+    , approval_timeout = 0
     }
 
 
@@ -514,6 +516,7 @@ decodeRepository =
         -- "enabled"
         |> optional "active" enabledDecoder Disabled
         |> optional "pipeline_type" string ""
+        |> optional "approval_timeout" int 0
 
 
 decodeRepositories : Decoder (List Repository)
@@ -536,6 +539,7 @@ type alias RepoPayload =
     , timeout : Maybe Int
     , counter : Maybe Int
     , pipeline_type : Maybe String
+    , approval_timeout : Maybe Int
     }
 
 
@@ -552,6 +556,7 @@ encodeRepoPayload repo =
         , ( "timeout", encodeOptional Json.Encode.int repo.timeout )
         , ( "counter", encodeOptional Json.Encode.int repo.counter )
         , ( "pipeline_type", encodeOptional Json.Encode.string repo.pipeline_type )
+        , ( "approval_timeout", encodeOptional Json.Encode.int repo.approval_timeout)
         ]
 
 
@@ -567,6 +572,7 @@ defaultRepoPayload =
     , timeout = Nothing
     , counter = Nothing
     , pipeline_type = Nothing
+    , approval_timeout = Nothing
     }
 
 
@@ -580,6 +586,7 @@ type RepoFieldUpdate
     | Timeout
     | Counter
     | PipelineType
+    | ApprovalTimeout
 
 
 type alias RepoFieldUpdateResponseConfig =
@@ -716,6 +723,12 @@ repoFieldUpdateToResponseConfig field =
                 { successAlert =
                     \repo ->
                         "$ pipeline syntax type set to '" ++ repo.pipeline_type ++ "'."
+                }
+
+            ApprovalTimeout ->
+                { successAlert =
+                    \repo ->
+                        "$ build approval timeout set to " ++ String.fromInt repo.approval_timeout ++ " day(s)."
                 }
 
 

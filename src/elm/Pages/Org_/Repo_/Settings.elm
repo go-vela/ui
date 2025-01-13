@@ -109,6 +109,7 @@ toLayout user route model =
 -}
 type alias Model =
     { repo : WebData Vela.Repository
+    , inApprovalTimeout : Maybe Int
     , inLimit : Maybe Int
     , inCounter : Maybe Int
     , inTimeout : Maybe Int
@@ -120,6 +121,7 @@ type alias Model =
 init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { repo = RemoteData.Loading
+      , inApprovalTimeout = Nothing
       , inLimit = Nothing
       , inCounter = Nothing
       , inTimeout = Nothing
@@ -156,6 +158,8 @@ type Msg
     | AllowEventsUpdate { allowEvents : Vela.AllowEvents, event : Vela.AllowEventsField } Bool
     | AccessUpdate String
     | ForkPolicyUpdate String
+    | ApprovalTimeoutOnInput String
+    | ApprovalTimeoutUpdate Int
     | BuildLimitOnInput String
     | BuildLimitUpdate Int
     | BuildTimeoutOnInput String
@@ -552,6 +556,34 @@ update shared route msg model =
                 }
             )
 
+        ApprovalTimeoutOnInput val ->
+            ( { model
+                | inApprovalTimeout = Just <| Maybe.withDefault 0 <| String.toInt val
+              }
+            , Effect.none
+            )
+
+        ApprovalTimeoutUpdate val ->
+            let
+                payload =
+                    { defaultRepoPayload
+                        | approval_timeout = Just val
+                    }
+
+                body =
+                    Http.jsonBody <| Vela.encodeRepoPayload payload
+            in
+            ( model
+            , Effect.updateRepo
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse = UpdateRepoResponse { field = Vela.ApprovalTimeout }
+                , org = route.params.org
+                , repo = route.params.repo
+                , body = body
+                }
+            )
+
         BuildLimitOnInput val ->
             ( { model
                 | inLimit = Just <| Maybe.withDefault 0 <| String.toInt val
@@ -721,6 +753,7 @@ view shared route model =
                     [ viewAllowEvents shared repo AllowEventsUpdate
                     , viewAccess repo AccessUpdate
                     , viewForkPolicy repo ForkPolicyUpdate
+                    , viewApprovalTimeout repo model.inApprovalTimeout ApprovalTimeoutUpdate ApprovalTimeoutOnInput
                     , viewLimit shared repo model.inLimit BuildLimitUpdate BuildLimitOnInput
                     , viewTimeout repo model.inTimeout BuildTimeoutUpdate BuildTimeoutOnInput
                     , viewBuildCounter repo model.inCounter BuildCounterUpdate BuildCounterOnInput
@@ -833,6 +866,76 @@ viewForkPolicy repo msg =
             ]
         ]
 
+{-| viewApprovalTimeout : takes model and repo and renders the settings category for updating repo build approval timeout.
+-}
+viewApprovalTimeout : Vela.Repository -> Maybe Int -> (Int -> msg) -> (String -> msg) -> Html msg
+viewApprovalTimeout repo inApprovalTimeout clickMsg inputMsg =
+    section [ class "settings", Util.testAttribute "repo-settings-approval-timeout" ]
+        [ h2 [ class "settings-title" ] [ text "Approval Timeout" ]
+        , p [ class "settings-description" ] [ text "Number of days before builds pending approval are marked as error and discarded. Discarded builds must be restarted to approve." ]
+        , div [ class "form-controls" ]
+            [ viewApprovalTimeoutInput repo inApprovalTimeout inputMsg
+            , viewUpdateApprovalTimeout repo inApprovalTimeout <| clickMsg <| Maybe.withDefault 0 inApprovalTimeout
+            ]
+        ]
+
+{-| viewApprovalTimeoutInput : takes repo, user input, and button action and renders the text input for updating build approval timeout.
+-}
+viewApprovalTimeoutInput : Vela.Repository -> Maybe Int -> (String -> msg) -> Html msg
+viewApprovalTimeoutInput repo inApprovalTimeout inputMsg =
+    div [ class "form-control", Util.testAttribute "repo-approval-timeout" ]
+        [ input
+            [ id <| "repo-approval-timeout"
+            , onInput inputMsg
+            , type_ "number"
+            , Html.Attributes.min "1"
+            , Html.Attributes.max "60"
+            , value <| String.fromInt <| Maybe.withDefault repo.approval_timeout inApprovalTimeout
+            ]
+            []
+        , label [ class "form-label", for "repo-approval-timeout" ] [ text "days" ]
+        ]
+
+
+{-| viewUpdateApprovalTimeout : takes maybe int of user entered approval timeout and current repo approval timeout and renders the button to submit the update.
+-}
+viewUpdateApprovalTimeout : Vela.Repository -> Maybe Int -> msg -> Html msg
+viewUpdateApprovalTimeout repo inApprovalTimeout msg =
+    case inApprovalTimeout of
+        Just _ ->
+            button
+                [ classList
+                    [ ( "button", True )
+                    , ( "-outline", True )
+                    ]
+                , onClick msg
+                , disabled <| not <| validApprovalTimeout 60 inApprovalTimeout repo <| Just repo.approval_timeout
+                ]
+                [ text "update" ]
+
+        _ ->
+            text ""
+
+
+{-| validApprovalTimeout : takes maybe string of user entered approval timeout and returns whether or not it is a valid update.
+-}
+validApprovalTimeout : Int -> Maybe Int -> Vela.Repository -> Maybe Int -> Bool
+validApprovalTimeout maxApprovalTimeout inApprovalTimeout _ repoApprovalTimeout =
+    case inApprovalTimeout of
+        Just t ->
+            if t >= 1 && t <= maxApprovalTimeout then
+                case repoApprovalTimeout of
+                    Just ti ->
+                        t /= ti
+
+                    Nothing ->
+                        True
+
+            else
+                False
+
+        Nothing ->
+            False
 
 {-| viewLimit : takes model and repo and renders the settings category for updating repo build limit.
 -}
