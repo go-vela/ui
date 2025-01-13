@@ -866,6 +866,7 @@ viewForkPolicy repo msg =
             ]
         ]
 
+
 {-| viewApprovalTimeout : takes model and repo and renders the settings category for updating repo build approval timeout.
 -}
 viewApprovalTimeout : Vela.Repository -> Maybe Int -> (Int -> msg) -> (String -> msg) -> Html msg
@@ -878,6 +879,7 @@ viewApprovalTimeout repo inApprovalTimeout clickMsg inputMsg =
             , viewUpdateApprovalTimeout repo inApprovalTimeout <| clickMsg <| Maybe.withDefault 0 inApprovalTimeout
             ]
         ]
+
 
 {-| viewApprovalTimeoutInput : takes repo, user input, and button action and renders the text input for updating build approval timeout.
 -}
@@ -936,6 +938,7 @@ validApprovalTimeout maxApprovalTimeout inApprovalTimeout _ repoApprovalTimeout 
 
         Nothing ->
             False
+
 
 {-| viewLimit : takes model and repo and renders the settings category for updating repo build limit.
 -}

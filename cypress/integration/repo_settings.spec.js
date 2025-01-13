@@ -98,14 +98,20 @@ context('Repo Settings', () => {
       cy.get('[data-test=repo-approval-timeout] input').as(
         'repoApprovalTimeoutInput',
       );
-      cy.get('@repoApprovalTimeoutInput').should('be.visible').type('{selectall}123');
+      cy.get('@repoApprovalTimeoutInput')
+        .should('be.visible')
+        .type('{selectall}123');
       cy.get('@repoApprovalTimeoutInput').should('have.value', '123');
-    })
+    });
 
     it('approval timeout input should not allow letter/character input', () => {
       cy.get('[data-test=repo-approval-timeout]').as('repoApprovalTimeout');
-      cy.get('[data-test=repo-approval-timeout] input').as('repoApprovalTimeoutInput');
-      cy.get('@repoApprovalTimeoutInput').should('be.visible').type('{selectall}cat');
+      cy.get('[data-test=repo-approval-timeout] input').as(
+        'repoApprovalTimeoutInput',
+      );
+      cy.get('@repoApprovalTimeoutInput')
+        .should('be.visible')
+        .type('{selectall}cat');
       cy.get('@repoApprovalTimeoutInput').should('not.have.value', 'cat');
       cy.get('@repoApprovalTimeoutInput').type('{selectall}12cat34');
       cy.get('@repoApprovalTimeoutInput').should('have.value', '1234');
@@ -113,13 +119,17 @@ context('Repo Settings', () => {
 
     it('clicking update on approval timeout should update timeout and hide button', () => {
       cy.get('[data-test=repo-approval-timeout]').as('repoApprovalTimeout');
-      cy.get('[data-test=repo-approval-timeout] input').as('repoApprovalTimeoutInput');
+      cy.get('[data-test=repo-approval-timeout] input').as(
+        'repoApprovalTimeoutInput',
+      );
       cy.get('@repoApprovalTimeoutInput').should('be.visible').clear();
       cy.get('@repoApprovalTimeoutInput').type('{selectall}80');
       cy.get('[data-test=repo-approval-timeout] + button')
         .should('be.visible')
         .click({ force: true });
-      cy.get('[data-test=repo-approval-timeout] + button').should('be.disabled');
+      cy.get('[data-test=repo-approval-timeout] + button').should(
+        'be.disabled',
+      );
     });
 
     it('build limit input should allow number input', () => {

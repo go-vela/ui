@@ -556,7 +556,7 @@ encodeRepoPayload repo =
         , ( "timeout", encodeOptional Json.Encode.int repo.timeout )
         , ( "counter", encodeOptional Json.Encode.int repo.counter )
         , ( "pipeline_type", encodeOptional Json.Encode.string repo.pipeline_type )
-        , ( "approval_timeout", encodeOptional Json.Encode.int repo.approval_timeout)
+        , ( "approval_timeout", encodeOptional Json.Encode.int repo.approval_timeout )
         ]
 
 
