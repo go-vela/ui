@@ -1,0 +1,20 @@
+{
+  "targets": ["dev", "stage", "prod"],
+  "parameters": {
+    "cluster_count": {
+      "description": "number of clusters to deploy",
+      "type": "int",
+      "min": 1,
+      "max": 5
+    },
+    "entrypoint": {
+      "description": "command",
+      "options": ["/bin/server", "/bin/canary", "/bin/clean"]
+    },
+    "region": {
+      "description": "region to deploy",
+      "required": true
+    }
+  },
+  "template": {}
+}
