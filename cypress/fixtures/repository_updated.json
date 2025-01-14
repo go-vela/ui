@@ -42,5 +42,6 @@
     }
   },
   "pipeline_type": "yaml",
-  "approve_build": "fork-no-write"
+  "approve_build": "fork-no-write",
+  "approval_timeout": 10
 }
