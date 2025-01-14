@@ -246,7 +246,10 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( model
+                    ( { model 
+                        | configParameters = Dict.empty
+                        , dropDownDict = Dict.empty
+                      }
                     , Effect.handleHttpError
                         { error = error
                         , shouldShowAlertFn = Errors.showAlertAlways
@@ -516,7 +519,7 @@ view shared route model =
                                                             (\( key, value ) ->
                                                                 case Dict.get key config.parameters of
                                                                     Just param ->
-                                                                        [ viewDeploymentConfigParameter model key param value CfgParameterValueOnInput ]
+                                                                        [ viewDeploymentConfigParameter model key param ]
 
                                                                     Nothing ->
                                                                         []
@@ -652,8 +655,8 @@ viewDeploymentConfigTarget targets current msg =
         ]
 
 
-viewDeploymentConfigParameter : Model -> String -> Vela.DeploymentConfigParameter -> String -> (String -> String -> Msg) -> Html.Html Msg
-viewDeploymentConfigParameter mdl key param current msg =
+viewDeploymentConfigParameter : Model -> String -> Vela.DeploymentConfigParameter -> Html.Html Msg
+viewDeploymentConfigParameter mdl key param =
     let
         smallText =
             if param.description == "" then

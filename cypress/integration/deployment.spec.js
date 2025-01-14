@@ -28,6 +28,16 @@ context('Deployment', () => {
         '*api/v1/repos/github/octocat/builds*',
         'fixture:builds_5.json',
       );
+      cy.route(
+        'GET',
+        '*api/v1/deployments/github/octocat/config',
+        'fixture:deployment_config.json',
+      )
+      cy.route(
+        'GET',
+        '*api/v1/deployments/github/octocat/config?',
+        'fixture:deployment_parameters.json',
+      );
     });
     it('add parameter button should be disabled', () => {
       cy.login('/github/octocat/deployments/add');
