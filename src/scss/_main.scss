@@ -1650,6 +1650,11 @@ details.build-toggle {
   align-items: flex-start;
 }
 
+.set-parameter {
+  display: flex;
+  align-items: center;
+}
+
 .image,
 .parameter {
   position: relative;
@@ -1870,4 +1875,36 @@ select {
 
 .custom-select-container .custom-select-options:not(.hidden) {
   display: block;
+}
+
+.small.no-wrap {
+  display: flex;
+  align-items: center;
+
+  font-size: 0.8em;
+  white-space: nowrap;
+}
+
+.copy-text {
+  margin-right: 5px;
+  margin-left: 5px;
+
+  font-weight: bold;
+  font-family: monospace;
+
+  background-color: var(--color-bg-dark);
+}
+
+.copy-button {
+  margin-left: 5px;
+  padding: 0;
+
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.copy-icon {
+  font-size: 0.8em;
+  /* Add additional styling for the icon if needed */
 }

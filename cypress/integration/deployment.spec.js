@@ -81,7 +81,13 @@ context('Deployment', () => {
       cy.login('/github/octocat/deployments');
       cy.get('[data-test=cell-list-item-parameters]')
         .should('exist')
-        .contains('DEPLOYMENT_PARAMETER_FOO=bar');
+        .contains('foo=bar');
+    });
+    it('deployments table should list parameters copy text', () => {
+      cy.login('/github/octocat/deployments');
+      cy.get('[data-test=copy-parameter-foo]')
+        .should('exist')
+        .contains('$DEPLOYMENT_PARAMETER_FOO');
     });
   });
 });

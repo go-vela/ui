@@ -12,8 +12,9 @@ import Components.Loading as Loading
 import Components.Nav
 import Dict exposing (Dict, empty)
 import Effect exposing (Effect)
+import FeatherIcons
 import Html exposing (a, button, code, div, em, h2, label, main_, p, section, small, span, strong, text)
-import Html.Attributes exposing (class, disabled, for, href, id)
+import Html.Attributes exposing (attribute, class, disabled, for, href, id)
 import Html.Events exposing (onClick)
 import Http
 import Http.Detailed
@@ -582,14 +583,38 @@ view shared route model =
                             if List.length model.parameters > 0 then
                                 let
                                     viewParameter parameter =
-                                        div [ class "parameter", class "chevron" ]
-                                            [ div [ class "name" ] [ text ("DEPLOYMENT_PARAMETER_" ++ (String.toUpper parameter.key) ++ "=" ++ parameter.value) ]
-                                            , button
-                                                [ class "button"
-                                                , class "-outline"
-                                                , onClick <| RemoveParameter parameter
+                                        div [ class "set-parameter" ]
+                                            [ div [ class "parameter", class "chevron" ]
+                                                [ div [ class "name" ] [ text (parameter.key ++ "=" ++ parameter.value) ]
+                                                , button
+                                                    [ class "button"
+                                                    , class "-outline"
+                                                    , onClick <| RemoveParameter parameter
+                                                    ]
+                                                    [ text "remove"
+                                                    ]
                                                 ]
-                                                [ text "remove"
+                                            , div [ class "small no-wrap" ]
+                                                [ span 
+                                                    [ class "copy-text" 
+                                                    , Util.testAttribute ("copy-parameter-" ++ parameter.key)
+                                                    ] 
+                                                    [ text ("$DEPLOYMENT_PARAMETER_" ++ String.toUpper parameter.key) ]
+                                                , div [ class "vert-icon-container" ]
+                                                    [ button
+                                                        [ class "copy-button"
+                                                        , class "button"
+                                                        , class "-icon"
+                                                        , class "-white"
+                                                        , attribute "data-clipboard-text" ("$DEPLOYMENT_PARAMETER_" ++ String.toUpper parameter.key)
+                                                        , attribute "aria-label" "copy token"
+                                                        , Util.testAttribute "copy-token"
+                                                        ]
+                                                        [ FeatherIcons.copy
+                                                            |> FeatherIcons.withSize 18
+                                                            |> FeatherIcons.toHtml []
+                                                        ]
+                                                    ]
                                                 ]
                                             ]
                                 in
