@@ -583,7 +583,7 @@ view shared route model =
                                 let
                                     viewParameter parameter =
                                         div [ class "parameter", class "chevron" ]
-                                            [ div [ class "name" ] [ text (parameter.key ++ "=" ++ parameter.value) ]
+                                            [ div [ class "name" ] [ text ("DEPLOYMENT_PARAMETER_" ++ (String.toUpper parameter.key) ++ "=" ++ parameter.value) ]
                                             , button
                                                 [ class "button"
                                                 , class "-outline"
