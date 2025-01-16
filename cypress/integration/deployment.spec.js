@@ -52,8 +52,7 @@ context('Deployment', () => {
         .contains('Add')
         .click();
 
-      cy.get('[data-test=parameters-list]')
-        .should('exist');
+      cy.get('[data-test=parameters-list]').should('exist');
 
       cy.get('[data-test=button-parameter-remove-key1]').should(
         'contain.text',

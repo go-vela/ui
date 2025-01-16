@@ -596,10 +596,10 @@ view shared route model =
                                                     ]
                                                 ]
                                             , div [ class "small no-wrap" ]
-                                                [ span 
-                                                    [ class "copy-text" 
+                                                [ span
+                                                    [ class "copy-text"
                                                     , Util.testAttribute ("copy-parameter-" ++ parameter.key)
-                                                    ] 
+                                                    ]
                                                     [ text ("$DEPLOYMENT_PARAMETER_" ++ String.toUpper parameter.key) ]
                                                 , div [ class "vert-icon-container" ]
                                                     [ button
