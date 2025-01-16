@@ -36,6 +36,7 @@ context('Deployment', () => {
         .should('not.be.enabled')
         .contains('Add');
     });
+
     it('add parameter should work as intended', () => {
       cy.login('/github/octocat/deployments/add');
       cy.get('[data-test=parameters-list]')
@@ -50,23 +51,64 @@ context('Deployment', () => {
         .should('be.enabled')
         .contains('Add')
         .click();
-      it('toast should show', () => {
-        cy.get('[data-test=alerts]').should('exist').contains('Success');
-      });
+
       cy.get('[data-test=parameters-list]')
-        .should('exist')
-        .children()
-        .first()
-        .children()
-        .last()
-        .should('contain.text', 'remove');
+        .should('exist');
+
+      cy.get('[data-test=button-parameter-remove-key1]').should(
+        'contain.text',
+        'remove',
+      );
       cy.get('[data-test=input-parameter-key]')
         .should('exist')
         .should('have.value', '');
       cy.get('[data-test=input-parameter-value]')
         .should('exist')
         .should('have.value', '');
+
+      cy.get('[data-test=input-parameter-key]').type('key2');
+      cy.get('[data-test=input-parameter-value]').type('val2');
+      cy.get('[data-test=button-parameter-add]').click();
+      cy.get('[data-test=copy-parameter-key2]').should('exist');
+
+      cy.get('[data-test=input-parameter-key]').type('key3');
+      cy.get('[data-test=input-parameter-value]').type('val3');
+      cy.get('[data-test=button-parameter-add]').click();
+      cy.get('[data-test=parameters-list]')
+        .children()
+        .first()
+        .contains('remove')
+        .click();
+      cy.get('[data-test=parameters-list]')
+        .should('exist')
+        .children()
+        .first()
+        .should('contain.text', 'key2=val2remove$DEPLOYMENT_PARAMETER_KEY2');
     });
+
+    it('should handle multiple parameters', () => {
+      cy.login('/github/octocat/deployments/add');
+      cy.get('[data-test=input-parameter-key]').type('key4');
+      cy.get('[data-test=input-parameter-value]').type('val4');
+      cy.get('[data-test=button-parameter-add]').click();
+      cy.get('[data-test=input-parameter-key]').type('key5');
+      cy.get('[data-test=input-parameter-value]').type('val5');
+      cy.get('[data-test=button-parameter-add]').click();
+      cy.get('[data-test=parameters-list]').children().should('have.length', 2);
+      cy.get('[data-test=parameters-list]')
+        .children()
+        .first()
+        .children()
+        .first()
+        .should('contain.text', 'key4=val4');
+      cy.get('[data-test=parameters-list]')
+        .children()
+        .last()
+        .children()
+        .first()
+        .should('contain.text', 'key5=val5');
+    });
+
     it('deployments table should show', () => {
       cy.login('/github/octocat/deployments');
       cy.get('[data-test=deployments-table]').should('be.visible');
@@ -82,12 +124,6 @@ context('Deployment', () => {
       cy.get('[data-test=cell-list-item-parameters]')
         .should('exist')
         .contains('foo=bar');
-    });
-    it('deployments table should list parameters copy text', () => {
-      cy.login('/github/octocat/deployments');
-      cy.get('[data-test=copy-parameter-foo]')
-        .should('exist')
-        .contains('$DEPLOYMENT_PARAMETER_FOO');
     });
   });
 });

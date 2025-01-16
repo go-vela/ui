@@ -589,6 +589,7 @@ view shared route model =
                                                 , button
                                                     [ class "button"
                                                     , class "-outline"
+                                                    , Util.testAttribute ("button-parameter-remove-" ++ parameter.key)
                                                     , onClick <| RemoveParameter parameter
                                                     ]
                                                     [ text "remove"
@@ -608,7 +609,7 @@ view shared route model =
                                                         , class "-white"
                                                         , attribute "data-clipboard-text" ("$DEPLOYMENT_PARAMETER_" ++ String.toUpper parameter.key)
                                                         , attribute "aria-label" "copy token"
-                                                        , Util.testAttribute "copy-token"
+                                                        , Util.testAttribute ("copy-parameter" ++ parameter.key)
                                                         ]
                                                         [ FeatherIcons.copy
                                                             |> FeatherIcons.withSize 18
