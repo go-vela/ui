@@ -246,7 +246,7 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model 
+                    ( { model
                         | configParameters = Dict.empty
                         , dropDownDict = Dict.empty
                       }
