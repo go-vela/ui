@@ -176,12 +176,14 @@ view (BarChartConfig { title, width, height, padding, data, maybeMaxY, unit }) =
     let
         maxY =
             case maybeMaxY of
-                Just max ->
-                    max
+                Just max_ ->
+                    max_
 
                 Nothing ->
-                    List.maximum (List.map Tuple.second data)
-                        |> Maybe.withDefault 0
+                    max 1
+                        (List.maximum (List.map Tuple.second data)
+                            |> Maybe.withDefault 1
+                        )
 
         xScale : List ( Time.Posix, Float ) -> Scale.BandScale Time.Posix
         xScale m =
@@ -202,7 +204,7 @@ view (BarChartConfig { title, width, height, padding, data, maybeMaxY, unit }) =
 
         yAxis : Svg msg
         yAxis =
-            Axis.left [ Axis.tickCount 5 ] yScale
+            Axis.left [ Axis.tickCount 5, Axis.tickFormat (Float.Extra.toFixedDecimalPlaces 1) ] yScale
 
         column : Scale.BandScale Time.Posix -> ( Time.Posix, Float ) -> Svg msg
         column scale ( date, value ) =
@@ -232,13 +234,13 @@ view (BarChartConfig { title, width, height, padding, data, maybeMaxY, unit }) =
         [ div [ class "chart-header" ] [ text title ]
         , TypedSvg.svg [ TypedSvg.Attributes.viewBox 0 0 width height ]
             [ TypedSvg.g
-                [ TypedSvg.Attributes.transform [ Translate (padding - 1) (height - padding) ]
+                [ TypedSvg.Attributes.transform [ Translate (padding + 20) (height - padding) ]
                 , TypedSvg.Attributes.InPx.strokeWidth 2
                 , TypedSvg.Attributes.class [ "axis" ]
                 ]
                 [ xAxis data ]
             , TypedSvg.g
-                [ TypedSvg.Attributes.transform [ Translate (padding - 1) padding ]
+                [ TypedSvg.Attributes.transform [ Translate (padding + 20) padding ]
                 , TypedSvg.Attributes.InPx.strokeWidth 2
                 , TypedSvg.Attributes.class [ "axis" ]
                 ]
