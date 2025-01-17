@@ -32,7 +32,7 @@ context('Deployment', () => {
         'GET',
         '*api/v1/deployments/github/octocat/config',
         'fixture:deployment_config.json',
-      )
+      );
       cy.route(
         'GET',
         '*api/v1/deployments/github/octocat/config?',
