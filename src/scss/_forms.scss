@@ -193,7 +193,6 @@
 }
 
 // focus styles
-.form-control select:focus,
 .form-control [type='checkbox']:focus + .form-label::before,
 .form-control [type='radio']:focus + .form-label::before,
 .form-control input:focus:not([type='checkbox']):not([type='radio']),
@@ -319,22 +318,12 @@
   border-bottom: 1px solid var(--color-bg);
 }
 
-select {
-  color: var(--color-text);
-
-  background-color: var(--color-bg-dark);
-}
-
 .custom-select-container {
-  flex: 1;
-  margin-right: 1rem;
+  font-size: 1rem;
 }
 
 .custom-select-selected {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px;
+  padding: 0.5rem 0.7rem;
 
   background-color: var(--color-bg-dark);
   border: 1px solid var(--color-bg-light);
@@ -342,7 +331,7 @@ select {
 }
 
 .custom-select-selected .arrow {
-  margin-left: 10px;
+  margin-left: 0.5rem;
 }
 
 .custom-select-options {
@@ -350,14 +339,14 @@ select {
   z-index: 1;
 
   display: none;
-  width: 75%;
+  min-width: 25ch;
 
   background-color: var(--color-bg-dark);
   border: 1px solid var(--color-bg-light);
 }
 
 .custom-select-options .custom-select-option {
-  padding: 10px;
+  padding: 0.5rem;
 
   cursor: pointer;
 }

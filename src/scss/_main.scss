@@ -1606,22 +1606,9 @@ details.build-toggle {
 .parameters-inputs {
   display: flex;
   flex-direction: row;
+  gap: 1rem;
   align-items: flex-start;
   margin-top: 0.2rem;
-}
-
-.image-input,
-.parameter-input {
-  margin-right: 1rem;
-}
-
-.parameter-input-number {
-  flex: 1;
-  margin-right: 1rem;
-
-  input {
-    flex: 1;
-  }
 }
 
 .images,
@@ -1629,6 +1616,10 @@ details.build-toggle {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+}
+
+.parameters {
+  margin: 1rem 0;
 }
 
 .image,
@@ -1683,6 +1674,13 @@ details.build-toggle {
   border-width: 0.1rem 1rem 0.1rem 0.2rem;
 
   content: '';
+}
+
+.parameters-inputs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0.4rem 0 2rem 0;
 }
 
 .no-rows {
