@@ -10,10 +10,10 @@ import Components.Crumbs
 import Components.Form
 import Components.Loading as Loading
 import Components.Nav
-import Dict exposing (Dict, empty)
+import Dict exposing (Dict)
 import Effect exposing (Effect)
-import Html exposing (a, button, code, div, em, h2, h3, label, main_, p, section, small, span, strong, text)
-import Html.Attributes exposing (class, disabled, for, href, id)
+import Html exposing (Html, a, button, code, div, em, h2, main_, p, section, small, span, strong, text)
+import Html.Attributes exposing (class, disabled, href)
 import Html.Events exposing (onClick)
 import Http
 import Http.Detailed
@@ -612,7 +612,7 @@ view shared route model =
     }
 
 
-viewDeploymentConfigTarget : List String -> String -> (String -> Msg) -> Html.Html Msg
+viewDeploymentConfigTarget : List String -> String -> (String -> Msg) -> Html Msg
 viewDeploymentConfigTarget targets current msg =
     section [ class "settings", Util.testAttribute "deployment-config-target" ]
         [ Html.label [ class "form-label" ] [ Html.strong [] [ text "Target" ] ]
@@ -635,7 +635,7 @@ viewDeploymentConfigTarget targets current msg =
         ]
 
 
-viewDeploymentConfigParameter : Model -> String -> Vela.DeploymentConfigParameter -> Html.Html Msg
+viewDeploymentConfigParameter : Model -> String -> Vela.DeploymentConfigParameter -> Html Msg
 viewDeploymentConfigParameter mdl key param =
     let
         smallText =
