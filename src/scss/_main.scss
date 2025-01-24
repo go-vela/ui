@@ -1616,10 +1616,12 @@ details.build-toggle {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  margin-bottom: 2rem;
 }
 
-.parameters {
-  margin: 1rem 0;
+.set-parameter {
+  display: flex;
+  align-items: center;
 }
 
 .image,
@@ -1787,4 +1789,34 @@ code.shell {
 
     content: '$';
   }
+}
+
+.small.no-wrap {
+  display: flex;
+  align-items: center;
+
+  font-size: 0.8em;
+  white-space: nowrap;
+}
+
+.copy-text {
+  margin-right: 5px;
+  margin-left: 5px;
+
+  font-family: monospace;
+
+  background-color: var(--color-bg-dark);
+}
+
+.copy-button {
+  margin-left: 5px;
+  padding: 0;
+
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.copy-icon {
+  font-size: 0.8em;
 }

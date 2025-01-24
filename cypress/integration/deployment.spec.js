@@ -68,22 +68,67 @@ context('Deployment', () => {
         });
       });
 
-      cy.get('[data-test=parameters-list]')
+      cy.get('[data-test=parameters-list]').should('exist');
+
+      cy.get('[data-test=button-parameter-remove-key1]')
         .should('exist')
-        .children()
-        .first()
-        .children()
-        .last()
         .should('contain.text', 'remove');
 
       cy.get('[data-test=parameters-inputs]').within(() => {
         cy.get('[data-test=input-parameter-key]')
           .should('exist')
           .should('have.value', '');
+
         cy.get('[data-test=input-parameter-value]')
           .should('exist')
           .should('have.value', '');
+
+        cy.get('[data-test=input-parameter-key]').type('key2');
+        cy.get('[data-test=input-parameter-value]').type('val2');
+        cy.get('[data-test=button-parameter-add]').click();
+
+        cy.get('[data-test=input-parameter-key]').type('key3');
+        cy.get('[data-test=input-parameter-value]').type('val3');
+        cy.get('[data-test=button-parameter-add]').click();
       });
+
+      cy.get('[data-test=parameters-list]')
+        .children()
+        .first()
+        .contains('remove')
+        .click();
+
+      cy.get('[data-test=parameters-list]')
+        .should('exist')
+        .children()
+        .first()
+        .should('contain.text', 'key2=val2remove$DEPLOYMENT_PARAMETER_KEY2');
+    });
+
+    it('should handle multiple parameters', () => {
+      cy.login('/github/octocat/deployments/add');
+      cy.get('[data-test=parameters-inputs]').within(() => {
+        cy.get('[data-test=input-parameter-key]').type('key4');
+        cy.get('[data-test=input-parameter-value]').type('val4');
+        cy.get('[data-test=button-parameter-add]').click();
+        cy.get('[data-test=input-parameter-key]').type('key5');
+        cy.get('[data-test=input-parameter-value]').type('val5');
+        cy.get('[data-test=button-parameter-add]').click();
+      });
+
+      cy.get('[data-test=parameters-list]').children().should('have.length', 2);
+      cy.get('[data-test=parameters-list]')
+        .children()
+        .first()
+        .children()
+        .first()
+        .should('contain.text', 'key4=val4');
+      cy.get('[data-test=parameters-list]')
+        .children()
+        .last()
+        .children()
+        .first()
+        .should('contain.text', 'key5=val5');
     });
 
     it('add config parameters should work as intended', () => {
