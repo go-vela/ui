@@ -1606,41 +1606,9 @@ details.build-toggle {
 .parameters-inputs {
   display: flex;
   flex-direction: row;
+  gap: 1rem;
   align-items: flex-start;
   margin-top: 0.2rem;
-}
-
-.config-parameters-input-section {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  margin-top: 0.2rem;
-  margin-bottom: 2em;
-}
-
-.config-parameters-input {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-
-  select {
-    flex: 1;
-    margin-right: 1rem;
-  }
-}
-
-.image-input,
-.parameter-input {
-  margin-right: 1rem;
-}
-
-.parameter-input-number {
-  flex: 1;
-  margin-right: 1rem;
-
-  input {
-    flex: 1;
-  }
 }
 
 .images,
@@ -1648,6 +1616,7 @@ details.build-toggle {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  margin-bottom: 2rem;
 }
 
 .set-parameter {
@@ -1707,6 +1676,13 @@ details.build-toggle {
   border-width: 0.1rem 1rem 0.1rem 0.2rem;
 
   content: '';
+}
+
+.parameters-inputs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0.4rem 0 2rem 0;
 }
 
 .no-rows {
@@ -1815,68 +1791,6 @@ code.shell {
   }
 }
 
-.config-parameters-inputs {
-  flex-direction: column;
-  align-items: flex-start;
-  margin-top: 0.2rem;
-}
-
-select {
-  color: var(--color-text);
-
-  background-color: var(--color-bg-dark);
-}
-
-.custom-select-container {
-  flex: 1;
-  margin-right: 1rem;
-}
-
-.custom-select-selected {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px;
-
-  background-color: var(--color-bg-dark);
-  border: 1px solid var(--color-bg-light);
-  cursor: pointer;
-}
-
-.custom-select-selected .arrow {
-  margin-left: 10px;
-}
-
-.custom-select-options {
-  position: absolute;
-  z-index: 1;
-
-  display: none;
-  width: 75%;
-
-  background-color: var(--color-bg-dark);
-  border: 1px solid var(--color-bg-light);
-}
-
-.custom-select-options .custom-select-option {
-  padding: 10px;
-
-  cursor: pointer;
-}
-
-.custom-select-options .custom-select-option:hover,
-.custom-select-options .custom-select-option:focus {
-  background-color: var(--color-bg-light);
-}
-
-.custom-select-options.hidden {
-  display: none;
-}
-
-.custom-select-container .custom-select-options:not(.hidden) {
-  display: block;
-}
-
 .small.no-wrap {
   display: flex;
   align-items: center;
@@ -1889,7 +1803,6 @@ select {
   margin-right: 5px;
   margin-left: 5px;
 
-  font-weight: bold;
   font-family: monospace;
 
   background-color: var(--color-bg-dark);
@@ -1906,5 +1819,4 @@ select {
 
 .copy-icon {
   font-size: 0.8em;
-  /* Add additional styling for the icon if needed */
 }

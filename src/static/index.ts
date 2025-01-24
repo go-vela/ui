@@ -3,7 +3,7 @@
 // import types
 import * as ClipboardJS from 'clipboard';
 import * as d3 from 'd3';
-import { Graphviz } from '@hpcc-js/wasm-graphviz';
+import { Graphviz } from '@hpcc-js/wasm';
 
 import { Elm } from '../elm/Main.elm';
 import '../scss/style.scss';
