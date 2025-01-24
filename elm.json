@@ -20,7 +20,7 @@
       "elm-community/graph": "6.0.0",
       "elm-community/json-extra": "4.3.0",
       "elm-community/typed-svg": "7.0.0",
-      "elmcraft/core-extra": "2.0.0",
+      "elmcraft/core-extra": "2.1.0",
       "feathericons/elm-feather": "1.5.0",
       "gampleman/elm-visualization": "2.4.2",
       "jackfranklin/elm-parse-link-header": "2.0.2",
