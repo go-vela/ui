@@ -247,6 +247,7 @@ viewWorkers shared model route =
                 tableHeaders
                 rows
                 actions
+                1
     in
     div []
         [ Components.Table.view cfg
