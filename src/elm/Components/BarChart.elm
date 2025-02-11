@@ -174,6 +174,10 @@ unit as string, and returns a chart.
 view : BarChartConfig -> Html msg
 view (BarChartConfig { title, width, height, padding, data, maybeMaxY, unit }) =
     let
+        offset : Float
+        offset =
+            20
+
         maxY =
             case maybeMaxY of
                 Just max_ ->
@@ -216,14 +220,14 @@ view (BarChartConfig { title, width, height, padding, data, maybeMaxY, unit }) =
             in
             TypedSvg.g [ TypedSvg.Attributes.class [ "column" ] ]
                 [ TypedSvg.rect
-                    [ TypedSvg.Attributes.InPx.x <| Scale.convert scale date
+                    [ TypedSvg.Attributes.InPx.x <| (Scale.convert scale date + offset)
                     , TypedSvg.Attributes.InPx.y <| Scale.convert yScale value
                     , TypedSvg.Attributes.InPx.width <| Scale.bandwidth scale
                     , TypedSvg.Attributes.InPx.height <| height - Scale.convert yScale value - 2 * padding
                     ]
                     []
                 , TypedSvg.text_
-                    [ TypedSvg.Attributes.InPx.x <| Scale.convert (Scale.toRenderable dateFormat scale) date
+                    [ TypedSvg.Attributes.InPx.x <| (Scale.convert (Scale.toRenderable dateFormat scale) date + offset)
                     , TypedSvg.Attributes.InPx.y <| Scale.convert yScale value - 5
                     , TypedSvg.Attributes.textAnchor AnchorMiddle
                     ]
@@ -234,13 +238,13 @@ view (BarChartConfig { title, width, height, padding, data, maybeMaxY, unit }) =
         [ div [ class "chart-header" ] [ text title ]
         , TypedSvg.svg [ TypedSvg.Attributes.viewBox 0 0 width height ]
             [ TypedSvg.g
-                [ TypedSvg.Attributes.transform [ Translate (padding + 20) (height - padding) ]
+                [ TypedSvg.Attributes.transform [ Translate (padding + offset) (height - padding) ]
                 , TypedSvg.Attributes.InPx.strokeWidth 2
                 , TypedSvg.Attributes.class [ "axis" ]
                 ]
                 [ xAxis data ]
             , TypedSvg.g
-                [ TypedSvg.Attributes.transform [ Translate (padding + 20) padding ]
+                [ TypedSvg.Attributes.transform [ Translate (padding + offset) padding ]
                 , TypedSvg.Attributes.InPx.strokeWidth 2
                 , TypedSvg.Attributes.class [ "axis" ]
                 ]
