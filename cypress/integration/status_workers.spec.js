@@ -60,7 +60,9 @@ context('Workers', () => {
       it('should show status', () => {
         cy.get('@firstWorker').within(() => {
           cy.get('[data-test=cell-status]').contains('busy');
-          cy.get('[data-test=cell-running-builds]').contains('github/octocat/1');
+          cy.get('[data-test=cell-running-builds]').contains(
+            'github/octocat/1',
+          );
         });
       });
       context('error', () => {
