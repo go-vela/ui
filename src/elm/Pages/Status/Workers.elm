@@ -328,7 +328,7 @@ viewWorker shared worker =
                 ]
             }
         , Components.Table.viewItemCell
-            { dataLabel = "running builds"
+            { dataLabel = "running-builds"
             , parentClassList = []
             , itemClassList = []
             , children =
@@ -383,9 +383,9 @@ viewWorkerBuildsLinks worker =
                         (build.link
                             |> String.split "/"
                             |> List.reverse
-                            |> List.head
-                            |> Maybe.withDefault ""
-                            |> String.append "#"
+                            |> List.take 3
+                            |> List.reverse
+                            |> String.join "/"
                         )
                     ]
             )
