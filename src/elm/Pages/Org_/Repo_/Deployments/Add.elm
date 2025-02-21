@@ -105,7 +105,7 @@ init shared route () =
                 |> Maybe.withDefault ""
                 |> String.split ","
                 |> List.filterMap Url.percentDecode
-                |> List.map (String.split "=")
+                |> List.map (Util.splitFirst "=")
                 |> List.filterMap
                     (\d ->
                         case d of
