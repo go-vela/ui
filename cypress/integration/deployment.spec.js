@@ -191,6 +191,46 @@ context('Deployment', () => {
         });
     });
 
+    it('parameter of bar=foo properly prepopulates deployment form', () => {
+      cy.login(
+        '/github/octocat/deployments/add?description=Deployment%20request%20from%20Vela&parameters=bar%253Dfoo&ref=master&target=production&task=deploy%3Avela',
+      );
+      cy.get('[data-test=parameters-list]')
+        .should('exist')
+        .children()
+        .first()
+        .should('contain.text', 'bar=foo');
+    });
+
+    it('parameter of foo=bar=cat properly prepopulates deployment form', () => {
+      cy.login(
+        '/github/octocat/deployments/add?description=Deployment%20request%20from%20Vela&parameters=foo%253Dbar%253Dcat&ref=master&target=production&task=deploy%3Avela',
+      );
+      cy.get('[data-test=parameters-list]')
+        .should('exist')
+        .children()
+        .first()
+        .should('contain.text', 'foo=bar=cat');
+    });
+
+    it('multiple parameters properly prepopulate deployment form', () => {
+      cy.login(
+        '/github/octocat/deployments/add?description=Deployment%20request%20from%20Vela&parameters=bar%253Dfoo,foo%253Dbar%253Dcat&ref=master&target=production&task=deploy%3Avela',
+      );
+
+      cy.get('[data-test=parameters-list]')
+        .should('exist')
+        .children()
+        .first()
+        .should('contain.text', 'foo=bar=cat');
+
+      cy.get('[data-test=parameters-list]')
+        .should('exist')
+        .children()
+        .eq(1)
+        .should('contain.text', 'bar=foo');
+    });
+
     it('deployments table should show', () => {
       cy.login('/github/octocat/deployments');
       cy.get('[data-test=deployments-table]').should('be.visible');

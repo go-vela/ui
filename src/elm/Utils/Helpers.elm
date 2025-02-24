@@ -42,6 +42,7 @@ module Utils.Helpers exposing
     , pageToString
     , relativeTimeNoSeconds
     , secondsToMillis
+    , splitFirst
     , stringToAllowlist
     , stringToMaybe
     , successful
@@ -126,6 +127,25 @@ isOutsideTarget targetId =
 testAttribute : String -> Attribute msg
 testAttribute tag =
     attribute "data-test" tag
+
+
+{-| splitFirst : splits a string at the first occurrence of delimiter and returns a list of strings.
+-}
+splitFirst : String -> String -> List String
+splitFirst delimiter str =
+    case String.indexes delimiter str of
+        [] ->
+            [ str ]
+
+        index :: _ ->
+            let
+                before =
+                    String.left index str
+
+                after =
+                    String.dropLeft (index + String.length delimiter) str
+            in
+            [ before, after ]
 
 
 {-| secondsToMillis : converts seconds to milliseconds.
