@@ -268,9 +268,21 @@ subscriptions model =
 -}
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
+    let
+        pageNumQuery =
+            Dict.get "page" route.query |> Maybe.andThen String.toInt
+
+        pageNum =
+            case pageNumQuery of
+                Just n ->
+                    n
+
+                Nothing ->
+                    1
+    in
     { title = "Audit" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
-        [ viewHooks shared model model.hooks
+        [ viewHooks shared model model.hooks pageNum
         , Components.Pager.view
             { show = True
             , links = model.pager
@@ -283,8 +295,8 @@ view shared route model =
 
 {-| viewHooks : renders a list of hooks.
 -}
-viewHooks : Shared.Model -> Model -> WebData (List Vela.Hook) -> Html Msg
-viewHooks shared model hooks =
+viewHooks : Shared.Model -> Model -> WebData (List Vela.Hook) -> Int -> Html Msg
+viewHooks shared model hooks pageNum =
     let
         actions =
             Just <|
@@ -331,6 +343,7 @@ viewHooks shared model hooks =
                 tableHeaders
                 rows
                 actions
+                pageNum
     in
     div [] [ Components.Table.view cfg ]
 

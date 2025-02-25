@@ -81,6 +81,7 @@ type alias Config data msg =
     , columns : Columns
     , rows : Rows data msg
     , headerElement : Maybe (Html msg)
+    , pageNumber : Int
     }
 
 
@@ -91,7 +92,7 @@ type alias Config data msg =
 {-| view : renders data table.
 -}
 view : Config data msg -> Html msg
-view { label, testLabel, noRows, columns, rows, headerElement } =
+view { label, testLabel, noRows, columns, rows, headerElement, pageNumber } =
     let
         numRows =
             List.length rows
@@ -118,17 +119,22 @@ view { label, testLabel, noRows, columns, rows, headerElement } =
                     )
                     columns
             ]
-        , viewFooter noRows numRows numColumns
+        , viewFooter noRows numRows numColumns pageNumber
         , tbody [] <| List.map (\row_ -> row_.display row_.data) rows
         ]
 
 
 {-| viewFooter : renders data table footer.
 -}
-viewFooter : Html msg -> Int -> Int -> Html msg
-viewFooter noRows numRows numColumns =
+viewFooter : Html msg -> Int -> Int -> Int -> Html msg
+viewFooter noRows numRows numColumns pageNum =
     if numRows == 0 then
-        tfoot [ class "no-rows" ] [ tr [] [ td [ attribute "colspan" <| String.fromInt numColumns ] [ noRows ] ] ]
+        case pageNum of
+            1 ->
+                tfoot [ class "no-rows" ] [ tr [] [ td [ attribute "colspan" <| String.fromInt numColumns ] [ noRows ] ] ]
+
+            _ ->
+                tfoot [ class "no-rows" ] [ tr [] [ td [ attribute "colspan" <| String.fromInt numColumns ] [ text "End of results." ] ] ]
 
     else
         text ""

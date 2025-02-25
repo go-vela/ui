@@ -238,6 +238,18 @@ subscriptions model =
 -}
 view : Shared.Model -> Route { engine : String, org : String } -> Model -> View Msg
 view shared route model =
+    let
+        pageNumQuery =
+            Dict.get "page" route.query |> Maybe.andThen String.toInt
+
+        pageNum =
+            case pageNumQuery of
+                Just n ->
+                    n
+
+                Nothing ->
+                    1
+    in
     { title = "Secrets" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
         [ Components.Secrets.viewOrgSecrets shared
@@ -272,6 +284,7 @@ view shared route model =
                         , msg = GotoPage
                         }
                     ]
+            , pageNumber = pageNum
             }
         , Components.Pager.view
             { show = True
@@ -306,6 +319,7 @@ view shared route model =
                             |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
                         ]
                     ]
+            , pageNumber = 1
             }
         ]
     }

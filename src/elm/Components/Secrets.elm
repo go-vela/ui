@@ -39,6 +39,7 @@ type alias Props msg =
     , key : String
     , secrets : WebData (List Vela.Secret)
     , tableButtons : Maybe (List (Html msg))
+    , pageNumber : Int
     }
 
 
@@ -59,7 +60,7 @@ viewOrgSecrets shared props =
         ( noRowsView, rows ) =
             case props.secrets of
                 RemoteData.Success s ->
-                    ( text <| "No secrets found for the org (" ++ props.key ++ ")"
+                    ( text <| "No secrets found for the repo: (" ++ props.key ++ ")"
                     , secretsToRows props.engine Vela.OrgSecret props.msgs.showCopyAlert s
                     )
 
@@ -92,6 +93,7 @@ viewOrgSecrets shared props =
                 tableHeaders
                 rows
                 actions
+                props.pageNumber
     in
     div [] [ Components.Table.view cfg ]
 
@@ -142,6 +144,7 @@ viewRepoSecrets shared props =
                 tableHeaders
                 rows
                 actions
+                props.pageNumber
     in
     div [] [ Components.Table.view cfg ]
 
@@ -192,6 +195,7 @@ viewSharedSecrets shared props =
                 tableHeaders
                 rows
                 actions
+                props.pageNumber
     in
     div [ class "shared-secrets-container" ] [ Components.Table.view cfg ]
 

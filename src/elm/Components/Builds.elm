@@ -68,6 +68,7 @@ type alias Props msg =
     , viewActionsMenu : { build : Vela.Build } -> Html msg
     , showRepoLink : Bool
     , linkBuildNumber : Bool
+    , pageNumber : Int
     }
 
 
@@ -100,34 +101,46 @@ view shared props =
         none =
             case props.maybeEvent of
                 Nothing ->
-                    div []
-                        [ h2 [] [ noBuildsHeaderText ]
-                        , p [] [ text "Builds will show up here once you have:" ]
-                        , ol [ class "list" ]
-                            [ li []
-                                [ text "A "
-                                , code [] [ text ".vela.yml" ]
-                                , text " file that describes your build pipeline in the root of your repository."
-                                , br [] []
-                                , a [ href <| shared.velaDocsURL ++ "/usage/" ] [ text "Review the documentation" ]
-                                , text " for help or "
-                                , a [ href <| shared.velaDocsURL ++ "/usage/examples/" ] [ text "check some of the pipeline examples" ]
-                                , text "."
+                    case props.pageNumber of
+                        1 ->
+                            div []
+                                [ h2 [] [ noBuildsHeaderText ]
+                                , p [] [ text "Builds will show up here once you have:" ]
+                                , ol [ class "list" ]
+                                    [ li []
+                                        [ text "A "
+                                        , code [] [ text ".vela.yml" ]
+                                        , text " file that describes your build pipeline in the root of your repository."
+                                        , br [] []
+                                        , a [ href <| shared.velaDocsURL ++ "/usage/" ] [ text "Review the documentation" ]
+                                        , text " for help or "
+                                        , a [ href <| shared.velaDocsURL ++ "/usage/examples/" ] [ text "check some of the pipeline examples" ]
+                                        , text "."
+                                        ]
+                                    , li []
+                                        [ text "Trigger one of the "
+                                        , webhooks
+                                        , text " by performing the respective action via "
+                                        , em [] [ text "Git" ]
+                                        , text "."
+                                        ]
+                                    ]
+                                , p [] [ text "Happy building!" ]
                                 ]
-                            , li []
-                                [ text "Trigger one of the "
-                                , webhooks
-                                , text " by performing the respective action via "
-                                , em [] [ text "Git" ]
-                                , text "."
-                                ]
-                            ]
-                        , p [] [ text "Happy building!" ]
-                        ]
+
+                        _ ->
+                            div []
+                                [ h2 [] [ text <| "End of build results." ] ]
 
                 Just event ->
-                    div []
-                        [ h3 [] [ text <| "No builds for \"" ++ event ++ "\" event found." ] ]
+                    case props.pageNumber of
+                        1 ->
+                            div []
+                                [ h3 [] [ text <| "No builds for \"" ++ event ++ "\" event found." ] ]
+
+                        _ ->
+                            div []
+                                [ h2 [] [ text <| "End of build results." ] ]
     in
     case props.builds of
         RemoteData.Success builds ->

@@ -205,6 +205,17 @@ view shared route model =
             , ( route.params.team, Nothing )
             , ( "Secrets", Nothing )
             ]
+
+        pageNumQuery =
+            Dict.get "page" route.query |> Maybe.andThen String.toInt
+
+        pageNum =
+            case pageNumQuery of
+                Just n ->
+                    n
+
+                Nothing ->
+                    1
     in
     { title = "Secrets" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
@@ -244,6 +255,7 @@ view shared route model =
                             , msg = GotoPage
                             }
                         ]
+                , pageNumber = pageNum
                 }
             ]
         ]
