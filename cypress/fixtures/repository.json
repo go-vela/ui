@@ -42,5 +42,6 @@
     }
   },
   "pipeline_type": "yaml",
-  "approve_build": "fork-always"
+  "approve_build": "fork-always",
+  "approval_timeout": 7
 }

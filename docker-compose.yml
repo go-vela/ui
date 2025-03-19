@@ -12,7 +12,7 @@ services:
   ui:
     build:
       context: .
-      dockerfile: Dockerfile.local
+      dockerfile: ${VELA_UI_DOCKERFILE:-Dockerfile}
     container_name: ui
     image: ui:local
     networks:

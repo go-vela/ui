@@ -150,6 +150,9 @@ viewImagesInput { onInput_, addImage, removeImage, images, imageValue, disabled_
                     , wrap_ = Just "soft"
                     , msg = onInput_
                     , disabled_ = disabled_
+                    , min = Nothing
+                    , max = Nothing
+                    , required = False
                     }
                 , button
                     [ class "button"

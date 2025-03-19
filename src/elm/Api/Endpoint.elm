@@ -28,6 +28,7 @@ type Endpoint
     | Dashboard String
     | Dashboards
     | Deployment Vela.Org Vela.Repo (Maybe String)
+    | DeploymentConfig Vela.Org Vela.Repo (Maybe Vela.Ref)
     | Deployments (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Org Vela.Repo
     | Token
     | Repositories (Maybe Pagination.Page) (Maybe Pagination.PerPage)
@@ -39,7 +40,7 @@ type Endpoint
     | Hooks (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Org Vela.Repo
     | Hook Vela.Org Vela.Repo Vela.HookNumber
     | OrgBuilds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Vela.Event) Vela.Org
-    | Builds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Vela.Event) Vela.Org Vela.Repo
+    | Builds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Vela.Event) (Maybe Int) Vela.Org Vela.Repo
     | Build Vela.Org Vela.Repo Vela.BuildNumber
     | CancelBuild Vela.Org Vela.Repo Vela.BuildNumber
     | ApproveBuild Vela.Org Vela.Repo Vela.BuildNumber
@@ -106,8 +107,8 @@ toUrl api endpoint =
         OrgBuilds maybePage maybePerPage maybeEvent org ->
             url api [ "repos", org, "builds" ] <| Pagination.toQueryParams maybePage maybePerPage ++ [ UB.string "event" <| Maybe.withDefault "" maybeEvent ]
 
-        Builds maybePage maybePerPage maybeEvent org repo ->
-            url api [ "repos", org, repo, "builds" ] <| Pagination.toQueryParams maybePage maybePerPage ++ [ UB.string "event" <| Maybe.withDefault "" maybeEvent ]
+        Builds maybePage maybePerPage maybeEvent maybeAfter org repo ->
+            url api [ "repos", org, repo, "builds" ] <| Pagination.toQueryParams maybePage maybePerPage ++ [ UB.string "event" <| Maybe.withDefault "" maybeEvent, UB.int "after" <| Maybe.withDefault 0 maybeAfter ]
 
         Build org repo build ->
             url api [ "repos", org, repo, "builds", build ] []
@@ -161,6 +162,14 @@ toUrl api endpoint =
 
                 Nothing ->
                     url api [ "deployments", org, repo ] []
+
+        DeploymentConfig org repo maybeRef ->
+            case maybeRef of
+                Nothing ->
+                    url api [ "deployments", org, repo, "config" ] []
+
+                Just ref ->
+                    url api [ "deployments", org, repo, "config" ] [ UB.string "ref" ref ]
 
         Deployments maybePage maybePerPage org repo ->
             url api [ "deployments", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage

@@ -90,6 +90,10 @@ context('Pipeline', () => {
         cy.get('[data-test=pipeline-expand]').should('exist');
       });
 
+      it('warnings should not be visible', () => {
+        cy.get('[data-test=pipeline-warnings]').should('not.be.visible');
+      });
+
       context('click expand templates', () => {
         beforeEach(() => {
           cy.get('[data-test=pipeline-expand-toggle]').click({
@@ -279,6 +283,127 @@ context('Pipeline', () => {
             );
             cy.get('[data-test=pipeline-configuration-data]').should(
               'be.visible',
+            );
+          });
+        });
+      });
+    },
+  );
+  context(
+    'logged in and server returning valid pipeline configuration (with warnings) and templates',
+    () => {
+      beforeEach(() => {
+        cy.server();
+        cy.stubBuild();
+        cy.stubPipelineWithWarnings();
+        cy.stubPipelineExpand();
+        cy.stubPipelineTemplates();
+        cy.login('/github/octocat/1/pipeline');
+      });
+
+      it('warnings should be visible', () => {
+        cy.get('[data-test=pipeline-warnings]').should('be.visible');
+      });
+
+      it('should show 2 warnings', () => {
+        cy.get('[data-test=pipeline-warnings]')
+          .children()
+          .should('have.length', 2);
+      });
+
+      it('warning with line number should show line number button', () => {
+        cy.get('[data-test=warning-line-num-4]')
+          .should('be.visible')
+          .should('not.have.class', '-disabled');
+      });
+
+      it('warning with line number should show content without line number', () => {
+        cy.get('[data-test=warning-0] .line-content')
+          .should('be.visible')
+          .should('not.contain', '4')
+          .should('contain', 'template');
+      });
+
+      it('warning without line number should replace button with dash', () => {
+        cy.get('[data-test=warning-1]')
+          .should('be.visible')
+          .should('contain', '-');
+      });
+
+      it('warning without line number should content', () => {
+        cy.get('[data-test=warning-1] .line-content')
+          .should('be.visible')
+          .should('contain', 'secrets');
+      });
+
+      it('log line with warning should show annotation', () => {
+        cy.get('[data-test=warning-annotation-line-4]').should('be.visible');
+      });
+
+      it('other lines should not show annotations', () => {
+        cy.get('[data-test=warning-annotation-line-5]').should(
+          'not.be.visible',
+        );
+      });
+
+      context('click warning line number', () => {
+        beforeEach(() => {
+          cy.get('[data-test=warning-line-num-4]').click({ force: true });
+        });
+
+        it('should update path with line num', () => {
+          cy.hash().should('eq', '#4');
+        });
+
+        it('should set focus style on single line', () => {
+          cy.get('[data-test=config-line-4]').should('have.class', '-focus');
+        });
+
+        it('other lines should not have focus style', () => {
+          cy.get('[data-test=config-line-3]').should(
+            'not.have.class',
+            '-focus',
+          );
+        });
+      });
+
+      context('click expand templates', () => {
+        beforeEach(() => {
+          cy.get('[data-test=pipeline-expand-toggle]').click({
+            force: true,
+          });
+          cy.wait('@expand');
+        });
+
+        it('should update path with expand query', () => {
+          cy.location().should(loc => {
+            expect(loc.search).to.eq('?expand=true');
+          });
+        });
+
+        it('should show pipeline expansion note', () => {
+          cy.get('[data-test=pipeline-warnings-expand-note]').contains('note');
+        });
+
+        it('warning with line number should show disabled line number button', () => {
+          cy.get('[data-test=warning-line-num-4]')
+            .should('be.visible')
+            .should('have.class', '-disabled');
+        });
+
+        context('click warning line number', () => {
+          beforeEach(() => {
+            cy.get('[data-test=warning-line-num-4]').click({ force: true });
+          });
+
+          it('should not update path with line num', () => {
+            cy.hash().should('not.eq', '#4');
+          });
+
+          it('other lines should not have focus style', () => {
+            cy.get('[data-test=config-line-3]').should(
+              'not.have.class',
+              '-focus',
             );
           });
         });
