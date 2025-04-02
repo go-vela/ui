@@ -618,7 +618,7 @@ view shared route model =
                         , div [ class "help" ]
                             [ text "Need help? Visit our "
                             , a
-                                [ href <| shared.velaDocsURL ++ "/usage/deployments/"
+                                [ href <| shared.velaDocsURL ++ "/usage/managing-deployments"
                                 ]
                                 [ text "docs" ]
                             , text "!"
