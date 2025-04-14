@@ -531,6 +531,16 @@ Cypress.Commands.add('stubPipeline', () => {
   });
 });
 
+Cypress.Commands.add('stubPipelineWithWarnings', () => {
+  cy.fixture('pipeline_warnings.json').as('pipeline');
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/pipelines/*/*/*',
+    status: 200,
+    response: '@pipeline',
+  });
+});
+
 Cypress.Commands.add('stubPipelineErrors', () => {
   cy.route({
     method: 'GET',

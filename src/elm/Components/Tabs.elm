@@ -231,6 +231,11 @@ viewRepoTabs shared props =
               , isAlerting = False
               , show = showSchedules
               }
+            , { name = "Insights"
+              , toPath = Route.Path.Org__Repo__Insights { org = props.org, repo = props.repo }
+              , isAlerting = False
+              , show = True
+              }
             , { name = "Audit"
               , toPath = Route.Path.Org__Repo__Hooks { org = props.org, repo = props.repo }
               , isAlerting = auditAlerting

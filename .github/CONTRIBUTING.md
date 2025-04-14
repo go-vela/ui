@@ -27,7 +27,7 @@ We are always open to new PRs! You can follow the below guide for learning how y
 
 ### Setup
 
-* [Fork](/fork) this repository
+* [Fork](../../../fork) this repository
 
 * Clone this repository to your workstation:
 

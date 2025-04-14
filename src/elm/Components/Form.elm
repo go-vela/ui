@@ -7,11 +7,13 @@ module Components.Form exposing (EditableListForm, handleNumberInputString, view
 
 import Components.Loading
 import Dict exposing (Dict)
+import Effect exposing (Effect)
 import FeatherIcons
 import Html exposing (Html, button, div, h3, input, label, li, section, span, strong, text, textarea, ul)
 import Html.Attributes exposing (attribute, checked, class, classList, disabled, for, id, placeholder, rows, type_, value, wrap)
 import Html.Events exposing (onCheck, onClick, onInput)
 import Http
+import Json.Decode
 import Maybe.Extra
 import RemoteData exposing (WebData)
 import Shared
@@ -36,9 +38,12 @@ viewInputSection :
     , wrap_ : Maybe String
     , msg : String -> msg
     , disabled_ : Bool
+    , min : Maybe String
+    , max : Maybe String
+    , required : Bool
     }
     -> Html msg
-viewInputSection { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, msg, disabled_ } =
+viewInputSection { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, msg, disabled_, min, max, required } =
     let
         target =
             String.join "-" [ "input", id_ ]
@@ -62,6 +67,9 @@ viewInputSection { id_, title, subtitle, val, placeholder_, classList_, rows_, w
             , Maybe.Extra.unwrap Util.attrNone wrap wrap_
             , onInput msg
             , disabled disabled_
+            , Maybe.Extra.unwrap Util.attrNone Html.Attributes.min min
+            , Maybe.Extra.unwrap Util.attrNone Html.Attributes.max max
+            , Html.Attributes.required required
             , Util.testAttribute target
             ]
             []
@@ -82,9 +90,12 @@ viewInput :
     , wrap_ : Maybe String
     , msg : String -> msg
     , disabled_ : Bool
+    , min : Maybe String
+    , max : Maybe String
+    , required : Bool
     }
     -> Html msg
-viewInput { id_, title, subtitle, val, placeholder_, classList_, wrapperClassList, rows_, wrap_, msg, disabled_ } =
+viewInput { id_, title, subtitle, val, placeholder_, classList_, wrapperClassList, rows_, wrap_, msg, disabled_, min, max, required } =
     let
         target =
             String.join "-" [ "input", id_ ]
@@ -102,6 +113,9 @@ viewInput { id_, title, subtitle, val, placeholder_, classList_, wrapperClassLis
             , Maybe.Extra.unwrap Util.attrNone wrap wrap_
             , onInput msg
             , disabled disabled_
+            , Maybe.Extra.unwrap Util.attrNone Html.Attributes.min min
+            , Maybe.Extra.unwrap Util.attrNone Html.Attributes.max max
+            , Html.Attributes.required required
             , Util.testAttribute target
             ]
             []
@@ -140,9 +154,10 @@ viewNumberInput :
     , disabled_ : Bool
     , min : Maybe Int
     , max : Maybe Int
+    , required : Bool
     }
     -> Html msg
-viewNumberInput { id_, title, subtitle, val, placeholder_, wrapperClassList, classList_, rows_, wrap_, msg, disabled_, min, max } =
+viewNumberInput { id_, title, subtitle, val, placeholder_, wrapperClassList, classList_, rows_, wrap_, msg, disabled_, min, max, required } =
     let
         target =
             String.join "-" [ "input", id_ ]
@@ -163,6 +178,7 @@ viewNumberInput { id_, title, subtitle, val, placeholder_, wrapperClassList, cla
             , Maybe.Extra.unwrap Util.attrNone wrap wrap_
             , onInput msg
             , disabled disabled_
+            , Html.Attributes.required required
             , Util.testAttribute target
             ]
             []
@@ -182,9 +198,10 @@ viewTextareaSection :
     , wrap_ : Maybe String
     , msg : String -> msg
     , disabled_ : Bool
+    , focusOutFunc : Maybe msg
     }
     -> Html msg
-viewTextareaSection { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, msg, disabled_ } =
+viewTextareaSection { id_, title, subtitle, val, placeholder_, classList_, rows_, wrap_, msg, disabled_, focusOutFunc } =
     let
         target =
             String.join "-" [ "textarea", id_ ]
@@ -208,6 +225,7 @@ viewTextareaSection { id_, title, subtitle, val, placeholder_, classList_, rows_
             , Maybe.Extra.unwrap Util.attrNone wrap wrap_
             , onInput msg
             , disabled disabled_
+            , Maybe.Extra.unwrap Util.attrNone (Html.Events.on "focusout" << Json.Decode.succeed) focusOutFunc
             , Util.testAttribute target
             ]
             []
@@ -256,17 +274,19 @@ viewCheckbox :
     , subtitle : Maybe (Html msg)
     , field : String
     , state : Bool
+    , wrapperClassList : List ( String, Bool )
     , msg : Bool -> msg
     , disabled_ : Bool
     }
     -> Html msg
-viewCheckbox { id_, title, subtitle, field, state, msg, disabled_ } =
+viewCheckbox { id_, title, subtitle, field, state, wrapperClassList, msg, disabled_ } =
     let
         target =
             String.join "-" [ "checkbox", id_, field ]
     in
     div
         [ class "form-control"
+        , classList wrapperClassList
         , Util.testAttribute target
         ]
         [ input
@@ -387,6 +407,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_push_branch"
             , state = allowEvents.push.branch
+            , wrapperClassList = []
             , msg = msg { allowEvents = allowEvents, event = Vela.PushBranch }
             , disabled_ = False
             , id_ = "allow-events-push-branch"
@@ -396,6 +417,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_push_tag"
             , state = allowEvents.push.tag
+            , wrapperClassList = []
             , msg = msg { allowEvents = allowEvents, event = Vela.PushTag }
             , disabled_ = False
             , id_ = "allow-events-push-tag"
@@ -408,6 +430,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_pull_opened"
             , state = allowEvents.pull.opened
+            , wrapperClassList = []
             , msg = msg { allowEvents = allowEvents, event = Vela.PullOpened }
             , disabled_ = False
             , id_ = "allow-events-pull-opened"
@@ -417,6 +440,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_pull_synchronize"
             , state = allowEvents.pull.synchronize
+            , wrapperClassList = []
             , msg = msg { allowEvents = allowEvents, event = Vela.PullSynchronize }
             , disabled_ = False
             , id_ = "allow-events-pull-synchronize"
@@ -426,6 +450,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_pull_edited"
             , state = allowEvents.pull.edited
+            , wrapperClassList = []
             , msg = msg { allowEvents = allowEvents, event = Vela.PullEdited }
             , disabled_ = False
             , id_ = "allow-events-pull-edited"
@@ -435,6 +460,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_pull_reopened"
             , state = allowEvents.pull.reopened
+            , wrapperClassList = []
             , msg = msg { allowEvents = allowEvents, event = Vela.PullReopened }
             , disabled_ = False
             , id_ = "allow-events-pull-reopened"
@@ -444,6 +470,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_pull_labeled"
             , state = allowEvents.pull.labeled
+            , wrapperClassList = []
             , msg = msg { allowEvents = allowEvents, event = Vela.PullLabeled }
             , disabled_ = False
             , id_ = "allow-events-pull-labeled"
@@ -453,6 +480,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_pull_unlabeled"
             , state = allowEvents.pull.unlabeled
+            , wrapperClassList = []
             , msg = msg { allowEvents = allowEvents, event = Vela.PullUnlabeled }
             , disabled_ = False
             , id_ = "allow-events-pull-unlabeled"
@@ -465,6 +493,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_deploy_created"
             , state = allowEvents.deploy.created
+            , wrapperClassList = []
             , msg = msg { allowEvents = allowEvents, event = Vela.DeployCreated }
             , disabled_ = False
             , id_ = "allow-events-deploy-created"
@@ -477,6 +506,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_comment_created"
             , state = allowEvents.comment.created
+            , wrapperClassList = []
             , msg = msg { allowEvents = allowEvents, event = Vela.CommentCreated }
             , disabled_ = False
             , id_ = "allow-events-comment-created"
@@ -486,6 +516,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_comment_edited"
             , state = allowEvents.comment.edited
+            , wrapperClassList = []
             , msg = msg { allowEvents = allowEvents, event = Vela.CommentEdited }
             , disabled_ = False
             , id_ = "allow-events-comment-edited"
@@ -498,6 +529,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_push_delete_branch"
             , state = allowEvents.push.deleteBranch
+            , wrapperClassList = []
             , msg = msg { allowEvents = allowEvents, event = Vela.PushDeleteBranch }
             , disabled_ = False
             , id_ = "allow-events-push-delete-branch"
@@ -507,6 +539,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_push_delete_tag"
             , state = allowEvents.push.deleteTag
+            , wrapperClassList = []
             , msg = msg { allowEvents = allowEvents, event = Vela.PushDeleteTag }
             , disabled_ = False
             , id_ = "allow-events-push-delete-tag"
@@ -519,6 +552,7 @@ viewAllowEvents shared { msg, allowEvents } =
             , subtitle = Nothing
             , field = "allow_schedule_run"
             , state = allowEvents.schedule.run
+            , wrapperClassList = []
             , msg = msg { allowEvents = allowEvents, event = Vela.ScheduleRun }
             , disabled_ = False
             , id_ = "allow-events-schedule-run"
@@ -585,6 +619,9 @@ viewEditableList props =
                         , wrap_ = Nothing
                         , msg = addProps.addOnInputMsg
                         , disabled_ = False
+                        , min = Nothing
+                        , max = Nothing
+                        , required = False
                         }
                     , viewButton
                         { id_ = target ++ "-add"
@@ -665,6 +702,9 @@ viewEditableListItem props item =
                     , wrap_ = Nothing
                     , msg = props.itemEditOnInputMsg { id = itemId }
                     , disabled_ = False
+                    , min = Nothing
+                    , max = Nothing
+                    , required = False
                     }
 
             Nothing ->

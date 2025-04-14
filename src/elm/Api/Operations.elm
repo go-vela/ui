@@ -22,6 +22,7 @@ module Api.Operations exposing
     , finishAuthentication
     , getAllBuildServices
     , getAllBuildSteps
+    , getAllBuilds
     , getBuild
     , getBuildGraph
     , getBuildServiceLog
@@ -31,6 +32,7 @@ module Api.Operations exposing
     , getCurrentUser
     , getDashboard
     , getDashboards
+    , getDeploymentConfig
     , getOrgBuilds
     , getOrgRepos
     , getOrgSecret
@@ -279,6 +281,7 @@ getRepoBuilds :
             , pageNumber : Maybe Int
             , perPage : Maybe Int
             , maybeEvent : Maybe String
+            , maybeAfter : Maybe Int
         }
     -> Request (List Vela.Build)
 getRepoBuilds baseUrl session options =
@@ -287,6 +290,7 @@ getRepoBuilds baseUrl session options =
             options.pageNumber
             options.perPage
             options.maybeEvent
+            options.maybeAfter
             options.org
             options.repo
         )
@@ -461,6 +465,29 @@ addDeployment baseUrl session options =
         )
         options.body
         Vela.decodeDeployment
+        |> withAuth session
+
+
+{-| getDeploymentConfig : retrieves deployment config for a repo and pipeline ref.
+-}
+getDeploymentConfig :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , ref : Maybe String
+        }
+    -> Request Vela.DeploymentConfig
+getDeploymentConfig baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.DeploymentConfig
+            options.org
+            options.repo
+            options.ref
+        )
+        Vela.decodeDeploymentConfig
         |> withAuth session
 
 
@@ -681,6 +708,32 @@ getBuildSteps baseUrl session options =
             options.build
         )
         Vela.decodeSteps
+        |> withAuth session
+
+
+{-| getAllBuilds : retrieves all builds.
+-}
+getAllBuilds :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , after : Int
+        }
+    -> Request Vela.Build
+getAllBuilds baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.Builds
+            (Just 1)
+            (Just 100)
+            Nothing
+            (Just options.after)
+            options.org
+            options.repo
+        )
+        Vela.decodeBuild
         |> withAuth session
 
 

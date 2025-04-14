@@ -35,6 +35,7 @@ import Pages.Org_.Repo_.Build_.Services
 import Pages.Org_.Repo_.Deployments
 import Pages.Org_.Repo_.Deployments.Add
 import Pages.Org_.Repo_.Hooks
+import Pages.Org_.Repo_.Insights
 import Pages.Org_.Repo_.Pulls
 import Pages.Org_.Repo_.Schedules
 import Pages.Org_.Repo_.Schedules.Add
@@ -70,6 +71,7 @@ type Msg
     | Org__Repo__Deployments Pages.Org_.Repo_.Deployments.Msg
     | Org__Repo__Deployments_Add Pages.Org_.Repo_.Deployments.Add.Msg
     | Org__Repo__Hooks Pages.Org_.Repo_.Hooks.Msg
+    | Org__Repo__Insights Pages.Org_.Repo_.Insights.Msg
     | Org__Repo__Pulls Pages.Org_.Repo_.Pulls.Msg
     | Org__Repo__Schedules Pages.Org_.Repo_.Schedules.Msg
     | Org__Repo__Schedules_Add Pages.Org_.Repo_.Schedules.Add.Msg

@@ -35,6 +35,7 @@ import Pages.Org_.Repo_.Build_.Services
 import Pages.Org_.Repo_.Deployments
 import Pages.Org_.Repo_.Deployments.Add
 import Pages.Org_.Repo_.Hooks
+import Pages.Org_.Repo_.Insights
 import Pages.Org_.Repo_.Pulls
 import Pages.Org_.Repo_.Schedules
 import Pages.Org_.Repo_.Schedules.Add
@@ -71,6 +72,7 @@ type Model
     | Org__Repo__Deployments { org : String, repo : String } Pages.Org_.Repo_.Deployments.Model
     | Org__Repo__Deployments_Add { org : String, repo : String } Pages.Org_.Repo_.Deployments.Add.Model
     | Org__Repo__Hooks { org : String, repo : String } Pages.Org_.Repo_.Hooks.Model
+    | Org__Repo__Insights { org : String, repo : String } Pages.Org_.Repo_.Insights.Model
     | Org__Repo__Pulls { org : String, repo : String } Pages.Org_.Repo_.Pulls.Model
     | Org__Repo__Schedules { org : String, repo : String } Pages.Org_.Repo_.Schedules.Model
     | Org__Repo__Schedules_Add { org : String, repo : String } Pages.Org_.Repo_.Schedules.Add.Model

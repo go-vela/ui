@@ -12,9 +12,12 @@ module Vela exposing
     , BuildGraphInteraction
     , BuildGraphNode
     , BuildNumber
+    , ConfigParameterType(..)
     , Dashboard
     , DashboardRepoCard
     , Deployment
+    , DeploymentConfig
+    , DeploymentConfigParameter
     , DeploymentPayload
     , EnableRepoPayload
     , Enabled(..)
@@ -61,6 +64,8 @@ module Vela exposing
     , decodeDashboard
     , decodeDashboards
     , decodeDeployment
+    , decodeDeploymentConfig
+    , decodeDeploymentConfigParameter
     , decodeDeployments
     , decodeGraphInteraction
     , decodeHooks
@@ -87,6 +92,7 @@ module Vela exposing
     , defaultCompilerPayload
     , defaultDeploymentPayload
     , defaultEnabledAllowEvents
+    , defaultPipelineConfig
     , defaultQueuePayload
     , defaultRepoPayload
     , defaultSchedulePayload
@@ -114,10 +120,11 @@ module Vela exposing
 import Bytes.Encode
 import Dict exposing (Dict)
 import Json.Decode exposing (Decoder, andThen, bool, int, string, succeed)
-import Json.Decode.Extra exposing (dict2, optionalField)
+import Json.Decode.Extra exposing (dict2)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode
 import RemoteData exposing (WebData)
+import Utils.Warnings as Warnings
 
 
 
@@ -277,10 +284,10 @@ decodeUser : Decoder User
 decodeUser =
     Json.Decode.succeed User
         |> required "id" int
-        |> required "name" string
+        |> optional "name" string ""
         |> optional "favorites" (Json.Decode.list string) []
         |> optional "dashboards" (Json.Decode.list string) []
-        |> required "active" bool
+        |> optional "active" bool False
         |> optional "admin" bool False
 
 
@@ -455,6 +462,7 @@ type alias Repository =
     , allowEvents : AllowEvents
     , enabled : Enabled
     , pipeline_type : String
+    , approval_timeout : Int
     }
 
 
@@ -480,6 +488,7 @@ emptyRepository =
     , allowEvents = defaultAllowEvents
     , enabled = Disabled
     , pipeline_type = ""
+    , approval_timeout = 0
     }
 
 
@@ -507,6 +516,7 @@ decodeRepository =
         -- "enabled"
         |> optional "active" enabledDecoder Disabled
         |> optional "pipeline_type" string ""
+        |> optional "approval_timeout" int 0
 
 
 decodeRepositories : Decoder (List Repository)
@@ -529,6 +539,7 @@ type alias RepoPayload =
     , timeout : Maybe Int
     , counter : Maybe Int
     , pipeline_type : Maybe String
+    , approval_timeout : Maybe Int
     }
 
 
@@ -545,6 +556,7 @@ encodeRepoPayload repo =
         , ( "timeout", encodeOptional Json.Encode.int repo.timeout )
         , ( "counter", encodeOptional Json.Encode.int repo.counter )
         , ( "pipeline_type", encodeOptional Json.Encode.string repo.pipeline_type )
+        , ( "approval_timeout", encodeOptional Json.Encode.int repo.approval_timeout )
         ]
 
 
@@ -560,6 +572,7 @@ defaultRepoPayload =
     , timeout = Nothing
     , counter = Nothing
     , pipeline_type = Nothing
+    , approval_timeout = Nothing
     }
 
 
@@ -573,6 +586,7 @@ type RepoFieldUpdate
     | Timeout
     | Counter
     | PipelineType
+    | ApprovalTimeout
 
 
 type alias RepoFieldUpdateResponseConfig =
@@ -709,6 +723,12 @@ repoFieldUpdateToResponseConfig field =
                 { successAlert =
                     \repo ->
                         "$ pipeline syntax type set to '" ++ repo.pipeline_type ++ "'."
+                }
+
+            ApprovalTimeout ->
+                { successAlert =
+                    \repo ->
+                        "$ build approval timeout set to " ++ String.fromInt repo.approval_timeout ++ " day(s)."
                 }
 
 
@@ -1109,9 +1129,30 @@ allowEventsFilterQueryKeys =
 
 
 type alias PipelineConfig =
-    { rawData : String
+    { commit : String
+    , flavor : String
+    , platform : String
+    , ref : String
+    , type_ : String
+    , version : String
+    , externalSecrets : Bool
+    , internalSecrets : Bool
+    , services : Bool
+    , stages : Bool
+    , steps : Bool
+    , templates : Bool
+    , warnings : List String
+
+    -- decoded values
+    , rawData : String
     , decodedData : String
+    , lineWarnings : Dict Int (List String)
     }
+
+
+defaultPipelineConfig : PipelineConfig
+defaultPipelineConfig =
+    PipelineConfig "" "" "" "" "" "" False False False False False False [] "" "" Dict.empty
 
 
 type alias Template =
@@ -1129,13 +1170,58 @@ type alias Templates =
 decodePipelineConfig : Json.Decode.Decoder PipelineConfig
 decodePipelineConfig =
     Json.Decode.succeed
-        (\data ->
-            PipelineConfig
-                data
-                -- "decodedData"
-                ""
-        )
+        PipelineConfig
+        |> optional "commit" string ""
+        |> optional "flavor" string ""
+        |> optional "platform" string ""
+        |> optional "ref" string ""
+        |> optional "type" string ""
+        |> optional "version" string ""
+        |> optional "external_secrets" bool False
+        |> optional "internal_secrets" bool False
+        |> optional "services" bool False
+        |> optional "stages" bool False
+        |> optional "steps" bool False
+        |> optional "templates" bool False
+        |> optional "warnings" (Json.Decode.list string) []
         |> optional "data" string ""
+        |> optional "decodedData" string ""
+        |> optional "warnings"
+            (Json.Decode.list string
+                |> Json.Decode.andThen
+                    decodeAndCollapsePipelineWarnings
+            )
+            Dict.empty
+
+
+decodeAndCollapsePipelineWarnings : List String -> Json.Decode.Decoder (Dict Int (List String))
+decodeAndCollapsePipelineWarnings warnings =
+    Json.Decode.succeed
+        (List.foldl
+            (\warning dict ->
+                let
+                    { maybeLineNumber, content } =
+                        Warnings.fromString warning
+                in
+                case ( maybeLineNumber, content ) of
+                    ( Just line, w ) ->
+                        Dict.update line
+                            (\maybeWarnings ->
+                                case maybeWarnings of
+                                    Just existingWarnings ->
+                                        Just (w :: existingWarnings)
+
+                                    Nothing ->
+                                        Just [ w ]
+                            )
+                            dict
+
+                    _ ->
+                        dict
+            )
+            Dict.empty
+            warnings
+        )
 
 
 decodePipelineExpand : Json.Decode.Decoder String
@@ -1877,7 +1963,7 @@ encodeSecretPayload secret =
 type alias Deployment =
     { id : Int
     , number : Int
-    , repo_id : Int
+    , repo : Repository
     , url : String
     , created_by : String
     , created_at : Int
@@ -1896,7 +1982,7 @@ decodeDeployment =
     Json.Decode.succeed Deployment
         |> optional "id" int -1
         |> optional "number" int -1
-        |> optional "repo_id" int -1
+        |> optional "repo" decodeRepository emptyRepository
         |> optional "url" string ""
         |> optional "created_by" string ""
         |> optional "created_at" int 0
@@ -1916,7 +2002,6 @@ decodeDeployments =
 
 type alias DeploymentPayload =
     { org : Maybe String
-    , repo : Maybe String
     , commit : Maybe String
     , description : Maybe String
     , ref : Maybe String
@@ -1929,7 +2014,6 @@ type alias DeploymentPayload =
 defaultDeploymentPayload : DeploymentPayload
 defaultDeploymentPayload =
     { org = Nothing
-    , repo = Nothing
     , commit = Nothing
     , description = Nothing
     , ref = Nothing
@@ -1943,7 +2027,6 @@ encodeDeploymentPayload : DeploymentPayload -> Json.Encode.Value
 encodeDeploymentPayload deployment =
     Json.Encode.object
         [ ( "org", encodeOptional Json.Encode.string deployment.org )
-        , ( "repo", encodeOptional Json.Encode.string deployment.repo )
         , ( "commit", encodeOptional Json.Encode.string deployment.commit )
         , ( "description", encodeOptional Json.Encode.string deployment.description )
         , ( "ref", encodeOptional Json.Encode.string deployment.ref )
@@ -1956,6 +2039,80 @@ encodeDeploymentPayload deployment =
 decodeDeploymentParameters : Decoder (Maybe (List KeyValuePair))
 decodeDeploymentParameters =
     Json.Decode.map decodeKeyValuePairs <| Json.Decode.keyValuePairs Json.Decode.string
+
+
+
+-- DEPLOYMENT CONFIG
+
+
+type alias DeploymentConfig =
+    { targets : List String
+    , parameters : Dict String DeploymentConfigParameter
+    }
+
+
+decodeDeploymentConfig : Decoder DeploymentConfig
+decodeDeploymentConfig =
+    Json.Decode.succeed DeploymentConfig
+        |> optional "targets" (Json.Decode.list Json.Decode.string) []
+        |> optional "parameters" (Json.Decode.dict decodeDeploymentConfigParameter) Dict.empty
+
+
+type ConfigParameterType
+    = String_
+    | Int_
+    | Bool_
+
+
+deployConfigTypeDecoder : Decoder ConfigParameterType
+deployConfigTypeDecoder =
+    string |> andThen toDeployConfigTypeDecoder
+
+
+toDeployConfigTypeDecoder : String -> Decoder ConfigParameterType
+toDeployConfigTypeDecoder type_ =
+    case type_ of
+        "integer" ->
+            succeed Int_
+
+        "int" ->
+            succeed Int_
+
+        "number" ->
+            succeed Int_
+
+        "boolean" ->
+            succeed Bool_
+
+        "bool" ->
+            succeed Bool_
+
+        "string" ->
+            succeed String_
+
+        _ ->
+            Json.Decode.fail "unrecognized secret type"
+
+
+type alias DeploymentConfigParameter =
+    { description : String
+    , type_ : ConfigParameterType
+    , required : Bool
+    , options : List String
+    , min : Int
+    , max : Int
+    }
+
+
+decodeDeploymentConfigParameter : Decoder DeploymentConfigParameter
+decodeDeploymentConfigParameter =
+    Json.Decode.succeed DeploymentConfigParameter
+        |> optional "description" string ""
+        |> optional "type" deployConfigTypeDecoder String_
+        |> optional "required" bool False
+        |> optional "options" (Json.Decode.list Json.Decode.string) []
+        |> optional "min" int 0
+        |> optional "max" int 0
 
 
 type alias Worker =

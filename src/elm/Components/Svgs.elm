@@ -4,7 +4,8 @@ SPDX-License-Identifier: Apache-2.0
 
 
 module Components.Svgs exposing
-    ( buildStatusAnimation
+    ( annotationCircle
+    , buildStatusAnimation
     , buildStatusToIcon
     , buildVizLegendEdge
     , buildVizLegendNode
@@ -792,3 +793,17 @@ buildVizLegendEdge attrs =
             )
             []
         ]
+
+
+{-| annotationCircle : produces svg icon for line annotation bubble.
+-}
+annotationCircle : String -> Html msg
+annotationCircle cls =
+    svg
+        [ class "-icon"
+        , class cls
+        , viewBox "0 0 48 48"
+        , width "22"
+        , height "22"
+        ]
+        [ Svg.circle [ cx "24", cy "24", r "8" ] [] ]
