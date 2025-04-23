@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.SecretForm exposing (Form, defaultOrgRepoSecretForm, defaultSharedSecretForm, toForm, viewAllowCommandsInput, viewAllowEventsSelect, viewAllowSubstitutionInput, viewHelp, viewImagesInput)
+module Components.SecretForm exposing (Form, defaultOrgRepoSecretForm, defaultSharedSecretForm, toForm, viewAllowCommandsInput, viewAllowEventsSelect, viewAllowSubstitutionInput, viewHelp, viewImagesInput, viewRepoAllowlistInput)
 
 import Components.Form
 import Html
@@ -52,6 +52,9 @@ type alias Form =
     , image : String
     , allowCommand : Bool
     , allowSubstitution : Bool
+    , repoAllowlist : List String
+    , org : String
+    , repo : String
     }
 
 
@@ -67,6 +70,9 @@ defaultOrgRepoSecretForm =
     , image = ""
     , allowCommand = True
     , allowSubstitution = True
+    , repoAllowlist = []
+    , org = ""
+    , repo = ""
     }
 
 
@@ -87,6 +93,9 @@ defaultSharedSecretForm team =
     , image = ""
     , allowCommand = False
     , allowSubstitution = False
+    , repoAllowlist = []
+    , org = ""
+    , repo = ""
     }
 
 
@@ -102,6 +111,9 @@ toForm secret =
     , image = ""
     , allowCommand = secret.allowCommand
     , allowSubstitution = secret.allowSubstitution
+    , repoAllowlist = secret.repoAllowlist
+    , org = ""
+    , repo = ""
     }
 
 
@@ -192,6 +204,111 @@ viewImage { msg, image } =
             [ class "button"
             , class "-outline"
             , onClick <| msg image
+            ]
+            [ text "remove"
+            ]
+        ]
+
+{-| viewRepoAllowlistInput : renders input for repo allowlist.
+-}
+viewRepoAllowlistInput :
+    { onOrgInput_ : String -> msg
+    , onRepoInput_ : String -> msg
+    , addRepo : String -> msg
+    , removeRepo : String -> msg
+    , repos : List String
+    , orgValue : String
+    , repoValue : String
+    , disabled_ : Bool
+    }
+    -> Html msg
+viewRepoAllowlistInput { onOrgInput_, onRepoInput_, addRepo, removeRepo, repos, orgValue, repoValue, disabled_ } =
+    section []
+        [ div
+            [ id "image-select"
+            , class "form-control"
+            , class "-stack"
+            , class "images-container"
+            ]
+            [ label
+                [ for "image-select"
+                , class "form-label"
+                ]
+                [ strong [] [ text "Limit to certain repositories" ]
+                , span
+                    [ class "field-description" ]
+                    [ em [] [ text "(Leave blank to enable this secret for all repositories)" ]
+                    ]
+                ]
+            , div [ class "parameters-inputs" ]
+                [ Components.Form.viewInputSection
+                    { title = Nothing
+                    , subtitle = Nothing
+                    , id_ = "org-name"
+                    , val = orgValue
+                    , placeholder_ = "Org"
+                    , classList_ = [ ( "org-input", True ) ]
+                    , rows_ = Just 2
+                    , wrap_ = Just "soft"
+                    , msg = onOrgInput_
+                    , disabled_ = disabled_
+                    , min = Nothing
+                    , max = Nothing
+                    , required = False
+                    }
+                , text " / "
+                , Components.Form.viewInputSection
+                    { title = Nothing
+                    , subtitle = Nothing
+                    , id_ = "repo-name"
+                    , val = repoValue
+                    , placeholder_ = "Repo"
+                    , classList_ = [ ( "repo-input", True ) ]
+                    , rows_ = Just 2
+                    , wrap_ = Just "soft"
+                    , msg = onRepoInput_
+                    , disabled_ = disabled_
+                    , min = Nothing
+                    , max = Nothing
+                    , required = False
+                    }
+                , button
+                    [ class "button"
+                    , class "-outline"
+                    , class "add-image"
+                    , Util.testAttribute "add-image-button"
+                    , onClick <| addRepo <| orgValue ++ "/" ++ repoValue
+                    , disabled <| (String.isEmpty <| String.trim orgValue) || (String.isEmpty <| String.trim repoValue)
+                    ]
+                    [ text "Add Repo"
+                    ]
+                ]
+            ]
+        , div [ class "repos", Util.testAttribute "repos-list" ] <|
+            if List.length repos > 0 then
+                List.map (\r -> viewRepo { msg = removeRepo, repo = r }) <| List.reverse repos
+
+            else
+                [ div [ class "no-images" ]
+                    [ div
+                        [ class "none"
+                        ]
+                        [ code [] [ text "enabled for all repositories" ]
+                        ]
+                    ]
+                ]
+        ]
+
+{-| viewRepo : renders a supplied repository org/repo with option to remove.
+-}
+viewRepo : { msg : String -> msg, repo : String } -> Html msg
+viewRepo { msg, repo } =
+    div [ class "image", class "chevron" ]
+        [ div [ class "name" ] [ text repo]
+        , button
+            [ class "button"
+            , class "-outline"
+            , onClick <| msg repo
             ]
             [ text "remove"
             ]
