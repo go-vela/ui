@@ -220,9 +220,21 @@ subscriptions model =
 -}
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
+    let
+        pageNumQuery =
+            Dict.get "page" route.query |> Maybe.andThen String.toInt
+
+        pageNum =
+            case pageNumQuery of
+                Just n ->
+                    n
+
+                Nothing ->
+                    1
+    in
     { title = "Schedules" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
-        [ viewRepoSchedules shared model route.params.org route.params.repo
+        [ viewRepoSchedules shared model route.params.org route.params.repo pageNum
         , Components.Pager.view
             { show = True
             , links = model.pager
@@ -235,8 +247,8 @@ view shared route model =
 
 {-| viewRepoSchedules : takes schedules model and renders table for viewing repo schedules.
 -}
-viewRepoSchedules : Shared.Model -> Model -> String -> String -> Html Msg
-viewRepoSchedules shared model org repo =
+viewRepoSchedules : Shared.Model -> Model -> String -> String -> Int -> Html Msg
+viewRepoSchedules shared model org repo pageNum =
     let
         actions =
             if model.repoSchedulesAllowed then
@@ -311,6 +323,7 @@ viewRepoSchedules shared model org repo =
                 tableHeaders
                 rows
                 actions
+                pageNum
     in
     div [] [ Components.Table.view cfg ]
 
