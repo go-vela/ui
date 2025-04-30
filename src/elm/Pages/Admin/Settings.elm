@@ -801,7 +801,7 @@ update shared route msg model =
               }
             , Effect.none
             )
-        
+
         -- DASHBOARDS
         MaxDashboardReposOnInput val ->
             ( { model
