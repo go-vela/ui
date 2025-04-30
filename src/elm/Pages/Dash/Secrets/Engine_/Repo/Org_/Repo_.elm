@@ -222,6 +222,18 @@ subscriptions model =
 
 view : Shared.Model -> Route { engine : String, org : String, repo : String } -> Model -> View Msg
 view shared route model =
+    let
+        pageNumQuery =
+            Dict.get "page" route.query |> Maybe.andThen String.toInt
+
+        pageNum =
+            case pageNumQuery of
+                Just n ->
+                    n
+
+                Nothing ->
+                    1
+    in
     { title = "Secrets" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
         [ Components.Secrets.viewRepoSecrets shared
@@ -257,6 +269,7 @@ view shared route model =
                         , msg = GotoPage
                         }
                     ]
+            , pageNumber = pageNum
             }
         , Components.Secrets.viewOrgSecrets shared
             { msgs =
@@ -279,6 +292,7 @@ view shared route model =
                         ]
                         [ text "Manage Org Secrets" ]
                     ]
+            , pageNumber = 1
             }
         ]
     }
