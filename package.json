@@ -29,14 +29,14 @@
     "prettier": "3.5.3",
     "rimraf": "6.0.1",
     "start-server-and-test": "2.0.11",
-    "stylelint": "16.18.0",
+    "stylelint": "16.19.1",
     "stylelint-color-format": "1.1.0",
     "stylelint-config-recommended-scss": "14.1.0",
     "stylelint-declaration-block-no-ignored-properties": "2.8.0",
     "stylelint-declaration-strict-value": "1.10.11",
     "stylelint-high-performance-animation": "1.11.0",
     "stylelint-order": "6.0.4",
-    "stylelint-scss": "6.11.1"
+    "stylelint-scss": "6.12.0"
   },
   "scripts": {
     "predev": "npm run clean",
