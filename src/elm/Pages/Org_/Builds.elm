@@ -432,6 +432,17 @@ view shared route model =
             , cancelBuild = CancelBuild
             , showHideActionsMenus = ShowHideActionsMenus
             }
+
+        pageNumQuery =
+            Dict.get "page" route.query |> Maybe.andThen String.toInt
+
+        pageNum =
+            case pageNumQuery of
+                Just n ->
+                    n
+
+                Nothing ->
+                    1
     in
     { title = "Builds" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
@@ -475,6 +486,7 @@ view shared route model =
                         }
             , showRepoLink = True
             , linkBuildNumber = True
+            , pageNumber = pageNum
             }
         , Components.Pager.view
             { show = RemoteData.unwrap False (\builds -> List.length builds > 0) model.builds

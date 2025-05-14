@@ -167,10 +167,22 @@ update shared route msg model =
         GetRepoBuildsResponse response ->
             case response of
                 Ok ( meta, builds ) ->
+                    let
+                        pageNumQuery =
+                            Dict.get "page" route.query |> Maybe.andThen String.toInt
+
+                        pageNum =
+                            case pageNumQuery of
+                                Just n ->
+                                    n
+
+                                Nothing ->
+                                    1
+                    in
                     ( { model
                         | builds = RemoteData.succeed builds
                         , pager = Api.Pagination.get meta.headers
-                        , showFilter = List.length builds > 0 || Dict.get "event" route.query /= Nothing
+                        , showFilter = List.length builds > 0 || Dict.get "event" route.query /= Nothing || pageNum > 1
                       }
                     , Effect.none
                     )
@@ -454,6 +466,17 @@ view shared route model =
             , cancelBuild = CancelBuild
             , showHideActionsMenus = ShowHideActionsMenus
             }
+
+        pageNumQuery =
+            Dict.get "page" route.query |> Maybe.andThen String.toInt
+
+        pageNum =
+            case pageNumQuery of
+                Just n ->
+                    n
+
+                Nothing ->
+                    1
     in
     { title = "Builds" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
@@ -469,7 +492,7 @@ view shared route model =
             ]
             [ span [] []
             , Components.Pager.view
-                { show = RemoteData.unwrap False (\builds -> List.length builds > 0) model.builds
+                { show = RemoteData.unwrap False (\builds -> List.length builds > 0 || pageNum > 1) model.builds
                 , links = model.pager
                 , labels = Components.Pager.defaultLabels
                 , msg = GotoPage
@@ -495,6 +518,7 @@ view shared route model =
                         }
             , showRepoLink = False
             , linkBuildNumber = True
+            , pageNumber = pageNum
             }
         , Components.Pager.view
             { show = RemoteData.unwrap False (\builds -> List.length builds > 0) model.builds

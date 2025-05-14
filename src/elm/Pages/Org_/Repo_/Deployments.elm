@@ -303,6 +303,17 @@ viewDeployments shared model route =
                         }
                     ]
 
+        pageNumQuery =
+            Dict.get "page" route.query |> Maybe.andThen String.toInt
+
+        pageNum =
+            case pageNumQuery of
+                Just n ->
+                    n
+
+                Nothing ->
+                    1
+
         ( noRowsView, rows ) =
             let
                 viewHttpError e =
@@ -344,6 +355,7 @@ viewDeployments shared model route =
                 tableHeaders
                 rows
                 actions
+                pageNum
     in
     div []
         [ Components.Table.view cfg
