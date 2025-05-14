@@ -280,7 +280,7 @@ update shared route msg model =
             let
                 payload =
                     { defaultSecretPayload
-                        | type_ = Just Vela.RepoSecret
+                        | type_ = Just Vela.SharedSecret
                         , org = Just route.params.org
                         , repo = Nothing
                         , team = Just route.params.team
