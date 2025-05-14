@@ -1957,7 +1957,7 @@ encodeSecretPayload secret =
         , ( "allow_command", encodeOptional Json.Encode.bool secret.allowCommand )
         , ( "allow_substitution", encodeOptional Json.Encode.bool secret.allowSubstitution )
         , ( "allow_events", encodeOptional encodeAllowEvents secret.allowEvents )
-        , ( "repo_allowlist", encodeOptionalList Json.Encode.string secret.repoAllowlist)
+        , ( "repo_allowlist", encodeOptionalList Json.Encode.string secret.repoAllowlist )
         ]
 
 

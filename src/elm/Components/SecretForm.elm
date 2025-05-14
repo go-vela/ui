@@ -209,6 +209,7 @@ viewImage { msg, image } =
             ]
         ]
 
+
 {-| viewRepoAllowlistInput : renders input for repo allowlist.
 -}
 viewRepoAllowlistInput :
@@ -299,12 +300,13 @@ viewRepoAllowlistInput { onOrgInput_, onRepoInput_, addRepo, removeRepo, repos, 
                 ]
         ]
 
+
 {-| viewRepo : renders a supplied repository org/repo with option to remove.
 -}
 viewRepo : { msg : String -> msg, repo : String } -> Html msg
 viewRepo { msg, repo } =
     div [ class "image", class "chevron" ]
-        [ div [ class "name" ] [ text repo]
+        [ div [ class "name" ] [ text repo ]
         , button
             [ class "button"
             , class "-outline"
