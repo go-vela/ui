@@ -1818,6 +1818,7 @@ type alias Secret =
     , allowCommand : Bool
     , allowSubstitution : Bool
     , allowEvents : AllowEvents
+    , repoAllowlist : List String
     }
 
 
@@ -1904,6 +1905,7 @@ decodeSecret =
         |> optional "allow_command" bool False
         |> optional "allow_substitution" bool False
         |> optional "allow_events" decodeAllowEvents defaultAllowEvents
+        |> optional "repo_allowlist" (Json.Decode.list string) []
 
 
 decodeSecrets : Decoder (List Secret)
@@ -1922,6 +1924,7 @@ type alias SecretPayload =
     , allowCommand : Maybe Bool
     , allowSubstitution : Maybe Bool
     , allowEvents : Maybe AllowEvents
+    , repoAllowlist : Maybe (List String)
     }
 
 
@@ -1937,6 +1940,7 @@ defaultSecretPayload =
     , allowCommand = Nothing
     , allowSubstitution = Nothing
     , allowEvents = Nothing
+    , repoAllowlist = Nothing
     }
 
 
@@ -1953,6 +1957,7 @@ encodeSecretPayload secret =
         , ( "allow_command", encodeOptional Json.Encode.bool secret.allowCommand )
         , ( "allow_substitution", encodeOptional Json.Encode.bool secret.allowSubstitution )
         , ( "allow_events", encodeOptional encodeAllowEvents secret.allowEvents )
+        , ( "repo_allowlist", encodeOptionalList Json.Encode.string secret.repoAllowlist )
         ]
 
 

@@ -101,6 +101,10 @@ type Msg
     | ImageOnInput String
     | AddImage String
     | RemoveImage String
+    | OrgOnInput String
+    | RepoOnInput String
+    | AddRepo String
+    | RemoveRepo String
     | AllowCommandsOnClick String
     | AllowSubstitutionOnClick String
     | AllowEventsUpdate { allowEvents : Vela.AllowEvents, event : Vela.AllowEventsField } Bool
@@ -182,6 +186,43 @@ update shared route msg model =
             , Effect.none
             )
 
+        OrgOnInput val ->
+            ( { model | form = { form | org = val } }
+            , Effect.none
+            )
+
+        RepoOnInput val ->
+            ( { model | form = { form | repo = val } }
+            , Effect.none
+            )
+
+        AddRepo repo ->
+            ( { model
+                | form =
+                    { form
+                        | repoAllowlist =
+                            form.repoAllowlist
+                                |> List.append [ repo ]
+                                |> List.Extra.unique
+                        , org = ""
+                        , repo = ""
+                    }
+              }
+            , Effect.none
+            )
+
+        RemoveRepo repo ->
+            ( { model
+                | form =
+                    { form
+                        | repoAllowlist =
+                            form.repoAllowlist
+                                |> List.filter ((/=) repo)
+                    }
+              }
+            , Effect.none
+            )
+
         AllowCommandsOnClick val ->
             ( { model
                 | form =
@@ -224,6 +265,7 @@ update shared route msg model =
                         , images = Just form.images
                         , allowCommand = Just form.allowCommand
                         , allowSubstitution = Just form.allowSubstitution
+                        , repoAllowlist = Just form.repoAllowlist
                     }
 
                 body =
@@ -338,6 +380,16 @@ view shared route model =
                             , removeImage = RemoveImage
                             , images = model.form.images
                             , imageValue = model.form.image
+                            , disabled_ = False
+                            }
+                        , Components.SecretForm.viewRepoAllowlistInput
+                            { onOrgInput_ = OrgOnInput
+                            , onRepoInput_ = RepoOnInput
+                            , addRepo = AddRepo
+                            , removeRepo = RemoveRepo
+                            , repos = model.form.repoAllowlist
+                            , orgValue = model.form.org
+                            , repoValue = model.form.repo
                             , disabled_ = False
                             }
                         , Components.SecretForm.viewAllowCommandsInput
