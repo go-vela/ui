@@ -1818,6 +1818,7 @@ type alias Secret =
     , allowCommand : Bool
     , allowSubstitution : Bool
     , allowEvents : AllowEvents
+    , repoAllowlist : List String
     }
 
 
@@ -1904,6 +1905,7 @@ decodeSecret =
         |> optional "allow_command" bool False
         |> optional "allow_substitution" bool False
         |> optional "allow_events" decodeAllowEvents defaultAllowEvents
+        |> optional "repo_allowlist" (Json.Decode.list string) []
 
 
 decodeSecrets : Decoder (List Secret)
@@ -1922,6 +1924,7 @@ type alias SecretPayload =
     , allowCommand : Maybe Bool
     , allowSubstitution : Maybe Bool
     , allowEvents : Maybe AllowEvents
+    , repoAllowlist : Maybe (List String)
     }
 
 
@@ -1937,6 +1940,7 @@ defaultSecretPayload =
     , allowCommand = Nothing
     , allowSubstitution = Nothing
     , allowEvents = Nothing
+    , repoAllowlist = Nothing
     }
 
 
@@ -1953,6 +1957,7 @@ encodeSecretPayload secret =
         , ( "allow_command", encodeOptional Json.Encode.bool secret.allowCommand )
         , ( "allow_substitution", encodeOptional Json.Encode.bool secret.allowSubstitution )
         , ( "allow_events", encodeOptional encodeAllowEvents secret.allowEvents )
+        , ( "repo_allowlist", encodeOptionalList Json.Encode.string secret.repoAllowlist )
         ]
 
 
@@ -2159,6 +2164,7 @@ type alias PlatformSettings =
     , queue : Queue
     , repoAllowlist : List String
     , scheduleAllowlist : List String
+    , maxDashboardRepos : Int
     , createdAt : Int
     , updatedAt : Int
     , updatedBy : String
@@ -2173,6 +2179,7 @@ decodeSettings =
         |> required "queue" decodeQueue
         |> required "repo_allowlist" (Json.Decode.list Json.Decode.string)
         |> required "schedule_allowlist" (Json.Decode.list Json.Decode.string)
+        |> required "max_dashboard_repos" int
         |> required "created_at" int
         |> required "updated_at" int
         |> required "updated_by" string
@@ -2251,6 +2258,7 @@ type alias SettingsPayload =
     , queue : Maybe QueuePayload
     , repoAllowlist : Maybe (List String)
     , scheduleAllowlist : Maybe (List String)
+    , maxDashboardRepos : Maybe Int
     }
 
 
@@ -2260,6 +2268,7 @@ defaultSettingsPayload =
     , queue = Nothing
     , repoAllowlist = Nothing
     , scheduleAllowlist = Nothing
+    , maxDashboardRepos = Nothing
     }
 
 
@@ -2270,6 +2279,7 @@ encodeSettingsPayload settings =
         , ( "queue", encodeOptional encodeQueuePayload settings.queue )
         , ( "repo_allowlist", encodeOptional (Json.Encode.list Json.Encode.string) settings.repoAllowlist )
         , ( "schedule_allowlist", encodeOptional (Json.Encode.list Json.Encode.string) settings.scheduleAllowlist )
+        , ( "max_dashboard_repos", encodeOptional Json.Encode.int settings.maxDashboardRepos )
         ]
 
 
@@ -2277,6 +2287,7 @@ type PlatformSettingsFieldUpdate
     = CompilerCloneImage
     | CompilerTemplateDepth
     | CompilerStarlarkExecLimit
+    | MaxDashboardRepos
     | QueueRouteAdd String
     | QueueRouteUpdate String String
     | QueueRouteRemove String
@@ -2317,6 +2328,14 @@ platformSettingsFieldUpdateToResponseConfig field =
                 \settings ->
                     "Compiler Starlark exec limit set to '"
                         ++ String.fromInt settings.compiler.starlarkExecLimit
+                        ++ "'."
+            }
+
+        MaxDashboardRepos ->
+            { successAlert =
+                \settings ->
+                    "Max dashboard repos set to '"
+                        ++ String.fromInt settings.maxDashboardRepos
                         ++ "'."
             }
 
