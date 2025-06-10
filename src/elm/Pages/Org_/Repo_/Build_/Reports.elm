@@ -110,12 +110,14 @@ toLayout user route model =
 
 type alias Model =
     { build : WebData Vela.Build
+    , attachments : WebData (List Vela.TestAttachment)
     }
 
 
 init : Shared.Model -> Route { org : String, repo : String, build : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { build = RemoteData.Loading
+      , attachments = RemoteData.Loading
       }
     , Effect.none
     )
@@ -127,7 +129,7 @@ init shared route () =
 
 type Msg
     = NoOp
-    | DownloadTextArtifact { filename : String, content : String, map : String -> String }
+    | DownloadTextAttachment { filename : String, content : String, map : String -> String }
 
 
 {-| update : takes current models, route, message, and returns an updated model and effect.
@@ -140,7 +142,7 @@ update shared route msg model =
             , Effect.none
             )
 
-        DownloadTextArtifact options ->
+        DownloadTextAttachment options ->
             ( model
             , Effect.downloadFile options
             )
@@ -164,7 +166,7 @@ view shared route model =
                 , href ""
                 , download ""
                 ]
-                [ text "an artifact" ]
+                [ text "an attachment" ]
     in
     { title = "Reports"
     , body =
@@ -175,7 +177,7 @@ view shared route model =
                         [ button
                             [ class "reports-button"
                             ]
-                            [ text "artifacts" ]
+                            [ text "attachments" ]
                         ]
                     , li []
                         [ button
@@ -193,6 +195,6 @@ view shared route model =
 
 
 -- TODO:
--- - default artifacts button to active
+-- - default attachments button to active
 -- - allow any other buttons to replace active button
 -- - each button will provide a different view
