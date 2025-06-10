@@ -29,6 +29,7 @@ module Api.Operations exposing
     , getBuildServices
     , getBuildStepLog
     , getBuildSteps
+    , getBuildTestAttachments
     , getCurrentUser
     , getDashboard
     , getDashboards
@@ -1382,4 +1383,27 @@ getDashboards baseUrl session =
     get baseUrl
         Api.Endpoint.Dashboards
         Vela.decodeDashboards
+        |> withAuth session
+
+
+{-| getBuildTestAttachments : retrieves the test attachments for the current build.
+-}
+getBuildTestAttachments :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , build : String
+        }
+    -> Request (List Vela.TestAttachment)
+getBuildTestAttachments baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.TestAttachments
+            options.org
+            options.repo
+            options.build
+        )
+        Vela.decodeTestAttachments
         |> withAuth session

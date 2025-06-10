@@ -56,6 +56,7 @@ type Endpoint
     | PipelineConfig Vela.Org Vela.Repo Vela.Ref
     | ExpandPipelineConfig Vela.Org Vela.Repo Vela.Ref
     | PipelineTemplates Vela.Org Vela.Repo Vela.Ref
+    | TestAttachments Vela.Org Vela.Repo Vela.BuildNumber
     | Workers (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Settings
 
@@ -180,6 +181,11 @@ toUrl api endpoint =
         Dashboard dashboard ->
             url api [ "dashboards", dashboard ] []
 
+        TestAttachments org repo build ->
+            url api [ "repos", org, repo, "builds", build, "reports" ] []
+
+        -- TestAttachments org repo build ->
+        --     url api [ "repos", org, repo, "builds", build, "reports", "attachments" ] []
         Workers maybePage maybePerPage ->
             url api [ "workers" ] <| Pagination.toQueryParams maybePage maybePerPage
 

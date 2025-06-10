@@ -52,6 +52,9 @@ module Vela exposing
     , StepNumber
     , Template
     , Templates
+    , TestAttachment
+    , TestAttachments
+    , TestReport
     , Type
     , User
     , Worker
@@ -86,6 +89,7 @@ module Vela exposing
     , decodeSourceRepositories
     , decodeStep
     , decodeSteps
+    , decodeTestAttachments
     , decodeUser
     , decodeWorkers
     , defaultAllowEvents
@@ -264,6 +268,88 @@ decodeDashboardRepo =
         |> optional "name" string ""
         |> optional "branches" (Json.Decode.list string) []
         |> optional "events" (Json.Decode.list string) []
+
+
+
+-- TEST REPORT
+--
+-- this database stuff is just informational and temporary
+--
+-- database types in server:
+--
+-- type TestReport struct {
+-- 	ID        sql.NullInt64 `sql:"id"`
+-- 	BuildID   sql.NullInt64 `sql:"build_id"`
+-- 	CreatedAt sql.NullInt64 `sql:"created_at"`
+-- 	// References to related objects
+-- 	Build *Build `gorm:"foreignKey:BuildID"`
+-- }
+--
+-- type TestAttachment struct {
+-- 	ID           sql.NullInt64  `sql:"id"`
+-- 	TestReportID sql.NullInt64  `sql:"test_report_id"`
+-- 	FileName     sql.NullString `sql:"file_name"`
+-- 	ObjectPath   sql.NullString `sql:"object_path"`
+-- 	FileSize     sql.NullInt64  `sql:"file_size"`
+-- 	FileType     sql.NullString `sql:"file_type"`
+-- 	PresignedUrl sql.NullString `sql:"presigned_url"`
+-- 	CreatedAt    sql.NullInt64  `sql:"created_at"`
+-- 	// References to related objects
+-- 	TestReport *TestReport `gorm:"foreignKey:TestReportID"`
+-- }
+
+
+type alias TestReport =
+    { id : Int
+    , build_id : Int
+    , created_at : Int
+    , attachments : List TestAttachments
+    }
+
+
+type alias TestAttachments =
+    { attachments : List TestAttachment
+    }
+
+
+type alias TestAttachment =
+    { id : Int
+    , test_report_id : Int
+    , file_name : String
+    , object_path : String
+    , file_size : Int
+    , file_type : String
+    , presigned_url : String
+    , created_at : Int
+    }
+
+
+
+-- decodeTestReport : Decoder TestReport
+-- decodeTestReport =
+--     Json.Decode.succeed TestReport
+--         |> optional "id" int -1
+--         |> optional "build_id" int -1
+--         |> optional "created_at" int -1
+--         |> optional "attachments" decodeTestAttachments []
+
+
+decodeTestAttachments : Decoder (List TestAttachment)
+decodeTestAttachments =
+    Json.Decode.list decodeTestAttachment
+
+
+decodeTestAttachment : Decoder TestAttachment
+decodeTestAttachment =
+    Json.Decode.succeed TestAttachment
+        |> optional "id" int -1
+        |> optional "test_report_id" int -1
+        |> optional "file_name" string ""
+        |> optional "object_path" string ""
+        |> optional "file_size" int 0
+        |> optional "file_type" string ""
+        |> optional "presigned_url" string ""
+        |> optional "created_at" int -1
 
 
 

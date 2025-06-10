@@ -273,6 +273,7 @@ dist
 # cypress
 cypress/videos
 cypress/screenshots
+test-results/
 
 # elm add on
 .elm
