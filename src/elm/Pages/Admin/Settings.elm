@@ -1152,55 +1152,6 @@ view shared route model =
             , section
                 [ class "settings"
                 ]
-                [ viewFieldHeader "Max Dashboard Repos"
-                , viewFieldDescription "The maximum number of repos a dashboard can have."
-                , div [ class "form-controls" ]
-                    [ Components.Form.viewNumberInput
-                        { title = Nothing
-                        , subtitle = Nothing
-                        , id_ = "max-dashboard-repos"
-                        , val = model.maxDashboardReposIn
-                        , placeholder_ = ""
-                        , wrapperClassList = [ ( "-wide", True ) ]
-                        , classList_ = []
-                        , rows_ = Nothing
-                        , wrap_ = Nothing
-                        , msg = MaxDashboardReposOnInput
-                        , disabled_ = False
-                        , min = Just 0
-                        , max = Just 100
-                        , required = False
-                        }
-                    , Components.Form.viewButton
-                        { id_ = "max-dashboard-repos-update"
-                        , msg = MaxDashboardReposOnUpdate model.maxDashboardReposIn
-                        , text_ = "update"
-                        , classList_ =
-                            [ ( "-outline", True )
-                            ]
-                        , disabled_ =
-                            RemoteData.unwrap True
-                                (\s ->
-                                    case String.toInt model.maxDashboardReposIn of
-                                        Just limit ->
-                                            limit
-                                                == s.maxDashboardRepos
-                                                || (limit < 1)
-                                                || (limit > 99)
-
-                                        Nothing ->
-                                            True
-                                )
-                                model.settings
-                        }
-                    ]
-                , viewFieldPreviousValue model
-                    (\s -> String.fromInt s.maxDashboardRepos)
-                    (\ms -> Maybe.Extra.unwrap "" (.maxDashboardRepos >> String.fromInt) ms)
-                ]
-            , section
-                [ class "settings"
-                ]
                 [ viewFieldHeader "Queue Routes"
                 , viewFieldDescription "The queue routes used when queuing builds."
                 , viewFieldEnvKeyValue "VELA_QUEUE_ROUTES"

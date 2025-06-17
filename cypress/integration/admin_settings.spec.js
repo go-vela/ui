@@ -105,10 +105,10 @@ context('Admin Settings', () => {
           'be.disabled',
         );
 
-        cy.get('[data-test=input-queue-restart-limit]')
+        cy.get('[data-test=input-max-dashboard-repos]')
           .should('be.visible')
           .type('0');
-        cy.get('[data-test=button-queue-restart-limit-update]').should(
+        cy.get('[data-test=button-max-dashboard-repos-update]').should(
           'be.disabled',
         );
 
@@ -120,10 +120,10 @@ context('Admin Settings', () => {
           'be.disabled',
         );
 
-        cy.get('[data-test=input-max-dashboard-repos]')
+        cy.get('[data-test=input-queue-restart-limit]')
           .should('be.visible')
           .type('0');
-        cy.get('[data-test=button-max-dashboard-repos-update]').should(
+        cy.get('[data-test=button-queue-restart-limit-update]').should(
           'be.disabled',
         );
       });
