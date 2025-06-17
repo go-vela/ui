@@ -1272,6 +1272,7 @@ type alias Build =
     , ref : Ref
     , base_ref : Ref
     , host : String
+    , route : String
     , runtime : String
     , distribution : String
     , approved_at : Int
@@ -1307,6 +1308,7 @@ decodeBuild =
         |> optional "ref" string ""
         |> optional "base_ref" string ""
         |> optional "host" string ""
+        |> optional "route" string ""
         |> optional "runtime" string ""
         |> optional "distribution" string ""
         |> optional "approved_at" int -1
@@ -2165,6 +2167,7 @@ type alias PlatformSettings =
     , repoAllowlist : List String
     , scheduleAllowlist : List String
     , maxDashboardRepos : Int
+    , queueRestartLimit : Int
     , createdAt : Int
     , updatedAt : Int
     , updatedBy : String
@@ -2180,6 +2183,7 @@ decodeSettings =
         |> required "repo_allowlist" (Json.Decode.list Json.Decode.string)
         |> required "schedule_allowlist" (Json.Decode.list Json.Decode.string)
         |> required "max_dashboard_repos" int
+        |> required "queue_restart_limit" int
         |> required "created_at" int
         |> required "updated_at" int
         |> required "updated_by" string
@@ -2259,6 +2263,7 @@ type alias SettingsPayload =
     , repoAllowlist : Maybe (List String)
     , scheduleAllowlist : Maybe (List String)
     , maxDashboardRepos : Maybe Int
+    , queueRestartLimit : Maybe Int
     }
 
 
@@ -2269,6 +2274,7 @@ defaultSettingsPayload =
     , repoAllowlist = Nothing
     , scheduleAllowlist = Nothing
     , maxDashboardRepos = Nothing
+    , queueRestartLimit = Nothing
     }
 
 
@@ -2280,6 +2286,7 @@ encodeSettingsPayload settings =
         , ( "repo_allowlist", encodeOptional (Json.Encode.list Json.Encode.string) settings.repoAllowlist )
         , ( "schedule_allowlist", encodeOptional (Json.Encode.list Json.Encode.string) settings.scheduleAllowlist )
         , ( "max_dashboard_repos", encodeOptional Json.Encode.int settings.maxDashboardRepos )
+        , ( "queue_restart_limit", encodeOptional Json.Encode.int settings.queueRestartLimit )
         ]
 
 
@@ -2288,6 +2295,7 @@ type PlatformSettingsFieldUpdate
     | CompilerTemplateDepth
     | CompilerStarlarkExecLimit
     | MaxDashboardRepos
+    | QueueRestartLimit
     | QueueRouteAdd String
     | QueueRouteUpdate String String
     | QueueRouteRemove String
@@ -2336,6 +2344,14 @@ platformSettingsFieldUpdateToResponseConfig field =
                 \settings ->
                     "Max dashboard repos set to '"
                         ++ String.fromInt settings.maxDashboardRepos
+                        ++ "'."
+            }
+
+        QueueRestartLimit ->
+            { successAlert =
+                \settings ->
+                    "Queue restart limit set to '"
+                        ++ String.fromInt settings.queueRestartLimit
                         ++ "'."
             }
 

@@ -57,6 +57,9 @@ context('Admin Settings', () => {
     it('max dashboard repos should show', () => {
       cy.get('[data-test=input-max-dashboard-repos]').should('be.visible');
     });
+    it('queue restart limit should show', () => {
+      cy.get('[data-test=input-queue-restart-limit]').should('be.visible');
+    });
 
     context('form should allow editing', () => {
       beforeEach(() => {
@@ -99,6 +102,21 @@ context('Admin Settings', () => {
           .clear()
           .type('999999');
         cy.get('[data-test=button-max-dashboard-repos-update]').should(
+          'be.disabled',
+        );
+
+        cy.get('[data-test=input-queue-restart-limit]')
+          .should('be.visible')
+          .type('0');
+        cy.get('[data-test=button-queue-restart-limit-update]').should(
+          'be.disabled',
+        );
+
+        cy.get('[data-test=input-queue-restart-limit]')
+          .should('be.visible')
+          .clear()
+          .type('999999');
+        cy.get('[data-test=button-queue-restart-limit-update]').should(
           'be.disabled',
         );
 

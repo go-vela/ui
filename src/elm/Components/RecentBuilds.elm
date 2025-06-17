@@ -128,6 +128,7 @@ recentBuildTooltip shared props build =
             , viewTooltipField "finished:" <| Util.humanReadableDateWithDefault shared.zone build.finished
             , viewTooltipField "duration:" <| Util.formatRunTime shared.time build.started build.finished
             , viewTooltipField "worker:" build.host
+            , viewTooltipField "route:" build.route
             , viewTooltipField "author:" build.author
             , viewTooltipField "commit:" <| Util.trimCommitHash build.commit
             , viewTooltipField "branch:" build.branch
