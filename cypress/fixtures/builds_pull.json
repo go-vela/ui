@@ -24,6 +24,7 @@
     "ref": "refs/pull/42/head",
     "base_ref": "main",
     "host": "",
+    "route": "",
     "runtime": "docker",
     "distribution": "linux"
   },
@@ -52,6 +53,7 @@
     "ref": "refs/pull/42/head",
     "base_ref": "main",
     "host": "",
+    "route": "",
     "runtime": "docker",
     "distribution": "linux"
   }

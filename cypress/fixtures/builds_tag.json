@@ -24,6 +24,7 @@
     "ref": "refs/heads/infra",
     "base_ref": "",
     "host": "",
+    "route": "",
     "runtime": "docker",
     "distribution": "linux"
   }

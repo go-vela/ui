@@ -114,6 +114,11 @@ context('Build', () => {
           cy.get('@tooltip').should('contain', 'worker');
           cy.get('@tooltip').should('contain', 'https://vela-worker-6.com');
         });
+
+        it('should show route', () => {
+          cy.get('@tooltip').should('contain', 'route');
+          cy.get('@tooltip').should('contain', 'vela');
+        });
       });
     });
 
