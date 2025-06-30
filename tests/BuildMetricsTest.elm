@@ -55,6 +55,7 @@ createSampleBuild created duration queueTime buildStatus event branch =
     , ref = ""
     , base_ref = ""
     , host = ""
+    , route = ""
     , runtime = ""
     , distribution = ""
     , approved_at = 0
