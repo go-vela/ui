@@ -1,3 +1,5 @@
+@use 'mixins';
+
 // SPDX-License-Identifier: Apache-2.0
 
 html {
@@ -166,7 +168,7 @@ nav {
     }
 
     &:not(:last-child)::after {
-      @include slashes;
+      @include mixins.slashes;
     }
 
     &:last-child {
@@ -1747,7 +1749,7 @@ details.build-toggle {
 
 // visually hide, but keep accessible by screen readers
 .visually-hidden {
-  @include visually-hidden();
+  @include mixins.visually-hidden();
 }
 
 .break-text {
