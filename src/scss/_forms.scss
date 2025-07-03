@@ -1,3 +1,5 @@
+@use "mixins";
+
 // SPDX-License-Identifier: Apache-2.0
 
 // ┌─┐┌─┐┬─┐┌┬┐┌─┐
@@ -125,7 +127,7 @@
 // hide the native controls, visually
 .form-control [type='checkbox'],
 .form-control [type='radio'] {
-  @include visually-hidden;
+  @include mixins.visually-hidden;
 
   // making room for custom styled checkbox indicators
   + .form-label {

@@ -1,3 +1,5 @@
+@use "mixins";
+
 // SPDX-License-Identifier: Apache-2.0
 
 // styles for the dashboard pages
@@ -157,7 +159,7 @@
 // truncate repo name to avoid overflow
 // max characters for repo is 100 on GitHub
 .card-repo.-truncate {
-  @include truncate(25, false);
+  @include mixins.truncate(25, false);
 }
 
 .card-build-data {
@@ -190,7 +192,7 @@
 
   // all nodes other than the icon are truncated
   :not(svg) {
-    @include truncate();
+    @include mixins.truncate();
   }
 }
 
