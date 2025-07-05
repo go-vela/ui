@@ -7,7 +7,7 @@
     "node": ">=18.12.0"
   },
   "dependencies": {
-    "@hpcc-js/wasm-graphviz": "1.7.0",
+    "@hpcc-js/wasm-graphviz": "1.9.1",
     "clipboard": "2.0.11",
     "d3": "^7.8.5"
   },
