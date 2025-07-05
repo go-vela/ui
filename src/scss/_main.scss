@@ -1644,7 +1644,7 @@ details.build-toggle {
 
   font-size: 0.9rem;
   font-family: var(--font-code);
-  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .image .button,
@@ -1752,13 +1752,9 @@ details.build-toggle {
   @include mixins.visually-hidden();
 }
 
-.break-text {
-  word-wrap: break-word;
-  word-break: break-word;
-}
-
+.break-text,
 .break-word {
-  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .no-wrap {
