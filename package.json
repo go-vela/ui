@@ -7,7 +7,7 @@
     "node": ">=18.12.0"
   },
   "dependencies": {
-    "@hpcc-js/wasm-graphviz": "1.7.0",
+    "@hpcc-js/wasm-graphviz": "1.9.2",
     "clipboard": "2.0.11",
     "d3": "^7.8.5"
   },
@@ -21,7 +21,7 @@
     "cypress-axe": "0.14.0",
     "elm": "0.19.1-6",
     "elm-format": "0.8.8",
-    "elm-test": "0.19.1-revision15",
+    "elm-test": "0.19.1-revision16",
     "make-dir-cli": "4.0.0",
     "ncp": "2.0.0",
     "parcel": "2.15.4",
