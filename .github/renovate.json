@@ -1,6 +1,25 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["local>go-vela/renovate-config"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["(^|/|\\.)elm\\.json$"],
+      "matchStrings": ["\"elm-version\"\\s*:\\s*\"(?<currentValue>.*)\""],
+      "depNameTemplate": "elm/compiler",
+      "datasourceTemplate": "github-tags",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["(^|/|\\.)elm\\.json$"],
+      "matchStrings": [
+        "\"(?<depName>.*/.*?)\"\\s*:\\s*\"(?<currentValue>.*)\""
+      ],
+      "datasourceTemplate": "github-tags",
+      "versioningTemplate": "semver"
+    }
+  ],
   "packageRules": [
     {
       "allowedVersions": "!/nightly\\.\\d+$/",
