@@ -4,7 +4,7 @@
   "customManagers": [
     {
       "customType": "regex",
-      "managerFilePatterns": ["(^|/|\\.)elm\\.json$"],
+      "managerFilePatterns": ["/(^|/|\\.)elm\\.json$/"],
       "matchStrings": ["\"elm-version\"\\s*:\\s*\"(?<currentValue>.*)\""],
       "depNameTemplate": "elm/compiler",
       "datasourceTemplate": "github-tags",
@@ -12,7 +12,7 @@
     },
     {
       "customType": "regex",
-      "managerFilePatterns": ["(^|/|\\.)elm\\.json$"],
+      "managerFilePatterns": ["/(^|/|\\.)elm\\.json$/"],
       "matchStrings": [
         "\"(?<depName>.*/.*?)\"\\s*:\\s*\"(?<currentValue>.*)\""
       ],
