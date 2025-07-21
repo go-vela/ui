@@ -27,7 +27,7 @@
       "jzxhuang/http-extras": "2.1.0",
       "krisajenkins/remotedata": "6.1.0",
       "pablen/toasty": "1.2.0",
-      "ryan-haskell/date-format": "1.0.0",
+      "ryan-haskell/date-format": "2.4.0",
       "vito/elm-ansi": "9.0.2"
     },
     "indirect": {
