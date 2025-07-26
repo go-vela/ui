@@ -6,7 +6,7 @@ context('Dashboards', () => {
   context('main dashboards page', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/user/dashboards' },
+        { method: 'GET', url: '**/api/v1/user/dashboards' },
         {
           fixture: 'user_dashboards.json',
         },
@@ -15,10 +15,12 @@ context('Dashboards', () => {
     });
 
     it('shows the list of dashboards', () => {
+      cy.wait(2000); // Wait for dashboards to load
       cy.get('[data-test=dashboard-item]').should('have.length', 2);
     });
 
     it('shows the repos within a dashboard', () => {
+      cy.wait(1000); // Wait for dashboard repos to load
       cy.get('[data-test=dashboard-repos]').first().contains('github/repo1');
     });
 
@@ -44,7 +46,7 @@ context('Dashboards', () => {
   context('main dashboards page shows message', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/user/dashboards' },
+        { method: 'GET', url: '**/api/v1/user/dashboards' },
         {
           fixture: 'user_dashboards.json',
         },
@@ -57,13 +59,14 @@ context('Dashboards', () => {
     beforeEach(() => {
       cy.intercept(
         'GET',
-        '*api/v1/dashboards/86671eb5-a3ff-49e1-ad85-c3b2f648dcb2',
+        '**/api/v1/dashboards/86671eb5-a3ff-49e1-ad85-c3b2f648dcb2',
         { fixture: 'dashboard.json' },
       );
       cy.login('/dashboards/86671eb5-a3ff-49e1-ad85-c3b2f648dcb2');
     });
 
     it('shows 3 dashboard cards', () => {
+      cy.wait(2000); // Wait for dashboard data to load
       cy.get('[data-test=dashboard-card]').should('have.length', 3);
     });
 
@@ -126,13 +129,14 @@ context('Dashboards', () => {
     beforeEach(() => {
       cy.intercept(
         'GET',
-        '*api/v1/dashboards/86671eb5-a3ff-49e1-ad85-c3b2f648dcb2',
+        '**/api/v1/dashboards/86671eb5-a3ff-49e1-ad85-c3b2f648dcb2',
         { fixture: 'dashboard_no_repos.json' },
       );
       cy.login('/dashboards/86671eb5-a3ff-49e1-ad85-c3b2f648dcb2');
     });
 
     it('shows message when there are no repositories added', () => {
+      cy.wait(2000); // Wait for dashboard to load
       cy.get('[data-test=dashboard]').contains(
         `This dashboard doesn't have repositories added yet`,
       );
@@ -142,7 +146,7 @@ context('Dashboards', () => {
   context('dashboard not found', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/dashboards/deadbeef' },
+        { method: 'GET', url: '**/api/v1/dashboards/deadbeef' },
         {
           statusCode: 404,
           body: {

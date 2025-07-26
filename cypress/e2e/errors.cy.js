@@ -13,7 +13,7 @@ context('Errors', () => {
   context('logged in', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/repos*' },
+        { method: 'GET', url: '**/api/v1/repos*' },
         { fixture: 'repositories.json' },
       );
       cy.login();
@@ -29,7 +29,7 @@ context('Errors', () => {
       cy.login();
 
       cy.intercept(
-        { method: 'GET', url: '*api/v1/user/source/repos*' },
+        { method: 'GET', url: '**/api/v1/user/source/repos*' },
         {
           statusCode: 500,
           body: {

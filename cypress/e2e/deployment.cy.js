@@ -6,36 +6,39 @@ context('Deployment', () => {
   context('server returning deployments', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'POST', url: '*api/v1/deployments/github/octocat' },
+        { method: 'POST', url: '**/api/v1/deployments/github/octocat' },
         {
           fixture: 'deployment.json',
         },
       );
       cy.intercept(
-        { method: 'GET', url: '*api/v1/deployments/github/octocat*' },
+        { method: 'GET', url: '**/api/v1/deployments/github/octocat*' },
         {
           fixture: 'deployments_5.json',
         },
       );
-      cy.intercept({ method: 'GET', url: '*api/v1/hooks/github/octocat*' }, []);
       cy.intercept(
-        { method: 'GET', url: '*api/v1/user' },
+        { method: 'GET', url: '**/api/v1/hooks/github/octocat*' },
+        [],
+      );
+      cy.intercept(
+        { method: 'GET', url: '**/api/v1/user' },
         { fixture: 'user_admin.json' },
       );
       cy.intercept(
-        { method: 'GET', url: '*api/v1/repos/github/octocat' },
+        { method: 'GET', url: '**/api/v1/repos/github/octocat' },
         {
           fixture: 'repository.json',
         },
       );
       cy.intercept(
-        { method: 'GET', url: '*api/v1/repos/github/octocat/builds*' },
+        { method: 'GET', url: '**/api/v1/repos/github/octocat/builds*' },
         {
           fixture: 'builds_5.json',
         },
       );
       cy.intercept(
-        { method: 'GET', url: '*api/v1/deployments/github/octocat/config' },
+        { method: 'GET', url: '**/api/v1/deployments/github/octocat/config' },
         {
           fixture: 'deployment_config.json',
         },
@@ -44,6 +47,7 @@ context('Deployment', () => {
 
     it('add parameter button should be disabled', () => {
       cy.login('/github/octocat/deployments/add');
+      cy.wait(1000); // Wait for form to load
       cy.get('[data-test=button-parameter-add]')
         .should('exist')
         .should('not.be.enabled')
@@ -71,7 +75,8 @@ context('Deployment', () => {
           .click();
 
         it('toast should show', () => {
-          cy.root.get('[data-test=alerts]').should('exist').contains('Success');
+          cy.wait(1000); // Wait for toast to appear
+          cy.get('[data-test=alerts]').should('exist').contains('Success');
         });
       });
 
@@ -240,11 +245,13 @@ context('Deployment', () => {
 
     it('deployments table should show', () => {
       cy.login('/github/octocat/deployments');
+      cy.wait(2000); // Wait for deployments to load
       cy.get('[data-test=deployments-table]').should('be.visible');
     });
 
     it('deployments table should contain deployments', () => {
       cy.login('/github/octocat/deployments');
+      cy.wait(2000); // Wait for deployments to load
       cy.get('[data-test=deployments-row]')
         .should('exist')
         .contains('Deployment request from Vela');
@@ -252,6 +259,7 @@ context('Deployment', () => {
 
     it('deployments table should list of parameters', () => {
       cy.login('/github/octocat/deployments');
+      cy.wait(2000); // Wait for deployments to load
       cy.get('[data-test=cell-list-item-parameters]')
         .should('exist')
         .contains('foo=bar');

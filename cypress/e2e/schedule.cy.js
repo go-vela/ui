@@ -6,7 +6,7 @@ context('Add Schedule', () => {
   context('server returning schedule', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/schedules/github/octocat/Daily' },
+        { method: 'GET', url: '**/api/v1/schedules/github/octocat/Daily' },
         {
           fixture: 'schedule.json',
         },
@@ -146,7 +146,7 @@ context('View/Edit Schedule', () => {
   context('server returning schedule', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/schedules/github/octocat/Daily' },
+        { method: 'GET', url: '**/api/v1/schedules/github/octocat/Daily' },
         {
           fixture: 'schedule.json',
         },

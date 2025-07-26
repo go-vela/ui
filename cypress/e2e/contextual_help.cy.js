@@ -26,7 +26,7 @@ context('Contextual Help', () => {
   context('successfully loading resource with cli support', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/repos/*/*/builds*' },
+        { method: 'GET', url: '**/api/v1/repos/*/*/builds*' },
         {
           fixture: 'builds_5.json',
         },

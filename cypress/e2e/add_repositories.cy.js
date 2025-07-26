@@ -112,7 +112,7 @@ context('Source Repositories', () => {
         },
       );
       cy.intercept(
-        { method: 'GET', url: '*api/v1/user/source/repos*' },
+        { method: 'GET', url: '**/api/v1/user/source/repos*' },
         {
           delay: 1000,
           body: {},
@@ -144,7 +144,7 @@ context('Source Repositories', () => {
         },
       );
       cy.intercept(
-        { method: 'GET', url: '*api/v1/user/source/repos*' },
+        { method: 'GET', url: '**/api/v1/user/source/repos*' },
         {
           statusCode: 500,
           body: 'server error',
@@ -170,7 +170,7 @@ context('Source Repositories', () => {
         },
       );
       cy.intercept(
-        { method: 'GET', url: '*api/v1/user/source/repos*' },
+        { method: 'GET', url: '**/api/v1/user/source/repos*' },
         {
           fixture: 'source_repositories_bad.json',
         },

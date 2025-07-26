@@ -63,7 +63,7 @@ context('Crumbs', () => {
   context('visit org secrets', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/secrets/native/repo/github/**' },
+        { method: 'GET', url: '**/api/v1/secrets/native/repo/github/**' },
         {
           fixture: 'secrets_org_5.json',
         },
@@ -77,7 +77,7 @@ context('Crumbs', () => {
   context('visit repo secret', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/secrets/native/repo/github/**' },
+        { method: 'GET', url: '**/api/v1/secrets/native/repo/github/**' },
         {
           fixture: 'secret_repo.json',
         },
@@ -106,7 +106,7 @@ context('Crumbs', () => {
     () => {
       beforeEach(() => {
         cy.intercept(
-          { method: 'GET', url: '*api/v1/secrets/native/shared/github/**' },
+          { method: 'GET', url: '**/api/v1/secrets/native/shared/github/**' },
           {
             fixture: 'secret_shared.json',
           },

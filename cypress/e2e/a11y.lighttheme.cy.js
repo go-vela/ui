@@ -41,19 +41,19 @@ context('Accessibility (a11y)', () => {
       cy.setTheme('theme-light');
       // overview page
       cy.intercept(
-        { method: 'GET', url: '*api/v1/user*' },
+        { method: 'GET', url: '**/api/v1/user*' },
         { fixture: 'favorites.json' },
       );
       // source repos page
       cy.intercept(
-        { method: 'GET', url: '*api/v1/user/source/repos*' },
+        { method: 'GET', url: '**/api/v1/user/source/repos*' },
         {
           fixture: 'source_repositories.json',
         },
       );
       // settings page
       cy.intercept(
-        { method: 'GET', url: '*api/v1/repos/*/octocat' },
+        { method: 'GET', url: '**/api/v1/repos/*/octocat' },
         {
           fixture: 'repository.json',
         },
@@ -64,25 +64,25 @@ context('Accessibility (a11y)', () => {
       cy.stubStepsWithLogs();
       // hooks page
       cy.intercept(
-        { method: 'GET', url: '*api/v1/hooks/github/octocat*' },
+        { method: 'GET', url: '**/api/v1/hooks/github/octocat*' },
         {
           fixture: 'hooks_5.json',
         },
       );
       cy.intercept(
-        { method: 'GET', url: '*api/v1/repos/*/octocat/builds/1*' },
+        { method: 'GET', url: '**/api/v1/repos/*/octocat/builds/1*' },
         {
           fixture: 'build_success.json',
         },
       );
       cy.intercept(
-        { method: 'GET', url: '*api/v1/repos/*/octocat/builds/2*' },
+        { method: 'GET', url: '**/api/v1/repos/*/octocat/builds/2*' },
         {
           fixture: 'build_failure.json',
         },
       );
       cy.intercept(
-        { method: 'GET', url: '*api/v1/repos/*/octocat/builds/3*' },
+        { method: 'GET', url: '**/api/v1/repos/*/octocat/builds/3*' },
         {
           fixture: 'build_running.json',
         },
