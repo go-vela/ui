@@ -38,7 +38,7 @@ context('Source Repositories', () => {
 
     it('toggles visibility of repos in an org', () => {
       cy.skipInCI('Visibility toggle timing issue in CI');
-      
+
       cy.get('[data-test=source-org-cat]').as('catOrg');
       cy.get('[data-test=source-org-cat] ~ [data-test^=source-repo]').as(
         'catRepos',

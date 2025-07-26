@@ -79,7 +79,7 @@ context('Authentication', () => {
 
     it('should go directly to page requested', () => {
       cy.skipInCI('OAuth redirect flow not reliable in CI');
-      
+
       cy.location('pathname').should('eq', '/Cookie/Cat');
     });
   });
