@@ -241,9 +241,11 @@ jobs:
       # Install Chrome for better Cypress performance
       - name: install Chrome
         if: steps.changes.outputs.src == 'true'
-        uses: browser-actions/setup-chrome@43e719c37b0bb8f7b5a36c48c7ee2e2ab66540b4 # v1.7.2
-        with:
-          chrome-version: stable
+        run: |
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
       
       # Verify Cypress installation and cache
       - name: verify Cypress
