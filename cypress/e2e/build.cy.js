@@ -24,16 +24,15 @@ context('Build', () => {
         },
       );
       cy.login('/github/octocat/1');
-      cy.get('[data-test=build-history]').as('buildHistory');
     });
 
     it('build history should show', () => {
-      cy.get('@buildHistory').should('be.visible');
+      cy.get('[data-test=build-history]').should('be.visible');
     });
 
     it('build history should have 5 builds', () => {
-      cy.get('@buildHistory').should('be.visible');
-      cy.get('@buildHistory').children().should('have.length', 5);
+      cy.get('[data-test=build-history]').should('be.visible');
+      cy.get('[data-test=build-history]').children().should('have.length', 5);
     });
 
     it('clicking build history item should redirect to build page', () => {
@@ -64,17 +63,15 @@ context('Build', () => {
     });
 
     context('server returning 55 builds', () => {
-      beforeEach(() => {
-        cy.get('[data-test=build-history]').as('buildHistory');
-      });
-
       it('build history should show', () => {
-        cy.get('@buildHistory').should('be.visible');
+        cy.get('[data-test=build-history]').should('be.visible');
       });
 
       it('build history should have 10 builds', () => {
-        cy.get('@buildHistory').should('be.visible');
-        cy.get('@buildHistory').children().should('have.length', 10);
+        cy.get('[data-test=build-history]').should('be.visible');
+        cy.get('[data-test=build-history]')
+          .children()
+          .should('have.length', 10);
       });
 
       it('clicking build history item should redirect to build page', () => {
@@ -83,41 +80,61 @@ context('Build', () => {
       });
 
       context('hover build history item', () => {
-        beforeEach(() => {
-          cy.get('[data-test=build-history-tooltip]').last().as('tooltip');
-        });
-
         it('should show build event', () => {
-          cy.get('@tooltip').should('contain', 'push');
+          cy.get('[data-test=build-history-tooltip]')
+            .last()
+            .should('contain', 'push');
         });
 
         it('should show build number', () => {
-          cy.get('@tooltip').should('contain', '10');
+          cy.get('[data-test=build-history-tooltip]')
+            .last()
+            .should('contain', '10');
         });
 
         it('should show build times', () => {
-          cy.get('@tooltip').should('contain', 'started');
-          cy.get('@tooltip').should('contain', 'finished');
+          cy.get('[data-test=build-history-tooltip]')
+            .last()
+            .should('contain', 'started');
+          cy.get('[data-test=build-history-tooltip]')
+            .last()
+            .should('contain', 'finished');
         });
 
         it('should show commit', () => {
-          cy.get('@tooltip').should('contain', 'commit');
-          cy.get('@tooltip').should('contain', '7bd468e');
+          cy.get('[data-test=build-history-tooltip]')
+            .last()
+            .should('contain', 'commit');
+          cy.get('[data-test=build-history-tooltip]')
+            .last()
+            .should('contain', '7bd468e');
         });
 
         it('should show branch', () => {
-          cy.get('@tooltip').should('contain', 'branch');
-          cy.get('@tooltip').should('contain', 'terra');
+          cy.get('[data-test=build-history-tooltip]')
+            .last()
+            .should('contain', 'branch');
+          cy.get('[data-test=build-history-tooltip]')
+            .last()
+            .should('contain', 'terra');
         });
 
         it('should show worker', () => {
-          cy.get('@tooltip').should('contain', 'worker');
-          cy.get('@tooltip').should('contain', 'https://vela-worker-6.com');
+          cy.get('[data-test=build-history-tooltip]')
+            .last()
+            .should('contain', 'worker');
+          cy.get('[data-test=build-history-tooltip]')
+            .last()
+            .should('contain', 'https://vela-worker-6.com');
         });
 
         it('should show route', () => {
-          cy.get('@tooltip').should('contain', 'route');
-          cy.get('@tooltip').should('contain', 'vela');
+          cy.get('[data-test=build-history-tooltip]')
+            .last()
+            .should('contain', 'route');
+          cy.get('[data-test=build-history-tooltip]')
+            .last()
+            .should('contain', 'vela');
         });
       });
     });
@@ -129,11 +146,10 @@ context('Build', () => {
           { method: 'POST', url: 'api/v1/repos/*/*/builds/*' },
           { statusCode: 200, body: { fixture: 'build_pending.json' } },
         );
-        cy.get('[data-test=restart-build]').as('restartBuild');
       });
 
       it('clicking restart build should show alert', () => {
-        cy.get('@restartBuild').click();
+        cy.get('[data-test=restart-build]').click();
         cy.get('[data-test=alert]').should(
           'contain',
           'Restarted build github/octocat/1',
@@ -141,7 +157,7 @@ context('Build', () => {
       });
 
       it('clicking restarted build link should redirect to Build page', () => {
-        cy.get('@restartBuild').click({ force: true });
+        cy.get('[data-test=restart-build]').click({ force: true });
         cy.get('[data-test=alert-hyperlink]').click({ force: true });
         cy.location('pathname').should('eq', '/github/octocat/2');
       });

@@ -68,9 +68,11 @@ context('Admin Settings', () => {
       it('clone image should allow editing', () => {
         cy.get('[data-test=input-clone-image]')
           .should('be.visible')
+          .should('exist')
           .clear()
           .type('target/vela-git:abc123');
         cy.get('[data-test=button-clone-image-update]').click();
+        cy.wait(500); // Wait for DOM to stabilize after update
         cy.get('[data-test=alert]').should('be.visible').contains('Success');
         cy.get('[data-test=input-clone-image]')
           .should('be.visible')
@@ -131,16 +133,16 @@ context('Admin Settings', () => {
                 'be.visible',
               );
               cy.get('[data-test=editable-list-item-vela-save]').should(
-                'not.be.visible',
+                'not.exist',
               );
               cy.get('[data-test=editable-list-item-vela-remove]').should(
-                'not.be.visible',
+                'not.exist',
               );
               cy.get('[data-test=editable-list-item-vela-edit]')
                 .should('be.visible')
                 .click({ force: true });
               cy.get('[data-test=editable-list-item-vela-edit]').should(
-                'not.be.visible',
+                'not.exist',
               );
               cy.get('[data-test=editable-list-item-vela-remove]').should(
                 'be.visible',
@@ -149,7 +151,7 @@ context('Admin Settings', () => {
                 .should('be.visible')
                 .click({ force: true });
               cy.get('[data-test=editable-list-item-vela-save]').should(
-                'not.be.visible',
+                'not.exist',
               );
             });
         });
@@ -161,7 +163,7 @@ context('Admin Settings', () => {
                 'be.visible',
               );
               cy.get('[data-test=editable-list-item-vela-save]').should(
-                'not.be.visible',
+                'not.exist',
               );
               cy.get('[data-test=editable-list-item-vela-edit]')
                 .should('be.visible')
@@ -171,7 +173,7 @@ context('Admin Settings', () => {
                 .should('be.visible')
                 .click({ force: true });
               cy.get('[data-test=editable-list-item-vela-save]').should(
-                'not.be.visible',
+                'not.exist',
               );
               cy.get('[data-test=editable-list-item-vela]').should(
                 'contain',
@@ -186,7 +188,7 @@ context('Admin Settings', () => {
                 .should('be.visible')
                 .click({ force: true });
               cy.get('[data-test=editable-list-item-vela-save]').should(
-                'not.be.visible',
+                'not.exist',
               );
               cy.get('[data-test=editable-list-item-vela]').should(
                 'contain',
@@ -203,7 +205,7 @@ context('Admin Settings', () => {
                 'be.visible',
               );
               cy.get('[data-test=editable-list-item-vela-save]').should(
-                'not.be.visible',
+                'not.exist',
               );
               cy.get('[data-test=editable-list-item-vela-edit]')
                 .should('be.visible')
@@ -215,7 +217,7 @@ context('Admin Settings', () => {
                 .should('be.visible')
                 .click({ force: true });
               cy.get('[data-test=editable-list-item-vela-save]').should(
-                'not.be.visible',
+                'not.exist',
               );
               cy.get('[data-test=editable-list-item-vela123]').should(
                 'contain',
