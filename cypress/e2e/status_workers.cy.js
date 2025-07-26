@@ -98,8 +98,7 @@ context('Workers', () => {
       beforeEach(() => {
         cy.viewport(550, 750);
       });
-      // TODO: skip test for now; fix by updating to newer cypress/playwright
-      it.skip('rows have responsive style', () => {
+      it('rows have responsive style', () => {
         cy.get('[data-test=workers-row]')
           .first()
           .should('have.css', 'border-bottom', '2px solid rgb(149, 94, 166)'); // check for lavender border
