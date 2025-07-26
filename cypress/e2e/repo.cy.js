@@ -5,11 +5,10 @@
 context('Repo', () => {
   context('logged in and server returning 5 builds', () => {
     beforeEach(() => {
-      cy.server();
-      cy.route({
+      cy.intercept({
         method: 'GET',
         url: '*api/v1/repos/*/*/builds*',
-        response: 'fixture:builds_5.json',
+        body: { fixture: 'builds_5.json' },
       });
       cy.stubBuild();
       cy.hookPages();
@@ -79,8 +78,12 @@ context('Repo', () => {
 
         context('click secrets in nav tabs', () => {
           beforeEach(() => {
-            cy.route('GET', '*api/v1/secrets/native/repo/github/octocat*', []);
-            cy.route('GET', '*api/v1/secrets/native/org/github/**', []);
+            cy.intercept('GET', '*api/v1/secrets/native/repo/github/octocat*', {
+              body: [],
+            });
+            cy.intercept('GET', '*api/v1/secrets/native/org/github/**', {
+              body: [],
+            });
             cy.get('[data-test=jump-Secrets]').click();
           });
 

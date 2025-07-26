@@ -5,14 +5,15 @@
 context('Source Repositories', () => {
   context('logged in', () => {
     beforeEach(() => {
-      cy.server();
-      cy.route(
-        'GET',
-        '*api/v1/user/source/repos*',
-        'fixture:source_repositories.json',
-      ).as('sourceRepos');
-      cy.route('POST', '*api/v1/repos*', 'fixture:enable_repo_response.json');
-      cy.route('PUT', '*api/v1/repos*', 'fixture:enable_repo_response.json');
+      cy.intercept('GET', '*api/v1/user/source/repos*', {
+        fixture: 'source_repositories.json',
+      }).as('sourceRepos');
+      cy.intercept('POST', '*api/v1/repos*', {
+        fixture: 'enable_repo_response.json',
+      });
+      cy.intercept('PUT', '*api/v1/repos*', {
+        fixture: 'enable_repo_response.json',
+      });
       cy.login('/account/source-repos');
     });
 
@@ -46,11 +47,9 @@ context('Source Repositories', () => {
     });
 
     it('shows the failed button and alert when the enable is unsuccessful', () => {
-      cy.route({
-        method: 'POST',
-        url: '*api/v1/repos*',
-        status: 500,
-        response: `{"error":"unable to create webhook for : something went wrong"}`,
+      cy.intercept('POST', '*api/v1/repos*', {
+        statusCode: 500,
+        body: `{"error":"unable to create webhook for : something went wrong"}`,
       }).as('enableRepoError');
 
       cy.get('[data-test=source-org-cat]').click();
@@ -86,14 +85,13 @@ context('Source Repositories', () => {
 
   context('logged in - artificial 1s load delay', () => {
     beforeEach(() => {
-      cy.server();
-      cy.route({
-        method: 'GET',
-        url: '*api/v1/user/source/repos*',
+      cy.intercept('GET', '*api/v1/user/source/repos*', {
         delay: 1000,
-        response: {},
+        body: {},
       }).as('sourceRepos');
-      cy.route('POST', '*api/v1/repos*', 'fixture:enable_repo_response.json');
+      cy.intercept('POST', '*api/v1/repos*', {
+        fixture: 'enable_repo_response.json',
+      });
       cy.login('/account/source-repos');
     });
 
@@ -107,12 +105,9 @@ context('Source Repositories', () => {
 
   context('logged in - api error', () => {
     beforeEach(() => {
-      cy.server();
-      cy.route({
-        method: 'GET',
-        url: '*api/v1/user/source/repos*',
-        status: 500,
-        response: 'server error',
+      cy.intercept('GET', '*api/v1/user/source/repos*', {
+        statusCode: 500,
+        body: 'server error',
       }).as('error');
       cy.login('/account/source-repos');
     });
@@ -127,12 +122,9 @@ context('Source Repositories', () => {
 
   context('logged in - unexpected response', () => {
     beforeEach(() => {
-      cy.server();
-      cy.route(
-        'GET',
-        '*api/v1/user/source/repos*',
-        'fixture:source_repositories_bad.json',
-      ).as('badSourceRepos');
+      cy.intercept('GET', '*api/v1/user/source/repos*', {
+        fixture: 'source_repositories_bad.json',
+      }).as('badSourceRepos');
       cy.login('/account/source-repos');
     });
 

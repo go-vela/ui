@@ -17,17 +17,15 @@ const elmExclude = '[style*="padding-left: calc(1ch + 6px)"]';
 context('Accessibility (a11y)', () => {
   context('Logged out', () => {
     beforeEach(() => {
-      cy.server();
-      cy.route({
+      cy.intercept({
         method: 'GET',
         url: '/token-refresh',
-        status: 401,
-        response: { message: 'unauthorized' },
+        statusCode: 401,
+        body: { message: 'unauthorized' },
       });
     });
 
     it('overview', () => {
-      cy.setTheme('theme-light');
       cy.visit('/account/login');
       cy.injectAxe();
       cy.wait(2000);
@@ -38,39 +36,33 @@ context('Accessibility (a11y)', () => {
 
   context('Logged in', () => {
     beforeEach(() => {
-      cy.setTheme('theme-light');
-      cy.server();
       // overview page
-      cy.route('GET', '*api/v1/user*', 'fixture:favorites.json');
+      cy.intercept('GET', '*api/v1/user*', { fixture: 'favorites.json' });
       // source repos page
-      cy.route(
-        'GET',
-        '*api/v1/user/source/repos*',
-        'fixture:source_repositories.json',
-      );
+      cy.intercept('GET', '*api/v1/user/source/repos*', {
+        fixture: 'source_repositories.json',
+      });
       // settings page
-      cy.route('GET', '*api/v1/repos/*/octocat', 'fixture:repository.json');
+      cy.intercept('GET', '*api/v1/repos/*/octocat', {
+        fixture: 'repository.json',
+      });
       // repo and build page
       cy.stubBuilds();
       cy.stubBuild();
       cy.stubStepsWithLogs();
       // hooks page
-      cy.route('GET', '*api/v1/hooks/github/octocat*', 'fixture:hooks_5.json');
-      cy.route(
-        'GET',
-        '*api/v1/repos/*/octocat/builds/1*',
-        'fixture:build_success.json',
-      );
-      cy.route(
-        'GET',
-        '*api/v1/repos/*/octocat/builds/2*',
-        'fixture:build_failure.json',
-      );
-      cy.route(
-        'GET',
-        '*api/v1/repos/*/octocat/builds/3*',
-        'fixture:build_running.json',
-      );
+      cy.intercept('GET', '*api/v1/hooks/github/octocat*', {
+        fixture: 'hooks_5.json',
+      });
+      cy.intercept('GET', '*api/v1/repos/*/octocat/builds/1*', {
+        fixture: 'build_success.json',
+      });
+      cy.intercept('GET', '*api/v1/repos/*/octocat/builds/2*', {
+        fixture: 'build_failure.json',
+      });
+      cy.intercept('GET', '*api/v1/repos/*/octocat/builds/3*', {
+        fixture: 'build_running.json',
+      });
     });
 
     it('overview', () => {
@@ -91,6 +83,21 @@ context('Accessibility (a11y)', () => {
 
     it('hooks page', () => {
       cy.checkA11yForPage('/github/octocat/hooks', A11Y_OPTS);
+    });
+
+    it('schedules page', () => {
+      cy.checkA11yForPage('/github/octocat/schedules', A11Y_OPTS);
+    });
+
+    it('deployments page', () => {
+      cy.checkA11yForPage('/github/octocat/deployments', A11Y_OPTS);
+    });
+
+    it('repo secrets page', () => {
+      cy.checkA11yForPage(
+        '/-/secrets/native/repo/octocat/deployments',
+        A11Y_OPTS,
+      );
     });
 
     it('build page', () => {

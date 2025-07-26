@@ -5,34 +5,23 @@
 context('Deployment', () => {
   context('server returning deployments', () => {
     beforeEach(() => {
-      cy.server();
-      cy.route(
-        'POST',
-        '*api/v1/deployments/github/octocat',
-        'fixture:deployment.json',
-      );
-      cy.route(
-        'GET',
-        '*api/v1/deployments/github/octocat*',
-        'fixture:deployments_5.json',
-      );
-      cy.route('GET', '*api/v1/hooks/github/octocat*', []);
-      cy.route('GET', '*api/v1/user', 'fixture:user_admin.json');
-      cy.route(
-        'GET',
-        '*api/v1/repos/github/octocat',
-        'fixture:repository.json',
-      );
-      cy.route(
-        'GET',
-        '*api/v1/repos/github/octocat/builds*',
-        'fixture:builds_5.json',
-      );
-      cy.route(
-        'GET',
-        '*api/v1/deployments/github/octocat/config',
-        'fixture:deployment_config.json',
-      );
+      cy.intercept('POST', '*api/v1/deployments/github/octocat', {
+        fixture: 'deployment.json',
+      });
+      cy.intercept('GET', '*api/v1/deployments/github/octocat*', {
+        fixture: 'deployments_5.json',
+      });
+      cy.intercept('GET', '*api/v1/hooks/github/octocat*', { body: [] });
+      cy.intercept('GET', '*api/v1/user', { fixture: 'user_admin.json' });
+      cy.intercept('GET', '*api/v1/repos/github/octocat', {
+        fixture: 'repository.json',
+      });
+      cy.intercept('GET', '*api/v1/repos/github/octocat/builds*', {
+        fixture: 'builds_5.json',
+      });
+      cy.intercept('GET', '*api/v1/deployments/github/octocat/config', {
+        fixture: 'deployment_config.json',
+      });
     });
 
     it('add parameter button should be disabled', () => {

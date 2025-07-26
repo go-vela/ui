@@ -5,11 +5,10 @@
 context('Org', () => {
   context('Tabs', () => {
     beforeEach(() => {
-      cy.server();
-      cy.route({
+      cy.intercept({
         method: 'GET',
         url: '*api/v1/repos/vela',
-        response: 'fixture:repositories_5.json',
+        body: { fixture: 'repositories_5.json' },
       });
       cy.login('/vela');
     });
@@ -24,11 +23,10 @@ context('Org', () => {
   context('Repositories Tab', () => {
     context('logged in and server returning 5 repos', () => {
       beforeEach(() => {
-        cy.server();
-        cy.route({
+        cy.intercept({
           method: 'GET',
           url: '*api/v1/repos/vela',
-          response: 'fixture:repositories_5.json',
+          body: { fixture: 'repositories_5.json' },
         });
         cy.login('/vela');
 
@@ -51,7 +49,6 @@ context('Org', () => {
 
     context('logged in and server returning > 10 repos', () => {
       beforeEach(() => {
-        cy.server();
         cy.stubRepos();
         cy.login('/vela');
 
@@ -97,11 +94,10 @@ context('Org', () => {
   context('Builds Tab', () => {
     context('logged in and returning 5 builds', () => {
       beforeEach(() => {
-        cy.server();
-        cy.route({
+        cy.intercept({
           method: 'GET',
           url: '*api/v1/repos/vela/builds*',
-          response: 'fixture:builds_5.json',
+          body: { fixture: 'builds_5.json' },
         });
         cy.login('/vela/builds');
       });
@@ -117,7 +113,6 @@ context('Org', () => {
 
     context('logged in and returning 20 builds', () => {
       beforeEach(() => {
-        cy.server();
         cy.stubOrgBuilds();
         cy.login('/vela/builds');
       });
@@ -147,11 +142,10 @@ context('Org', () => {
 
   context('Secrets Tab', () => {
     beforeEach(() => {
-      cy.server();
-      cy.route({
+      cy.intercept({
         method: 'GET',
         url: '*api/v1/repos/vela',
-        response: 'fixture:repositories_5.json',
+        body: { fixture: 'repositories_5.json' },
       });
       cy.login('/vela');
     });

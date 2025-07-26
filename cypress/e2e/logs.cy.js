@@ -5,7 +5,6 @@ context(
   'visit Build with steps and ansi encoded logs using url line fragment',
   () => {
     beforeEach(() => {
-      cy.server();
       cy.stubBuild();
       cy.stubStepsWithANSILogs();
       cy.login('/github/octocat/1');
@@ -179,11 +178,11 @@ context(
 
       it('click follow logs should focus follow new logs', () => {
         // stub short logs
-        cy.route({
+        cy.intercept({
           method: 'GET',
           url: 'api/v1/repos/*/*/builds/*/steps/2/logs',
-          status: 200,
-          response: 'fixture:log_step_short.json',
+          statusCode: 200,
+          body: { fixture: 'log_step_short.json' },
         }).as('getLogs-2');
 
         // verify no prior focus
@@ -199,11 +198,11 @@ context(
         cy.get('[data-test=follow-logs-2]').first().click({ force: true });
 
         // stub long logs to trigger follow
-        cy.route({
+        cy.intercept({
           method: 'GET',
           url: 'api/v1/repos/*/*/builds/*/steps/2/logs',
-          status: 200,
-          response: 'fixture:log_step_long.json',
+          statusCode: 200,
+          body: { fixture: 'log_step_long.json' },
         }).as('getLogs-2');
 
         // wait for refresh and check for bottom focus
@@ -258,7 +257,6 @@ context(
   'visit Build with services and ansi encoded logs using url line fragment',
   () => {
     beforeEach(() => {
-      cy.server();
       cy.stubBuild();
       cy.stubServicesWithANSILogs();
       cy.login('/github/octocat/1/services');
@@ -448,11 +446,11 @@ context(
 
       it('click follow logs should focus follow new logs', () => {
         // stub short logs
-        cy.route({
+        cy.intercept({
           method: 'GET',
           url: 'api/v1/repos/*/*/builds/*/services/2/logs',
-          status: 200,
-          response: 'fixture:log_service_short.json',
+          statusCode: 200,
+          body: { fixture: 'log_service_short.json' },
         }).as('getLogs-2');
 
         // verify no prior focus
@@ -468,11 +466,11 @@ context(
         cy.get('[data-test=follow-logs-2]').first().click({ force: true });
 
         // stub long logs to trigger follow
-        cy.route({
+        cy.intercept({
           method: 'GET',
           url: 'api/v1/repos/*/*/builds/*/services/2/logs',
-          status: 200,
-          response: 'fixture:log_service_long.json',
+          statusCode: 200,
+          body: { fixture: 'log_service_long.json' },
         }).as('getLogs-2');
 
         // wait for refresh and check for bottom focus
@@ -525,7 +523,6 @@ context(
 
 context('visit Build with steps and large logs', () => {
   beforeEach(() => {
-    cy.server();
     cy.stubBuild();
     cy.stubStepsWithLargeLogs();
     cy.login('/github/octocat/1');
@@ -551,7 +548,6 @@ context(
   'visit Build with steps and linked logs using url line fragment',
   () => {
     beforeEach(() => {
-      cy.server();
       cy.stubBuild();
       cy.stubStepsWithLinkedLogs();
       cy.login('/github/octocat/1');

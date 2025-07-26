@@ -7,7 +7,6 @@ context('Pipeline', () => {
     'logged in and server returning pipeline configuration error and templates errors',
     () => {
       beforeEach(() => {
-        cy.server();
         cy.stubBuild();
         cy.stubPipelineErrors();
         cy.stubPipelineTemplatesErrors();
@@ -31,7 +30,6 @@ context('Pipeline', () => {
   );
   context('logged in and server returning empty pipeline templates', () => {
     beforeEach(() => {
-      cy.server();
       cy.stubBuild();
       cy.stubPipeline();
       cy.stubPipelineTemplatesEmpty();
@@ -57,7 +55,6 @@ context('Pipeline', () => {
     'logged in and server returning valid pipeline configuration and templates',
     () => {
       beforeEach(() => {
-        cy.server();
         cy.stubBuild();
         cy.stubPipeline();
         cy.stubPipelineExpand();
@@ -235,7 +232,6 @@ context('Pipeline', () => {
     'logged in and server returning valid pipeline configuration and templates with expansion errors',
     () => {
       beforeEach(() => {
-        cy.server();
         cy.stubBuild();
         cy.stubPipeline();
         cy.stubPipelineExpandErrors();
@@ -293,7 +289,6 @@ context('Pipeline', () => {
     'logged in and server returning valid pipeline configuration (with warnings) and templates',
     () => {
       beforeEach(() => {
-        cy.server();
         cy.stubBuild();
         cy.stubPipelineWithWarnings();
         cy.stubPipelineExpand();

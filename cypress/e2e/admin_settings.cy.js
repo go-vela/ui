@@ -4,20 +4,19 @@
 
 context('Admin Settings', () => {
   beforeEach(() => {
-    cy.server();
-    cy.route({
+    cy.intercept({
       method: 'GET',
       url: '*api/v1/user*',
-      status: 200,
-      response: 'fixture:user_admin.json',
+      statusCode: 200,
+      body: { fixture: 'user_admin.json' },
     });
   });
   context('server returning error', () => {
     beforeEach(() => {
-      cy.route({
+      cy.intercept({
         method: 'GET',
         url: '*api/v1/admin/settings*',
-        status: 500,
+        statusCode: 500,
       });
       cy.loginAdmin('/admin/settings');
     });
@@ -27,11 +26,11 @@ context('Admin Settings', () => {
   });
   context('server returning settings', () => {
     beforeEach(() => {
-      cy.route({
+      cy.intercept({
         method: 'GET',
         url: '*api/v1/admin/settings*',
-        status: 200,
-        response: 'fixture:settings.json',
+        statusCode: 200,
+        body: { fixture: 'settings.json' },
       });
       cy.loginAdmin('/admin/settings');
     });
@@ -63,11 +62,11 @@ context('Admin Settings', () => {
 
     context('form should allow editing', () => {
       beforeEach(() => {
-        cy.route({
+        cy.intercept({
           method: 'PUT',
           url: '*api/v1/admin/settings*',
-          status: 200,
-          response: 'fixture:settings_updated.json',
+          statusCode: 200,
+          body: { fixture: 'settings_updated.json' },
         });
       });
       it('clone image should allow editing', () => {

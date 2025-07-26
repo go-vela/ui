@@ -4,21 +4,16 @@
 
 context('Workers', () => {
   beforeEach(() => {
-    cy.server();
-    cy.route({
-      method: 'GET',
-      url: '*api/v1/user*',
-      status: 200,
-      response: 'fixture:user.json',
+    cy.intercept('GET', '*api/v1/user*', {
+      statusCode: 200,
+      fixture: 'user.json',
     });
   });
   context('server returning workers error', () => {
     beforeEach(() => {
-      cy.route({
-        method: 'GET',
-        url: '*api/v1/workers*',
-        status: 500,
-        response: 'server error',
+      cy.intercept('GET', '*api/v1/workers*', {
+        statusCode: 500,
+        body: 'server error',
       });
       cy.login('/status/workers');
     });
@@ -36,8 +31,7 @@ context('Workers', () => {
   });
   context('server returning 5 workers', () => {
     beforeEach(() => {
-      cy.server();
-      cy.route('GET', '*api/v1/workers*', 'fixture:workers_5.json').as(
+      cy.intercept('GET', '*api/v1/workers*', { fixture: 'workers_5.json' }).as(
         'workers',
       );
       cy.login('/status/workers');
@@ -74,7 +68,6 @@ context('Workers', () => {
   });
   context('server returning 10 workers', () => {
     beforeEach(() => {
-      cy.server();
       cy.workerPages();
       cy.login('/status/workers');
     });

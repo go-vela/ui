@@ -5,12 +5,11 @@
 context('Builds', () => {
   context('server returning builds error', () => {
     beforeEach(() => {
-      cy.server();
-      cy.route({
+      cy.intercept({
         method: 'GET',
         url: '*api/v1/repos/*/*/builds*',
-        status: 500,
-        response: 'server error',
+        statusCode: 500,
+        body: 'server error',
       });
       cy.stubBuild();
       cy.login('/github/octocat');
@@ -31,11 +30,10 @@ context('Builds', () => {
 
   context('logged in and server returning 5 builds', () => {
     beforeEach(() => {
-      cy.server();
-      cy.route({
+      cy.intercept({
         method: 'GET',
         url: '*api/v1/repos/*/*/builds*',
-        response: 'fixture:builds_5.json',
+        body: { fixture: 'builds_5.json' },
       });
       cy.stubBuild();
       cy.login('/github/octocat');
@@ -185,7 +183,6 @@ context('Builds', () => {
 
   context('logged in and server returning 20 builds and running build', () => {
     beforeEach(() => {
-      cy.server();
       cy.stubBuilds();
       cy.stubBuild();
       cy.login('/github/octocat');
@@ -268,7 +265,6 @@ context('Builds', () => {
 
   context('logged in and server returning builds error', () => {
     beforeEach(() => {
-      cy.server();
       cy.stubBuildsErrors();
       cy.login('/github/octocat');
     });
@@ -281,7 +277,6 @@ context('Builds', () => {
   context('logged out and server returning 10 builds', () => {
     beforeEach(() => {
       cy.loggedOut();
-      cy.server();
       cy.stubBuilds();
       cy.visit('/github/octocat');
     });

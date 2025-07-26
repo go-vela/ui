@@ -5,14 +5,13 @@
 context('Searching', () => {
   context('logged in and server returning source repos', () => {
     beforeEach(() => {
-      cy.server();
       cy.fixture('source_repos')
         .then(repos => {
-          cy.route({
+          cy.intercept({
             method: 'GET',
             url: 'api/v1/user/source/repos*',
-            status: 200,
-            response: repos,
+            statusCode: 200,
+            body: repos,
           });
         })
         .as('sourceRepos');
@@ -101,11 +100,9 @@ context('Searching', () => {
           'click Enable All button, then clear github local search input',
           () => {
             beforeEach(() => {
-              cy.route(
-                'POST',
-                '*api/v1/repos*',
-                'fixture:enable_repo_response.json',
-              );
+              cy.intercept('POST', '*api/v1/repos*', {
+                fixture: 'enable_repo_response.json',
+              });
               cy.get('[data-test=enable-org-github]').click({ force: true });
               cy.get('[data-test=local-search-input-github]')
                 .should('be.visible')

@@ -5,7 +5,6 @@
 context('Steps', () => {
   context('logged in and server returning builds, steps, and logs', () => {
     beforeEach(() => {
-      cy.server();
       cy.stubBuild();
       cy.stubStepsWithLogsAndSkipped();
       cy.login('/github/octocat/1');
@@ -249,7 +248,6 @@ context('Steps', () => {
 
   context('visit build/steps with server error', () => {
     beforeEach(() => {
-      cy.server();
       cy.stubBuild();
       cy.stubStepsWithErrorLogs();
       cy.login('/github/octocat/5');
@@ -292,14 +290,11 @@ context('Steps', () => {
 
   context('visit build/steps with stages', () => {
     beforeEach(() => {
-      cy.server();
       cy.stubBuild();
       cy.fixture('steps_stages.json').as('steps');
-      cy.route({
-        method: 'GET',
-        url: 'api/v1/repos/*/*/builds/*/steps*',
-        status: 200,
-        response: '@steps',
+      cy.intercept('GET', 'api/v1/repos/*/*/builds/*/steps*', {
+        statusCode: 200,
+        fixture: 'steps_stages.json',
       });
       cy.login('/github/octocat/5');
     });

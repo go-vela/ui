@@ -5,12 +5,9 @@
 context('Dashboards', () => {
   context('main dashboards page', () => {
     beforeEach(() => {
-      cy.server();
-      cy.route(
-        'GET',
-        '*api/v1/user/dashboards',
-        'fixture:user_dashboards.json',
-      );
+      cy.intercept('GET', '*api/v1/user/dashboards', {
+        fixture: 'user_dashboards.json',
+      });
       cy.login('/dashboards');
     });
 
@@ -43,23 +40,19 @@ context('Dashboards', () => {
 
   context('main dashboards page shows message', () => {
     beforeEach(() => {
-      cy.server();
-      cy.route(
-        'GET',
-        '*api/v1/user/dashboards',
-        'fixture:user_dashboards.json',
-      );
+      cy.intercept('GET', '*api/v1/user/dashboards', {
+        fixture: 'user_dashboards.json',
+      });
       cy.login('/dashboards');
     });
   });
 
   context('server returns dashboard with 3 cards, one without builds', () => {
     beforeEach(() => {
-      cy.server();
-      cy.route(
+      cy.intercept(
         'GET',
         '*api/v1/dashboards/86671eb5-a3ff-49e1-ad85-c3b2f648dcb2',
-        'fixture:dashboard.json',
+        { fixture: 'dashboard.json' },
       );
       cy.login('/dashboards/86671eb5-a3ff-49e1-ad85-c3b2f648dcb2');
     });
@@ -125,11 +118,10 @@ context('Dashboards', () => {
 
   context('server returning dashboard without repos', () => {
     beforeEach(() => {
-      cy.server();
-      cy.route(
+      cy.intercept(
         'GET',
         '*api/v1/dashboards/86671eb5-a3ff-49e1-ad85-c3b2f648dcb2',
-        'fixture:dashboard_no_repos.json',
+        { fixture: 'dashboard_no_repos.json' },
       );
       cy.login('/dashboards/86671eb5-a3ff-49e1-ad85-c3b2f648dcb2');
     });
@@ -143,12 +135,11 @@ context('Dashboards', () => {
 
   context('dashboard not found', () => {
     beforeEach(() => {
-      cy.server();
-      cy.route({
+      cy.intercept({
         method: 'GET',
-        status: 404,
+        statusCode: 404,
         url: '*api/v1/dashboards/deadbeef',
-        response: {
+        body: {
           error:
             'unable to read dashboard deadbeef: ERROR: invalid input syntax for type uuid: "deadbeef" (SQLSTATE 22P02)',
         },
