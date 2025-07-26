@@ -11,14 +11,17 @@ context('Admin Settings', () => {
   });
   context('server returning error', () => {
     beforeEach(() => {
+      cy.loginAdmin('/admin/settings');
+      // Override the success intercept from loginAdmin with an error
       cy.intercept(
         { method: 'GET', url: '**/api/v1/admin/settings*' },
         { statusCode: 500 },
       );
-      cy.loginAdmin('/admin/settings');
+      // Reload to trigger the error intercept
+      cy.reload();
     });
     it('should show an error', () => {
-      cy.get('[data-test=alert]').should('be.visible').contains('Error');
+      cy.get('[data-test=alerts]').should('be.visible').contains('Error');
     });
   });
   context('server returning settings', () => {

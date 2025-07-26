@@ -14,6 +14,8 @@ context('Workers', () => {
   });
   context('server returning workers error', () => {
     beforeEach(() => {
+      cy.login('/status/workers');
+      // Override the success intercept from login with an error
       cy.intercept(
         { method: 'GET', url: '**/api/v1/workers*' },
         {
@@ -21,10 +23,12 @@ context('Workers', () => {
           body: 'server error',
         },
       );
-      cy.login('/status/workers');
+      // Reload to trigger the error intercept
+      cy.reload();
     });
-    it('workers table should not show', () => {
-      cy.get('[data-test=workers-table]').should('not.be.visible');
+    it('workers table should show error state', () => {
+      cy.get('[data-test=workers-table]').should('be.visible');
+      cy.get('[data-test=workers-error]').should('be.visible');
     });
     it('error should show', () => {
       cy.get('[data-test=alerts]').should('exist').contains('Error');
