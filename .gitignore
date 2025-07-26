@@ -285,3 +285,4 @@ secrets.env
 
 # Idea
 .idea/
+/.claude
