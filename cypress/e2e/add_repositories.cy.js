@@ -6,7 +6,13 @@ context('Source Repositories', () => {
   context('logged in', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/user/source/repos*' },
+        { method: 'GET', url: '**/api/v1/user' },
+        {
+          fixture: 'favorites_overview.json',
+        },
+      );
+      cy.intercept(
+        { method: 'GET', url: '**/api/v1/user/source/repos' },
         {
           fixture: 'source_repositories.json',
         },
@@ -98,6 +104,12 @@ context('Source Repositories', () => {
   context('logged in - artificial 1s load delay', () => {
     beforeEach(() => {
       cy.intercept(
+        { method: 'GET', url: '*api/v1/user*' },
+        {
+          fixture: 'favorites_overview.json',
+        },
+      );
+      cy.intercept(
         { method: 'GET', url: '*api/v1/user/source/repos*' },
         {
           delay: 1000,
@@ -124,6 +136,12 @@ context('Source Repositories', () => {
   context('logged in - api error', () => {
     beforeEach(() => {
       cy.intercept(
+        { method: 'GET', url: '*api/v1/user*' },
+        {
+          fixture: 'favorites_overview.json',
+        },
+      );
+      cy.intercept(
         { method: 'GET', url: '*api/v1/user/source/repos*' },
         {
           statusCode: 500,
@@ -143,6 +161,12 @@ context('Source Repositories', () => {
 
   context('logged in - unexpected response', () => {
     beforeEach(() => {
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/user*' },
+        {
+          fixture: 'favorites_overview.json',
+        },
+      );
       cy.intercept(
         { method: 'GET', url: '*api/v1/user/source/repos*' },
         {
