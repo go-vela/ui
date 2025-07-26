@@ -18,7 +18,7 @@ module.exports = defineConfig({
     setupNodeEvents(on, config) {
       // Pass CI environment variable to Cypress as a boolean
       config.env.CI = process.env.CI === 'true' || process.env.CI === '1';
-      
+
       return config;
     },
   },
