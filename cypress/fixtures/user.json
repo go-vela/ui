@@ -1,0 +1,7 @@
+{
+  "id": 1,
+  "name": "octocat",
+  "favorites": ["org/repo_a", "org/repo_b", "github/octocat"],
+  "active": true,
+  "admin": false
+}

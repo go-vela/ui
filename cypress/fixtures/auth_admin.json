@@ -1,3 +1,3 @@
 {
-  "token": "header.eyJpc19hZG1pbiI6ZmFsc2UsImlzX2FjdGl2ZSI6dHJ1ZSwiZXhwIjoxNjA2MjA4MDAzLCJpYXQiOjE2MDYyMDc5NDMsInN1YiI6ImNvb2tpZSBjYXQifQ==.signature"
+  "token": "header.eyJpc19hZG1pbiI6dHJ1ZSwiaXNfYWN0aXZlIjp0cnVlLCJleHAiOjE4MTY1OTA1NzEsImlhdCI6MTc1MzUxODU3MSwic3ViIjoiYWRtaW4gdXNlciJ9.signature"
 }
