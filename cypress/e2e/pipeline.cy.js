@@ -13,10 +13,9 @@ context('Pipeline', () => {
         cy.login('/github/octocat/1/pipeline');
       });
       it('pipeline configuration error should show', () => {
+        cy.wait(2000); // Wait for pipeline data to load
         cy.get('[data-test=pipeline-configuration-error]').should('be.visible');
-        cy.get('[data-test=pipeline-configuration-data]').should(
-          'not.be.visible',
-        );
+        cy.get('[data-test=pipeline-configuration-data]').should('not.exist');
       });
 
       it('pipeline templates error should show', () => {
@@ -36,7 +35,8 @@ context('Pipeline', () => {
       cy.login('/github/octocat/1/pipeline');
     });
     it('templates should not show', () => {
-      cy.get('[data-test=pipeline-templates]').should('not.be.visible');
+      cy.wait(1000); // Wait for templates to load
+      cy.get('[data-test=pipeline-templates]').should('not.exist');
     });
 
     it('expand pipeline should be visible', () => {
@@ -88,7 +88,8 @@ context('Pipeline', () => {
       });
 
       it('warnings should not be visible', () => {
-        cy.get('[data-test=pipeline-warnings]').should('not.be.visible');
+        cy.wait(1000); // Wait for warnings check
+        cy.get('[data-test=pipeline-warnings]').should('not.exist');
       });
 
       context('click expand templates', () => {
@@ -142,10 +143,12 @@ context('Pipeline', () => {
 
         context('click line number, then shift click other line number', () => {
           beforeEach(() => {
-            cy.get('[data-test=config-line-num-2]')
-              .type('{shift}', { release: false })
-              .get('[data-test=config-line-num-5]')
-              .click({ force: true });
+            cy.get('[data-test=config-line-num-2]').click({ force: true });
+            cy.get('[data-test=config-line-num-5]').click({
+              force: true,
+              shiftKey: true,
+            });
+            cy.wait(500); // Wait for range selection to process
           });
 
           it('should update path with range', () => {
@@ -160,6 +163,7 @@ context('Pipeline', () => {
           });
 
           it('lines within the range should have focus style', () => {
+            cy.wait(500); // Wait for focus styles to apply
             cy.get('[data-test=config-line-2]').should('have.class', '-focus');
             cy.get('[data-test=config-line-3]').should('have.class', '-focus');
             cy.get('[data-test=config-line-4]').should('have.class', '-focus');
@@ -203,10 +207,12 @@ context('Pipeline', () => {
 
       context('click line number, then shift click other line number', () => {
         beforeEach(() => {
-          cy.get('[data-test=config-line-num-2]')
-            .type('{shift}', { release: false })
-            .get('[data-test=config-line-num-5]')
-            .click({ force: true });
+          cy.get('[data-test=config-line-num-2]').click({ force: true });
+          cy.get('[data-test=config-line-num-5]').click({
+            force: true,
+            shiftKey: true,
+          });
+          cy.wait(500); // Wait for range selection to process
         });
 
         it('should update path with range', () => {
@@ -221,6 +227,7 @@ context('Pipeline', () => {
         });
 
         it('lines within the range should have focus style', () => {
+          cy.wait(500); // Wait for focus styles to apply
           cy.get('[data-test=config-line-2]').should('have.class', '-focus');
           cy.get('[data-test=config-line-3]').should('have.class', '-focus');
           cy.get('[data-test=config-line-4]').should('have.class', '-focus');
@@ -274,8 +281,9 @@ context('Pipeline', () => {
             });
           });
           it('should revert to valid pipeline configuration', () => {
+            cy.wait(2000); // Wait for reversion to complete
             cy.get('[data-test=pipeline-configuration-error]').should(
-              'not.be.visible',
+              'not.exist',
             );
             cy.get('[data-test=pipeline-configuration-data]').should(
               'be.visible',

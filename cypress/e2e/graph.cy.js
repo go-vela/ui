@@ -19,25 +19,25 @@ context('Build Graph', () => {
     () => {
       beforeEach(() => {
         cy.intercept(
-          { method: 'GET', url: '*api/v1/repos/*/*/builds*' },
+          { method: 'GET', url: '**/api/v1/repos/*/*/builds*' },
           {
             fixture: 'builds_5.json',
           },
         );
         cy.intercept(
-          { method: 'GET', url: '*api/v1/repos/*/*/builds/*' },
+          { method: 'GET', url: '**/api/v1/repos/*/*/builds/*' },
           {
             fixture: 'build_success.json',
           },
         );
         cy.intercept(
-          { method: 'GET', url: '*api/v1/repos/*/*/builds/*/graph' },
+          { method: 'GET', url: '**/api/v1/repos/*/*/builds/*/graph' },
           {
             fixture: 'build_graph.json',
           },
         );
         cy.intercept(
-          { method: 'GET', url: '*api/v1/repos/*/octocat' },
+          { method: 'GET', url: '**/api/v1/repos/*/octocat' },
           {
             fixture: 'repository.json',
           },
@@ -131,11 +131,15 @@ context('Build Graph', () => {
         cy.get('[data-test=build-graph-action-toggle-services]')
           .should('be.visible')
           .click({ force: true });
-        cy.get('.elm-build-graph-node-0').should('not.contain', 'postgres');
+        cy.wait(1000); // Wait for DOM update
+        cy.get('.elm-build-graph-node-0').should('not.exist');
         cy.get('[data-test=build-graph-action-toggle-services]')
           .should('be.visible')
           .click({ force: true });
-        cy.get('.elm-build-graph-node-0').should('contain', 'postgres');
+        cy.wait(1000); // Wait for DOM update
+        cy.get('.elm-build-graph-node-0')
+          .should('exist')
+          .and('contain', 'postgres');
       });
       it('click "show steps" should hide steps', () => {
         cy.get('.elm-build-graph-node-5').should('contain', 'sleep');

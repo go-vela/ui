@@ -6,19 +6,22 @@ context('Hooks', () => {
   context('server returning hooks error', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/hooks/github/octocat*' },
+        { method: 'GET', url: '**/api/v1/hooks/github/octocat*' },
         { statusCode: 500, body: 'server error' },
       );
       cy.login('/github/octocat/hooks');
     });
 
     it('hooks table should not show', () => {
-      cy.get('[data-test=hooks]').should('not.be.visible');
+      cy.wait(1000); // Wait for error state to load
+      cy.get('[data-test=hooks]').should('not.exist');
     });
     it('error should show', () => {
+      cy.wait(1000); // Wait for error to appear
       cy.get('[data-test=alerts]').should('exist').contains('Error');
     });
     it('error banner should show', () => {
+      cy.wait(1000); // Wait for error banner to load
       cy.get('[data-test=hooks-error]')
         .should('exist')
         .contains('there was an error');
@@ -27,25 +30,25 @@ context('Hooks', () => {
   context('server returning 5 hooks', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/hooks/github/octocat*' },
+        { method: 'GET', url: '**/api/v1/hooks/github/octocat*' },
         {
           fixture: 'hooks_5.json',
         },
       ).as('hooks');
       cy.intercept(
-        { method: 'GET', url: '*api/v1/repos/*/octocat/builds/1*' },
+        { method: 'GET', url: '**/api/v1/repos/*/octocat/builds/1*' },
         {
           fixture: 'build_success.json',
         },
       );
       cy.intercept(
-        { method: 'GET', url: '*api/v1/repos/*/octocat/builds/2*' },
+        { method: 'GET', url: '**/api/v1/repos/*/octocat/builds/2*' },
         {
           fixture: 'build_failure.json',
         },
       );
       cy.intercept(
-        { method: 'GET', url: '*api/v1/repos/*/octocat/builds/3*' },
+        { method: 'GET', url: '**/api/v1/repos/*/octocat/builds/3*' },
         {
           fixture: 'build_running.json',
         },
@@ -58,15 +61,18 @@ context('Hooks', () => {
     });
 
     it('hooks table should show 5 hooks', () => {
+      cy.wait(2000); // Wait for hooks data to load
       cy.get('[data-test=hooks-row]').should('have.length', 5);
     });
 
     it('pagination controls should not show', () => {
-      cy.get('[data-test=pager-previous]').should('not.be.visible');
+      cy.wait(1000); // Wait for page to load
+      cy.get('[data-test=pager-previous]').should('not.exist');
     });
 
     context('hook', () => {
       beforeEach(() => {
+        cy.wait(2000); // Wait for hooks to load
         cy.get('[data-test=hooks-row]').first().as('firstHook');
         cy.get('[data-test=hooks-row]').last().as('lastHook');
         cy.get('[data-test=hooks-row]').last().prev().prev().as('skipHook');
@@ -158,20 +164,24 @@ context('Hooks', () => {
     });
 
     it('hooks table should show 10 hooks', () => {
+      cy.wait(2000); // Wait for hooks data to load
       cy.get('[data-test=hooks-row]').should('have.length', 10);
     });
 
     it('shows page 2 of the hooks', () => {
       cy.visit('/github/octocat/hooks?page=2');
+      cy.wait(2000); // Wait for page 2 data to load
       cy.get('[data-test=hooks-row]').should('have.length', 10);
       cy.get('[data-test=pager-next]').should('be.disabled');
     });
 
     it("loads the first page when hitting the 'previous' button", () => {
       cy.visit('/github/octocat/hooks?page=2');
+      cy.wait(2000); // Wait for page 2 to load
       cy.get('[data-test=pager-previous]')
         .should('have.length', 2)
         .first()
+        .should('not.be.disabled')
         .click();
       cy.location('pathname').should('eq', '/github/octocat/hooks');
     });
@@ -181,6 +191,7 @@ context('Hooks', () => {
         cy.viewport(550, 750);
       });
       it('rows have responsive style', () => {
+        cy.wait(2000); // Wait for responsive layout to apply
         cy.get('[data-test=hooks-row]')
           .first()
           .should('have.css', 'border-bottom', '2px solid rgb(149, 94, 166)'); // check for lavender border

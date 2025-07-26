@@ -1,0 +1,8 @@
+{
+  "id": 1,
+  "name": "octocat",
+  "token": "token",
+  "favorites": ["org/repo_a", "org/repo_b", "cat/purr"],
+  "active": true,
+  "admin": false
+}

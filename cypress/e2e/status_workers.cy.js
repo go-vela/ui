@@ -51,13 +51,16 @@ context('Workers', () => {
       cy.get('[data-test=workers-table]').should('be.visible');
     });
     it('workers table should show 5 workers', () => {
+      cy.wait(2000); // Wait for workers to load
       cy.get('[data-test=workers-row]').should('have.length', 5);
     });
     it('pagination controls should not show', () => {
-      cy.get('[data-test=pager-previous]').should('not.be.visible');
+      cy.wait(1000); // Wait for pagination check
+      cy.get('[data-test=pager-previous]').should('not.exist');
     });
     context('worker', () => {
       beforeEach(() => {
+        cy.wait(2000); // Wait for workers to load
         cy.get('[data-test=workers-row]').first().as('firstWorker');
         cy.get('[data-test=workers-row]').last().as('lastWorker');
         cy.get('[data-test=workers-row]').last().prev().prev().as('skipWorker');
@@ -83,18 +86,22 @@ context('Workers', () => {
       cy.login('/status/workers');
     });
     it('workers table should show 10 workers', () => {
+      cy.wait(2000); // Wait for workers to load
       cy.get('[data-test=workers-row]').should('have.length', 10);
     });
     it('shows page 2 of the workers', () => {
       cy.visit('/status/workers?page=2');
+      cy.wait(2000); // Wait for page 2 workers to load
       cy.get('[data-test=workers-row]').should('have.length', 10);
       cy.get('[data-test=pager-next]').should('be.disabled');
     });
     it("loads the first page when hitting the 'previous' button", () => {
       cy.visit('/status/workers?page=2');
+      cy.wait(2000); // Wait for page 2 to load
       cy.get('[data-test=pager-previous]')
         .should('have.length', 2)
         .first()
+        .should('not.be.disabled')
         .click();
       cy.location('pathname').should('eq', '/status/workers');
     });
@@ -103,6 +110,7 @@ context('Workers', () => {
         cy.viewport(550, 750);
       });
       it('rows have responsive style', () => {
+        cy.wait(2000); // Wait for workers to load with responsive styling
         cy.get('[data-test=workers-row]')
           .first()
           .should('have.css', 'border-bottom', '2px solid rgb(149, 94, 166)'); // check for lavender border

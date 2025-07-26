@@ -6,14 +6,13 @@ context('Repo', () => {
   context('logged in and server returning 5 builds', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/repos/*/*/builds*' },
+        { method: 'GET', url: '**/api/v1/repos/*/*/builds*' },
         { body: { fixture: 'builds_5.json' } },
       );
       cy.stubBuild();
       cy.hookPages();
       cy.login('/github/octocat');
-
-      cy.get('[data-test=builds]').as('builds');
+      cy.wait(2000); // Wait for builds data to load
     });
 
     it('repo jump tabs should show', () => {
@@ -80,12 +79,12 @@ context('Repo', () => {
             cy.intercept(
               {
                 method: 'GET',
-                url: '*api/v1/secrets/native/repo/github/octocat*',
+                url: '**/api/v1/secrets/native/repo/github/octocat*',
               },
               [],
             );
             cy.intercept(
-              { method: 'GET', url: '*api/v1/secrets/native/org/github/**' },
+              { method: 'GET', url: '**/api/v1/secrets/native/org/github/**' },
               [],
             );
             cy.get('[data-test=jump-Secrets]').click();

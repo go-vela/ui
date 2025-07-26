@@ -6,7 +6,7 @@ context('Org', () => {
   context('Tabs', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/repos/vela' },
+        { method: 'GET', url: '**/api/v1/repos/vela' },
         { body: { fixture: 'repositories_5.json' } },
       );
       cy.login('/vela');
@@ -23,11 +23,11 @@ context('Org', () => {
     context('logged in and server returning 5 repos', () => {
       beforeEach(() => {
         cy.intercept(
-          { method: 'GET', url: '*api/v1/repos/vela' },
+          { method: 'GET', url: '**/api/v1/repos/vela' },
           { body: { fixture: 'repositories_5.json' } },
         );
         cy.login('/vela');
-
+        cy.wait(2000); // Wait for repositories to load
         cy.get('[data-test=repo-item]').as('repos');
       });
 
@@ -49,7 +49,7 @@ context('Org', () => {
       beforeEach(() => {
         cy.stubRepos();
         cy.login('/vela');
-
+        cy.wait(2000); // Wait for repositories to load
         cy.get('[data-test=repo-item]').as('repos');
       });
 
@@ -58,14 +58,17 @@ context('Org', () => {
       });
 
       it('should show the pager', () => {
+        cy.wait(1000); // Wait for pager to load
         cy.get('[data-test=pager-previous]')
           .should('have.length', 2)
           .should('be.visible')
+          .first()
           .should('be.disabled');
 
         cy.get('[data-test=pager-next]')
           .should('have.length', 2)
           .should('be.visible')
+          .first()
           .should('not.be.disabled');
       });
 
@@ -76,14 +79,17 @@ context('Org', () => {
 
       it('should still show the pager on page 2', () => {
         cy.visit('/vela?page=2');
+        cy.wait(2000); // Wait for page 2 to load
         cy.get('[data-test=pager-previous]')
           .should('have.length', 2)
           .should('be.visible')
+          .first()
           .should('not.be.disabled');
 
         cy.get('[data-test=pager-next]')
           .should('have.length', 2)
           .should('be.visible')
+          .first()
           .should('be.disabled');
       });
     });
@@ -93,17 +99,19 @@ context('Org', () => {
     context('logged in and returning 5 builds', () => {
       beforeEach(() => {
         cy.intercept(
-          { method: 'GET', url: '*api/v1/repos/vela/builds*' },
+          { method: 'GET', url: '**/api/v1/repos/vela/builds*' },
           { body: { fixture: 'builds_5.json' } },
         );
         cy.login('/vela/builds');
       });
 
       it('should show 5 builds', () => {
+        cy.wait(2000); // Wait for builds to load
         cy.get('[data-test=builds]').should('be.visible');
       });
 
       it('should show the filter control', () => {
+        cy.wait(1000); // Wait for filter to load
         cy.get('[data-test=build-filter]').should('be.visible');
       });
     });
@@ -115,18 +123,22 @@ context('Org', () => {
       });
 
       it('should show builds', () => {
+        cy.wait(2000); // Wait for builds to load
         cy.get('[data-test=builds]').should('be.visible');
       });
 
       it('should show the pager', () => {
+        cy.wait(1000); // Wait for pager to load
         cy.get('[data-test=pager-previous]')
           .should('have.length', 2)
           .should('be.visible')
+          .first()
           .should('be.disabled');
 
         cy.get('[data-test=pager-next]')
           .should('have.length', 2)
           .should('be.visible')
+          .first()
           .should('not.be.disabled');
       });
 
@@ -140,14 +152,14 @@ context('Org', () => {
   context('Secrets Tab', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/repos/vela' },
+        { method: 'GET', url: '**/api/v1/repos/vela' },
         { body: { fixture: 'repositories_5.json' } },
       );
       cy.login('/vela');
     });
 
     it('should navigate to the org secrets page', () => {
-      cy.get('[data-test=jump-Secrets').click();
+      cy.get('[data-test=jump-Secrets]').click();
 
       // just testing navigation, secrets specific tests should cover this route
       cy.location('pathname').should('eq', '/-/secrets/native/org/vela');

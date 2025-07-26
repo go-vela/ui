@@ -14,7 +14,7 @@ context('Builds', () => {
     });
 
     it('builds should not show', () => {
-      cy.get('[data-test=builds]').should('not.be.visible');
+      cy.get('[data-test=builds]').should('not.exist');
     });
     it('error should show', () => {
       cy.get('[data-test=alerts]').should('exist').contains('Error');
@@ -30,43 +30,52 @@ context('Builds', () => {
     beforeEach(() => {
       cy.intercept(
         { method: 'GET', url: '**/api/v1/repos/*/*/builds*' },
-        { body: { fixture: 'builds_5.json' } },
+        { fixture: 'builds_5.json' },
       );
       cy.stubBuild();
       cy.login('/github/octocat');
-
-      cy.get('[data-test=builds]').as('builds');
-      cy.get('@builds').children().first().as('firstBuild');
     });
 
     it('builds should show', () => {
-      cy.get('@builds').should('be.visible');
+      cy.wait(1000); // Wait for builds to load
+      cy.get('[data-test=builds]').should('be.visible');
     });
 
     it('cancel build button should be present when running', () => {
-      cy.get('@firstBuild')
+      cy.wait(1000); // Wait for builds to load
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
         .should('exist')
         .find('[data-test=cancel-build]')
         .should('exist');
-      cy.get('@firstBuild')
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
         .next()
         .should('exist')
         .find('[data-test=cancel-build]')
         .should('not.exist');
-      cy.get('@firstBuild')
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
         .next()
         .next()
         .should('exist')
         .find('[data-test=cancel-build]')
         .should('not.exist');
-      cy.get('@firstBuild')
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
         .next()
         .next()
         .next()
         .should('exist')
         .find('[data-test=cancel-build]')
         .should('not.exist');
-      cy.get('@firstBuild')
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
         .next()
         .next()
         .next()
@@ -77,59 +86,87 @@ context('Builds', () => {
     });
 
     it('build menu should expand and close when action is fired', () => {
-      cy.get('@firstBuild')
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
         .should('exist')
         .find('[data-test=cancel-build]')
         .should('not.be.visible');
-      cy.get('@firstBuild')
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
         .should('exist')
         .find('[data-test=restart-build]')
         .should('not.be.visible');
-      cy.get('@firstBuild')
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
         .should('exist')
         .find('[data-test=build-menu]')
         .click();
-      cy.get('@firstBuild')
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
         .should('exist')
         .find('[data-test=cancel-build]')
         .should('be.visible');
-      cy.get('@firstBuild')
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
         .should('exist')
         .find('[data-test=restart-build]')
         .should('be.visible');
-      cy.get('@firstBuild')
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
         .should('exist')
         .find('[data-test=cancel-build]')
         .click();
-      cy.get('@firstBuild')
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
         .should('exist')
         .find('[data-test=cancel-build]')
         .should('not.be.visible');
-      cy.get('@firstBuild')
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
         .should('exist')
         .find('[data-test=restart-build]')
         .should('not.be.visible');
-      cy.get('@firstBuild')
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
         .should('exist')
         .find('[data-test=build-menu]')
         .click();
-      cy.get('@firstBuild')
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
         .should('exist')
         .find('[data-test=cancel-build]')
         .should('be.visible');
-      cy.get('@firstBuild')
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
         .should('exist')
         .find('[data-test=restart-build]')
         .should('be.visible');
-      cy.get('@firstBuild')
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
         .should('exist')
         .find('[data-test=restart-build]')
         .click();
-      cy.get('@firstBuild')
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
         .should('exist')
         .find('[data-test=cancel-build]')
         .should('not.be.visible');
-      cy.get('@firstBuild')
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
         .should('exist')
         .find('[data-test=restart-build]')
         .should('not.be.visible');
@@ -140,11 +177,11 @@ context('Builds', () => {
     });
 
     it('builds should display commit message', () => {
-      cy.get('@builds').find('.commit-msg').should('be.visible');
+      cy.get('[data-test=builds]').find('.commit-msg').should('be.visible');
     });
 
     it('longer build commit message should be truncated with ellipsis', () => {
-      cy.get('@builds')
+      cy.get('[data-test=builds]')
         .find('.commit-msg')
         .should('have.css', 'text-overflow', 'ellipsis');
     });
@@ -154,7 +191,9 @@ context('Builds', () => {
     });
 
     it('timestamp checkbox switches time when checked', () => {
-      cy.get('@firstBuild')
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
         .find('.time-info .age')
         .should(elem => {
           expect(elem.text()).to.not.include('at');
@@ -166,7 +205,9 @@ context('Builds', () => {
 
       cy.get('[data-test=time-toggle]').click({ force: true });
 
-      cy.get('@firstBuild')
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
         .find('.time-info .age')
         .should(elem => {
           expect(elem.text()).to.include('at');
@@ -183,33 +224,43 @@ context('Builds', () => {
       cy.stubBuilds();
       cy.stubBuild();
       cy.login('/github/octocat');
-
-      cy.get('[data-test=builds]').as('builds');
-      cy.get('@builds').children().first().as('firstBuild');
-      cy.get('@builds').children().last().as('lastBuild');
     });
 
     it('builds should show', () => {
-      cy.get('@builds').should('be.visible');
+      cy.wait(1000); // Wait for builds to load
+      cy.get('[data-test=builds]').should('be.visible');
     });
 
     it('builds should show build number', () => {
-      cy.get('@firstBuild').should('exist').should('contain', '#1');
-      cy.get('@lastBuild').should('exist').should('contain', '#10');
+      cy.wait(1000); // Wait for builds to load
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
+        .should('exist')
+        .should('contain', '#1');
+      cy.get('[data-test=builds]')
+        .children()
+        .last()
+        .should('exist')
+        .should('contain', '#10');
     });
 
     it('builds should display commit message', () => {
-      cy.get('@builds').find('.commit-msg').should('be.visible');
+      cy.get('[data-test=builds]').find('.commit-msg').should('be.visible');
     });
     it('longer build commit message should be truncated with ellipsis', () => {
-      cy.get('@builds')
+      cy.get('[data-test=builds]')
         .find('.commit-msg')
         .should('have.css', 'text-overflow', 'ellipsis');
     });
 
     it('build page 2 should show the next set of results', () => {
       cy.visit('/github/octocat?page=2');
-      cy.get('@firstBuild').should('exist').should('contain', '#11');
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
+        .should('exist')
+        .should('contain', '#11');
       cy.get('@lastBuild').should('exist').should('contain', '#20');
       cy.get('[data-test=pager-next]').should('be.disabled');
     });
@@ -224,29 +275,44 @@ context('Builds', () => {
     });
 
     it('builds should show commit hash', () => {
-      cy.get('@firstBuild').should('contain', '9b1d8bd');
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
+        .should('contain', '9b1d8bd');
       cy.get('@lastBuild').should('contain', '7bd468e');
     });
 
     it('builds should show branch', () => {
-      cy.get('@firstBuild').should('be.visible').should('contain', 'infra');
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
+        .should('be.visible')
+        .should('contain', 'infra');
       cy.get('@lastBuild').should('be.visible').should('contain', 'terra');
     });
 
     it('build should having running style', () => {
-      cy.get('@firstBuild')
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
         .get('[data-test=build-status]')
         .should('be.visible')
         .should('have.class', '-running');
     });
 
     it('build should display commit message', () => {
-      cy.get('@firstBuild').find('.commit-msg').should('be.visible');
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
+        .find('.commit-msg')
+        .should('be.visible');
       cy.get('@lastBuild').find('.commit-msg').should('be.visible');
     });
 
     it('longer build commit message should be truncated with ellipsis', () => {
-      cy.get('@firstBuild')
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
         .find('.commit-msg')
         .should('have.css', 'text-overflow', 'ellipsis');
       cy.get('@lastBuild')
@@ -255,7 +321,12 @@ context('Builds', () => {
     });
 
     it('clicking build number should redirect to build page', () => {
-      cy.get('@firstBuild').get('[data-test=build-number]').first().click();
+      cy.get('[data-test=builds]')
+        .children()
+        .first()
+        .get('[data-test=build-number]')
+        .first()
+        .click();
       cy.location('pathname').should('eq', '/github/octocat/1');
     });
   });
@@ -291,14 +362,15 @@ context('Builds', () => {
     beforeEach(() => {
       cy.stubBuildsFilter();
       cy.login('/github/octocat');
-      cy.get('[data-test=build-filter]').as('buildsFilter');
     });
 
     it('renders builds filter', () => {
-      cy.get('@buildsFilter').should('be.visible');
+      cy.wait(1000); // Wait for filter to load
+      cy.get('[data-test=build-filter]').should('be.visible');
     });
 
     it('shows all results by default', () => {
+      cy.wait(1000); // Wait for builds to load
       cy.get('[data-test=build]')
         .should('be.visible')
         .should('have.length', 11);
@@ -306,37 +378,43 @@ context('Builds', () => {
 
     it('should only show 7 push events', () => {
       cy.get('[data-test=build-filter-push]').click({ force: true });
+      cy.wait(500); // Wait for filter to apply
       cy.get('[data-test=build]').should('be.visible').should('have.length', 7);
       cy.url().should('contain', '?event=push');
     });
 
     it('should only show two pull events', () => {
       cy.get('[data-test=build-filter-pull_request]').click({ force: true });
+      cy.wait(500); // Wait for filter to apply
       cy.get('[data-test=build]').should('be.visible').should('have.length', 2);
       cy.url().should('contain', '?event=pull_request');
     });
 
     it('should only show one tag event', () => {
       cy.get('[data-test=build-filter-tag]').click({ force: true });
+      cy.wait(500); // Wait for filter to apply
       cy.get('[data-test=build]').should('be.visible').should('have.length', 1);
       cy.url().should('contain', '?event=tag');
     });
 
     it('should show no results', () => {
       cy.get('[data-test=build-filter-deployment]').click({ force: true });
-      cy.get('[data-test=build]').should('not.be.visible');
+      cy.wait(500); // Wait for filter to apply
+      cy.get('[data-test=build]').should('not.exist');
       cy.get('h3').should('contain', 'No builds for "deployment" event found.');
       cy.url().should('contain', '?event=deployment');
     });
 
     it('should only show one comment event', () => {
       cy.get('[data-test=build-filter-comment]').click({ force: true });
+      cy.wait(500); // Wait for filter to apply
       cy.get('[data-test=build]').should('be.visible').should('have.length', 1);
       cy.url().should('contain', '?event=comment');
     });
 
     it('should only show two schedule event', () => {
       cy.get('[data-test=build-filter-schedule]').click({ force: true });
+      cy.wait(500); // Wait for filter to apply
       cy.get('[data-test=build]').should('be.visible').should('have.length', 2);
       cy.url().should('contain', '?event=schedule');
     });
@@ -346,14 +424,15 @@ context('Builds', () => {
     beforeEach(() => {
       cy.stubBuildsFilter();
       cy.login('/github/octocat/pulls');
-      cy.get('[data-test=build-filter]').as('buildsFilter');
     });
 
     it('renders builds filter', () => {
-      cy.get('@buildsFilter').should('be.visible');
+      cy.wait(1000); // Wait for filter to load
+      cy.get('[data-test=build-filter]').should('be.visible');
     });
 
     it('should only show two pull events', () => {
+      cy.wait(1000); // Wait for builds to load
       cy.get('[data-test=build]').should('be.visible').should('have.length', 2);
     });
   });
@@ -362,14 +441,15 @@ context('Builds', () => {
     beforeEach(() => {
       cy.stubBuildsFilter();
       cy.login('/github/octocat/tags');
-      cy.get('[data-test=build-filter]').as('buildsFilter');
     });
 
     it('renders builds filter', () => {
-      cy.get('@buildsFilter').should('be.visible');
+      cy.wait(1000); // Wait for filter to load
+      cy.get('[data-test=build-filter]').should('be.visible');
     });
 
     it('should only show one tag event', () => {
+      cy.wait(1000); // Wait for builds to load
       cy.get('[data-test=build]').should('be.visible').should('have.length', 1);
     });
   });

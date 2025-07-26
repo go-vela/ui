@@ -8,12 +8,15 @@ context('Secrets', () => {
       cy.intercept(
         {
           method: 'GET',
-          url: '*api/v1/secrets/native/repo/github/octocat/password*',
+          url: '**/api/v1/secrets/native/repo/github/octocat/password*',
         },
         { fixture: 'secret_repo.json' },
       );
       cy.intercept(
-        { method: 'GET', url: '*api/v1/secrets/native/org/github/*/password*' },
+        {
+          method: 'GET',
+          url: '**/api/v1/secrets/native/org/github/*/password*',
+        },
         {
           fixture: 'secret_org.json',
         },
@@ -21,7 +24,7 @@ context('Secrets', () => {
       cy.intercept(
         {
           method: 'DELETE',
-          url: '*api/v1/secrets/native/repo/github/octocat/password*',
+          url: '**/api/v1/secrets/native/repo/github/octocat/password*',
         },
         'Secret repo/github/octocat/password deleted from native service',
       );
@@ -133,14 +136,14 @@ context('Secrets', () => {
       cy.intercept(
         {
           method: 'GET',
-          url: '*api/v1/secrets/native/repo/github/octocat/password*',
+          url: '**/api/v1/secrets/native/repo/github/octocat/password*',
         },
         { fixture: 'secret_repo.json' },
       );
       cy.intercept(
         {
           method: 'DELETE',
-          url: '*api/v1/secrets/native/repo/github/octocat/password*',
+          url: '**/api/v1/secrets/native/repo/github/octocat/password*',
         },
         {
           statusCode: 500,
@@ -160,7 +163,7 @@ context('Secrets', () => {
   context('server returning secrets error', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/secrets/native/org/github/**' },
+        { method: 'GET', url: '**/api/v1/secrets/native/org/github/**' },
         {
           statusCode: 500,
           body: 'server error',
@@ -170,12 +173,15 @@ context('Secrets', () => {
     });
 
     it('secrets table should not show', () => {
-      cy.get('[data-test=secrets]').should('not.be.visible');
+      cy.wait(2000); // Wait for error state to load
+      cy.get('[data-test=secrets]').should('not.exist');
     });
     it('error should show', () => {
+      cy.wait(2000); // Wait for error to load
       cy.get('[data-test=alerts]').should('exist').contains('Error');
     });
     it('error banner should show', () => {
+      cy.wait(2000); // Wait for error banner to load
       cy.get('[data-test=org-secrets-error]')
         .should('exist')
         .contains('there was an error');
@@ -184,7 +190,7 @@ context('Secrets', () => {
   context('server returning 5 secrets', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/secrets/native/org/github/**' },
+        { method: 'GET', url: '**/api/v1/secrets/native/org/github/**' },
         {
           fixture: 'secrets_org_5.json',
         },
@@ -197,15 +203,18 @@ context('Secrets', () => {
     });
 
     it('secrets table should show 5 secrets', () => {
+      cy.wait(2000); // Wait for secrets to load
       cy.get('[data-test=secrets-row]').should('have.length', 5);
     });
 
     it('pagination controls should not show', () => {
-      cy.get('[data-test=pager-previous]').should('not.be.visible');
+      cy.wait(1000); // Wait for pagination check
+      cy.get('[data-test=pager-previous]').should('not.exist');
     });
 
     context('secret', () => {
       beforeEach(() => {
+        cy.wait(2000); // Wait for secrets to load
         cy.get('[data-test=secrets-row]').first().as('firstSecret');
         cy.get('[data-test=secrets-row]').last().as('lastSecret');
       });

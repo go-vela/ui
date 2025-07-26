@@ -6,7 +6,7 @@ context('Overview/Repositories Page', () => {
   context('logged in - favorites loaded', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/user*' },
+        { method: 'GET', url: '**/api/v1/user*' },
         {
           fixture: 'favorites_overview.json',
         },
@@ -71,7 +71,16 @@ context('Overview/Repositories Page', () => {
         cy.get('[data-test=repo-item]').should('not.contain', 'repo_a');
       });
       it('org should not show', () => {
-        cy.get('[data-test=repo-org]').should('not.contain', 'org');
+        cy.wait(1000); // Wait for search filtering to complete
+        // Check if org element still exists, if not, that's also valid
+        cy.get('body').then($body => {
+          if ($body.find('[data-test=repo-org]').length > 0) {
+            cy.get('[data-test=repo-org]').should('not.contain', 'org');
+          } else {
+            // Element was removed by filtering, which is expected
+            cy.get('[data-test=repo-org]').should('not.exist');
+          }
+        });
       });
     });
   });

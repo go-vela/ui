@@ -57,7 +57,7 @@ context('Crumbs', () => {
 
     it('visit bad build /github/octocat/build should not show not-found crumb', () => {
       cy.visit('/github/octocat/1');
-      cy.get('[data-test=crumb-not-found]').should('not.be.visible');
+      cy.get('[data-test=crumb-not-found]').should('not.exist');
     });
   });
   context('visit org secrets', () => {

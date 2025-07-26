@@ -67,7 +67,7 @@ context('insights', () => {
   context('no builds', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/repos/*/*/builds*' },
+        { method: 'GET', url: '**/api/v1/repos/*/*/builds*' },
         { body: [] },
       );
       cy.login('/github/octocat/insights');
@@ -127,37 +127,42 @@ context('insights', () => {
       );
 
       cy.intercept(
-        { method: 'GET', url: '*api/v1/repos/*/*/builds*' },
+        { method: 'GET', url: '**/api/v1/repos/*/*/builds*' },
         { body: builds },
       );
       cy.login('/github/octocat/insights');
     });
 
     it('daily average should be 2', () => {
+      cy.wait(3000); // Wait for metrics to calculate and render
       cy.get(
         '[data-test=metrics-quicklist-activity] > :nth-child(1) > .metric-value',
       ).should('have.text', '2');
     });
 
     it('average build time should be 30m 0s', () => {
+      cy.wait(3000); // Wait for metrics to calculate and render
       cy.get(
         '[data-test=metrics-quicklist-duration] > :nth-child(1) > .metric-value',
       ).should('have.text', '30m 0s');
     });
 
     it('reliability should be 75% success', () => {
+      cy.wait(3000); // Wait for metrics to calculate and render
       cy.get(
         '[data-test=metrics-quicklist-reliability] > :nth-child(1) > .metric-value',
       ).should('have.text', '75.0%');
     });
 
     it('time to recover should be 10 minutes', () => {
+      cy.wait(3000); // Wait for metrics to calculate and render
       cy.get(
         '[data-test=metrics-quicklist-reliability] > :nth-child(3) > .metric-value',
       ).should('have.text', '10m 0s');
     });
 
     it('average queue time should be 0 seconds', () => {
+      cy.wait(3000); // Wait for metrics to calculate and render
       cy.get(
         '[data-test=metrics-quicklist-queue] > :nth-child(1) > .metric-value',
       ).should('have.text', '0s');
@@ -184,39 +189,45 @@ context('insights', () => {
       });
 
       cy.intercept(
-        { method: 'GET', url: '*api/v1/repos/*/*/builds*' },
+        { method: 'GET', url: '**/api/v1/repos/*/*/builds*' },
         { body: builds },
       );
       cy.login('/github/octocat/insights');
     });
 
     it('should show 4 metric quicklists', () => {
+      cy.wait(3000); // Wait for metrics to calculate and render
       cy.get('[data-test^=metrics-quicklist-]').should('have.length', 4);
     });
 
     it('should show 4 charts', () => {
+      cy.wait(3000); // Wait for charts to render
       cy.get('[data-test=metrics-chart]').should('have.length', 4);
     });
 
     it('daily average should be 1', () => {
+      cy.wait(3000); // Wait for metrics to calculate and render
       cy.get(
         '[data-test=metrics-quicklist-activity] > :nth-child(1) > .metric-value',
       ).should('have.text', '1');
     });
 
     it('average build time should be 30 seconds', () => {
+      cy.wait(3000); // Wait for metrics to calculate and render
       cy.get(
         '[data-test=metrics-quicklist-duration] > :nth-child(1) > .metric-value',
       ).should('have.text', '30s');
     });
 
     it('reliability should be 100% success', () => {
+      cy.wait(3000); // Wait for metrics to calculate and render
       cy.get(
         '[data-test=metrics-quicklist-reliability] > :nth-child(1) > .metric-value',
       ).should('have.text', '100.0%');
     });
 
     it('average queue time should be 10 seconds', () => {
+      cy.wait(3000); // Wait for metrics to calculate and render
       cy.get(
         '[data-test=metrics-quicklist-queue] > :nth-child(1) > .metric-value',
       ).should('have.text', '10s');

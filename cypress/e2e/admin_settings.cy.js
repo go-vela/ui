@@ -73,7 +73,8 @@ context('Admin Settings', () => {
           .type('target/vela-git:abc123');
         cy.get('[data-test=button-clone-image-update]').click();
         cy.wait(500); // Wait for DOM to stabilize after update
-        cy.get('[data-test=alert]').should('be.visible').contains('Success');
+        cy.get('[data-test=alert]').should('be.visible');
+        cy.get('[data-test=alert]').should('contain', 'Success');
         cy.get('[data-test=input-clone-image]')
           .should('be.visible')
           .should('have.value', 'target/vela-git:abc123');
@@ -194,7 +195,7 @@ context('Admin Settings', () => {
                 'contain',
                 'vela',
               );
-              cy.get('[data-test=alert]').should('not.be.visible');
+              cy.get('[data-test=alert]').should('not.exist');
             });
         });
         it('save button should save edits', () => {
@@ -219,6 +220,7 @@ context('Admin Settings', () => {
               cy.get('[data-test=editable-list-item-vela-save]').should(
                 'not.exist',
               );
+              cy.wait(500); // Wait for DOM to update after save
               cy.get('[data-test=editable-list-item-vela123]').should(
                 'contain',
                 'vela123',
@@ -235,9 +237,7 @@ context('Admin Settings', () => {
               cy.get('[data-test="editable-list-item-*-remove"]')
                 .should('be.visible')
                 .click({ force: true });
-              cy.get('[data-test="editable-list-item-*"]').should(
-                'not.be.visible',
-              );
+              cy.get('[data-test="editable-list-item-*"]').should('not.exist');
               cy.get(
                 '[data-test=editable-list-schedule-allowlist-no-items]',
               ).should('be.visible');
@@ -256,7 +256,7 @@ context('Admin Settings', () => {
         });
         it('add item input header should add items', () => {
           cy.get('[data-test="editable-list-item-linux-large"]').should(
-            'not.be.visible',
+            'not.exist',
           );
           cy.get('[data-test=input-editable-list-queue-routes-add]')
             .clear()
@@ -264,6 +264,7 @@ context('Admin Settings', () => {
           cy.get('[data-test=button-editable-list-queue-routes-add]')
             .should('be.visible')
             .click({ force: true });
+          cy.wait(500); // Wait for DOM to update after adding item
           cy.get('[data-test="editable-list-item-linux-large"]').should(
             'be.visible',
           );

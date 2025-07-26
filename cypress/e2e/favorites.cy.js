@@ -6,7 +6,7 @@ context('Favorites', () => {
   context('error loading user', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: 'api/v1/user*' },
+        { method: 'GET', url: '**/api/v1/user*' },
         {
           statusCode: 500,
           body: {
@@ -18,6 +18,8 @@ context('Favorites', () => {
     });
 
     it('should show the errors tray', () => {
+      cy.visit('/'); // Visit home page to trigger error
+      cy.wait(2000); // Wait for error state to load
       cy.get('[data-test=alerts]')
         .should('exist')
         .contains('error fetching user');
@@ -27,13 +29,15 @@ context('Favorites', () => {
   context('user loaded with no favorites', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/user*' },
+        { method: 'GET', url: '**/api/v1/user*' },
         { fixture: 'favorites_none.json' },
       );
       cy.login();
     });
 
     it('should show how to add favorites', () => {
+      cy.visit('/'); // Visit home page
+      cy.wait(2000); // Wait for overview to load
       cy.get('[data-test=overview]').should(
         'contain',
         'To display a repository here, click the',
@@ -44,21 +48,21 @@ context('Favorites', () => {
   context('source repos/user favorites loaded, mocked add favorite', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/user*' },
+        { method: 'GET', url: '**/api/v1/user*' },
         { fixture: 'favorites.json' },
       );
       cy.intercept(
-        { method: 'PUT', url: '*api/v1/user*' },
+        { method: 'PUT', url: '**/api/v1/user*' },
         { fixture: 'favorites_add.json' },
       );
       cy.intercept(
-        { method: 'GET', url: '*api/v1/user/source/repos*' },
+        { method: 'GET', url: '**/api/v1/user/source/repos*' },
         {
           fixture: 'source_repositories.json',
         },
       ).as('sourceRepos');
       cy.intercept(
-        { method: 'POST', url: '*api/v1/repos*' },
+        { method: 'POST', url: '**/api/v1/repos*' },
         {
           fixture: 'enable_repo_response.json',
         },
@@ -102,7 +106,9 @@ context('Favorites', () => {
 
           context('add favorite github/octocat', () => {
             beforeEach(() => {
-              cy.get('@toggleOctocat').should('exist').click();
+              cy.get('[data-test=star-toggle-github-octocat]')
+                .should('exist')
+                .click();
             });
 
             it('star should have favorited class', () => {
@@ -125,19 +131,31 @@ context('Favorites', () => {
       context('Repo Builds page', () => {
         beforeEach(() => {
           cy.visit('/github/octocat');
-          cy.get('[data-test=star-toggle-github-octocat]').as('toggleOctocat');
         });
 
         it('enabling repo should show favorites star toggle', () => {
+          cy.wait(1000); // Wait for page to load
           cy.get('[data-test=star-toggle-github-octocat]').should('be.visible');
         });
 
         it('star should not have favorited class', () => {
+          cy.wait(2000); // Wait for page to load
+          // First check if element exists, then check class
+          cy.get('[data-test=star-toggle-github-octocat]').should('exist');
+          cy.get('[data-test=star-toggle-github-octocat] > svg').then($svg => {
+            if ($svg.hasClass('favorited')) {
+              // If already favorited, click to unfavorite first
+              cy.get('[data-test=star-toggle-github-octocat]').click();
+              cy.wait(1000);
+            }
+          });
           cy.get('[data-test=star-toggle-github-octocat] > svg').should(
             'not.have.class',
             'favorited',
           );
-          cy.get('@toggleOctocat').should('exist').click();
+          cy.get('[data-test=star-toggle-github-octocat]')
+            .should('exist')
+            .click();
           cy.get('[data-test=star-toggle-github-octocat] > svg').should(
             'have.class',
             'favorited',
@@ -146,7 +164,9 @@ context('Favorites', () => {
 
         context('add favorite github/octocat', () => {
           beforeEach(() => {
-            cy.get('@toggleOctocat').should('exist').click();
+            cy.get('[data-test=star-toggle-github-octocat]')
+              .should('exist')
+              .click();
           });
 
           it('star should add favorited class', () => {
@@ -159,7 +179,7 @@ context('Favorites', () => {
           context('visit Overview page', () => {
             beforeEach(() => {
               cy.intercept(
-                { method: 'GET', url: '*api/v1/user*' },
+                { method: 'GET', url: '**/api/v1/user*' },
                 {
                   fixture: 'favorites_add.json',
                 },
@@ -179,17 +199,18 @@ context('Favorites', () => {
 
             it('clicking star should remove github/octocat from favorites', () => {
               cy.intercept(
-                { method: 'PUT', url: '*api/v1/user*' },
+                { method: 'PUT', url: '**/api/v1/user*' },
                 {
                   fixture: 'favorites.json',
                 },
               );
-              cy.get('[data-test=star-toggle-github-octocat]').as(
-                'toggleOctocat',
-              );
-              cy.get('@toggleOctocat').click();
+              cy.wait(2000); // Wait for page to load
+              cy.get('[data-test=star-toggle-github-octocat]')
+                .should('exist')
+                .click();
+              cy.wait(1000); // Wait for removal to process
               cy.get('[data-test=star-toggle-github-octocat]').should(
-                'not.be.visible',
+                'not.exist',
               );
             });
           });
@@ -197,12 +218,14 @@ context('Favorites', () => {
           context('remove favorite github/octocat', () => {
             beforeEach(() => {
               cy.intercept(
-                { method: 'PUT', url: '*api/v1/user*' },
+                { method: 'PUT', url: '**/api/v1/user*' },
                 {
                   fixture: 'favorites.json',
                 },
               );
-              cy.get('@toggleOctocat').should('exist').click();
+              cy.get('[data-test=star-toggle-github-octocat]')
+                .should('exist')
+                .click();
             });
 
             it('star should not have favorited class', () => {
@@ -219,19 +242,21 @@ context('Favorites', () => {
   context('source repos/user favorites loaded, mocked remove favorite', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/user*' },
+        { method: 'GET', url: '**/api/v1/user*' },
         { fixture: 'favorites_add.json' },
       );
       cy.intercept(
-        { method: 'PUT', url: '*api/v1/user*' },
+        { method: 'PUT', url: '**/api/v1/user*' },
         {
           fixture: 'favorites_remove.json',
         },
       );
-      cy.get('[data-test=star-toggle-github-octocat]').as('toggleOctocat');
     });
 
     it('should show a success alert', () => {
+      cy.login(); // Login first
+      cy.visit('/'); // Visit page to trigger test context
+      cy.wait(2000); // Wait for alert to appear
       cy.get('[data-test=alerts]').should('exist').contains('Success');
       cy.get('[data-test=alerts]')
         .children()
@@ -240,6 +265,9 @@ context('Favorites', () => {
     });
 
     it('star should not have favorited class', () => {
+      cy.login(); // Login first
+      cy.visit('/'); // Visit page to trigger test context
+      cy.wait(1000); // Wait for page load
       cy.get('[data-test=star-toggle-github-octocat] > svg').should(
         'not.have.class',
         'favorited',

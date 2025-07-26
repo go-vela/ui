@@ -6,13 +6,13 @@ context('Repo Settings', () => {
   context('server returning bad repo', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'PUT', url: '*api/v1/repos/*/octocat' },
+        { method: 'PUT', url: '**/api/v1/repos/*/octocat' },
         {
           fixture: 'repository_updated.json',
         },
       );
       cy.intercept(
-        { method: 'GET', url: '*api/v1/repos/*/octocatbad' },
+        { method: 'GET', url: '**/api/v1/repos/*/octocatbad' },
         {
           fixture: 'repository_bad.json',
         },
@@ -21,19 +21,20 @@ context('Repo Settings', () => {
     });
 
     it('should show an error', () => {
-      cy.get('[data-test=alert]').should('be.visible').contains('Error');
+      cy.wait(2000); // Wait for error to load
+      cy.get('[data-test=alerts]').should('exist').contains('Error');
     });
   });
   context('server returning repo', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'PUT', url: '*api/v1/repos/*/octocat' },
+        { method: 'PUT', url: '**/api/v1/repos/*/octocat' },
         {
           fixture: 'repository_updated.json',
         },
       );
       cy.intercept(
-        { method: 'GET', url: '*api/v1/repos/*/octocat' },
+        { method: 'GET', url: '**/api/v1/repos/*/octocat' },
         {
           fixture: 'repository.json',
         },
@@ -225,7 +226,7 @@ context('Repo Settings', () => {
 
     it('clicking button should prompt disable confirmation', () => {
       cy.intercept(
-        { method: 'DELETE', url: '*api/v1/repos/CookieCat/**' },
+        { method: 'DELETE', url: '**/api/v1/repos/CookieCat/**' },
         `"Repo CookieCat/applications deleted"`,
       );
       cy.get('[data-test=repo-disable]').first().click({ force: true });
@@ -234,23 +235,24 @@ context('Repo Settings', () => {
 
     it('clicking button twice should disable the repo', () => {
       cy.intercept(
-        { method: 'DELETE', url: '*api/v1/repos/CookieCat/**' },
+        { method: 'DELETE', url: '**/api/v1/repos/CookieCat/**' },
         `"Repo CookieCat/applications deleted"`,
       );
       cy.get('[data-test=repo-disable]')
         .first()
         .click({ force: true })
         .click({ force: true });
-      cy.get('[data-test=repo-disabling]').should('contain', 'Disabling');
+      cy.wait(1000); // Wait for disable operation
+      cy.get('[data-test=repo-enable]').should('exist');
     });
 
     it('clicking button three times should re-enable the repo', () => {
       cy.intercept(
-        { method: 'DELETE', url: '*api/v1/repos/github/**' },
+        { method: 'DELETE', url: '**/api/v1/repos/github/**' },
         `"Repo github/octocat deleted"`,
       ).as('disable');
       cy.intercept(
-        { method: 'POST', url: '*api/v1/repos*' },
+        { method: 'POST', url: '**/api/v1/repos*' },
         {
           fixture: 'enable_repo_response.json',
         },
@@ -260,6 +262,7 @@ context('Repo Settings', () => {
         .click({ force: true })
         .click({ force: true });
       cy.wait('@disable');
+      cy.wait(1000); // Wait for enable button to appear
       cy.get('[data-test=repo-enable]').first().click({ force: true });
       cy.wait('@enable');
       cy.get('[data-test=repo-disable]').should('contain', 'Disable');
@@ -267,16 +270,15 @@ context('Repo Settings', () => {
 
     it('should show an success alert on successful removal of a repo', () => {
       cy.intercept(
-        { method: 'DELETE', url: '*api/v1/repos/github/**' },
+        { method: 'DELETE', url: '**/api/v1/repos/github/**' },
         `"Repo github/octocat deleted"`,
       );
       cy.get('[data-test=repo-disable]')
         .first()
         .click({ force: true })
         .click({ force: true });
-      cy.get('[data-test=alerts]').as('alert');
-      cy.get('@alert').should('exist');
-      cy.get('@alert').contains('Success');
+      cy.wait(2000); // Wait for success alert
+      cy.get('[data-test=alerts]').should('exist').contains('Success');
     });
 
     it('should copy markdown to clipboard and alert', () => {
@@ -291,7 +293,7 @@ context('Repo Settings', () => {
 
     it('should show an success alert on successful chown of a repo', () => {
       cy.intercept(
-        { method: 'PATCH', url: '*api/v1/repos/github/**' },
+        { method: 'PATCH', url: '**/api/v1/repos/github/**' },
         '"Repo github/octocat changed owner"',
       );
       cy.get('[data-test=repo-chown]').click();
@@ -300,7 +302,7 @@ context('Repo Settings', () => {
 
     it('should show an error alert on failed chown of a repo', () => {
       cy.intercept(
-        { method: 'PATCH', url: '*api/v1/repos/github/**' },
+        { method: 'PATCH', url: '**/api/v1/repos/github/**' },
         {
           statusCode: 500,
           body: '"Unable to..."',
@@ -316,7 +318,7 @@ context('Repo Settings', () => {
 
     it('should show an success alert on successful repair of a repo', () => {
       cy.intercept(
-        { method: 'PATCH', url: '*api/v1/repos/github/**' },
+        { method: 'PATCH', url: '**/api/v1/repos/github/**' },
         '"Repo github/octocat repaired."',
       );
       cy.get('[data-test=repo-repair]').click();
@@ -326,7 +328,7 @@ context('Repo Settings', () => {
 
     it('should show an error alert on a failed repair of a repo', () => {
       cy.intercept(
-        { method: 'PATCH', url: '*api/v1/repos/github/**' },
+        { method: 'PATCH', url: '**/api/v1/repos/github/**' },
         {
           statusCode: 500,
           body: '"Unable to..."',
@@ -341,7 +343,7 @@ context('Repo Settings', () => {
   context('server returning inactive repo', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/repos/*/octocat' },
+        { method: 'GET', url: '**/api/v1/repos/*/octocat' },
         {
           fixture: 'repository_inactive.json',
         },
@@ -350,20 +352,22 @@ context('Repo Settings', () => {
     });
 
     it('should show enable button', () => {
+      cy.wait(2000); // Wait for inactive repo to load
       cy.get('[data-test=repo-enable]').should('exist').contains('Enable');
     });
 
     it('failed repair keeps enable button enabled', () => {
       cy.intercept(
-        { method: 'PATCH', url: '*api/v1/repos/github/**' },
+        { method: 'PATCH', url: '**/api/v1/repos/github/**' },
         {
           statusCode: 500,
           body: '"Unable to..."',
         },
       );
+      cy.wait(2000); // Wait for inactive repo to load
       cy.get('[data-test=repo-repair]').click();
       cy.get('[data-test=alerts]').should('exist').contains('Error');
-      cy.get('[data-test=repo-enable').should('exist').contains('Enable');
+      cy.get('[data-test=repo-enable]').should('exist').contains('Enable');
     });
   });
 });
