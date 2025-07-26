@@ -5,14 +5,15 @@
 context('Favorites', () => {
   context('error loading user', () => {
     beforeEach(() => {
-      cy.intercept({
-        method: 'GET',
-        url: 'api/v1/user*',
-        statusCode: 500,
-        body: {
-          error: 'error fetching user',
+      cy.intercept(
+        { method: 'GET', url: 'api/v1/user*' },
+        {
+          statusCode: 500,
+          body: {
+            error: 'error fetching user',
+          },
         },
-      });
+      );
       cy.login();
     });
 

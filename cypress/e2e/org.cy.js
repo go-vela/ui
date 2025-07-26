@@ -5,11 +5,10 @@
 context('Org', () => {
   context('Tabs', () => {
     beforeEach(() => {
-      cy.intercept({
-        method: 'GET',
-        url: '*api/v1/repos/vela',
-        body: { fixture: 'repositories_5.json' },
-      });
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/repos/vela' },
+        { body: { fixture: 'repositories_5.json' } },
+      );
       cy.login('/vela');
     });
 
@@ -23,11 +22,10 @@ context('Org', () => {
   context('Repositories Tab', () => {
     context('logged in and server returning 5 repos', () => {
       beforeEach(() => {
-        cy.intercept({
-          method: 'GET',
-          url: '*api/v1/repos/vela',
-          body: { fixture: 'repositories_5.json' },
-        });
+        cy.intercept(
+          { method: 'GET', url: '*api/v1/repos/vela' },
+          { body: { fixture: 'repositories_5.json' } },
+        );
         cy.login('/vela');
 
         cy.get('[data-test=repo-item]').as('repos');
@@ -94,11 +92,10 @@ context('Org', () => {
   context('Builds Tab', () => {
     context('logged in and returning 5 builds', () => {
       beforeEach(() => {
-        cy.intercept({
-          method: 'GET',
-          url: '*api/v1/repos/vela/builds*',
-          body: { fixture: 'builds_5.json' },
-        });
+        cy.intercept(
+          { method: 'GET', url: '*api/v1/repos/vela/builds*' },
+          { body: { fixture: 'builds_5.json' } },
+        );
         cy.login('/vela/builds');
       });
 
@@ -142,11 +139,10 @@ context('Org', () => {
 
   context('Secrets Tab', () => {
     beforeEach(() => {
-      cy.intercept({
-        method: 'GET',
-        url: '*api/v1/repos/vela',
-        body: { fixture: 'repositories_5.json' },
-      });
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/repos/vela' },
+        { body: { fixture: 'repositories_5.json' } },
+      );
       cy.login('/vela');
     });
 

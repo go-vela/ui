@@ -131,13 +131,17 @@ context('Secrets', () => {
   context('server returning remove error', () => {
     beforeEach(() => {
       cy.intercept(
-        'GET',
-        '*api/v1/secrets/native/repo/github/octocat/password*',
+        {
+          method: 'GET',
+          url: '*api/v1/secrets/native/repo/github/octocat/password*',
+        },
         { fixture: 'secret_repo.json' },
       );
       cy.intercept(
-        'DELETE',
-        '*api/v1/secrets/native/repo/github/octocat/password*',
+        {
+          method: 'DELETE',
+          url: '*api/v1/secrets/native/repo/github/octocat/password*',
+        },
         {
           statusCode: 500,
           body: { error: 'server error could not remove' },

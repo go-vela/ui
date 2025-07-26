@@ -66,11 +66,10 @@ function getUnixTime(offsetSeconds = 0) {
 context('insights', () => {
   context('no builds', () => {
     beforeEach(() => {
-      cy.intercept({
-        method: 'GET',
-        url: '*api/v1/repos/*/*/builds*',
-        body: [],
-      });
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/repos/*/*/builds*' },
+        { body: [] },
+      );
       cy.login('/github/octocat/insights');
     });
 
@@ -127,11 +126,10 @@ context('insights', () => {
         }),
       );
 
-      cy.intercept({
-        method: 'GET',
-        url: '*api/v1/repos/*/*/builds*',
-        body: builds,
-      });
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/repos/*/*/builds*' },
+        { body: builds },
+      );
       cy.login('/github/octocat/insights');
     });
 
@@ -185,11 +183,10 @@ context('insights', () => {
         });
       });
 
-      cy.intercept({
-        method: 'GET',
-        url: '*api/v1/repos/*/*/builds*',
-        body: builds,
-      });
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/repos/*/*/builds*' },
+        { body: builds },
+      );
       cy.login('/github/octocat/insights');
     });
 

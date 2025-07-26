@@ -5,12 +5,10 @@
 context('Hooks', () => {
   context('server returning hooks error', () => {
     beforeEach(() => {
-      cy.intercept({
-        method: 'GET',
-        url: '*api/v1/hooks/github/octocat*',
-        statusCode: 500,
-        body: 'server error',
-      });
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/hooks/github/octocat*' },
+        { statusCode: 500, body: 'server error' },
+      );
       cy.login('/github/octocat/hooks');
     });
 

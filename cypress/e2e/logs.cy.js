@@ -178,12 +178,10 @@ context(
 
       it('click follow logs should focus follow new logs', () => {
         // stub short logs
-        cy.intercept({
-          method: 'GET',
-          url: 'api/v1/repos/*/*/builds/*/steps/2/logs',
-          statusCode: 200,
-          body: { fixture: 'log_step_short.json' },
-        }).as('getLogs-2');
+        cy.intercept(
+          { method: 'GET', url: 'api/v1/repos/*/*/builds/*/steps/2/logs' },
+          { statusCode: 200, body: { fixture: 'log_step_short.json' } },
+        ).as('getLogs-2');
 
         // verify no prior focus
         cy.focused().should(
@@ -198,12 +196,10 @@ context(
         cy.get('[data-test=follow-logs-2]').first().click({ force: true });
 
         // stub long logs to trigger follow
-        cy.intercept({
-          method: 'GET',
-          url: 'api/v1/repos/*/*/builds/*/steps/2/logs',
-          statusCode: 200,
-          body: { fixture: 'log_step_long.json' },
-        }).as('getLogs-2');
+        cy.intercept(
+          { method: 'GET', url: 'api/v1/repos/*/*/builds/*/steps/2/logs' },
+          { statusCode: 200, body: { fixture: 'log_step_long.json' } },
+        ).as('getLogs-2');
 
         // wait for refresh and check for bottom focus
         cy.wait('@getLogs-2');
@@ -446,12 +442,10 @@ context(
 
       it('click follow logs should focus follow new logs', () => {
         // stub short logs
-        cy.intercept({
-          method: 'GET',
-          url: 'api/v1/repos/*/*/builds/*/services/2/logs',
-          statusCode: 200,
-          body: { fixture: 'log_service_short.json' },
-        }).as('getLogs-2');
+        cy.intercept(
+          { method: 'GET', url: 'api/v1/repos/*/*/builds/*/services/2/logs' },
+          { statusCode: 200, body: { fixture: 'log_service_short.json' } },
+        ).as('getLogs-2');
 
         // verify no prior focus
         cy.focused().should(
@@ -466,12 +460,10 @@ context(
         cy.get('[data-test=follow-logs-2]').first().click({ force: true });
 
         // stub long logs to trigger follow
-        cy.intercept({
-          method: 'GET',
-          url: 'api/v1/repos/*/*/builds/*/services/2/logs',
-          statusCode: 200,
-          body: { fixture: 'log_service_long.json' },
-        }).as('getLogs-2');
+        cy.intercept(
+          { method: 'GET', url: 'api/v1/repos/*/*/builds/*/services/2/logs' },
+          { statusCode: 200, body: { fixture: 'log_service_long.json' } },
+        ).as('getLogs-2');
 
         // wait for refresh and check for bottom focus
         cy.wait('@getLogs-2');

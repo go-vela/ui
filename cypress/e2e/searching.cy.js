@@ -7,12 +7,10 @@ context('Searching', () => {
     beforeEach(() => {
       cy.fixture('source_repos')
         .then(repos => {
-          cy.intercept({
-            method: 'GET',
-            url: 'api/v1/user/source/repos*',
-            statusCode: 200,
-            body: repos,
-          });
+          cy.intercept(
+            { method: 'GET', url: 'api/v1/user/source/repos*' },
+            { statusCode: 200, body: repos },
+          );
         })
         .as('sourceRepos');
       cy.login('/account/source-repos');

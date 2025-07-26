@@ -141,15 +141,16 @@ context('Dashboards', () => {
 
   context('dashboard not found', () => {
     beforeEach(() => {
-      cy.intercept({
-        method: 'GET',
-        statusCode: 404,
-        url: '*api/v1/dashboards/deadbeef',
-        body: {
-          error:
-            'unable to read dashboard deadbeef: ERROR: invalid input syntax for type uuid: "deadbeef" (SQLSTATE 22P02)',
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/dashboards/deadbeef' },
+        {
+          statusCode: 404,
+          body: {
+            error:
+              'unable to read dashboard deadbeef: ERROR: invalid input syntax for type uuid: "deadbeef" (SQLSTATE 22P02)',
+          },
         },
-      });
+      );
       cy.login('/dashboards/deadbeef');
     });
 

@@ -5,11 +5,10 @@
 context('Repo', () => {
   context('logged in and server returning 5 builds', () => {
     beforeEach(() => {
-      cy.intercept({
-        method: 'GET',
-        url: '*api/v1/repos/*/*/builds*',
-        body: { fixture: 'builds_5.json' },
-      });
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/repos/*/*/builds*' },
+        { body: { fixture: 'builds_5.json' } },
+      );
       cy.stubBuild();
       cy.hookPages();
       cy.login('/github/octocat');

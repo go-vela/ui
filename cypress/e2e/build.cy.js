@@ -44,11 +44,10 @@ context('Build', () => {
 
   context('logged in and server returning 0 builds', () => {
     beforeEach(() => {
-      cy.intercept({
-        method: 'GET',
-        url: 'api/v1/repos/*/*/builds?page=1&per_page=100',
-        body: [],
-      });
+      cy.intercept(
+        { method: 'GET', url: 'api/v1/repos/*/*/builds?page=1&per_page=100' },
+        { body: [] },
+      );
       cy.login('/github/octocat/1');
     });
 
@@ -126,12 +125,10 @@ context('Build', () => {
     context('server stubbed Restart Build', () => {
       beforeEach(() => {
         cy.fixture('build_pending.json').as('restartedBuild');
-        cy.intercept({
-          method: 'POST',
-          url: 'api/v1/repos/*/*/builds/*',
-          statusCode: 200,
-          body: { fixture: 'build_pending.json' },
-        });
+        cy.intercept(
+          { method: 'POST', url: 'api/v1/repos/*/*/builds/*' },
+          { statusCode: 200, body: { fixture: 'build_pending.json' } },
+        );
         cy.get('[data-test=restart-build]').as('restartBuild');
       });
 
@@ -153,12 +150,10 @@ context('Build', () => {
     context('server failing to restart build', () => {
       beforeEach(() => {
         cy.fixture('build_pending.json').as('restartedBuild');
-        cy.intercept({
-          method: 'POST',
-          url: 'api/v1/repos/*/*/builds/*',
-          statusCode: 500,
-          body: 'server error',
-        });
+        cy.intercept(
+          { method: 'POST', url: 'api/v1/repos/*/*/builds/*' },
+          { statusCode: 500, body: 'server error' },
+        );
         cy.get('[data-test=restart-build]').as('restartBuild');
       });
 
@@ -170,12 +165,10 @@ context('Build', () => {
 
     context('server stubbed Cancel Build', () => {
       beforeEach(() => {
-        cy.intercept({
-          method: 'DELETE',
-          url: 'api/v1/repos/*/*/builds/*/cancel',
-          statusCode: 200,
-          body: 'canceled build github/octocat/1',
-        });
+        cy.intercept(
+          { method: 'DELETE', url: 'api/v1/repos/*/*/builds/*/cancel' },
+          { statusCode: 200, body: 'canceled build github/octocat/1' },
+        );
         cy.login('/github/octocat/1');
         cy.get('[data-test=cancel-build]').as('cancelBuild');
       });
@@ -191,12 +184,10 @@ context('Build', () => {
 
     context('server failing to cancel build', () => {
       beforeEach(() => {
-        cy.intercept({
-          method: 'DELETE',
-          url: 'api/v1/repos/*/*/builds/*/cancel',
-          statusCode: 500,
-          body: 'server error',
-        });
+        cy.intercept(
+          { method: 'DELETE', url: 'api/v1/repos/*/*/builds/*/cancel' },
+          { statusCode: 500, body: 'server error' },
+        );
         cy.get('[data-test=cancel-build]').as('cancelBuild');
       });
 
@@ -210,12 +201,13 @@ context('Build', () => {
       beforeEach(() => {
         cy.visit('/github/octocat/8');
         cy.fixture('build_pending_approval.json').as('approveBuild');
-        cy.intercept({
-          method: 'POST',
-          url: 'api/v1/repos/*/*/builds/*/approve',
-          statusCode: 200,
-          body: 'Successfully approved build github/octocat/8',
-        });
+        cy.intercept(
+          { method: 'POST', url: 'api/v1/repos/*/*/builds/*/approve' },
+          {
+            statusCode: 200,
+            body: 'Successfully approved build github/octocat/8',
+          },
+        );
         cy.get('[data-test=approve-build]').as('approvedBuild');
       });
 

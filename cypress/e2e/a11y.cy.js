@@ -17,12 +17,13 @@ const elmExclude = '[style*="padding-left: calc(1ch + 6px)"]';
 context('Accessibility (a11y)', () => {
   context('Logged out', () => {
     beforeEach(() => {
-      cy.intercept({
-        method: 'GET',
-        url: '/token-refresh',
-        statusCode: 401,
-        body: { message: 'unauthorized' },
-      });
+      cy.intercept(
+        { method: 'GET', url: '/token-refresh' },
+        {
+          statusCode: 401,
+          body: { message: 'unauthorized' },
+        },
+      );
     });
 
     it('overview', () => {

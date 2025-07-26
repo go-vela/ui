@@ -4,20 +4,17 @@
 
 context('Admin Settings', () => {
   beforeEach(() => {
-    cy.intercept({
-      method: 'GET',
-      url: '*api/v1/user*',
-      statusCode: 200,
-      body: { fixture: 'user_admin.json' },
-    });
+    cy.intercept(
+      { method: 'GET', url: '*api/v1/user*' },
+      { statusCode: 200, body: { fixture: 'user_admin.json' } },
+    );
   });
   context('server returning error', () => {
     beforeEach(() => {
-      cy.intercept({
-        method: 'GET',
-        url: '*api/v1/admin/settings*',
-        statusCode: 500,
-      });
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/admin/settings*' },
+        { statusCode: 500 },
+      );
       cy.loginAdmin('/admin/settings');
     });
     it('should show an error', () => {
@@ -26,12 +23,10 @@ context('Admin Settings', () => {
   });
   context('server returning settings', () => {
     beforeEach(() => {
-      cy.intercept({
-        method: 'GET',
-        url: '*api/v1/admin/settings*',
-        statusCode: 200,
-        body: { fixture: 'settings.json' },
-      });
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/admin/settings*' },
+        { statusCode: 200, body: { fixture: 'settings.json' } },
+      );
       cy.loginAdmin('/admin/settings');
     });
     it('compiler clone image should show', () => {
@@ -62,12 +57,10 @@ context('Admin Settings', () => {
 
     context('form should allow editing', () => {
       beforeEach(() => {
-        cy.intercept({
-          method: 'PUT',
-          url: '*api/v1/admin/settings*',
-          statusCode: 200,
-          body: { fixture: 'settings_updated.json' },
-        });
+        cy.intercept(
+          { method: 'PUT', url: '*api/v1/admin/settings*' },
+          { statusCode: 200, body: { fixture: 'settings_updated.json' } },
+        );
       });
       it('clone image should allow editing', () => {
         cy.get('[data-test=input-clone-image]')

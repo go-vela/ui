@@ -5,12 +5,10 @@
 context('Builds', () => {
   context('server returning builds error', () => {
     beforeEach(() => {
-      cy.intercept({
-        method: 'GET',
-        url: '*api/v1/repos/*/*/builds*',
-        statusCode: 500,
-        body: 'server error',
-      });
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/repos/*/*/builds*' },
+        { statusCode: 500, body: 'server error' },
+      );
       cy.stubBuild();
       cy.login('/github/octocat');
     });
@@ -30,11 +28,10 @@ context('Builds', () => {
 
   context('logged in and server returning 5 builds', () => {
     beforeEach(() => {
-      cy.intercept({
-        method: 'GET',
-        url: '*api/v1/repos/*/*/builds*',
-        body: { fixture: 'builds_5.json' },
-      });
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/repos/*/*/builds*' },
+        { body: { fixture: 'builds_5.json' } },
+      );
       cy.stubBuild();
       cy.login('/github/octocat');
 
