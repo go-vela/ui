@@ -12,7 +12,7 @@ context('Errors', () => {
 
   context('logged in', () => {
     beforeEach(() => {
-      cy.intercept('GET', '*api/v1/repos*', { fixture: 'repositories.json' });
+      cy.intercept({ method: 'GET', url: '*api/v1/repos*' }, { fixture: 'repositories.json' });
       cy.login();
     });
 
@@ -25,7 +25,7 @@ context('Errors', () => {
     beforeEach(() => {
       cy.login();
 
-      cy.intercept('GET', '*api/v1/user/source/repos*', {
+      cy.intercept({ method: 'GET', url: '*api/v1/user/source/repos*' }, {
         statusCode: 500,
         body: {
           error: 'error fetching source repositories',

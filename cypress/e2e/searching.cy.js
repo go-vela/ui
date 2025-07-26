@@ -100,7 +100,7 @@ context('Searching', () => {
           'click Enable All button, then clear github local search input',
           () => {
             beforeEach(() => {
-              cy.intercept('POST', '*api/v1/repos*', {
+              cy.intercept({ method: 'POST', url: '*api/v1/repos*' }, {
                 fixture: 'enable_repo_response.json',
               });
               cy.get('[data-test=enable-org-github]').click({ force: true });

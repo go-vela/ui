@@ -5,13 +5,13 @@
 context('Source Repositories', () => {
   context('logged in', () => {
     beforeEach(() => {
-      cy.intercept('GET', '*api/v1/user/source/repos*', {
+      cy.intercept({ method: 'GET', url: '*api/v1/user/source/repos*' }, {
         fixture: 'source_repositories.json',
       }).as('sourceRepos');
-      cy.intercept('POST', '*api/v1/repos*', {
+      cy.intercept({ method: 'POST', url: '*api/v1/repos*' }, {
         fixture: 'enable_repo_response.json',
       });
-      cy.intercept('PUT', '*api/v1/repos*', {
+      cy.intercept({ method: 'PUT', url: '*api/v1/repos*' }, {
         fixture: 'enable_repo_response.json',
       });
       cy.login('/account/source-repos');
@@ -47,7 +47,7 @@ context('Source Repositories', () => {
     });
 
     it('shows the failed button and alert when the enable is unsuccessful', () => {
-      cy.intercept('POST', '*api/v1/repos*', {
+      cy.intercept({ method: 'POST', url: '*api/v1/repos*' }, {
         statusCode: 500,
         body: `{"error":"unable to create webhook for : something went wrong"}`,
       }).as('enableRepoError');
@@ -85,11 +85,11 @@ context('Source Repositories', () => {
 
   context('logged in - artificial 1s load delay', () => {
     beforeEach(() => {
-      cy.intercept('GET', '*api/v1/user/source/repos*', {
+      cy.intercept({ method: 'GET', url: '*api/v1/user/source/repos*' }, {
         delay: 1000,
         body: {},
       }).as('sourceRepos');
-      cy.intercept('POST', '*api/v1/repos*', {
+      cy.intercept({ method: 'POST', url: '*api/v1/repos*' }, {
         fixture: 'enable_repo_response.json',
       });
       cy.login('/account/source-repos');
@@ -105,7 +105,7 @@ context('Source Repositories', () => {
 
   context('logged in - api error', () => {
     beforeEach(() => {
-      cy.intercept('GET', '*api/v1/user/source/repos*', {
+      cy.intercept({ method: 'GET', url: '*api/v1/user/source/repos*' }, {
         statusCode: 500,
         body: 'server error',
       }).as('error');
@@ -122,7 +122,7 @@ context('Source Repositories', () => {
 
   context('logged in - unexpected response', () => {
     beforeEach(() => {
-      cy.intercept('GET', '*api/v1/user/source/repos*', {
+      cy.intercept({ method: 'GET', url: '*api/v1/user/source/repos*' }, {
         fixture: 'source_repositories_bad.json',
       }).as('badSourceRepos');
       cy.login('/account/source-repos');

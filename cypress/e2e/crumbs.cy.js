@@ -62,7 +62,7 @@ context('Crumbs', () => {
   });
   context('visit org secrets', () => {
     beforeEach(() => {
-      cy.intercept('GET', '*api/v1/secrets/native/repo/github/**', {
+      cy.intercept({ method: 'GET', url: '*api/v1/secrets/native/repo/github/**' }, {
         fixture: 'secrets_org_5.json',
       }).as('secret');
       cy.login('/-/secrets/native/org/github');
@@ -73,7 +73,7 @@ context('Crumbs', () => {
   });
   context('visit repo secret', () => {
     beforeEach(() => {
-      cy.intercept('GET', '*api/v1/secrets/native/repo/github/**', {
+      cy.intercept({ method: 'GET', url: '*api/v1/secrets/native/repo/github/**' }, {
         fixture: 'secret_repo.json',
       }).as('secret');
       cy.login('/-/secrets/native/repo/github/octocat/password');
@@ -99,7 +99,7 @@ context('Crumbs', () => {
     'visit shared secret with special characters in team and name',
     () => {
       beforeEach(() => {
-        cy.intercept('GET', '*api/v1/secrets/native/shared/github/**', {
+        cy.intercept({ method: 'GET', url: '*api/v1/secrets/native/shared/github/**' }, {
           fixture: 'secret_shared.json',
         }).as('secret');
         cy.login(

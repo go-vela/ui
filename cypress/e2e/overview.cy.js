@@ -5,7 +5,7 @@
 context('Overview/Repositories Page', () => {
   context('logged in - favorites loaded', () => {
     beforeEach(() => {
-      cy.intercept('GET', '*api/v1/user*', {
+      cy.intercept({ method: 'GET', url: '*api/v1/user*' }, {
         fixture: 'favorites_overview.json',
       });
       cy.login();

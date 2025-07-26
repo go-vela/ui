@@ -39,13 +39,13 @@ context('Accessibility (a11y)', () => {
     beforeEach(() => {
       cy.setTheme('theme-light');
       // overview page
-      cy.intercept('GET', '*api/v1/user*', { fixture: 'favorites.json' });
+      cy.intercept({ method: 'GET', url: '*api/v1/user*' }, { fixture: 'favorites.json' });
       // source repos page
-      cy.intercept('GET', '*api/v1/user/source/repos*', {
+      cy.intercept({ method: 'GET', url: '*api/v1/user/source/repos*' }, {
         fixture: 'source_repositories.json',
       });
       // settings page
-      cy.intercept('GET', '*api/v1/repos/*/octocat', {
+      cy.intercept({ method: 'GET', url: '*api/v1/repos/*/octocat' }, {
         fixture: 'repository.json',
       });
       // repo and build page
@@ -53,16 +53,16 @@ context('Accessibility (a11y)', () => {
       cy.stubBuild();
       cy.stubStepsWithLogs();
       // hooks page
-      cy.intercept('GET', '*api/v1/hooks/github/octocat*', {
+      cy.intercept({ method: 'GET', url: '*api/v1/hooks/github/octocat*' }, {
         fixture: 'hooks_5.json',
       });
-      cy.intercept('GET', '*api/v1/repos/*/octocat/builds/1*', {
+      cy.intercept({ method: 'GET', url: '*api/v1/repos/*/octocat/builds/1*' }, {
         fixture: 'build_success.json',
       });
-      cy.intercept('GET', '*api/v1/repos/*/octocat/builds/2*', {
+      cy.intercept({ method: 'GET', url: '*api/v1/repos/*/octocat/builds/2*' }, {
         fixture: 'build_failure.json',
       });
-      cy.intercept('GET', '*api/v1/repos/*/octocat/builds/3*', {
+      cy.intercept({ method: 'GET', url: '*api/v1/repos/*/octocat/builds/3*' }, {
         fixture: 'build_running.json',
       });
     });

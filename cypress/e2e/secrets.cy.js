@@ -6,19 +6,15 @@ context('Secrets', () => {
   context('server returning repo secret', () => {
     beforeEach(() => {
       cy.intercept(
-        'GET',
-        '*api/v1/secrets/native/repo/github/octocat/password*',
+        { method: 'GET', url: '*api/v1/secrets/native/repo/github/octocat/password*' },
         { fixture: 'secret_repo.json' },
       );
-      cy.intercept('GET', '*api/v1/secrets/native/org/github/*/password*', {
+      cy.intercept({ method: 'GET', url: '*api/v1/secrets/native/org/github/*/password*' }, {
         fixture: 'secret_org.json',
       });
       cy.intercept(
-        'DELETE',
-        '*api/v1/secrets/native/repo/github/octocat/password*',
-        {
-          body: 'Secret repo/github/octocat/password deleted from native service',
-        },
+        { method: 'DELETE', url: '*api/v1/secrets/native/repo/github/octocat/password*' },
+        'Secret repo/github/octocat/password deleted from native service',
       );
       cy.login('/-/secrets/native/repo/github/octocat/password');
     });
@@ -150,7 +146,7 @@ context('Secrets', () => {
 
   context('server returning secrets error', () => {
     beforeEach(() => {
-      cy.intercept('GET', '*api/v1/secrets/native/org/github/**', {
+      cy.intercept({ method: 'GET', url: '*api/v1/secrets/native/org/github/**' }, {
         statusCode: 500,
         body: 'server error',
       });
@@ -171,7 +167,7 @@ context('Secrets', () => {
   });
   context('server returning 5 secrets', () => {
     beforeEach(() => {
-      cy.intercept('GET', '*api/v1/secrets/native/org/github/**', {
+      cy.intercept({ method: 'GET', url: '*api/v1/secrets/native/org/github/**' }, {
         fixture: 'secrets_org_5.json',
       }).as('secrets');
       cy.login('/-/secrets/native/org/github');

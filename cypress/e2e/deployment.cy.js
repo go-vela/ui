@@ -5,21 +5,21 @@
 context('Deployment', () => {
   context('server returning deployments', () => {
     beforeEach(() => {
-      cy.intercept('POST', '*api/v1/deployments/github/octocat', {
+      cy.intercept({ method: 'POST', url: '*api/v1/deployments/github/octocat' }, {
         fixture: 'deployment.json',
       });
-      cy.intercept('GET', '*api/v1/deployments/github/octocat*', {
+      cy.intercept({ method: 'GET', url: '*api/v1/deployments/github/octocat*' }, {
         fixture: 'deployments_5.json',
       });
-      cy.intercept('GET', '*api/v1/hooks/github/octocat*', { body: [] });
-      cy.intercept('GET', '*api/v1/user', { fixture: 'user_admin.json' });
-      cy.intercept('GET', '*api/v1/repos/github/octocat', {
+      cy.intercept({ method: 'GET', url: '*api/v1/hooks/github/octocat*' }, []);
+      cy.intercept({ method: 'GET', url: '*api/v1/user' }, { fixture: 'user_admin.json' });
+      cy.intercept({ method: 'GET', url: '*api/v1/repos/github/octocat' }, {
         fixture: 'repository.json',
       });
-      cy.intercept('GET', '*api/v1/repos/github/octocat/builds*', {
+      cy.intercept({ method: 'GET', url: '*api/v1/repos/github/octocat/builds*' }, {
         fixture: 'builds_5.json',
       });
-      cy.intercept('GET', '*api/v1/deployments/github/octocat/config', {
+      cy.intercept({ method: 'GET', url: '*api/v1/deployments/github/octocat/config' }, {
         fixture: 'deployment_config.json',
       });
     });

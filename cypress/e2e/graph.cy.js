@@ -18,16 +18,16 @@ context('Build Graph', () => {
     'logged in and server returning a build graph, build and steps',
     () => {
       beforeEach(() => {
-        cy.intercept('GET', '*api/v1/repos/*/*/builds*', {
+        cy.intercept({ method: 'GET', url: '*api/v1/repos/*/*/builds*' }, {
           fixture: 'builds_5.json',
         });
-        cy.intercept('GET', '*api/v1/repos/*/*/builds/*', {
+        cy.intercept({ method: 'GET', url: '*api/v1/repos/*/*/builds/*' }, {
           fixture: 'build_success.json',
         });
-        cy.intercept('GET', '*api/v1/repos/*/*/builds/*/graph', {
+        cy.intercept({ method: 'GET', url: '*api/v1/repos/*/*/builds/*/graph' }, {
           fixture: 'build_graph.json',
         });
-        cy.intercept('GET', '*api/v1/repos/*/octocat', {
+        cy.intercept({ method: 'GET', url: '*api/v1/repos/*/octocat' }, {
           fixture: 'repository.json',
         });
         cy.login('/github/octocat/4/graph');
