@@ -31,21 +31,26 @@ jobs:
       - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-npm-v2-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-npm-v3-cypress14-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
+            ${{ runner.os }}-npm-v3-cypress14-
+            ${{ runner.os }}-npm-v3-
             ${{ runner.os }}-npm-v2-
       - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: node_modules
-          key: ${{ runner.os }}-modules-v2-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-modules-v3-cypress14-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
+            ${{ runner.os }}-modules-v3-cypress14-
+            ${{ runner.os }}-modules-v3-
             ${{ runner.os }}-modules-v2-
       - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: ~/.cache/Cypress
-          key: cypress-${{ runner.os }}-bin-v2-${{ hashFiles('**/package-lock.json') }}
+          key: cypress-${{ runner.os }}-bin-v3-14.5.2-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            cypress-${{ runner.os }}-bin-v2-
+            cypress-${{ runner.os }}-bin-v3-14.5.2-
+            cypress-${{ runner.os }}-bin-v3-
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: ".nvmrc"
@@ -78,21 +83,26 @@ jobs:
       - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-npm-v2-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-npm-v3-cypress14-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
+            ${{ runner.os }}-npm-v3-cypress14-
+            ${{ runner.os }}-npm-v3-
             ${{ runner.os }}-npm-v2-
       - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: node_modules
-          key: ${{ runner.os }}-modules-v2-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-modules-v3-cypress14-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
+            ${{ runner.os }}-modules-v3-cypress14-
+            ${{ runner.os }}-modules-v3-
             ${{ runner.os }}-modules-v2-
       - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: ~/.cache/Cypress
-          key: cypress-${{ runner.os }}-bin-v2-${{ hashFiles('**/package-lock.json') }}
+          key: cypress-${{ runner.os }}-bin-v3-14.5.2-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            cypress-${{ runner.os }}-bin-v2-
+            cypress-${{ runner.os }}-bin-v3-14.5.2-
+            cypress-${{ runner.os }}-bin-v3-
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: ".nvmrc"
@@ -119,21 +129,26 @@ jobs:
       - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-npm-v2-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-npm-v3-cypress14-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
+            ${{ runner.os }}-npm-v3-cypress14-
+            ${{ runner.os }}-npm-v3-
             ${{ runner.os }}-npm-v2-
       - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: node_modules
-          key: ${{ runner.os }}-modules-v2-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-modules-v3-cypress14-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
+            ${{ runner.os }}-modules-v3-cypress14-
+            ${{ runner.os }}-modules-v3-
             ${{ runner.os }}-modules-v2-
       - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: ~/.cache/Cypress
-          key: cypress-${{ runner.os }}-bin-v2-${{ hashFiles('**/package-lock.json') }}
+          key: cypress-${{ runner.os }}-bin-v3-14.5.2-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            cypress-${{ runner.os }}-bin-v2-
+            cypress-${{ runner.os }}-bin-v3-14.5.2-
+            cypress-${{ runner.os }}-bin-v3-
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: ".nvmrc"
@@ -149,47 +164,98 @@ jobs:
   integration:
     name: run cypress tests
     runs-on: ubuntu-latest
+    strategy:
+      # Don't cancel other jobs if one fails
+      fail-fast: false
+      matrix:
+        # Could be extended for parallel execution in the future
+        containers: [1]
     env:
       VELA_API: "http://localhost:8080"
       TERM: xterm
+      # Cypress 14.5.2 optimizations
+      CYPRESS_CACHE_FOLDER: ~/.cache/Cypress
+      CI: true
+      # Disable Cypress video recording in CI for faster runs
+      CYPRESS_video: false
+      # Optimize Cypress for CI
+      CYPRESS_defaultCommandTimeout: 10000
+      CYPRESS_requestTimeout: 10000
+      CYPRESS_responseTimeout: 10000
 
     permissions:
       actions: write # for actions/cache to write to cache location
 
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      
+      # Skip Cypress tests for documentation-only changes
+      - uses: dorny/paths-filter@0bc4621a3135347011ad047f9ecf449bf72ce2bd # v3.0.2
+        id: changes
+        with:
+          filters: |
+            src:
+              - 'src/**'
+              - 'cypress/**'
+              - 'package*.json'
+              - '.nvmrc'
       - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        if: steps.changes.outputs.src == 'true'
         with:
           path: ~/.elm
           key: ${{ runner.os }}-elm-v3-${{ hashFiles('**/elm.json') }}
           restore-keys: |
             ${{ runner.os }}-elm-v3-
       - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        if: steps.changes.outputs.src == 'true'
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-npm-v2-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-npm-v3-cypress14-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
+            ${{ runner.os }}-npm-v3-cypress14-
+            ${{ runner.os }}-npm-v3-
             ${{ runner.os }}-npm-v2-
       - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: node_modules
-          key: ${{ runner.os }}-modules-v2-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-modules-v3-cypress14-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
+            ${{ runner.os }}-modules-v3-cypress14-
+            ${{ runner.os }}-modules-v3-
             ${{ runner.os }}-modules-v2-
       - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: ~/.cache/Cypress
-          key: cypress-${{ runner.os }}-bin-v2-${{ hashFiles('**/package-lock.json') }}
+          key: cypress-${{ runner.os }}-bin-v3-14.5.2-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            cypress-${{ runner.os }}-bin-v2-
+            cypress-${{ runner.os }}-bin-v3-14.5.2-
+            cypress-${{ runner.os }}-bin-v3-
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: ".nvmrc"
 
       - name: install dependencies
+        if: steps.changes.outputs.src == 'true'
         run: npm ci --prefer-offline --no-audit
+      
+      # Install Chrome for better Cypress performance
+      - name: install Chrome
+        if: steps.changes.outputs.src == 'true'
+        uses: browser-actions/setup-chrome@43e719c37b0bb8f7b5a36c48c7ee2e2ab66540b4 # v1.7.2
+        with:
+          chrome-version: stable
+      
+      # Verify Cypress installation and cache
+      - name: verify Cypress
+        if: steps.changes.outputs.src == 'true'
+        run: npx cypress verify
+      
       - name: run cypress tests
+        if: steps.changes.outputs.src == 'true'
         run: npm run test:cy
+        env:
+          # Override to use installed Chrome
+          CYPRESS_RUN_BINARY: ""
 
   # ┌─┐┬ ┬┌┐ ┬  ┬┌─┐┬ ┬
   # ├─┘│ │├┴┐│  │└─┐├─┤
@@ -214,14 +280,18 @@ jobs:
       - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-npm-v2-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-npm-v3-cypress14-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
+            ${{ runner.os }}-npm-v3-cypress14-
+            ${{ runner.os }}-npm-v3-
             ${{ runner.os }}-npm-v2-
       - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: node_modules
-          key: ${{ runner.os }}-modules-v2-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-modules-v3-cypress14-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
+            ${{ runner.os }}-modules-v3-cypress14-
+            ${{ runner.os }}-modules-v3-
             ${{ runner.os }}-modules-v2-
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
