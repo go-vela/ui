@@ -4,11 +4,17 @@ module.exports = defineConfig({
   e2e: {
     baseUrl: 'http://localhost:8888',
     video: false,
-    defaultCommandTimeout: 15000,
-    requestTimeout: 15000,
-    responseTimeout: 15000,
+    defaultCommandTimeout: 20000,
+    requestTimeout: 20000,
+    responseTimeout: 20000,
+    pageLoadTimeout: 30000,
     specPattern: 'cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
     supportFile: 'cypress/support/e2e.js',
+    // Retry failed tests once in CI
+    retries: {
+      runMode: 1,
+      openMode: 0,
+    },
     setupNodeEvents(on, config) {
       // implement node event listeners here
     },

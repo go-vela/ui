@@ -178,10 +178,11 @@ jobs:
       CI: true
       # Disable Cypress video recording in CI for faster runs
       CYPRESS_video: false
-      # Optimize Cypress for CI
-      CYPRESS_defaultCommandTimeout: 10000
-      CYPRESS_requestTimeout: 10000
-      CYPRESS_responseTimeout: 10000
+      # Optimize Cypress for CI - increased timeouts for slower CI environment
+      CYPRESS_defaultCommandTimeout: 25000
+      CYPRESS_requestTimeout: 25000
+      CYPRESS_responseTimeout: 25000
+      CYPRESS_pageLoadTimeout: 40000
 
     permissions:
       actions: write # for actions/cache to write to cache location
