@@ -22,7 +22,10 @@ if (!Cypress.env('CI')) {
 // Helper to skip flaky tests in CI
 Cypress.Commands.add('skipInCI', (reason = 'Flaky in CI environment') => {
   if (Cypress.env('CI')) {
-    cy.skip(reason);
+    // Use cy.then to access the Mocha context and skip the test
+    cy.then(function() {
+      this.skip();
+    });
   }
 });
 
