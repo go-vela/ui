@@ -24,15 +24,15 @@ Cypress.Commands.add('login', (path = '/') => {
   // Mock token refresh endpoint
   cy.intercept(
     { method: 'GET', url: '**/token-refresh' },
-    { fixture: 'auth.json' }
+    { fixture: 'auth.json' },
   );
-  
+
   // Mock user profile endpoint (frequently called by authenticated pages)
   cy.intercept(
     { method: 'GET', url: '**/api/v1/user' },
-    { fixture: 'user.json' }
+    { fixture: 'user.json' },
   );
-  
+
   cy.visit(path);
 });
 
@@ -41,15 +41,15 @@ Cypress.Commands.add('loginAdmin', (path = '/') => {
   // Mock token refresh endpoint with admin token
   cy.intercept(
     { method: 'GET', url: '**/token-refresh' },
-    { fixture: 'auth_admin.json' }
+    { fixture: 'auth_admin.json' },
   );
-  
+
   // Mock user profile endpoint with admin user
   cy.intercept(
     { method: 'GET', url: '**/api/v1/user' },
-    { fixture: 'user_admin.json' }
+    { fixture: 'user_admin.json' },
   );
-  
+
   cy.visit(path);
 });
 
@@ -58,19 +58,19 @@ Cypress.Commands.add('loggingIn', (path = '/') => {
   // Mock token refresh endpoint
   cy.intercept(
     { method: 'GET', url: '**/token-refresh' },
-    { fixture: 'auth.json' }
+    { fixture: 'auth.json' },
   );
-  
+
   // Mock authenticate endpoint (OAuth completion)
   cy.intercept(
     { method: 'GET', url: '**/authenticate*' },
-    { fixture: 'auth.json' }
+    { fixture: 'auth.json' },
   );
-  
+
   // Mock user profile endpoint
   cy.intercept(
     { method: 'GET', url: '**/api/v1/user' },
-    { fixture: 'user.json' }
+    { fixture: 'user.json' },
   );
 
   cy.visit('/account/authenticate?code=deadbeef&state=1337', {
