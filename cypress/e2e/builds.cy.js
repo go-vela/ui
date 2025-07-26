@@ -6,7 +6,7 @@ context('Builds', () => {
   context('server returning builds error', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/repos/*/*/builds*' },
+        { method: 'GET', url: '**/api/v1/repos/*/*/builds*' },
         { statusCode: 500, body: 'server error' },
       );
       cy.stubBuild();
@@ -29,7 +29,7 @@ context('Builds', () => {
   context('logged in and server returning 5 builds', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/repos/*/*/builds*' },
+        { method: 'GET', url: '**/api/v1/repos/*/*/builds*' },
         { body: { fixture: 'builds_5.json' } },
       );
       cy.stubBuild();

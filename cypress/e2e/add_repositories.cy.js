@@ -18,13 +18,13 @@ context('Source Repositories', () => {
         },
       ).as('sourceRepos');
       cy.intercept(
-        { method: 'POST', url: '*api/v1/repos*' },
+        { method: 'POST', url: '**/api/v1/repos*' },
         {
           fixture: 'enable_repo_response.json',
         },
       );
       cy.intercept(
-        { method: 'PUT', url: '*api/v1/repos*' },
+        { method: 'PUT', url: '**/api/v1/repos*' },
         {
           fixture: 'enable_repo_response.json',
         },
@@ -67,7 +67,7 @@ context('Source Repositories', () => {
 
     it('shows the failed button and alert when the enable is unsuccessful', () => {
       cy.intercept(
-        { method: 'POST', url: '*api/v1/repos*' },
+        { method: 'POST', url: '**/api/v1/repos*' },
         {
           statusCode: 500,
           body: `{"error":"unable to create webhook for : something went wrong"}`,
@@ -75,12 +75,12 @@ context('Source Repositories', () => {
       ).as('enableRepoError');
 
       cy.get('[data-test=source-org-cat]').click();
-      cy.get('[data-test=enable-cat-purr').click();
+      cy.get('[data-test=enable-cat-purr]').click();
       cy.wait('@enableRepoError');
 
-      cy.get('[data-test=enabled-cat-purr').should('not.be.visible');
+      cy.get('[data-test=enabled-cat-purr]').should('not.be.visible');
 
-      cy.get('[data-test=failed-cat-purr')
+      cy.get('[data-test=failed-cat-purr]')
         .should('be.visible')
         .and('contain', 'Fail');
 
@@ -108,7 +108,7 @@ context('Source Repositories', () => {
   context('logged in - artificial 1s load delay', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/user*' },
+        { method: 'GET', url: '**/api/v1/user*' },
         {
           fixture: 'favorites_overview.json',
         },
@@ -121,7 +121,7 @@ context('Source Repositories', () => {
         },
       ).as('sourceRepos');
       cy.intercept(
-        { method: 'POST', url: '*api/v1/repos*' },
+        { method: 'POST', url: '**/api/v1/repos*' },
         {
           fixture: 'enable_repo_response.json',
         },
@@ -140,7 +140,7 @@ context('Source Repositories', () => {
   context('logged in - api error', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/user*' },
+        { method: 'GET', url: '**/api/v1/user*' },
         {
           fixture: 'favorites_overview.json',
         },
@@ -166,7 +166,7 @@ context('Source Repositories', () => {
   context('logged in - unexpected response', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/user*' },
+        { method: 'GET', url: '**/api/v1/user*' },
         {
           fixture: 'favorites_overview.json',
         },

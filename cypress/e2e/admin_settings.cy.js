@@ -5,14 +5,14 @@
 context('Admin Settings', () => {
   beforeEach(() => {
     cy.intercept(
-      { method: 'GET', url: '*api/v1/user*' },
-      { statusCode: 200, body: { fixture: 'user_admin.json' } },
+      { method: 'GET', url: '**/api/v1/user*' },
+      { fixture: 'user_admin.json' },
     );
   });
   context('server returning error', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/admin/settings*' },
+        { method: 'GET', url: '**/api/v1/admin/settings*' },
         { statusCode: 500 },
       );
       cy.loginAdmin('/admin/settings');
@@ -24,8 +24,8 @@ context('Admin Settings', () => {
   context('server returning settings', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/admin/settings*' },
-        { statusCode: 200, body: { fixture: 'settings.json' } },
+        { method: 'GET', url: '**/api/v1/admin/settings*' },
+        { fixture: 'settings.json' },
       );
       cy.loginAdmin('/admin/settings');
     });
