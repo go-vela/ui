@@ -25,7 +25,10 @@ context('Favorites', () => {
 
   context('user loaded with no favorites', () => {
     beforeEach(() => {
-      cy.intercept({ method: 'GET', url: '*api/v1/user*' }, { fixture: 'favorites_none.json' });
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/user*' },
+        { fixture: 'favorites_none.json' },
+      );
       cy.login();
     });
 
@@ -39,14 +42,26 @@ context('Favorites', () => {
 
   context('source repos/user favorites loaded, mocked add favorite', () => {
     beforeEach(() => {
-      cy.intercept({ method: 'GET', url: '*api/v1/user*' }, { fixture: 'favorites.json' });
-      cy.intercept({ method: 'PUT', url: '*api/v1/user*' }, { fixture: 'favorites_add.json' });
-      cy.intercept({ method: 'GET', url: '*api/v1/user/source/repos*' }, {
-        fixture: 'source_repositories.json',
-      }).as('sourceRepos');
-      cy.intercept({ method: 'POST', url: '*api/v1/repos*' }, {
-        fixture: 'enable_repo_response.json',
-      }).as('enableRepo');
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/user*' },
+        { fixture: 'favorites.json' },
+      );
+      cy.intercept(
+        { method: 'PUT', url: '*api/v1/user*' },
+        { fixture: 'favorites_add.json' },
+      );
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/user/source/repos*' },
+        {
+          fixture: 'source_repositories.json',
+        },
+      ).as('sourceRepos');
+      cy.intercept(
+        { method: 'POST', url: '*api/v1/repos*' },
+        {
+          fixture: 'enable_repo_response.json',
+        },
+      ).as('enableRepo');
     });
 
     context('logged in', () => {
@@ -142,9 +157,12 @@ context('Favorites', () => {
 
           context('visit Overview page', () => {
             beforeEach(() => {
-              cy.intercept({ method: 'GET', url: '*api/v1/user*' }, {
-                fixture: 'favorites_add.json',
-              });
+              cy.intercept(
+                { method: 'GET', url: '*api/v1/user*' },
+                {
+                  fixture: 'favorites_add.json',
+                },
+              );
               cy.visit('/');
             });
 
@@ -159,9 +177,12 @@ context('Favorites', () => {
             });
 
             it('clicking star should remove github/octocat from favorites', () => {
-              cy.intercept({ method: 'PUT', url: '*api/v1/user*' }, {
-                fixture: 'favorites.json',
-              });
+              cy.intercept(
+                { method: 'PUT', url: '*api/v1/user*' },
+                {
+                  fixture: 'favorites.json',
+                },
+              );
               cy.get('[data-test=star-toggle-github-octocat]').as(
                 'toggleOctocat',
               );
@@ -174,9 +195,12 @@ context('Favorites', () => {
 
           context('remove favorite github/octocat', () => {
             beforeEach(() => {
-              cy.intercept({ method: 'PUT', url: '*api/v1/user*' }, {
-                fixture: 'favorites.json',
-              });
+              cy.intercept(
+                { method: 'PUT', url: '*api/v1/user*' },
+                {
+                  fixture: 'favorites.json',
+                },
+              );
               cy.get('@toggleOctocat').should('exist').click();
             });
 
@@ -193,10 +217,16 @@ context('Favorites', () => {
   });
   context('source repos/user favorites loaded, mocked remove favorite', () => {
     beforeEach(() => {
-      cy.intercept({ method: 'GET', url: '*api/v1/user*' }, { fixture: 'favorites_add.json' });
-      cy.intercept({ method: 'PUT', url: '*api/v1/user*' }, {
-        fixture: 'favorites_remove.json',
-      });
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/user*' },
+        { fixture: 'favorites_add.json' },
+      );
+      cy.intercept(
+        { method: 'PUT', url: '*api/v1/user*' },
+        {
+          fixture: 'favorites_remove.json',
+        },
+      );
       cy.get('[data-test=star-toggle-github-octocat]').as('toggleOctocat');
     });
 

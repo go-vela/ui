@@ -5,12 +5,18 @@
 context('Repo Settings', () => {
   context('server returning bad repo', () => {
     beforeEach(() => {
-      cy.intercept({ method: 'PUT', url: '*api/v1/repos/*/octocat' }, {
-        fixture: 'repository_updated.json',
-      });
-      cy.intercept({ method: 'GET', url: '*api/v1/repos/*/octocatbad' }, {
-        fixture: 'repository_bad.json',
-      });
+      cy.intercept(
+        { method: 'PUT', url: '*api/v1/repos/*/octocat' },
+        {
+          fixture: 'repository_updated.json',
+        },
+      );
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/repos/*/octocatbad' },
+        {
+          fixture: 'repository_bad.json',
+        },
+      );
       cy.login('/github/octocatbad/settings');
     });
 
@@ -20,12 +26,18 @@ context('Repo Settings', () => {
   });
   context('server returning repo', () => {
     beforeEach(() => {
-      cy.intercept({ method: 'PUT', url: '*api/v1/repos/*/octocat' }, {
-        fixture: 'repository_updated.json',
-      });
-      cy.intercept({ method: 'GET', url: '*api/v1/repos/*/octocat' }, {
-        fixture: 'repository.json',
-      });
+      cy.intercept(
+        { method: 'PUT', url: '*api/v1/repos/*/octocat' },
+        {
+          fixture: 'repository_updated.json',
+        },
+      );
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/repos/*/octocat' },
+        {
+          fixture: 'repository.json',
+        },
+      );
       cy.login('/github/octocat/settings');
     });
 
@@ -237,9 +249,12 @@ context('Repo Settings', () => {
         { method: 'DELETE', url: '*api/v1/repos/github/**' },
         `"Repo github/octocat deleted"`,
       ).as('disable');
-      cy.intercept({ method: 'POST', url: '*api/v1/repos*' }, {
-        fixture: 'enable_repo_response.json',
-      }).as('enable');
+      cy.intercept(
+        { method: 'POST', url: '*api/v1/repos*' },
+        {
+          fixture: 'enable_repo_response.json',
+        },
+      ).as('enable');
       cy.get('[data-test=repo-disable]')
         .first()
         .click({ force: true })
@@ -284,10 +299,13 @@ context('Repo Settings', () => {
     });
 
     it('should show an error alert on failed chown of a repo', () => {
-      cy.intercept({ method: 'PATCH', url: '*api/v1/repos/github/**' }, {
-        statusCode: 500,
-        body: '"Unable to..."',
-      });
+      cy.intercept(
+        { method: 'PATCH', url: '*api/v1/repos/github/**' },
+        {
+          statusCode: 500,
+          body: '"Unable to..."',
+        },
+      );
       cy.get('[data-test=repo-chown]').click();
       cy.get('[data-test=alerts]').should('exist').contains('Error');
     });
@@ -307,10 +325,13 @@ context('Repo Settings', () => {
     });
 
     it('should show an error alert on a failed repair of a repo', () => {
-      cy.intercept({ method: 'PATCH', url: '*api/v1/repos/github/**' }, {
-        statusCode: 500,
-        body: '"Unable to..."',
-      });
+      cy.intercept(
+        { method: 'PATCH', url: '*api/v1/repos/github/**' },
+        {
+          statusCode: 500,
+          body: '"Unable to..."',
+        },
+      );
       cy.get('[data-test=repo-repair]').click();
       cy.get('[data-test=alerts]').should('exist').contains('Error');
       cy.get('[data-test=repo-disable]').should('exist').contains('Disable');
@@ -319,9 +340,12 @@ context('Repo Settings', () => {
 
   context('server returning inactive repo', () => {
     beforeEach(() => {
-      cy.intercept({ method: 'GET', url: '*api/v1/repos/*/octocat' }, {
-        fixture: 'repository_inactive.json',
-      });
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/repos/*/octocat' },
+        {
+          fixture: 'repository_inactive.json',
+        },
+      );
       cy.login('/github/octocat/settings');
     });
 
@@ -330,10 +354,13 @@ context('Repo Settings', () => {
     });
 
     it('failed repair keeps enable button enabled', () => {
-      cy.intercept({ method: 'PATCH', url: '*api/v1/repos/github/**' }, {
-        statusCode: 500,
-        body: '"Unable to..."',
-      });
+      cy.intercept(
+        { method: 'PATCH', url: '*api/v1/repos/github/**' },
+        {
+          statusCode: 500,
+          body: '"Unable to..."',
+        },
+      );
       cy.get('[data-test=repo-repair]').click();
       cy.get('[data-test=alerts]').should('exist').contains('Error');
       cy.get('[data-test=repo-enable').should('exist').contains('Enable');

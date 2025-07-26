@@ -6,14 +6,23 @@ context('Secrets', () => {
   context('server returning repo secret', () => {
     beforeEach(() => {
       cy.intercept(
-        { method: 'GET', url: '*api/v1/secrets/native/repo/github/octocat/password*' },
+        {
+          method: 'GET',
+          url: '*api/v1/secrets/native/repo/github/octocat/password*',
+        },
         { fixture: 'secret_repo.json' },
       );
-      cy.intercept({ method: 'GET', url: '*api/v1/secrets/native/org/github/*/password*' }, {
-        fixture: 'secret_org.json',
-      });
       cy.intercept(
-        { method: 'DELETE', url: '*api/v1/secrets/native/repo/github/octocat/password*' },
+        { method: 'GET', url: '*api/v1/secrets/native/org/github/*/password*' },
+        {
+          fixture: 'secret_org.json',
+        },
+      );
+      cy.intercept(
+        {
+          method: 'DELETE',
+          url: '*api/v1/secrets/native/repo/github/octocat/password*',
+        },
         'Secret repo/github/octocat/password deleted from native service',
       );
       cy.login('/-/secrets/native/repo/github/octocat/password');
@@ -146,10 +155,13 @@ context('Secrets', () => {
 
   context('server returning secrets error', () => {
     beforeEach(() => {
-      cy.intercept({ method: 'GET', url: '*api/v1/secrets/native/org/github/**' }, {
-        statusCode: 500,
-        body: 'server error',
-      });
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/secrets/native/org/github/**' },
+        {
+          statusCode: 500,
+          body: 'server error',
+        },
+      );
       cy.login('/-/secrets/native/org/github');
     });
 
@@ -167,9 +179,12 @@ context('Secrets', () => {
   });
   context('server returning 5 secrets', () => {
     beforeEach(() => {
-      cy.intercept({ method: 'GET', url: '*api/v1/secrets/native/org/github/**' }, {
-        fixture: 'secrets_org_5.json',
-      }).as('secrets');
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/secrets/native/org/github/**' },
+        {
+          fixture: 'secrets_org_5.json',
+        },
+      ).as('secrets');
       cy.login('/-/secrets/native/org/github');
     });
 

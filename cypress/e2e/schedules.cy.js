@@ -5,9 +5,12 @@
 context('Schedules', () => {
   context('server returning schedules', () => {
     beforeEach(() => {
-      cy.intercept({ method: 'GET', url: '*api/v1/schedules/github/octocat' }, {
-        fixture: 'schedules.json',
-      });
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/schedules/github/octocat' },
+        {
+          fixture: 'schedules.json',
+        },
+      );
       cy.login('/github/octocat/schedules');
     });
     context(

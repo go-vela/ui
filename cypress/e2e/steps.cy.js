@@ -292,10 +292,13 @@ context('Steps', () => {
     beforeEach(() => {
       cy.stubBuild();
       cy.fixture('steps_stages.json').as('steps');
-      cy.intercept({ method: 'GET', url: 'api/v1/repos/*/*/builds/*/steps*' }, {
-        statusCode: 200,
-        fixture: 'steps_stages.json',
-      });
+      cy.intercept(
+        { method: 'GET', url: 'api/v1/repos/*/*/builds/*/steps*' },
+        {
+          statusCode: 200,
+          fixture: 'steps_stages.json',
+        },
+      );
       cy.login('/github/octocat/5');
     });
 

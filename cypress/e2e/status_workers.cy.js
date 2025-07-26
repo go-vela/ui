@@ -4,17 +4,23 @@
 
 context('Workers', () => {
   beforeEach(() => {
-    cy.intercept({ method: 'GET', url: '*api/v1/user*' }, {
-      statusCode: 200,
-      fixture: 'user.json',
-    });
+    cy.intercept(
+      { method: 'GET', url: '*api/v1/user*' },
+      {
+        statusCode: 200,
+        fixture: 'user.json',
+      },
+    );
   });
   context('server returning workers error', () => {
     beforeEach(() => {
-      cy.intercept({ method: 'GET', url: '*api/v1/workers*' }, {
-        statusCode: 500,
-        body: 'server error',
-      });
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/workers*' },
+        {
+          statusCode: 500,
+          body: 'server error',
+        },
+      );
       cy.login('/status/workers');
     });
     it('workers table should not show', () => {
@@ -31,9 +37,10 @@ context('Workers', () => {
   });
   context('server returning 5 workers', () => {
     beforeEach(() => {
-      cy.intercept({ method: 'GET', url: '*api/v1/workers*' }, { fixture: 'workers_5.json' }).as(
-        'workers',
-      );
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/workers*' },
+        { fixture: 'workers_5.json' },
+      ).as('workers');
       cy.login('/status/workers');
     });
     it('workers table should show', () => {

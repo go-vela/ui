@@ -17,9 +17,12 @@ context('Build', () => {
   context('logged in and server returning 5 builds', () => {
     beforeEach(() => {
       cy.stubBuild();
-      cy.intercept({ method: 'GET', url: '*api/v1/repos/*/*/builds*' }, {
-        fixture: 'builds_5.json',
-      });
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/repos/*/*/builds*' },
+        {
+          fixture: 'builds_5.json',
+        },
+      );
       cy.login('/github/octocat/1');
       cy.get('[data-test=build-history]').as('buildHistory');
     });

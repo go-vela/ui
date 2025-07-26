@@ -28,18 +28,30 @@ context('Hooks', () => {
   });
   context('server returning 5 hooks', () => {
     beforeEach(() => {
-      cy.intercept({ method: 'GET', url: '*api/v1/hooks/github/octocat*' }, {
-        fixture: 'hooks_5.json',
-      }).as('hooks');
-      cy.intercept({ method: 'GET', url: '*api/v1/repos/*/octocat/builds/1*' }, {
-        fixture: 'build_success.json',
-      });
-      cy.intercept({ method: 'GET', url: '*api/v1/repos/*/octocat/builds/2*' }, {
-        fixture: 'build_failure.json',
-      });
-      cy.intercept({ method: 'GET', url: '*api/v1/repos/*/octocat/builds/3*' }, {
-        fixture: 'build_running.json',
-      });
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/hooks/github/octocat*' },
+        {
+          fixture: 'hooks_5.json',
+        },
+      ).as('hooks');
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/repos/*/octocat/builds/1*' },
+        {
+          fixture: 'build_success.json',
+        },
+      );
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/repos/*/octocat/builds/2*' },
+        {
+          fixture: 'build_failure.json',
+        },
+      );
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/repos/*/octocat/builds/3*' },
+        {
+          fixture: 'build_running.json',
+        },
+      );
       cy.login('/github/octocat/hooks');
     });
 

@@ -5,9 +5,12 @@
 context('Dashboards', () => {
   context('main dashboards page', () => {
     beforeEach(() => {
-      cy.intercept({ method: 'GET', url: '*api/v1/user/dashboards' }, {
-        fixture: 'user_dashboards.json',
-      });
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/user/dashboards' },
+        {
+          fixture: 'user_dashboards.json',
+        },
+      );
       cy.login('/dashboards');
     });
 
@@ -40,9 +43,12 @@ context('Dashboards', () => {
 
   context('main dashboards page shows message', () => {
     beforeEach(() => {
-      cy.intercept({ method: 'GET', url: '*api/v1/user/dashboards' }, {
-        fixture: 'user_dashboards.json',
-      });
+      cy.intercept(
+        { method: 'GET', url: '*api/v1/user/dashboards' },
+        {
+          fixture: 'user_dashboards.json',
+        },
+      );
       cy.login('/dashboards');
     });
   });

@@ -50,7 +50,7 @@ Cypress.Commands.add('loggedOut', (path = '/') => {
     {
       statusCode: 401,
       body: { message: 'unauthorized' },
-    }
+    },
   );
 
   cy.visit(path);
@@ -183,7 +183,7 @@ Cypress.Commands.add('stubStepsWithLogsAndSkipped', () => {
     {
       statusCode: 200,
       fixture: 'steps_5_skipped_step.json',
-    }
+    },
   );
   cy.fixture('logs').then(logs => {
     cy.intercept(
@@ -191,35 +191,35 @@ Cypress.Commands.add('stubStepsWithLogsAndSkipped', () => {
       {
         statusCode: 200,
         body: logs[0],
-      }
+      },
     ).as('getLogs-1');
     cy.intercept(
       { method: 'GET', url: 'api/v1/repos/*/*/builds/*/steps/2/logs' },
       {
         statusCode: 200,
         body: logs[1],
-      }
+      },
     ).as('getLogs-2');
     cy.intercept(
       { method: 'GET', url: 'api/v1/repos/*/*/builds/*/steps/3/logs' },
       {
         statusCode: 200,
         body: logs[2],
-      }
+      },
     ).as('getLogs-3');
     cy.intercept(
       { method: 'GET', url: 'api/v1/repos/*/*/builds/*/steps/4/logs' },
       {
         statusCode: 200,
         body: logs[3],
-      }
+      },
     ).as('getLogs-4');
     cy.intercept(
       { method: 'GET', url: 'api/v1/repos/*/*/builds/*/steps/5/logs' },
       {
         statusCode: 200,
         body: logs[4],
-      }
+      },
     ).as('getLogs-5');
   });
 });
@@ -231,7 +231,7 @@ Cypress.Commands.add('stubStepsWithLogs', () => {
     {
       statusCode: 200,
       fixture: 'steps_5.json',
-    }
+    },
   );
   cy.fixture('logs').then(logs => {
     cy.intercept(
@@ -239,35 +239,35 @@ Cypress.Commands.add('stubStepsWithLogs', () => {
       {
         statusCode: 200,
         body: logs[0],
-      }
+      },
     ).as('getLogs-1');
     cy.intercept(
       { method: 'GET', url: 'api/v1/repos/*/*/builds/*/steps/2/logs' },
       {
         statusCode: 200,
         body: logs[1],
-      }
+      },
     ).as('getLogs-2');
     cy.intercept(
       { method: 'GET', url: 'api/v1/repos/*/*/builds/*/steps/3/logs' },
       {
         statusCode: 200,
         body: logs[2],
-      }
+      },
     ).as('getLogs-3');
     cy.intercept(
       { method: 'GET', url: 'api/v1/repos/*/*/builds/*/steps/4/logs' },
       {
         statusCode: 200,
         body: logs[3],
-      }
+      },
     ).as('getLogs-4');
     cy.intercept(
       { method: 'GET', url: 'api/v1/repos/*/*/builds/*/steps/5/logs' },
       {
         statusCode: 200,
         body: logs[4],
-      }
+      },
     ).as('getLogs-5');
   });
 });
@@ -279,7 +279,7 @@ Cypress.Commands.add('stubStepsWithANSILogs', () => {
     {
       statusCode: 200,
       fixture: 'steps_5.json',
-    }
+    },
   );
   cy.fixture('logs_ansi').then(logs => {
     cy.intercept(
@@ -287,35 +287,35 @@ Cypress.Commands.add('stubStepsWithANSILogs', () => {
       {
         statusCode: 200,
         body: logs[0],
-      }
+      },
     ).as('getLogs-1');
     cy.intercept(
       { method: 'GET', url: 'api/v1/repos/*/*/builds/*/steps/2/logs' },
       {
         statusCode: 200,
         body: logs[1],
-      }
+      },
     ).as('getLogs-2');
     cy.intercept(
       { method: 'GET', url: 'api/v1/repos/*/*/builds/*/steps/3/logs' },
       {
         statusCode: 200,
         body: logs[2],
-      }
+      },
     ).as('getLogs-3');
     cy.intercept(
       { method: 'GET', url: 'api/v1/repos/*/*/builds/*/steps/4/logs' },
       {
         statusCode: 200,
         body: logs[3],
-      }
+      },
     ).as('getLogs-4');
     cy.intercept(
       { method: 'GET', url: 'api/v1/repos/*/*/builds/*/steps/5/logs' },
       {
         statusCode: 200,
         body: logs[4],
-      }
+      },
     ).as('getLogs-5');
   });
 });
@@ -327,7 +327,7 @@ Cypress.Commands.add('stubStepsWithLinkedLogs', () => {
     {
       statusCode: 200,
       fixture: 'steps_5.json',
-    }
+    },
   );
   cy.fixture('logs_links').then(logs => {
     cy.intercept(
@@ -335,35 +335,35 @@ Cypress.Commands.add('stubStepsWithLinkedLogs', () => {
       {
         statusCode: 200,
         body: logs[0],
-      }
+      },
     ).as('getLogs-1');
     cy.intercept(
       { method: 'GET', url: 'api/v1/repos/*/*/builds/*/steps/2/logs' },
       {
         statusCode: 200,
         body: logs[1],
-      }
+      },
     ).as('getLogs-2');
     cy.intercept(
       { method: 'GET', url: 'api/v1/repos/*/*/builds/*/steps/3/logs' },
       {
         statusCode: 200,
         body: logs[2],
-      }
+      },
     ).as('getLogs-3');
     cy.intercept(
       { method: 'GET', url: 'api/v1/repos/*/*/builds/*/steps/4/logs' },
       {
         statusCode: 200,
         body: logs[3],
-      }
+      },
     ).as('getLogs-4');
     cy.intercept(
       { method: 'GET', url: 'api/v1/repos/*/*/builds/*/steps/5/logs' },
       {
         statusCode: 200,
         body: logs[4],
-      }
+      },
     ).as('getLogs-5');
   });
 });
@@ -375,7 +375,7 @@ Cypress.Commands.add('stubStepsWithLargeLogs', () => {
     {
       statusCode: 200,
       fixture: 'steps_5.json',
-    }
+    },
   );
   cy.fixture('logs_large').then(log => {
     cy.intercept(
@@ -383,7 +383,7 @@ Cypress.Commands.add('stubStepsWithLargeLogs', () => {
       {
         statusCode: 200,
         body: log,
-      }
+      },
     ).as('getLogs-1');
   });
 });
@@ -395,7 +395,7 @@ Cypress.Commands.add('stubServicesWithANSILogs', () => {
     {
       statusCode: 200,
       fixture: 'services_5.json',
-    }
+    },
   );
   cy.fixture('logs_services_ansi').then(logs => {
     cy.intercept(
@@ -403,35 +403,35 @@ Cypress.Commands.add('stubServicesWithANSILogs', () => {
       {
         statusCode: 200,
         body: logs[0],
-      }
+      },
     ).as('getLogs-1');
     cy.intercept(
       { method: 'GET', url: 'api/v1/repos/*/*/builds/*/services/2/logs' },
       {
         statusCode: 200,
         body: logs[1],
-      }
+      },
     ).as('getLogs-2');
     cy.intercept(
       { method: 'GET', url: 'api/v1/repos/*/*/builds/*/services/3/logs' },
       {
         statusCode: 200,
         body: logs[2],
-      }
+      },
     ).as('getLogs-3');
     cy.intercept(
       { method: 'GET', url: 'api/v1/repos/*/*/builds/*/services/4/logs' },
       {
         statusCode: 200,
         body: logs[3],
-      }
+      },
     ).as('getLogs-4');
     cy.intercept(
       { method: 'GET', url: 'api/v1/repos/*/*/builds/*/services/5/logs' },
       {
         statusCode: 200,
         body: logs[4],
-      }
+      },
     ).as('getLogs-5');
   });
 });
@@ -443,19 +443,20 @@ Cypress.Commands.add('stubStepsWithErrorLogs', () => {
     {
       statusCode: 200,
       fixture: 'steps_error.json',
-    }
+    },
   );
   cy.fixture('logs').then(logs => {
     for (let i = 0; i < logs.length; i++) {
       cy.intercept(
         {
           method: 'GET',
-          url: 'api/v1/repos/*/*/builds/*/steps/' + logs[i]['step_id'] + '/logs',
+          url:
+            'api/v1/repos/*/*/builds/*/steps/' + logs[i]['step_id'] + '/logs',
         },
         {
           statusCode: 200,
           body: logs[i],
-        }
+        },
       );
     }
   });
@@ -467,7 +468,7 @@ Cypress.Commands.add('stubBuildsErrors', () => {
     {
       statusCode: 500,
       body: 'server error',
-    }
+    },
   );
 });
 
@@ -477,7 +478,7 @@ Cypress.Commands.add('stubBuildErrors', () => {
     {
       statusCode: 500,
       body: 'server error',
-    }
+    },
   );
 });
 
@@ -487,7 +488,7 @@ Cypress.Commands.add('stubStepsErrors', () => {
     {
       statusCode: 500,
       body: 'server error',
-    }
+    },
   );
 });
 
@@ -498,7 +499,7 @@ Cypress.Commands.add('stubPipeline', () => {
     {
       statusCode: 200,
       fixture: 'pipeline.json',
-    }
+    },
   );
 });
 
@@ -509,7 +510,7 @@ Cypress.Commands.add('stubPipelineWithWarnings', () => {
     {
       statusCode: 200,
       fixture: 'pipeline_warnings.json',
-    }
+    },
   );
 });
 
@@ -519,7 +520,7 @@ Cypress.Commands.add('stubPipelineErrors', () => {
     {
       statusCode: 500,
       body: 'server error',
-    }
+    },
   );
 });
 
@@ -530,7 +531,7 @@ Cypress.Commands.add('stubPipelineExpand', () => {
     {
       statusCode: 200,
       fixture: 'pipeline_expanded',
-    }
+    },
   ).as('expand');
 });
 
@@ -540,7 +541,7 @@ Cypress.Commands.add('stubPipelineExpandErrors', () => {
     {
       statusCode: 500,
       body: 'server error',
-    }
+    },
   );
 });
 
@@ -551,7 +552,7 @@ Cypress.Commands.add('stubPipelineTemplates', () => {
     {
       statusCode: 200,
       fixture: 'pipeline_templates.json',
-    }
+    },
   );
 });
 
@@ -561,7 +562,7 @@ Cypress.Commands.add('stubPipelineTemplatesEmpty', () => {
     {
       statusCode: 200,
       body: {},
-    }
+    },
   );
 });
 
@@ -571,7 +572,7 @@ Cypress.Commands.add('stubPipelineTemplatesErrors', () => {
     {
       statusCode: 500,
       body: 'server error',
-    }
+    },
   );
 });
 
@@ -595,7 +596,7 @@ Cypress.Commands.add('hookPages', () => {
 Cypress.Commands.add('redeliverHook', () => {
   cy.intercept(
     { method: 'POST', url: '*api/v1/hooks/*/*/*/redeliver' },
-    'hook * redelivered'
+    'hook * redelivered',
   );
 });
 
@@ -605,7 +606,7 @@ Cypress.Commands.add('redeliverHookError', () => {
     {
       statusCode: 500,
       body: 'unable to redeliver hook',
-    }
+    },
   );
 });
 

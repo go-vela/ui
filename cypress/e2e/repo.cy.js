@@ -78,8 +78,17 @@ context('Repo', () => {
 
         context('click secrets in nav tabs', () => {
           beforeEach(() => {
-            cy.intercept({ method: 'GET', url: '*api/v1/secrets/native/repo/github/octocat*' }, []);
-            cy.intercept({ method: 'GET', url: '*api/v1/secrets/native/org/github/**' }, []);
+            cy.intercept(
+              {
+                method: 'GET',
+                url: '*api/v1/secrets/native/repo/github/octocat*',
+              },
+              [],
+            );
+            cy.intercept(
+              { method: 'GET', url: '*api/v1/secrets/native/org/github/**' },
+              [],
+            );
             cy.get('[data-test=jump-Secrets]').click();
           });
 
