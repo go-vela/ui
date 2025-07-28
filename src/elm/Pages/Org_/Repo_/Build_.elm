@@ -23,6 +23,7 @@ import List.Extra
 import Maybe.Extra
 import Page exposing (Page)
 import RemoteData exposing (WebData)
+import Result.Extra exposing (error)
 import Route exposing (Route)
 import Route.Path
 import Shared
@@ -399,12 +400,33 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | steps = Errors.toFailure error }
-                    , Effect.handleHttpError
-                        { error = error
-                        , shouldShowAlertFn = Errors.showAlertAlways
-                        }
-                    )
+                    case error of
+                        Http.Detailed.BadStatus metadata body ->
+                            if metadata.statusCode == 404 then
+                                ( { model
+                                    | logs = Dict.insert options.step.id (Errors.toFailure error) model.logs
+                                  }
+                                , Effect.handleHttpError
+                                    { error = error
+                                    , shouldShowAlertFn = \_ -> False
+                                    }
+                                )
+
+                            else
+                                ( model
+                                , Effect.handleHttpError
+                                    { error = error
+                                    , shouldShowAlertFn = Errors.showAlertAlways
+                                    }
+                                )
+
+                        _ ->
+                            ( model
+                            , Effect.handleHttpError
+                                { error = error
+                                , shouldShowAlertFn = Errors.showAlertAlways
+                                }
+                            )
 
         GetBuildStepLogRefreshResponse options response ->
             case response of
@@ -430,12 +452,33 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | steps = Errors.toFailure error }
-                    , Effect.handleHttpError
-                        { error = error
-                        , shouldShowAlertFn = Errors.showAlertAlways
-                        }
-                    )
+                    case error of
+                        Http.Detailed.BadStatus metadata body ->
+                            if metadata.statusCode == 404 then
+                                ( { model
+                                    | logs = Dict.insert options.step.id (Errors.toFailure error) model.logs
+                                  }
+                                , Effect.handleHttpError
+                                    { error = error
+                                    , shouldShowAlertFn = \_ -> False
+                                    }
+                                )
+
+                            else
+                                ( model
+                                , Effect.handleHttpError
+                                    { error = error
+                                    , shouldShowAlertFn = Errors.showAlertAlways
+                                    }
+                                )
+
+                        _ ->
+                            ( model
+                            , Effect.handleHttpError
+                                { error = error
+                                , shouldShowAlertFn = Errors.showAlertAlways
+                                }
+                            )
 
         ClickStep options ->
             ( model
@@ -497,12 +540,11 @@ update shared route msg model =
                         |> Maybe.withDefault RemoteData.Loading
                         |> Util.isLoaded
 
-                -- fetch logs when expansion msg meets the criteria:
-                -- triggered by a click that will change the hash
-                -- the focus changes and the logs are not loaded
                 fetchLogs =
-                    not (options.triggeredFromClick && willFocusChange)
-                        && ((didFocusChange && not isLogLoaded) || not isFromHashChanged)
+                    not isLogLoaded
+                        && (not (options.triggeredFromClick && willFocusChange)
+                                && ((didFocusChange && not isLogLoaded) || not isFromHashChanged)
+                           )
 
                 getLogEffect =
                     Effect.getBuildStepLog
@@ -556,11 +598,33 @@ update shared route msg model =
             )
 
         CollapseStep options ->
+            let
+                -- only clear logs for non-finite states to avoid refetch on expand
+                -- keep logs cached for finite states (success, error, killed, etc.)
+                shouldClearLogs =
+                    case options.step.status of
+                        Vela.Running ->
+                            True
+
+                        Vela.Pending ->
+                            True
+
+                        Vela.PendingApproval ->
+                            True
+
+                        _ ->
+                            -- finite states: Success, Failure, Killed, Canceled, Error
+                            False
+            in
             ( { model
                 | viewing = List.Extra.remove options.step.number model.viewing
                 , logs =
-                    Dict.update options.step.id
-                        (\_ -> Nothing)
+                    if shouldClearLogs then
+                        Dict.update options.step.id
+                            (\_ -> Nothing)
+                            model.logs
+
+                    else
                         model.logs
                 , logFollow =
                     if model.logFollow == options.step.number then
@@ -779,11 +843,10 @@ viewStep shared model route step =
                         [ attribute "aria-label" <| "show build step " ++ step.name
                         ]
                 ]
-            , div [ class "logs-container" ]
-                [ viewLogs shared model route step <|
+            , div [ class "logs-container" ] <|
+                viewLogs shared model route step <|
                     Maybe.withDefault RemoteData.Loading <|
                         Dict.get step.id model.logs
-                ]
             ]
         ]
 
@@ -813,27 +876,47 @@ hasStages steps =
 
 {-| viewLogs : renders a log component for a build step.
 -}
-viewLogs : Shared.Model -> Model -> Route { org : String, repo : String, build : String } -> Vela.Step -> WebData Vela.Log -> Html Msg
+viewLogs : Shared.Model -> Model -> Route { org : String, repo : String, build : String } -> Vela.Step -> WebData Vela.Log -> List (Html Msg)
 viewLogs shared model route step log =
-    case step.status of
-        Vela.Error ->
-            div [ class "message", class "error", Util.testAttribute "resource-error" ]
-                [ text <|
-                    "error: "
-                        ++ (if String.isEmpty step.error then
-                                "null"
+    let
+        stepErrorMessage =
+            case step.status of
+                Vela.Error ->
+                    Just
+                        ( "error"
+                        , "resource-error"
+                        , "error: "
+                            ++ (if String.isEmpty step.error then
+                                    "null"
 
-                            else
-                                step.error
-                           )
-                ]
+                                else
+                                    step.error
+                               )
+                        )
 
-        Vela.Killed ->
-            div [ class "message", class "error", Util.testAttribute "step-skipped" ]
-                [ text "step was skipped" ]
+                Vela.Killed ->
+                    Just ( "error", "step-skipped", "step was skipped" )
 
-        _ ->
-            Components.Logs.view
+                _ ->
+                    Nothing
+
+        logErrorMessage =
+            case log of
+                -- only 404's set the log state to Failure
+                RemoteData.Failure _ ->
+                    Just ( "warning", "log-error", "Log not found (may be expired)." )
+
+                _ ->
+                    Nothing
+
+        errorMessages =
+            [ stepErrorMessage, logErrorMessage ]
+                |> List.filterMap identity
+    in
+    case errorMessages of
+        -- happy path
+        [] ->
+            [ Components.Logs.view
                 shared
                 { msgs =
                     { pushUrlHash = PushUrlHash
@@ -851,3 +934,39 @@ viewLogs shared model route step log =
                 , focus = model.focus
                 , follow = model.logFollow
                 }
+            ]
+
+        -- if there are error messages, prepend to log output (if it exists)
+        messages ->
+            (messages
+                |> List.map
+                    (\( cssClass, testAttr, message ) ->
+                        div [ class "message", class cssClass, Util.testAttribute testAttr ]
+                            [ text message ]
+                    )
+            )
+                ++ (case log of
+                        RemoteData.Success _ ->
+                            [ Components.Logs.view
+                                shared
+                                { msgs =
+                                    { pushUrlHash = PushUrlHash
+                                    , focusOn = FocusOn
+                                    , download = DownloadLog
+                                    , follow = FollowLog
+                                    }
+                                , shift = shared.shift
+                                , log = log
+                                , org = route.params.org
+                                , repo = route.params.repo
+                                , build = route.params.build
+                                , resourceType = "step"
+                                , resourceNumber = String.fromInt step.number
+                                , focus = model.focus
+                                , follow = model.logFollow
+                                }
+                            ]
+
+                        _ ->
+                            []
+                   )

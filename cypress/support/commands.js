@@ -282,6 +282,68 @@ Cypress.Commands.add('stubStepsWithLogsAndSkipped', () => {
   });
 });
 
+Cypress.Commands.add('stubStepsWithSkippedAndMissingLogs', () => {
+  cy.server();
+  cy.fixture('steps_mixed_status.json').as('steps');
+  cy.route({
+    method: 'GET',
+    url: 'api/v1/repos/*/*/builds/*/steps*',
+    status: 200,
+    response: '@steps',
+  });
+
+  cy.fixture('logs').then(logs => {
+    // Step 1: Success with logs
+    cy.route({
+      method: 'GET',
+      url: 'api/v1/repos/*/*/builds/*/steps/1/logs',
+      status: 200,
+      response: logs[0],
+    }).as('getLogs-1');
+
+    // Step 2: Success with logs
+    cy.route({
+      method: 'GET',
+      url: 'api/v1/repos/*/*/builds/*/steps/2/logs',
+      status: 200,
+      response: logs[1],
+    }).as('getLogs-2');
+
+    // Step 3: 404 error for logs (log not found)
+    cy.route({
+      method: 'GET',
+      url: 'api/v1/repos/*/*/builds/*/steps/3/logs',
+      status: 404,
+      response: { message: 'log not found' },
+    }).as('getLogs-3-404');
+
+    // Step 4: Error step with 404 error for logs (step error + log not found)
+    cy.route({
+      method: 'GET',
+      url: 'api/v1/repos/*/*/builds/*/steps/4/logs',
+      status: 404,
+      response: { message: 'log not found' },
+    }).as('getLogs-4-404');
+
+    // Step 5: Killed/skipped step - no log route needed since UI shouldn't make the call
+    // But adding it in case something goes wrong
+    cy.route({
+      method: 'GET',
+      url: 'api/v1/repos/*/*/builds/*/steps/5/logs',
+      status: 404,
+      response: { message: 'log not found for killed step' },
+    }).as('getLogs-5-unexpected');
+
+    // Step 6: Error step WITH logs (step error + successful logs)
+    cy.route({
+      method: 'GET',
+      url: 'api/v1/repos/*/*/builds/*/steps/6/logs',
+      status: 200,
+      response: logs[2], // Use logs[2] for some log content
+    }).as('getLogs-6');
+  });
+});
+
 Cypress.Commands.add('stubStepsWithLogs', () => {
   cy.server();
   cy.fixture('steps_5.json').as('steps');
