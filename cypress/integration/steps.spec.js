@@ -34,7 +34,7 @@ context('Steps', () => {
       cy.get('[data-test=logs-2]').should('exist').contains('$');
       cy.get('[data-test=logs-3]').should('exist').contains('$');
       cy.get('[data-test=logs-4]').should('exist').contains('$');
-      cy.get('[data-test=logs-5]').should('not.exist');
+      cy.get('[data-test=logs-5]').should('exist').contains('$');
       cy.get('[data-test=logs-6]').should('not.exist');
     });
 
