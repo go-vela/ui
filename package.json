@@ -38,6 +38,9 @@
     "stylelint-order": "7.0.0",
     "stylelint-scss": "6.12.1"
   },
+  "overrides": {
+    "form-data": "4.0.4"
+  },
   "scripts": {
     "predev": "npm run clean",
     "dev": "npm run start",
