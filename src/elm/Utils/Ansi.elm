@@ -20,7 +20,9 @@ import Html.Attributes exposing (classList, style)
 -}
 defaultAnsiLogModel : Ansi.Log.Model
 defaultAnsiLogModel =
-    { lineDiscipline = Ansi.Log.Cooked
+    { currentLinkParams = []
+    , currentLinkUrl = Nothing
+    , lineDiscipline = Ansi.Log.Cooked
     , lines = Array.empty
     , position = defaultPosition
     , savedPosition = Nothing
@@ -197,3 +199,6 @@ colorClassesAnsi suffix bold mc =
 
         Just Ansi.BrightWhite ->
             [ brightPrefix ++ "white" ++ suffix ]
+
+        Just _ ->
+            []
