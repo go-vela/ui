@@ -17,7 +17,7 @@
       "elm/svg": "1.0.1",
       "elm/time": "1.0.0",
       "elm/url": "1.0.0",
-      "elm-community/graph": "6.0.0",
+      "elm-community/graph": "7.0.0",
       "elm-community/json-extra": "4.3.0",
       "elm-community/typed-svg": "7.0.0",
       "elmcraft/core-extra": "2.2.0",
