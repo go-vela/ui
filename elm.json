@@ -28,7 +28,7 @@
       "krisajenkins/remotedata": "6.1.0",
       "pablen/toasty": "1.2.0",
       "ryan-haskell/date-format": "1.0.0",
-      "vito/elm-ansi": "9.0.2"
+      "vito/elm-ansi": "11.0.0"
     },
     "indirect": {
       "avh4/elm-color": "1.0.0",
