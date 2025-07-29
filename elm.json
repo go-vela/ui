@@ -4,7 +4,7 @@
   "elm-version": "0.19.1",
   "dependencies": {
     "direct": {
-      "NoRedInk/elm-json-decode-pipeline": "1.0.2",
+      "NoRedInk/elm-json-decode-pipeline": "1.0.1",
       "basti1302/elm-human-readable-filesize": "1.2.0",
       "danfishgold/base64-bytes": "1.1.0",
       "elm/browser": "1.0.2",
