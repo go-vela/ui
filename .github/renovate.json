@@ -24,6 +24,10 @@
     {
       "allowedVersions": "!/nightly\\.\\d+$/",
       "matchPackageNames": ["/^@?parcel/"]
+    },
+    {
+      "matchFileNames": ["elm.json"],
+      "groupName": "elm"
     }
   ]
 }
