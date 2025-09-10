@@ -1104,7 +1104,7 @@ view shared route model =
                 [ class "settings"
                 ]
                 [ viewFieldHeader "Queue Restart Limit"
-                , viewFieldDescription "The maximum number of times a queued build can be restarted."
+                , viewFieldDescription "Users cannot restart builds when the queue reaches this limit. Set to '0' to remove this restriction."
                 , div [ class "form-controls" ]
                     [ Components.Form.viewNumberInput
                         { title = Nothing
