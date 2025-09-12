@@ -1,3 +1,5 @@
+@use 'mixins';
+
 // SPDX-License-Identifier: Apache-2.0
 
 html {
@@ -166,7 +168,7 @@ nav {
     }
 
     &:not(:last-child)::after {
-      @include slashes;
+      @include mixins.slashes;
     }
 
     &:last-child {
@@ -1642,7 +1644,7 @@ details.build-toggle {
 
   font-size: 0.9rem;
   font-family: var(--font-code);
-  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .image .button,
@@ -1747,16 +1749,12 @@ details.build-toggle {
 
 // visually hide, but keep accessible by screen readers
 .visually-hidden {
-  @include visually-hidden();
+  @include mixins.visually-hidden();
 }
 
-.break-text {
-  word-wrap: break-word;
-  word-break: break-word;
-}
-
+.break-text,
 .break-word {
-  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .no-wrap {

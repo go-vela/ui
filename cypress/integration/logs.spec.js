@@ -617,3 +617,120 @@ context(
     });
   },
 );
+
+context('visit Build with skipped steps and 404 log errors', () => {
+  beforeEach(() => {
+    cy.server();
+    cy.stubBuild();
+    cy.stubStepsWithSkippedAndMissingLogs();
+    cy.login('/github/octocat/1');
+  });
+
+  it('should show skipped step message without making log API call', () => {
+    // Click on skipped step (step 5)
+    cy.get('[data-test=step-header-5]').click({ force: true });
+
+    cy.get('[data-test=logs-5]').should('not.exist');
+
+    // Should show skipped message immediately
+    cy.get('[data-test=step-header-5] + .logs-container').within(() => {
+      cy.get('[data-test=step-skipped]').should('exist');
+      cy.get('[data-test=step-skipped]').should('contain', 'step was skipped');
+    });
+  });
+
+  it('should show 404 error message for missing logs', () => {
+    // Click on step with missing logs (step 3)
+    cy.get('[data-test=step-header-3]').click({ force: true });
+    cy.wait('@getLogs-3-404');
+
+    cy.get('[data-test=logs-3]').should('not.exist');
+
+    // Should show log error message
+    cy.get('[data-test=step-header-3] + .logs-container').within(() => {
+      cy.get('[data-test=log-error]').should('exist');
+      cy.get('[data-test=log-error]').should(
+        'contain',
+        'Log not found (may be expired)',
+      );
+    });
+  });
+
+  it('should show both step error and log error when both exist', () => {
+    // Click on error step with missing logs (step 4)
+    cy.get('[data-test=step-header-4]').click({ force: true });
+    cy.wait('@getLogs-4-404');
+
+    cy.get('[data-test=logs-4]').should('not.exist');
+
+    cy.get('[data-test=step-header-4] + .logs-container').within(() => {
+      // Should show step error
+      cy.get('[data-test=resource-error]').should('exist');
+      cy.get('[data-test=resource-error]').should('contain', 'error:');
+
+      // Should also show log error
+      cy.get('[data-test=log-error]').should('exist');
+      cy.get('[data-test=log-error]').should(
+        'contain',
+        'Log not found (may be expired)',
+      );
+    });
+  });
+
+  it('should handle successful logs normally', () => {
+    // Click on step with successful logs (step 1)
+    cy.get('[data-test=step-header-1]').click({ force: true });
+    cy.wait('@getLogs-1');
+
+    cy.get('[data-test=logs-1]').within(() => {
+      // Should show normal log content
+      cy.get('[data-test=log-line-1-1]').should('exist');
+      // Should not show error messages
+      cy.get('[data-test=log-error]').should('not.exist');
+      cy.get('[data-test=step-skipped]').should('not.exist');
+    });
+  });
+
+  it('should show step error but still display logs when error step has logs', () => {
+    // Click on error step with available logs (step 6)
+    cy.get('[data-test=step-header-6]').click({ force: true });
+    cy.wait('@getLogs-6');
+
+    cy.get('[data-test=step-header-6] + .logs-container').within(() => {
+      // Should show step error message
+      cy.get('[data-test=resource-error]').should('exist');
+      cy.get('[data-test=resource-error]').should(
+        'contain',
+        'error: test suite failed',
+      );
+
+      // Should NOT show log error message
+      cy.get('[data-test=log-error]').should('not.exist');
+    });
+
+    // Should also show actual log content
+    cy.get('[data-test=logs-6]').within(() => {
+      cy.get('[data-test=log-line-6-1]').should('exist');
+    });
+  });
+
+  it('should cache logs for finished steps and not refetch on re-expand', () => {
+    // Click on a finished step with logs (step 1 - success)
+    cy.get('[data-test=step-header-1]').click({ force: true });
+    cy.wait('@getLogs-1');
+
+    // Verify logs are shown
+    cy.get('[data-test=logs-1]').should('exist');
+
+    // Collapse the step
+    cy.get('[data-test=step-header-1]').click({ force: true });
+    cy.get('[data-test=logs-1]').should('not.be.visible');
+
+    // Expand again - should not trigger another API call for finished steps
+    cy.get('[data-test=step-header-1]').click({ force: true });
+
+    // Logs should appear immediately without waiting for API call
+    cy.get('[data-test=logs-1]').should('be.visible');
+    cy.get('[data-test=log-line-1-1]').should('exist');
+  });
+});

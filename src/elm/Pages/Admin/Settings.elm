@@ -86,6 +86,7 @@ type alias Model =
     , repoAllowlist : Components.Form.EditableListForm
     , scheduleAllowlist : Components.Form.EditableListForm
     , maxDashboardReposIn : String
+    , queueRestartLimitIn : String
     }
 
 
@@ -103,6 +104,7 @@ init shared () =
       , repoAllowlist = { val = "", editing = Dict.empty }
       , scheduleAllowlist = { val = "", editing = Dict.empty }
       , maxDashboardReposIn = ""
+      , queueRestartLimitIn = ""
       }
     , Effect.getSettings
         { baseUrl = shared.velaAPIBaseURL
@@ -154,6 +156,9 @@ type Msg
       -- DASHBOARDS
     | MaxDashboardReposOnInput String
     | MaxDashboardReposOnUpdate String
+      -- QUEUE LIMIT
+    | QueueRestartLimitOnInput String
+    | QueueRestartLimitOnUpdate String
       -- REFRESH
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
@@ -173,6 +178,7 @@ update shared route msg model =
                         , starlarkExecLimitIn = String.fromInt settings.compiler.starlarkExecLimit
                         , templateDepthIn = String.fromInt settings.compiler.templateDepth
                         , maxDashboardReposIn = String.fromInt settings.maxDashboardRepos
+                        , queueRestartLimitIn = String.fromInt settings.queueRestartLimit
                       }
                     , Effect.none
                     )
@@ -834,6 +840,38 @@ update shared route msg model =
                 }
             )
 
+        -- QUEUE LIMIT
+        QueueRestartLimitOnInput val ->
+            ( { model
+                | queueRestartLimitIn = Components.Form.handleNumberInputString model.queueRestartLimitIn val
+              }
+            , Effect.none
+            )
+
+        QueueRestartLimitOnUpdate val ->
+            let
+                payload =
+                    { defaultSettingsPayload
+                        | queueRestartLimit = String.toInt val
+                    }
+
+                body =
+                    Http.jsonBody <| Vela.encodeSettingsPayload payload
+            in
+            ( { model
+                | queueRestartLimitIn = val
+              }
+            , Effect.updateSettings
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse =
+                    UpdateSettingsResponse
+                        { field = Vela.QueueRestartLimit
+                        }
+                , body = body
+                }
+            )
+
         -- REFRESH
         Tick options ->
             ( model
@@ -1061,6 +1099,55 @@ view shared route model =
                 , viewFieldPreviousValue model
                     (\s -> String.fromInt s.maxDashboardRepos)
                     (\ms -> Maybe.Extra.unwrap "" (.maxDashboardRepos >> String.fromInt) ms)
+                ]
+            , section
+                [ class "settings"
+                ]
+                [ viewFieldHeader "Queue Restart Limit"
+                , viewFieldDescription "Users cannot restart builds when the queue reaches this limit. Set to '0' to remove this restriction."
+                , div [ class "form-controls" ]
+                    [ Components.Form.viewNumberInput
+                        { title = Nothing
+                        , subtitle = Nothing
+                        , id_ = "queue-restart-limit"
+                        , val = model.queueRestartLimitIn
+                        , placeholder_ = ""
+                        , wrapperClassList = [ ( "-wide", True ) ]
+                        , classList_ = []
+                        , rows_ = Nothing
+                        , wrap_ = Nothing
+                        , msg = QueueRestartLimitOnInput
+                        , disabled_ = False
+                        , min = Just 0
+                        , max = Just 100
+                        , required = False
+                        }
+                    , Components.Form.viewButton
+                        { id_ = "queue-restart-limit-update"
+                        , msg = QueueRestartLimitOnUpdate model.queueRestartLimitIn
+                        , text_ = "update"
+                        , classList_ =
+                            [ ( "-outline", True )
+                            ]
+                        , disabled_ =
+                            RemoteData.unwrap True
+                                (\s ->
+                                    case String.toInt model.queueRestartLimitIn of
+                                        Just limit ->
+                                            limit
+                                                == s.queueRestartLimit
+                                                || (limit < 1)
+                                                || (limit > 99)
+
+                                        Nothing ->
+                                            True
+                                )
+                                model.settings
+                        }
+                    ]
+                , viewFieldPreviousValue model
+                    (\s -> String.fromInt s.queueRestartLimit)
+                    (\ms -> Maybe.Extra.unwrap "" (.queueRestartLimit >> String.fromInt) ms)
                 ]
             , section
                 [ class "settings"

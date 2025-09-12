@@ -437,7 +437,10 @@ view shared route model =
                             , id_ = "ref"
                             , val = model.ref
                             , placeholder_ =
-                                "Provide the reference to deploy - this can be a branch, commit (SHA) or tag\n(default is your repo's default branch: "
+                                "Provide the git reference to deploy. This can be a branch, tag, or commit SHA hash.\n"
+                                    ++ "This is the reference from which Vela will read its configuration.\n"
+                                    ++ "\n"
+                                    ++ "(default is your repo's default branch: "
                                     ++ RemoteData.unwrap "main" .branch model.repo
                                     ++ ")"
                             , classList_ = [ ( "secret-value", True ) ]

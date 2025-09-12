@@ -22,6 +22,7 @@
   "ref": "refs/pull/42/head",
   "base_ref": "main",
   "host": "",
+  "route": "",
   "runtime": "docker",
   "distribution": "linux",
   "approved_by": "gh0st",
