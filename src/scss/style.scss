@@ -3,29 +3,29 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // base
-@import 'variables';
-@import 'reset';
-@import 'ansi';
+@use 'variables';
+@use 'reset';
+@use 'ansi';
 
 // utilities
-@import 'mixins';
-@import 'animations';
+@use 'mixins';
+@use 'animations';
 
 // elements
-@import 'buttons';
-@import 'forms';
-@import 'details';
-@import 'table';
-@import 'tooltips';
-@import 'nav';
+@use 'buttons';
+@use 'forms';
+@use 'details';
+@use 'table';
+@use 'tooltips';
+@use 'nav';
 
 // pages
-@import 'settings';
-@import 'pipelines';
-@import 'graph';
-@import 'dashboards';
-@import 'chart';
+@use 'settings';
+@use 'pipelines';
+@use 'graph';
+@use 'dashboards';
+@use 'chart';
 
 // general
-@import 'main';
-@import 'themes';
+@use 'main';
+@use 'themes';

@@ -20,15 +20,15 @@
       "elm-community/graph": "6.0.0",
       "elm-community/json-extra": "4.3.0",
       "elm-community/typed-svg": "7.0.0",
-      "elmcraft/core-extra": "2.1.0",
+      "elmcraft/core-extra": "2.2.0",
       "feathericons/elm-feather": "1.5.0",
       "gampleman/elm-visualization": "2.4.2",
       "jackfranklin/elm-parse-link-header": "2.0.2",
       "jzxhuang/http-extras": "2.1.0",
-      "krisajenkins/remotedata": "6.0.1",
+      "krisajenkins/remotedata": "6.1.0",
       "pablen/toasty": "1.2.0",
       "ryan-haskell/date-format": "1.0.0",
-      "vito/elm-ansi": "9.0.2"
+      "vito/elm-ansi": "11.0.0"
     },
     "indirect": {
       "avh4/elm-color": "1.0.0",
@@ -36,7 +36,7 @@
       "elm/parser": "1.1.0",
       "elm/random": "1.0.0",
       "elm/regex": "1.0.0",
-      "elm/virtual-dom": "1.0.3",
+      "elm/virtual-dom": "1.0.4",
       "elm-community/intdict": "3.1.0",
       "elm-community/list-extra": "8.7.0",
       "folkertdev/elm-deque": "3.0.1",
