@@ -1272,6 +1272,7 @@ type alias Build =
     , ref : Ref
     , base_ref : Ref
     , host : String
+    , route : String
     , runtime : String
     , distribution : String
     , approved_at : Int
@@ -1307,6 +1308,7 @@ decodeBuild =
         |> optional "ref" string ""
         |> optional "base_ref" string ""
         |> optional "host" string ""
+        |> optional "route" string ""
         |> optional "runtime" string ""
         |> optional "distribution" string ""
         |> optional "approved_at" int -1
@@ -2159,6 +2161,7 @@ type alias PlatformSettings =
     , queue : Queue
     , repoAllowlist : List String
     , scheduleAllowlist : List String
+    , queueRestartLimit : Int
     , createdAt : Int
     , updatedAt : Int
     , updatedBy : String
@@ -2173,6 +2176,7 @@ decodeSettings =
         |> required "queue" decodeQueue
         |> required "repo_allowlist" (Json.Decode.list Json.Decode.string)
         |> required "schedule_allowlist" (Json.Decode.list Json.Decode.string)
+        |> required "queue_restart_limit" int
         |> required "created_at" int
         |> required "updated_at" int
         |> required "updated_by" string
@@ -2251,6 +2255,7 @@ type alias SettingsPayload =
     , queue : Maybe QueuePayload
     , repoAllowlist : Maybe (List String)
     , scheduleAllowlist : Maybe (List String)
+    , queueRestartLimit : Maybe Int
     }
 
 
@@ -2260,6 +2265,7 @@ defaultSettingsPayload =
     , queue = Nothing
     , repoAllowlist = Nothing
     , scheduleAllowlist = Nothing
+    , queueRestartLimit = Nothing
     }
 
 
@@ -2270,6 +2276,7 @@ encodeSettingsPayload settings =
         , ( "queue", encodeOptional encodeQueuePayload settings.queue )
         , ( "repo_allowlist", encodeOptional (Json.Encode.list Json.Encode.string) settings.repoAllowlist )
         , ( "schedule_allowlist", encodeOptional (Json.Encode.list Json.Encode.string) settings.scheduleAllowlist )
+        , ( "queue_restart_limit", encodeOptional Json.Encode.int settings.queueRestartLimit )
         ]
 
 
@@ -2277,6 +2284,7 @@ type PlatformSettingsFieldUpdate
     = CompilerCloneImage
     | CompilerTemplateDepth
     | CompilerStarlarkExecLimit
+    | QueueRestartLimit
     | QueueRouteAdd String
     | QueueRouteUpdate String String
     | QueueRouteRemove String
@@ -2317,6 +2325,14 @@ platformSettingsFieldUpdateToResponseConfig field =
                 \settings ->
                     "Compiler Starlark exec limit set to '"
                         ++ String.fromInt settings.compiler.starlarkExecLimit
+                        ++ "'."
+            }
+
+        QueueRestartLimit ->
+            { successAlert =
+                \settings ->
+                    "Queue restart limit set to '"
+                        ++ String.fromInt settings.queueRestartLimit
                         ++ "'."
             }
 
