@@ -10,6 +10,7 @@
   },
   "repo_allowlist": ["octocat/hello-world"],
   "schedule_allowlist": [],
+  "queue_restart_limit": 60,
   "created_at": 1572980375,
   "updated_at": 1572980675,
   "updated_by": "octocat"
