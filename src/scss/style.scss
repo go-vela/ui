@@ -20,12 +20,11 @@
 @use 'nav';
 
 // pages
-@import 'settings';
-@import 'pipelines';
-@import 'graph';
-@import 'reports';
-@import 'dashboards';
-@import 'chart';
+@use 'settings';
+@use 'pipelines';
+@use 'graph';
+@use 'dashboards';
+@use 'chart';
 
 // general
 @use 'main';
