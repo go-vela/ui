@@ -123,6 +123,14 @@ context('Secrets', () => {
         'be.checked',
       );
     });
+
+    it('should strip disallowed characters from secret name input', () => {
+      cy.get('[data-test=input-name]').type('test\'name"with&bad<chars>');
+      cy.get('[data-test=input-name]').should(
+        'have.value',
+        'testnamewithbadchars',
+      );
+    });
   });
 
   context('server returning remove error', () => {
@@ -181,6 +189,11 @@ context('Secrets', () => {
         '*api/v1/secrets/native/org/github/**',
         'fixture:secrets_org_5.json',
       ).as('secrets');
+      cy.route(
+        'GET',
+        '*api/v1/secrets/native/org/github/*/github/deployment*',
+        'fixture:secret_org_path.json',
+      );
       cy.login('/-/secrets/native/org/github');
     });
 
