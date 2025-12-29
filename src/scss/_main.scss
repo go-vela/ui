@@ -1754,6 +1754,7 @@ details.build-toggle {
 
 .break-text,
 .break-word {
+  word-break: break-all;
   overflow-wrap: break-word;
 }
 
