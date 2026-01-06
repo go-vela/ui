@@ -5,89 +5,84 @@
 // ┴└─└─┘┴  └─┘┴└─ ┴ └─┘
 
 // styles for the reports pages
-
-.reports-container {
+.reports-layout {
   display: flex;
+  align-items: flex-start;
+}
+
+.reports-buttons-section {
+  flex: 0 0 auto;
+}
+
+.reports-downloads-section {
+  flex: 1;
 }
 
 .report-output {
   background: var(--color-bg-dark);
-  align-content: center;
-  align-items: center;
-  flex-grow: 1;
   text-align: center;
+  padding: 1rem;
 }
 
 .reports-buttons {
   display: flex;
   flex-direction: column;
+  list-style: none;
 
-  min-height: 300px;
-
-  padding: 0rem;
-  margin: 0rem;
-
-  background: var(--color-bg);
-
-  ul {
-    display: flex;
-
-    list-style: none;
-  }
-
-  li {
-    display: flex;
-  }
+  padding: 0;
+  margin: 0;
 }
 
 .reports-button {
   display: inline-block;
   width: 8rem;
-  padding: 0.4rem 0.4rem;
+  padding: 0.75rem 0.4rem;
   margin-bottom: 0.5rem;
   margin-right: 0.5rem;
   margin-left: 0.5rem;
 
-  color: var(--color-text);
-  font-size: 1rem;
+  font-size: 18px;
   line-height: 1.5;
   white-space: nowrap;
   text-align: right;
   text-decoration: none;
 
-  background-color: var(--color-coal-light);
+  background-color: var(--color-bg);
   border-width: 0;
+  border-right: 3px solid var(--color-secondary);
 
+  &.active,
   &:active,
   &:focus {
-    color: var(--color-secondary-light);
-    font-weight: bold;
-    background-color: var(--color-bg-dark);
+    color: var(--color-text);
     width: 9rem;
-    padding: 0.4rem 0.9rem 0.4rem 0.4rem;
+    padding: 0.75rem 0.9rem 0.75rem 0.4rem;
     margin-bottom: 0.5rem;
     margin-right: 0rem;
     margin-left: 0rem;
   }
 
   &:hover {
-    color: var(--color-secondary-light);
-    font-weight: bold;
-    background-color: var(--color-bg-dark);
+    color: var(--color-text);
+    background-color: var(--color-secondary);
   }
 }
 
-.theme-light .reports-button {
-  background-color: var(--color-gray-lightest);
-
-  &:hover,
-  &:focus,
-  &:active {
-    color: var(--color-cyan-semi-dark);
-    background-color: var(--color-bg-dark);
-  }
+.attachments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
 }
 
-.theme-light .report-output {
-  color: var(--color-lavender-dark);
+.attachment-link {
+  display: inline-block;
+  padding: 0.75rem 1rem;
+  margin-left: 1rem;
+  text-decoration: underline;
+  text-align: left;
+  background: var(--color-bg-dark);
+  color: var(--color-primary);
+  border-radius: 4px;
+  word-break: break-word;
 }

@@ -722,6 +722,27 @@ Cypress.Commands.add('workerPages', () => {
   });
 });
 
+Cypress.Commands.add('stubTestAttachments', () => {
+  cy.server();
+  cy.fixture('test_attachments.json').as('testAttachments');
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/repos/*/*/builds/*/reports*',
+    status: 200,
+    response: '@testAttachments',
+  });
+});
+
+Cypress.Commands.add('stubTestAttachmentsError', () => {
+  cy.server();
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/repos/*/*/builds/*/reports*',
+    status: 500,
+    response: 'server error',
+  });
+});
+
 Cypress.Commands.add('checkA11yForPage', (path = '/', opts = {}) => {
   cy.login(path);
   cy.injectAxe();

@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "test_report_id": 1,
+    "file_name": "test-results.xml",
+    "object_path": "reports/test-results.xml",
+    "file_size": 2048,
+    "file_type": "application/xml",
+    "presigned_url": "https://example.com/signed-url/test-results.xml",
+    "created_at": 1727961600
+  },
+  {
+    "id": 2,
+    "test_report_id": 1,
+    "file_name": "coverage.html",
+    "object_path": "reports/coverage.html",
+    "file_size": 8192,
+    "file_type": "text/html",
+    "presigned_url": "https://example.com/signed-url/coverage.html",
+    "created_at": 1727961700
+  },
+  {
+    "id": 3,
+    "test_report_id": 1,
+    "file_name": "junit-report.json",
+    "object_path": "reports/junit-report.json",
+    "file_size": 1024,
+    "file_type": "application/json",
+    "presigned_url": "https://example.com/signed-url/junit-report.json",
+    "created_at": 1727961800
+  }
+]

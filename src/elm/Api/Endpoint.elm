@@ -182,10 +182,8 @@ toUrl api endpoint =
             url api [ "dashboards", dashboard ] []
 
         TestAttachments org repo build ->
-            url api [ "repos", org, repo, "builds", build, "reports" ] []
+            url api [ "repos", org, repo, "builds", build, "reports", "testattachment" ] []
 
-        -- TestAttachments org repo build ->
-        --     url api [ "repos", org, repo, "builds", build, "reports", "attachments" ] []
         Workers maybePage maybePerPage ->
             url api [ "workers" ] <| Pagination.toQueryParams maybePage maybePerPage
 
