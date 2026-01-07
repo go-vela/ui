@@ -7,7 +7,7 @@ module Pages.Org_.Repo_.Build_.Reports exposing (..)
 
 import Auth
 import Effect exposing (Effect)
-import Html exposing (a, button, div, li, text, ul)
+import Html exposing (a, button, code, div, li, small, text, ul)
 import Html.Attributes exposing (class, href)
 import Html.Events
 import Http
@@ -212,8 +212,12 @@ view _ _ model =
         downloadLinks =
             case model.attachments of
                 RemoteData.Success attachments ->
-                    div [ class "attachments-list" ]
-                        (List.map viewAttachment (List.sortBy .file_name attachments))
+                    if List.length attachments > 0 then
+                        div [ class "attachments-list" ]
+                            (List.map viewAttachment (List.sortBy .file_name attachments))
+
+                    else
+                        div [ class "no-attachments" ] [ small [] [ code [] [ text "No attachments found for this build." ] ] ]
 
                 RemoteData.Loading ->
                     div [ class "report-output" ] [ text "Loading attachments..." ]

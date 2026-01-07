@@ -336,7 +336,10 @@ type alias TestAttachment =
 
 decodeTestAttachments : Decoder (List TestAttachment)
 decodeTestAttachments =
-    Json.Decode.list decodeTestAttachment
+    Json.Decode.oneOf
+        [ Json.Decode.list decodeTestAttachment
+        , Json.Decode.null []
+        ]
 
 
 decodeTestAttachment : Decoder TestAttachment
