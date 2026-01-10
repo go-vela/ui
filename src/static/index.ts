@@ -82,13 +82,44 @@ const app: App = Elm.Main.init(config);
 app.ports.setTheme.subscribe(theme => {
   let body: HTMLElement = document.getElementsByTagName('body')[0];
 
-  if (!body.classList.contains(theme)) {
-    body.className = '';
-    body.classList.add(theme);
-  }
+  const applyTheme = (t: string) => {
+    if (!body.classList.contains(t)) {
+      body.className = '';
+      body.classList.add(t);
+    }
+  };
 
-  localStorage.setItem(themeKey, theme);
-  setTimeout(() => app.ports.onThemeChange.send(theme), 0);
+  if (theme === 'theme-system') {
+    // Apply the current system preference immediately
+    const isDark =
+      window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const applied = isDark ? 'theme-dark' : 'theme-light';
+    applyTheme(applied);
+
+    // Listen for changes to the system preference and update accordingly.
+    const mql = window.matchMedia('(prefers-color-scheme: dark)');
+    const listener = (e: MediaQueryListEvent) => {
+      const nowApplied = e.matches ? 'theme-dark' : 'theme-light';
+      applyTheme(nowApplied);
+      // Notify Elm that the selection remains 'theme-system' (do not send the resolved theme)
+      setTimeout(() => app.ports.onThemeChange.send(theme), 0);
+    };
+
+    // Listen for changes to the media query
+    (mql as any).addEventListener('change', listener);
+
+    // Persist the user's selection of 'theme-system' (not the resolved light/dark)
+    localStorage.setItem(themeKey, theme);
+
+    // Notify Elm that the selection is 'theme-system' (do not send the resolved theme)
+    setTimeout(() => app.ports.onThemeChange.send(theme), 0);
+  } else {
+    // explicit light or dark
+    applyTheme(theme);
+    localStorage.setItem(themeKey, theme);
+    setTimeout(() => app.ports.onThemeChange.send(theme), 0);
+  }
 });
 
 app.ports.setRedirect.subscribe(redirectMessage => {
