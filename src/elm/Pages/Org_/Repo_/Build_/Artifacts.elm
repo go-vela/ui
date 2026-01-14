@@ -3,13 +3,12 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Org_.Repo_.Build_.Reports exposing (..)
+module Pages.Org_.Repo_.Build_.Artifacts exposing (..)
 
 import Auth
 import Effect exposing (Effect)
-import Html exposing (a, button, code, div, li, small, text, ul)
+import Html exposing (a, code, div, small, text)
 import Html.Attributes exposing (class, href)
-import Html.Events
 import Http
 import Http.Detailed
 import Layouts
@@ -23,7 +22,7 @@ import Vela
 import View exposing (View)
 
 
-{-| page : takes user, shared model, route, and returns a build's reports page.
+{-| page : takes user, shared model, route, and returns a build's artifacts page.
 -}
 page : Auth.User -> Shared.Model -> Route { org : String, repo : String, build : String } -> Page Model Msg
 page user shared route =
@@ -40,7 +39,7 @@ page user shared route =
 -- LAYOUT
 
 
-{-| toLayout : takes user, route, model, and passes a build's pipeline page info to Layouts.
+{-| toLayout : takes user, route, model, and passes a build's artifacts page info to Layouts.
 -}
 toLayout : Auth.User -> Route { org : String, repo : String, build : String } -> Model -> Layouts.Layout Msg
 toLayout _ route _ =
@@ -100,7 +99,7 @@ toLayout _ route _ =
         , build = route.params.build
         , toBuildPath =
             \build ->
-                Route.Path.Org__Repo__Build__Reports
+                Route.Path.Org__Repo__Build__Artifacts
                     { org = route.params.org
                     , repo = route.params.repo
                     , build = build
@@ -114,21 +113,19 @@ toLayout _ route _ =
 
 type alias Model =
     { build : WebData Vela.Build
-    , attachments : WebData (List Vela.TestAttachment)
-    , activeTab : String
+    , artifacts : WebData (List Vela.Artifact)
     }
 
 
 init : Shared.Model -> Route { org : String, repo : String, build : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { build = RemoteData.Loading
-      , attachments = RemoteData.Loading
-      , activeTab = "attachments"
+      , artifacts = RemoteData.Loading
       }
-    , Effect.getBuildTestAttachments
+    , Effect.getBuildArtifacts
         { baseUrl = shared.velaAPIBaseURL
         , session = shared.session
-        , onResponse = GetAttachmentsResponse
+        , onResponse = GetArtifactsResponse
         , org = route.params.org
         , repo = route.params.repo
         , build = route.params.build
@@ -142,9 +139,8 @@ init shared route () =
 
 type Msg
     = NoOp
-    | DownloadTextAttachment { filename : String, content : String, map : String -> String }
-    | GetAttachmentsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.TestAttachment ))
-    | SelectTab String
+    | DownloadTextArtifact { filename : String, content : String, map : String -> String }
+    | GetArtifactsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Artifact ))
 
 
 {-| update : takes current models, route, message, and returns an updated model and effect.
@@ -157,27 +153,22 @@ update _ _ msg model =
             , Effect.none
             )
 
-        DownloadTextAttachment options ->
+        DownloadTextArtifact options ->
             ( model
             , Effect.downloadFile options
             )
 
-        GetAttachmentsResponse response ->
+        GetArtifactsResponse response ->
             case response of
-                Ok ( _, attachments ) ->
-                    ( { model | attachments = RemoteData.Success attachments }
+                Ok ( _, artifacts ) ->
+                    ( { model | artifacts = RemoteData.Success artifacts }
                     , Effect.none
                     )
 
                 Err error ->
-                    ( { model | attachments = Errors.toFailure error }
+                    ( { model | artifacts = Errors.toFailure error }
                     , Effect.none
                     )
-
-        SelectTab tab ->
-            ( { model | activeTab = tab }
-            , Effect.none
-            )
 
 
 subscriptions : Model -> Sub Msg
@@ -210,63 +201,36 @@ view _ _ model =
                     "Bad response: " ++ body
 
         downloadLinks =
-            case model.attachments of
-                RemoteData.Success attachments ->
-                    if List.length attachments > 0 then
-                        div [ class "attachments-list" ]
-                            (List.map viewAttachment (List.sortBy .file_name attachments))
+            case model.artifacts of
+                RemoteData.Success artifacts ->
+                    if List.length artifacts > 0 then
+                        div [ class "artifacts-list" ]
+                            (List.map viewArtifact (List.sortBy .file_name artifacts))
 
                     else
-                        div [ class "no-attachments" ] [ small [] [ code [] [ text "No attachments found for this build." ] ] ]
+                        div [ class "no-artifacts" ] [ small [] [ code [] [ text "No artifacts found for this build." ] ] ]
 
                 RemoteData.Loading ->
-                    div [ class "report-output" ] [ text "Loading attachments..." ]
+                    div [ class "artifact-output" ] [ text "Loading artifacts..." ]
 
                 RemoteData.Failure error ->
-                    div [ class "report-output" ]
-                        [ text ("Failed to load attachments: " ++ httpErrorToString error) ]
+                    div [ class "artifact-output" ]
+                        [ text ("Failed to load artifacts: " ++ httpErrorToString error) ]
 
                 RemoteData.NotAsked ->
-                    div [ class "report-output" ] [ text "No attachments requested" ]
+                    div [ class "artifact-output" ] [ text "No artifacts requested" ]
 
-        viewAttachment attachment =
+        viewArtifact artifact =
             a
-                [ class "report-output attachment-link"
-                , href attachment.presigned_url
+                [ class "artifact-output artifact-link"
+                , href artifact.presigned_url
                 ]
-                [ text attachment.file_name ]
+                [ text artifact.file_name ]
     in
-    { title = "Reports"
+    { title = "Artifacts"
     , body =
-        [ div [ class "reports-layout" ]
-            [ div [ class "reports-buttons-section" ]
-                [ ul [ class "reports-buttons" ]
-                    [ li []
-                        [ button
-                            [ class <|
-                                "reports-button"
-                                    ++ (if model.activeTab == "attachments" then
-                                            " active"
-
-                                        else
-                                            ""
-                                       )
-                            , Html.Events.onClick (SelectTab "attachments")
-                            ]
-                            [ text "Attachments" ]
-                        ]
-
-                    -- , li []
-                    --     [ button
-                    --         [ class "reports-button"
-                    --         ]
-                    --         [ text "test results" ]
-                    --     ]
-                    ]
-                ]
-            , div [ class "reports-downloads-section" ]
-                [ downloadLinks
-                ]
+        [ div [ class "artifacts-layout" ]
+            [ downloadLinks
             ]
         ]
     }

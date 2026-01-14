@@ -51,9 +51,9 @@ import Pages.Org_
 import Pages.Org_.Builds
 import Pages.Org_.Repo_
 import Pages.Org_.Repo_.Build_
+import Pages.Org_.Repo_.Build_.Artifacts
 import Pages.Org_.Repo_.Build_.Graph
 import Pages.Org_.Repo_.Build_.Pipeline
-import Pages.Org_.Repo_.Build_.Reports
 import Pages.Org_.Repo_.Build_.Services
 import Pages.Org_.Repo_.Deployments
 import Pages.Org_.Repo_.Deployments.Add
@@ -1370,26 +1370,26 @@ initPageAndLayout model =
                     }
                 )
 
-        Route.Path.Org__Repo__Build__Reports params ->
+        Route.Path.Org__Repo__Build__Artifacts params ->
             runWhenAuthenticatedWithLayout
                 model
                 (\user ->
                     let
-                        page : Page.Page Pages.Org_.Repo_.Build_.Reports.Model Pages.Org_.Repo_.Build_.Reports.Msg
+                        page : Page.Page Pages.Org_.Repo_.Build_.Artifacts.Model Pages.Org_.Repo_.Build_.Artifacts.Msg
                         page =
-                            Pages.Org_.Repo_.Build_.Reports.page user model.shared (Route.fromUrl params model.url)
+                            Pages.Org_.Repo_.Build_.Artifacts.page user model.shared (Route.fromUrl params model.url)
 
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
                     { page =
                         Tuple.mapBoth
-                            (Main.Pages.Model.Org__Repo__Build__Reports params)
-                            (Effect.map Main.Pages.Msg.Org__Repo__Build__Reports >> fromPageEffect model)
+                            (Main.Pages.Model.Org__Repo__Build__Artifacts params)
+                            (Effect.map Main.Pages.Msg.Org__Repo__Build__Artifacts >> fromPageEffect model)
                             ( pageModel, pageEffect )
                     , layout =
                         Page.layout pageModel page
-                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Repo__Build__Reports >> Page))
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Repo__Build__Artifacts >> Page))
                             |> Maybe.map (initLayout model)
                     }
                 )
@@ -1992,14 +1992,14 @@ updateFromPage msg model =
                         (Page.update (Pages.Org_.Repo_.Build_.Pipeline.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
-        ( Main.Pages.Msg.Org__Repo__Build__Reports pageMsg, Main.Pages.Model.Org__Repo__Build__Reports params pageModel ) ->
+        ( Main.Pages.Msg.Org__Repo__Build__Artifacts pageMsg, Main.Pages.Model.Org__Repo__Build__Artifacts params pageModel ) ->
             runWhenAuthenticated
                 model
                 (\user ->
                     Tuple.mapBoth
-                        (Main.Pages.Model.Org__Repo__Build__Reports params)
-                        (Effect.map Main.Pages.Msg.Org__Repo__Build__Reports >> fromPageEffect model)
-                        (Page.update (Pages.Org_.Repo_.Build_.Reports.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
+                        (Main.Pages.Model.Org__Repo__Build__Artifacts params)
+                        (Effect.map Main.Pages.Msg.Org__Repo__Build__Artifacts >> fromPageEffect model)
+                        (Page.update (Pages.Org_.Repo_.Build_.Artifacts.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
         ( Main.Pages.Msg.Org__Repo__Build__Services pageMsg, Main.Pages.Model.Org__Repo__Build__Services params pageModel ) ->
@@ -2325,11 +2325,11 @@ toLayoutFromPage model =
                 |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Repo__Build__Pipeline >> Page))
 
-        Main.Pages.Model.Org__Repo__Build__Reports params pageModel ->
+        Main.Pages.Model.Org__Repo__Build__Artifacts params pageModel ->
             Route.fromUrl params model.url
-                |> toAuthProtectedPage model Pages.Org_.Repo_.Build_.Reports.page
+                |> toAuthProtectedPage model Pages.Org_.Repo_.Build_.Artifacts.page
                 |> Maybe.andThen (Page.layout pageModel)
-                |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Repo__Build__Reports >> Page))
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.Org__Repo__Build__Artifacts >> Page))
 
         Main.Pages.Model.Org__Repo__Build__Services params pageModel ->
             Route.fromUrl params model.url
@@ -2683,11 +2683,11 @@ subscriptions model =
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-                Main.Pages.Model.Org__Repo__Build__Reports params pageModel ->
+                Main.Pages.Model.Org__Repo__Build__Artifacts params pageModel ->
                     Auth.Action.subscriptions
                         (\user ->
-                            Page.subscriptions (Pages.Org_.Repo_.Build_.Reports.page user model.shared (Route.fromUrl params model.url)) pageModel
-                                |> Sub.map Main.Pages.Msg.Org__Repo__Build__Reports
+                            Page.subscriptions (Pages.Org_.Repo_.Build_.Artifacts.page user model.shared (Route.fromUrl params model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.Org__Repo__Build__Artifacts
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -3211,11 +3211,11 @@ viewPage model =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.Org__Repo__Build__Reports params pageModel ->
+        Main.Pages.Model.Org__Repo__Build__Artifacts params pageModel ->
             Auth.Action.view (View.map never (Auth.viewCustomPage model.shared (Route.fromUrl () model.url)))
                 (\user ->
-                    Page.view (Pages.Org_.Repo_.Build_.Reports.page user model.shared (Route.fromUrl params model.url)) pageModel
-                        |> View.map Main.Pages.Msg.Org__Repo__Build__Reports
+                    Page.view (Pages.Org_.Repo_.Build_.Artifacts.page user model.shared (Route.fromUrl params model.url)) pageModel
+                        |> View.map Main.Pages.Msg.Org__Repo__Build__Artifacts
                         |> View.map Page
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -3628,11 +3628,11 @@ toPageUrlHookCmd model routes =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.Org__Repo__Build__Reports params pageModel ->
+        Main.Pages.Model.Org__Repo__Build__Artifacts params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Org_.Repo_.Build_.Reports.page user model.shared (Route.fromUrl params model.url))
-                        |> List.map Main.Pages.Msg.Org__Repo__Build__Reports
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.Build_.Artifacts.page user model.shared (Route.fromUrl params model.url))
+                        |> List.map Main.Pages.Msg.Org__Repo__Build__Artifacts
                         |> List.map Page
                         |> toCommands
                 )
@@ -3910,7 +3910,7 @@ isAuthProtected routePath =
         Route.Path.Org__Repo__Build__Pipeline _ ->
             True
 
-        Route.Path.Org__Repo__Build__Reports _ ->
+        Route.Path.Org__Repo__Build__Artifacts _ ->
             True
 
         Route.Path.Org__Repo__Build__Services _ ->

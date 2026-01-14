@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, addDeployment, addFavorites, addOrgSecret, addRepoSchedule, addRepoSecret, addSharedSecret, alertsUpdate, approveBuild, cancelBuild, chownRepo, clearRedirect, deleteOrgSecret, deleteRepoSchedule, deleteRepoSecret, deleteSharedSecret, disableRepo, downloadFile, enableRepo, expandPipelineConfig, finishAuthentication, focusOn, getAllBuildServices, getAllBuildSteps, getAllBuilds, getBuild, getBuildGraph, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getBuildTestAttachments, getCurrentUser, getCurrentUserShared, getDashboard, getDashboards, getDeploymentConfig, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoBuildsShared, getRepoDeployments, getRepoHooks, getRepoHooksShared, getRepoSchedule, getRepoSchedules, getRepoSecret, getRepoSecrets, getSettings, getSharedSecret, getSharedSecrets, getWorkers, handleHttpError, logout, pushPath, redeliverHook, repairRepo, replacePath, replaceRouteRemoveTabHistorySkipDomFocus, restartBuild, setRedirect, setTheme, updateFavicon, updateFavorite, updateOrgSecret, updateRepo, updateRepoHooksShared, updateRepoSchedule, updateRepoSecret, updateSettings, updateSharedSecret, updateSourceReposShared
+    , addAlertError, addAlertSuccess, addDeployment, addFavorites, addOrgSecret, addRepoSchedule, addRepoSecret, addSharedSecret, alertsUpdate, approveBuild, cancelBuild, chownRepo, clearRedirect, deleteOrgSecret, deleteRepoSchedule, deleteRepoSecret, deleteSharedSecret, disableRepo, downloadFile, enableRepo, expandPipelineConfig, finishAuthentication, focusOn, getAllBuildServices, getAllBuildSteps, getAllBuilds, getBuild, getBuildArtifacts, getBuildGraph, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getCurrentUserShared, getDashboard, getDashboards, getDeploymentConfig, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getPipelineConfig, getPipelineTemplates, getRepo, getRepoBuilds, getRepoBuildsShared, getRepoDeployments, getRepoHooks, getRepoHooksShared, getRepoSchedule, getRepoSchedules, getRepoSecret, getRepoSecrets, getSettings, getSharedSecret, getSharedSecrets, getWorkers, handleHttpError, logout, pushPath, redeliverHook, repairRepo, replacePath, replaceRouteRemoveTabHistorySkipDomFocus, restartBuild, setRedirect, setTheme, updateFavicon, updateFavorite, updateOrgSecret, updateRepo, updateRepoHooksShared, updateRepoSchedule, updateRepoSecret, updateSettings, updateSharedSecret, updateSourceReposShared
     )
 
 {-|
@@ -1444,19 +1444,19 @@ getDashboards options =
         |> sendCmd
 
 
-getBuildTestAttachments :
+getBuildArtifacts :
     { baseUrl : String
     , session : Auth.Session.Session
-    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.TestAttachment ) -> msg
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Artifact ) -> msg
     , org : String
     , repo : String
     , build : String
     }
     -> Effect msg
-getBuildTestAttachments options =
+getBuildArtifacts options =
     Api.try
         options.onResponse
-        (Api.Operations.getBuildTestAttachments
+        (Api.Operations.getBuildArtifacts
             options.baseUrl
             options.session
             options

@@ -310,9 +310,9 @@ viewBuildTabs shared props =
               , isAlerting = False
               , show = True
               }
-            , { name = "Reports"
+            , { name = "Artifacts"
               , toPath =
-                    Route.Path.Org__Repo__Build__Reports
+                    Route.Path.Org__Repo__Build__Artifacts
                         { org = props.org
                         , repo = props.repo
                         , build = props.build

@@ -1,0 +1,36 @@
+// SPDX-License-Identifier: Apache-2.0
+
+// ┌─┐┬─┐┌┬┐┬┌─┐┌─┐┌─┐┌┬┐┌─┐
+// ├─┤├┬┘ │ │├┤ ├─┤│   │ └─┐
+// ┴ ┴┴└─ ┴ ┴└  ┴ ┴└─┘ ┴ └─┘
+
+// styles for the artifacts pages
+.artifacts-layout {
+  display: flex;
+  align-items: flex-start;
+}
+
+.artifact-output {
+  background: var(--color-bg-dark);
+  text-align: center;
+  padding: 1rem;
+}
+
+.artifacts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.artifact-link {
+  display: inline-block;
+  padding: 0.75rem 1rem;
+  margin-left: 1rem;
+  text-decoration: underline;
+  text-align: left;
+  background: var(--color-bg-dark);
+  color: var(--color-primary);
+  border-radius: 4px;
+  word-break: break-word;
+}

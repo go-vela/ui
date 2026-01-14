@@ -722,22 +722,22 @@ Cypress.Commands.add('workerPages', () => {
   });
 });
 
-Cypress.Commands.add('stubTestAttachments', () => {
+Cypress.Commands.add('stubArtifacts', () => {
   cy.server();
-  cy.fixture('test_attachments.json').as('testAttachments');
+  cy.fixture('test_attachments.json').as('artifacts');
   cy.route({
     method: 'GET',
-    url: '*api/v1/repos/*/*/builds/*/reports*',
+    url: '*api/v1/repos/*/*/builds/*/artifact',
     status: 200,
-    response: '@testAttachments',
+    response: '@artifacts',
   });
 });
 
-Cypress.Commands.add('stubTestAttachmentsError', () => {
+Cypress.Commands.add('stubArtifactsError', () => {
   cy.server();
   cy.route({
     method: 'GET',
-    url: '*api/v1/repos/*/*/builds/*/reports*',
+    url: '*api/v1/repos/*/*/builds/*/artifact',
     status: 500,
     response: 'server error',
   });

@@ -28,9 +28,9 @@ import Pages.Org_
 import Pages.Org_.Builds
 import Pages.Org_.Repo_
 import Pages.Org_.Repo_.Build_
+import Pages.Org_.Repo_.Build_.Artifacts
 import Pages.Org_.Repo_.Build_.Graph
 import Pages.Org_.Repo_.Build_.Pipeline
-import Pages.Org_.Repo_.Build_.Reports
 import Pages.Org_.Repo_.Build_.Services
 import Pages.Org_.Repo_.Deployments
 import Pages.Org_.Repo_.Deployments.Add
@@ -82,7 +82,7 @@ type Model
     | Org__Repo__Build_ { org : String, repo : String, build : String } Pages.Org_.Repo_.Build_.Model
     | Org__Repo__Build__Graph { org : String, repo : String, build : String } Pages.Org_.Repo_.Build_.Graph.Model
     | Org__Repo__Build__Pipeline { org : String, repo : String, build : String } Pages.Org_.Repo_.Build_.Pipeline.Model
-    | Org__Repo__Build__Reports { org : String, repo : String, build : String } Pages.Org_.Repo_.Build_.Reports.Model
+    | Org__Repo__Build__Artifacts { org : String, repo : String, build : String } Pages.Org_.Repo_.Build_.Artifacts.Model
     | Org__Repo__Build__Services { org : String, repo : String, build : String } Pages.Org_.Repo_.Build_.Services.Model
     | NotFound_ Pages.NotFound_.Model
     | Redirecting_

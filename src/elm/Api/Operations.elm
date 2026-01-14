@@ -24,12 +24,12 @@ module Api.Operations exposing
     , getAllBuildSteps
     , getAllBuilds
     , getBuild
+    , getBuildArtifacts
     , getBuildGraph
     , getBuildServiceLog
     , getBuildServices
     , getBuildStepLog
     , getBuildSteps
-    , getBuildTestAttachments
     , getCurrentUser
     , getDashboard
     , getDashboards
@@ -1386,9 +1386,9 @@ getDashboards baseUrl session =
         |> withAuth session
 
 
-{-| getBuildTestAttachments : retrieves the test attachments for the current build.
+{-| getBuildArtifacts : retrieves the artifacts for the current build.
 -}
-getBuildTestAttachments :
+getBuildArtifacts :
     String
     -> Session
     ->
@@ -1397,13 +1397,13 @@ getBuildTestAttachments :
             , repo : String
             , build : String
         }
-    -> Request (List Vela.TestAttachment)
-getBuildTestAttachments baseUrl session options =
+    -> Request (List Vela.Artifact)
+getBuildArtifacts baseUrl session options =
     get baseUrl
-        (Api.Endpoint.TestAttachments
+        (Api.Endpoint.Artifacts
             options.org
             options.repo
             options.build
         )
-        Vela.decodeTestAttachments
+        Vela.decodeArtifacts
         |> withAuth session

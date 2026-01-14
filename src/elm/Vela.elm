@@ -6,6 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 module Vela exposing
     ( AllowEvents
     , AllowEventsField(..)
+    , Artifact
     , Build
     , BuildGraph
     , BuildGraphEdge
@@ -52,15 +53,13 @@ module Vela exposing
     , StepNumber
     , Template
     , Templates
-    , TestAttachment
-    , TestAttachments
-    , TestReport
     , Type
     , User
     , Worker
     , allowEventsFilterQueryKeys
     , allowEventsToList
     , buildRepoPayload
+    , decodeArtifacts
     , decodeBuild
     , decodeBuildGraph
     , decodeBuilds
@@ -89,7 +88,6 @@ module Vela exposing
     , decodeSourceRepositories
     , decodeStep
     , decodeSteps
-    , decodeTestAttachments
     , decodeUser
     , decodeWorkers
     , defaultAllowEvents
@@ -271,23 +269,15 @@ decodeDashboardRepo =
 
 
 
--- TEST REPORT
+-- ARTIFACT
 --
--- this database stuff is just informational and temporary
+-- this database stuff is just informational
 --
 -- database types in server:
 --
--- type TestReport struct {
--- 	ID        sql.NullInt64 `sql:"id"`
--- 	BuildID   sql.NullInt64 `sql:"build_id"`
--- 	CreatedAt sql.NullInt64 `sql:"created_at"`
--- 	// References to related objects
--- 	Build *Build `gorm:"foreignKey:BuildID"`
--- }
---
--- type TestAttachment struct {
+-- type Artifact struct {
 -- 	ID           sql.NullInt64  `sql:"id"`
--- 	TestReportID sql.NullInt64  `sql:"test_report_id"`
+-- 	BuildID      sql.NullInt64  `sql:"build_id"`
 -- 	FileName     sql.NullString `sql:"file_name"`
 -- 	ObjectPath   sql.NullString `sql:"object_path"`
 -- 	FileSize     sql.NullInt64  `sql:"file_size"`
@@ -295,26 +285,13 @@ decodeDashboardRepo =
 -- 	PresignedUrl sql.NullString `sql:"presigned_url"`
 -- 	CreatedAt    sql.NullInt64  `sql:"created_at"`
 -- 	// References to related objects
--- 	TestReport *TestReport `gorm:"foreignKey:TestReportID"`
+-- 	Build *Build `gorm:"foreignKey:BuildID"`
 -- }
 
 
-type alias TestReport =
+type alias Artifact =
     { id : Int
     , build_id : Int
-    , created_at : Int
-    , attachments : List TestAttachments
-    }
-
-
-type alias TestAttachments =
-    { attachments : List TestAttachment
-    }
-
-
-type alias TestAttachment =
-    { id : Int
-    , test_report_id : Int
     , file_name : String
     , object_path : String
     , file_size : Int
@@ -324,29 +301,19 @@ type alias TestAttachment =
     }
 
 
-
--- decodeTestReport : Decoder TestReport
--- decodeTestReport =
---     Json.Decode.succeed TestReport
---         |> optional "id" int -1
---         |> optional "build_id" int -1
---         |> optional "created_at" int -1
---         |> optional "attachments" decodeTestAttachments []
-
-
-decodeTestAttachments : Decoder (List TestAttachment)
-decodeTestAttachments =
+decodeArtifacts : Decoder (List Artifact)
+decodeArtifacts =
     Json.Decode.oneOf
-        [ Json.Decode.list decodeTestAttachment
+        [ Json.Decode.list decodeArtifact
         , Json.Decode.null []
         ]
 
 
-decodeTestAttachment : Decoder TestAttachment
-decodeTestAttachment =
-    Json.Decode.succeed TestAttachment
+decodeArtifact : Decoder Artifact
+decodeArtifact =
+    Json.Decode.succeed Artifact
         |> optional "id" int -1
-        |> optional "test_report_id" int -1
+        |> optional "build_id" int -1
         |> optional "file_name" string ""
         |> optional "object_path" string ""
         |> optional "file_size" int 0
