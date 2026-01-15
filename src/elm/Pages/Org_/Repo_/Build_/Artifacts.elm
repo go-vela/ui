@@ -6,8 +6,9 @@ SPDX-License-Identifier: Apache-2.0
 module Pages.Org_.Repo_.Build_.Artifacts exposing (..)
 
 import Auth
+import Components.Table
 import Effect exposing (Effect)
-import Html exposing (a, code, div, small, text)
+import Html exposing (a, code, div, small, text, tr)
 import Html.Attributes exposing (class, href)
 import Http
 import Http.Detailed
@@ -17,6 +18,7 @@ import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Route.Path
 import Shared
+import Time
 import Utils.Errors as Errors
 import Vela
 import View exposing (View)
@@ -181,7 +183,7 @@ subscriptions _ =
 
 
 view : Shared.Model -> Route { org : String, repo : String, build : String } -> Model -> View Msg
-view _ _ model =
+view shared _ model =
     let
         httpErrorToString error =
             case error of
@@ -200,15 +202,19 @@ view _ _ model =
                 Http.BadBody body ->
                     "Bad response: " ++ body
 
-        downloadLinks =
+        artifactsTable =
             case model.artifacts of
                 RemoteData.Success artifacts ->
-                    if List.length artifacts > 0 then
-                        div [ class "artifacts-list" ]
-                            (List.map viewArtifact (List.sortBy .file_name artifacts))
-
-                    else
-                        div [ class "no-artifacts" ] [ small [] [ code [] [ text "No artifacts found for this build." ] ] ]
+                    Components.Table.view
+                        (Components.Table.Config
+                            "Artifacts"
+                            "build-artifacts"
+                            noRowsView
+                            tableHeaders
+                            (artifactsToRows shared.zone (List.sortBy .file_name artifacts))
+                            Nothing
+                            1
+                        )
 
                 RemoteData.Loading ->
                     div [ class "artifact-output" ] [ text "Loading artifacts..." ]
@@ -219,18 +225,66 @@ view _ _ model =
 
                 RemoteData.NotAsked ->
                     div [ class "artifact-output" ] [ text "No artifacts requested" ]
-
-        viewArtifact artifact =
-            a
-                [ class "artifact-output artifact-link"
-                , href artifact.presigned_url
-                ]
-                [ text artifact.file_name ]
     in
     { title = "Artifacts"
     , body =
         [ div [ class "artifacts-layout" ]
-            [ downloadLinks
+            [ artifactsTable
             ]
         ]
     }
+
+
+{-| artifactsToRows : takes list of artifacts and produces list of Table rows.
+-}
+artifactsToRows : Time.Zone -> List Vela.Artifact -> Components.Table.Rows Vela.Artifact Msg
+artifactsToRows zone artifacts =
+    artifacts
+        |> List.map (\artifact -> Components.Table.Row artifact (viewArtifactt zone))
+
+
+{-| tableHeaders : returns table headers for artifacts table.
+-}
+tableHeaders : Components.Table.Columns
+tableHeaders =
+    [ ( Nothing, "name" )
+    ]
+
+
+{-| noRowsView : returns message to display when there are no artifacts.
+-}
+noRowsView : Html.Html Msg
+noRowsView =
+    text "No artifacts found for this build."
+
+
+{-| viewEmptyTable : renders an empty artifacts table for testing.
+-}
+viewEmptyTable : Html.Html Msg
+viewEmptyTable =
+    Components.Table.view
+        (Components.Table.Config
+            "Artifacts"
+            "build-artifacts"
+            noRowsView
+            tableHeaders
+            []
+            Nothing
+            1
+        )
+
+
+viewArtifactt : Time.Zone -> Vela.Artifact -> Html.Html Msg
+viewArtifactt zone artifact =
+    tr []
+        [ Components.Table.viewItemCell
+            { dataLabel = "name"
+            , parentClassList = [ ( "name", True ) ]
+            , itemClassList = [ ( "-block", True ) ]
+            , children =
+                [ a
+                    [ href artifact.presigned_url ]
+                    [ text artifact.file_name ]
+                ]
+            }
+        ]
