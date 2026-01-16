@@ -27,6 +27,7 @@ module Utils.Helpers exposing
     , humanReadableDateTimeFormatter
     , humanReadableDateTimeWithDefault
     , humanReadableDateWithDefault
+    , humanReadableBytesFormatter
     , isLoaded
     , isSuccess
     , mergeListsById
@@ -214,6 +215,11 @@ humanReadableDateTimeFormatter =
         , DateFormat.text " "
         , DateFormat.amPmUppercase
         ]
+
+
+humanReadableBytesFormatter : Int -> String
+humanReadableBytesFormatter =
+    Filesize.format
 
 
 {-| relativeTimeNoSeconds : helper for using DateFormat.Relative.relativeTime with no seconds granularity.

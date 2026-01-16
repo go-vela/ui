@@ -8,8 +8,8 @@ module Pages.Org_.Repo_.Build_.Artifacts exposing (..)
 import Auth
 import Components.Table
 import Effect exposing (Effect)
-import Html exposing (a, code, div, small, text, tr)
-import Html.Attributes exposing (class, href)
+import Html exposing (a, button, code, div, small, text, tr)
+import Html.Attributes exposing (attribute, class, href)
 import Http
 import Http.Detailed
 import Layouts
@@ -20,6 +20,7 @@ import Route.Path
 import Shared
 import Time
 import Utils.Errors as Errors
+import Utils.Helpers as Util
 import Vela
 import View exposing (View)
 
@@ -172,7 +173,6 @@ update _ _ msg model =
                     , Effect.none
                     )
 
-
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.none
@@ -248,6 +248,8 @@ artifactsToRows zone artifacts =
 tableHeaders : Components.Table.Columns
 tableHeaders =
     [ ( Nothing, "name" )
+    , ( Nothing, "created at" )
+    , ( Nothing, "file size" )
     ]
 
 
@@ -287,4 +289,18 @@ viewArtifactt zone artifact =
                     [ text artifact.file_name ]
                 ]
             }
+          , Components.Table.viewItemCell
+              { dataLabel = "created-at"
+              , parentClassList = []
+              , itemClassList = []
+              , children =
+                  [ text <| Util.humanReadableDateTimeWithDefault zone artifact.created_at ]
+              }
+          , Components.Table.viewItemCell
+              { dataLabel = "file-size"
+              , parentClassList = []
+              , itemClassList = []
+              , children =
+                  [ text <| Util.humanReadableBytesFormatter artifact.file_size ]
+              }
         ]
