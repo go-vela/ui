@@ -45,7 +45,7 @@ page user shared route =
 {-| toLayout : takes user, route, model, and passes a build's artifacts page info to Layouts.
 -}
 toLayout : Auth.User -> Route { org : String, repo : String, build : String } -> Model -> Layouts.Layout Msg
-toLayout _ route _ =
+toLayout user route model =
     Layouts.Default_Build
         { navButtons = []
         , utilButtons = []
@@ -120,6 +120,8 @@ type alias Model =
     }
 
 
+{-| init : takes shared model, route, and unit, and returns a model and effect.
+-}
 init : Shared.Model -> Route { org : String, repo : String, build : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { build = RemoteData.Loading
@@ -140,13 +142,15 @@ init shared route () =
 -- UPDATE
 
 
+{-| Msg : custom type with possible messages.
+-}
 type Msg
     = NoOp
     | DownloadTextArtifact { filename : String, content : String, map : String -> String }
     | GetArtifactsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Artifact ))
 
 
-{-| update : takes current models, route, message, and returns an updated model and effect.
+{-| update : takes current models, route info, message, and returns an updated model and effect.
 -}
 update : Shared.Model -> Route { org : String, repo : String, build : String } -> Msg -> Model -> ( Model, Effect Msg )
 update _ _ msg model =
@@ -174,8 +178,10 @@ update _ _ msg model =
                     )
 
 
+{-| subscriptions : takes model and returns that there are no subscriptions.
+-}
 subscriptions : Model -> Sub Msg
-subscriptions _ =
+subscriptions model =
     Sub.none
 
 
@@ -183,6 +189,8 @@ subscriptions _ =
 -- VIEW
 
 
+{-| view : takes models, route, and creates the html for a build's artifacts page.
+-}
 view : Shared.Model -> Route { org : String, repo : String, build : String } -> Model -> View Msg
 view shared _ model =
     let
@@ -202,6 +210,9 @@ view shared _ model =
 
                 Http.BadBody body ->
                     "Bad response: " ++ body
+
+        noRowsView =
+            text "No artifacts found for this build."
 
         artifactsTable =
             case model.artifacts of
@@ -272,30 +283,7 @@ tableHeaders =
     ]
 
 
-{-| noRowsView : returns message to display when there are no artifacts.
--}
-noRowsView : Html.Html Msg
-noRowsView =
-    text "No artifacts found for this build."
-
-
-{-| viewEmptyTable : renders an empty artifacts table for testing.
--}
-viewEmptyTable : Html.Html Msg
-viewEmptyTable =
-    Components.Table.view
-        (Components.Table.Config
-            "Artifacts"
-            "build-artifacts"
-            noRowsView
-            tableHeaders
-            []
-            Nothing
-            1
-        )
-
-
-{-| viewArtifact : renders a single artifact row.
+{-| viewArtifact : takes an artifact and renders a table row.
 -}
 viewArtifact : Time.Zone -> Time.Posix -> Vela.Artifact -> Html.Html Msg
 viewArtifact zone currentTime artifact =
