@@ -8,7 +8,7 @@ module Pages.Org_.Repo_.Build_.Artifacts exposing (..)
 import Auth
 import Components.Table
 import Effect exposing (Effect)
-import Html exposing (a, button, code, div, small, text, tr)
+import Html exposing (a, div, text, tr)
 import Html.Attributes exposing (attribute, class, href)
 import Http
 import Http.Detailed
@@ -173,6 +173,7 @@ update _ _ msg model =
                     , Effect.none
                     )
 
+
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.none
@@ -211,7 +212,7 @@ view shared _ model =
                             "build-artifacts"
                             noRowsView
                             tableHeaders
-                            (artifactsToRows shared.zone (List.sortBy .file_name artifacts))
+                            (artifactsToRows shared.zone shared.time (List.sortBy .file_name artifacts))
                             Nothing
                             1
                         )
@@ -237,19 +238,37 @@ view shared _ model =
 
 {-| artifactsToRows : takes list of artifacts and produces list of Table rows.
 -}
-artifactsToRows : Time.Zone -> List Vela.Artifact -> Components.Table.Rows Vela.Artifact Msg
-artifactsToRows zone artifacts =
+artifactsToRows : Time.Zone -> Time.Posix -> List Vela.Artifact -> Components.Table.Rows Vela.Artifact Msg
+artifactsToRows zone currentTime artifacts =
     artifacts
-        |> List.map (\artifact -> Components.Table.Row artifact (viewArtifactt zone))
+        |> List.map (\artifact -> Components.Table.Row artifact (viewArtifact zone currentTime))
+
+
+{-| isArtifactExpired : checks if an artifact is expired (older than 7 days).
+-}
+isArtifactExpired : Time.Posix -> Int -> Bool
+isArtifactExpired currentTime createdAt =
+    let
+        sevenDaysInSeconds =
+            7 * 24 * 60 * 60
+
+        expirationTime =
+            createdAt + sevenDaysInSeconds
+
+        currentTimeInSeconds =
+            Time.posixToMillis currentTime // 1000
+    in
+    currentTimeInSeconds > expirationTime
 
 
 {-| tableHeaders : returns table headers for artifacts table.
 -}
 tableHeaders : Components.Table.Columns
 tableHeaders =
-    [ ( Nothing, "name" )
-    , ( Nothing, "created at" )
-    , ( Nothing, "file size" )
+    [ ( Just "name", "name" )
+    , ( Just "created-at-col", "created at" )
+    , ( Just "expires-at-col", "expires at" )
+    , ( Just "file-size-col", "file size" )
     ]
 
 
@@ -276,31 +295,60 @@ viewEmptyTable =
         )
 
 
-viewArtifactt : Time.Zone -> Vela.Artifact -> Html.Html Msg
-viewArtifactt zone artifact =
+{-| viewArtifact : renders a single artifact row.
+-}
+viewArtifact : Time.Zone -> Time.Posix -> Vela.Artifact -> Html.Html Msg
+viewArtifact zone currentTime artifact =
+    let
+        expired =
+            isArtifactExpired currentTime artifact.created_at
+
+        nameCell =
+            if expired then
+                div [ class "artifacts-expired" ]
+                    [ Html.span
+                        [ class "artifact-name-expired"
+                        , attribute "style" "color: var(--color-text-secondary, #888);"
+                        ]
+                        [ text artifact.file_name ]
+                    , Html.span
+                        [ class "artifact-expired-label"
+                        , attribute "style" "margin-left: 0.5rem; color: var(--color-text-secondary, #888); font-size: 0.875rem;"
+                        ]
+                        [ text "(Expired)" ]
+                    ]
+
+            else
+                a
+                    [ href artifact.presigned_url ]
+                    [ text artifact.file_name ]
+    in
     tr []
         [ Components.Table.viewItemCell
             { dataLabel = "name"
             , parentClassList = [ ( "name", True ) ]
             , itemClassList = [ ( "-block", True ) ]
-            , children =
-                [ a
-                    [ href artifact.presigned_url ]
-                    [ text artifact.file_name ]
-                ]
+            , children = [ nameCell ]
             }
-          , Components.Table.viewItemCell
-              { dataLabel = "created-at"
-              , parentClassList = []
-              , itemClassList = []
-              , children =
-                  [ text <| Util.humanReadableDateTimeWithDefault zone artifact.created_at ]
-              }
-          , Components.Table.viewItemCell
-              { dataLabel = "file-size"
-              , parentClassList = []
-              , itemClassList = []
-              , children =
-                  [ text <| Util.humanReadableBytesFormatter artifact.file_size ]
-              }
+        , Components.Table.viewItemCell
+            { dataLabel = "created-at"
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ text <| Util.humanReadableDateTimeWithDefault zone artifact.created_at ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = "expires-at"
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ text <| Util.humanReadableDateTimeWithDefault zone (artifact.created_at + (4 * 24 * 60 * 60)) ]
+            }
+        , Components.Table.viewItemCell
+            { dataLabel = "file-size"
+            , parentClassList = []
+            , itemClassList = []
+            , children =
+                [ text <| Util.humanReadableBytesFormatter artifact.file_size ]
+            }
         ]

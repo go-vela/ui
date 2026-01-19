@@ -16,21 +16,40 @@
   padding: 1rem;
 }
 
-.artifacts-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  text-align: left;
+// Table column widths
+// give the Name column half the table width for long artifact names
+// which will help even out word wrapping consistency across all columns
+// on smaller window sizes
+// td = table data cell
+// th = table header cell
+.table-base td.name,
+.table-base th.name {
+  width: 50%;
 }
 
-.artifact-link {
-  display: inline-block;
-  padding: 0.75rem 1rem;
-  margin-left: 1rem;
-  text-decoration: underline;
-  text-align: left;
-  background: var(--color-bg-dark);
-  color: var(--color-primary);
-  border-radius: 4px;
-  word-break: break-word;
+.table-base td.created-at-col,
+.table-base th.created-at-col {
+  max-width: 14rem;
+}
+
+.table-base td.created-at-col {
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+
+.table-base td.expires-at-col,
+.table-base th.expires-at-col {
+  max-width: 14rem;
+}
+
+.table-base td.expires-at-col {
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+
+.table-base td.file-size-col,
+.table-base th.file-size-col {
+  max-width: 8rem;
 }
