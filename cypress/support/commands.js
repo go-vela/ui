@@ -724,12 +724,45 @@ Cypress.Commands.add('workerPages', () => {
 
 Cypress.Commands.add('stubArtifacts', () => {
   cy.server();
-  cy.fixture('test_attachments.json').as('artifacts');
+  // Compute timestamps dynamically to ensure artifacts are never expired
+  const now = Math.floor(Date.now() / 1000);
+  const artifacts = [
+    {
+      id: 1,
+      build_id: 1,
+      file_name: 'test-results.xml',
+      object_path: 'artifacts/test-results.xml',
+      file_size: 2048,
+      file_type: 'application/xml',
+      presigned_url: 'https://example.com/signed-url/test-results.xml',
+      created_at: now - 3600, // 1 hour ago
+    },
+    {
+      id: 2,
+      build_id: 1,
+      file_name: 'coverage.html',
+      object_path: 'artifacts/coverage.html',
+      file_size: 8192,
+      file_type: 'text/html',
+      presigned_url: 'https://example.com/signed-url/coverage.html',
+      created_at: now - 7200, // 2 hours ago
+    },
+    {
+      id: 3,
+      build_id: 1,
+      file_name: 'junit-report.json',
+      object_path: 'artifacts/junit-report.json',
+      file_size: 1024,
+      file_type: 'application/json',
+      presigned_url: 'https://example.com/signed-url/junit-report.json',
+      created_at: now - 10800, // 3 hours ago
+    },
+  ];
   cy.route({
     method: 'GET',
     url: '*api/v1/repos/*/*/builds/*/artifact',
     status: 200,
-    response: '@artifacts',
+    response: artifacts,
   });
 });
 
@@ -739,7 +772,7 @@ Cypress.Commands.add('stubArtifactsError', () => {
     method: 'GET',
     url: '*api/v1/repos/*/*/builds/*/artifact',
     status: 500,
-    response: 'server error',
+    response: { error: 'Internal server error' },
   });
 });
 

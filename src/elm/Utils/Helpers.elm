@@ -24,10 +24,10 @@ module Utils.Helpers exposing
     , formatTestTag
     , formatTimeFromFloat
     , getNameFromRef
+    , humanReadableBytesFormatter
     , humanReadableDateTimeFormatter
     , humanReadableDateTimeWithDefault
     , humanReadableDateWithDefault
-    , humanReadableBytesFormatter
     , isLoaded
     , isSuccess
     , mergeListsById

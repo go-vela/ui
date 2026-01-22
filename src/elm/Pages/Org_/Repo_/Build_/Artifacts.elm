@@ -330,7 +330,7 @@ viewArtifact zone currentTime artifact =
             , parentClassList = []
             , itemClassList = []
             , children =
-                [ text <| Util.humanReadableDateTimeWithDefault zone (artifact.created_at + (4 * 24 * 60 * 60)) ]
+                [ text <| Util.humanReadableDateTimeWithDefault zone (artifact.created_at + (7 * 24 * 60 * 60)) ]
             }
         , Components.Table.viewItemCell
             { dataLabel = "file-size"
