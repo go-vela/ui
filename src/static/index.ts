@@ -97,7 +97,7 @@ app.ports.setTheme.subscribe(theme => {
     const applied = isDark ? 'theme-dark' : 'theme-light';
     applyTheme(applied);
 
-    // Listen for changes to the system preference and update accordingly.
+    // listen for changes to the system preference and update accordingly.
     const mql = window.matchMedia('(prefers-color-scheme: dark)');
     const listener = (e: MediaQueryListEvent) => {
       const nowApplied = e.matches ? 'theme-dark' : 'theme-light';
