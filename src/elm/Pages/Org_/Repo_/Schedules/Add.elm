@@ -23,6 +23,7 @@ import Shared
 import String.Extra
 import Utils.Errors as Errors
 import Utils.Helpers as Util
+import Utils.Name
 import Vela exposing (defaultSchedulePayload)
 import View exposing (View)
 
@@ -143,7 +144,7 @@ update shared route msg model =
                     )
 
         NameOnInput val ->
-            ( { model | name = val }
+            ( { model | name = Utils.Name.sanitizeName val }
             , Effect.none
             )
 
@@ -241,7 +242,14 @@ view shared route model =
                     , div [ class "schedule-form" ]
                         [ Components.Form.viewInputSection
                             { title = Just "Name"
-                            , subtitle = Nothing
+                            , subtitle =
+                                Just <|
+                                    em [ class "field-description" ]
+                                        [ text <|
+                                            "(name cannot include: "
+                                                ++ Utils.Name.disallowedNameCharactersText
+                                                ++ ")"
+                                        ]
                             , id_ = "name"
                             , val = model.name
                             , placeholder_ = "Schedule Name"
@@ -278,7 +286,7 @@ view shared route model =
                                 Just <|
                                     span
                                         [ class "field-description" ]
-                                        [ em [] [ text "(Leave blank to use default branch)" ]
+                                        [ em [] [ text "(leave blank to use default branch)" ]
                                         ]
                             , id_ = "branch-name"
                             , val = model.branch

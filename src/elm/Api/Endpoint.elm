@@ -7,6 +7,8 @@ module Api.Endpoint exposing (Endpoint(..), toUrl)
 
 import Api.Pagination as Pagination
 import Auth.Session
+import String
+import Url exposing (percentEncode)
 import Url.Builder as UB exposing (QueryParameter)
 import Vela
 
@@ -191,19 +193,30 @@ toUrl api endpoint =
 -}
 url : String -> List String -> List QueryParameter -> String
 url api segments params =
+    let
+        encodeSegment : String -> String
+        encodeSegment segment =
+            percentEncode segment
+
+        encodedSegments : List String
+        encodedSegments =
+            segments
+                |> List.filter (\s -> not <| String.isEmpty s)
+                |> List.map encodeSegment
+    in
     -- these endpoints don't live at the api base path
     case List.head segments of
         Just "authenticate" ->
-            UB.crossOrigin api segments params
+            UB.crossOrigin api encodedSegments params
 
         Just "login" ->
-            UB.crossOrigin api segments params
+            UB.crossOrigin api encodedSegments params
 
         Just "logout" ->
-            UB.crossOrigin api segments params
+            UB.crossOrigin api encodedSegments params
 
         Just "token-refresh" ->
-            UB.crossOrigin api segments params
+            UB.crossOrigin api encodedSegments params
 
         _ ->
-            UB.crossOrigin api (apiBase :: List.filter (\s -> not <| String.isEmpty s) segments) params
+            UB.crossOrigin api (apiBase :: encodedSegments) params
