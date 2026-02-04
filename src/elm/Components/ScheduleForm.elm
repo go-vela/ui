@@ -42,10 +42,10 @@ viewCronHelp time =
             ]
             [ text "help" ]
         , span [ class "field-description" ]
-            [ text "( "
-            , em [] [ text <| "Expressions are evaluated in UTC, time now is " ]
+            [ text "("
+            , em [] [ text <| "expressions are evaluated in UTC, time now is " ]
             , text <| Util.toUtcString time
-            , text " )"
+            , text ")"
             ]
         ]
 
@@ -59,9 +59,9 @@ viewEnabledInput { msg, value, disabled_ } =
             [ strong []
                 [ text "Active"
                 , span [ class "field-description" ]
-                    [ text "( "
-                    , em [] [ text "Disabled schedules will not be run" ]
-                    , text " )"
+                    [ text "("
+                    , em [] [ text "disabled schedules will not be run" ]
+                    , text ")"
                     ]
                 ]
             ]
