@@ -3,7 +3,18 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.SecretForm exposing (Form, defaultOrgRepoSecretForm, defaultSharedSecretForm, toForm, viewAllowCommandsInput, viewAllowEventsSelect, viewAllowSubstitutionInput, viewHelp, viewImagesInput, viewRepoAllowlistInput)
+module Components.SecretForm exposing
+    ( Form
+    , defaultOrgRepoSecretForm
+    , defaultSharedSecretForm
+    , toForm
+    , viewAllowCommandsInput
+    , viewAllowEventsSelect
+    , viewAllowSubstitutionInput
+    , viewHelp
+    , viewImagesInput
+    , viewRepoAllowlistInput
+    )
 
 import Components.Form
 import Html
@@ -32,6 +43,7 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick)
 import Shared
+import String
 import Url
 import Utils.Helpers as Util
 import Vela
@@ -147,7 +159,7 @@ viewImagesInput { onInput_, addImage, removeImage, images, imageValue, disabled_
                 [ strong [] [ text "Limit to Docker Images" ]
                 , span
                     [ class "field-description" ]
-                    [ em [] [ text "(Leave blank to enable this secret for all images)" ]
+                    [ em [] [ text "(leave blank to enable this secret for all images)" ]
                     ]
                 ]
             , div [ class "parameters-inputs" ]
@@ -238,7 +250,7 @@ viewRepoAllowlistInput { onOrgInput_, onRepoInput_, addRepo, removeRepo, repos, 
                 [ strong [] [ text "Limit to certain repositories" ]
                 , span
                     [ class "field-description" ]
-                    [ em [] [ text "(Leave blank to enable this secret for all repositories)" ]
+                    [ em [] [ text "(leave blank to enable this secret for all repositories)" ]
                     ]
                 ]
             , div [ class "parameters-inputs" ]
@@ -425,9 +437,9 @@ viewAllowEventsSelect shared props =
         [ div [ for "events-select" ]
             ([ strong [] [ text "Limit to Events" ]
              , span [ class "field-description" ]
-                [ text "( "
+                [ text "("
                 , em [] [ text "at least one event must be selected" ]
-                , text " )"
+                , text ")"
                 ]
              , viewPullRequestWarning
              ]

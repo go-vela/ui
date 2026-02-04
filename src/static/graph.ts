@@ -203,7 +203,8 @@ function drawNodes(opts, buildGraphElement, nodeSelector, edges) {
 
     node.selectAll('a').filter(function () {
       var step = d3.select(this);
-      if (step.attr('xlink:href').includes('#href:')) {
+      var hrefValue = step.attr('xlink:href');
+      if (hrefValue && hrefValue.includes('#href:')) {
         // restore base class and build modifiers
         step.classed('d3-build-graph-node-step-a', true);
 
@@ -246,6 +247,12 @@ function drawNodes(opts, buildGraphElement, nodeSelector, edges) {
         let cellParent = d3.select(cell.parentNode);
 
         var step = getStepDataFromTitle(cellParent);
+
+        cellParent
+          .attr('data-test', 'build-graph-step-link')
+          .attr('data-step-id', step.id)
+          .attr('data-step-name', step.name)
+          .attr('data-step-status', step.status);
 
         let cellBBox = cell.getBBox();
 
