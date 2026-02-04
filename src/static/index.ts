@@ -106,7 +106,7 @@ app.ports.setTheme.subscribe(theme => {
       setTimeout(() => app.ports.onThemeChange.send(theme), 0);
     };
 
-    // Listen for changes to the media query
+    // listen for changes to the media query
     (mql as any).addEventListener('change', listener);
 
     // Persist the user's selection of 'theme-system' (not the resolved light/dark)
