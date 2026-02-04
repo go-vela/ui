@@ -102,7 +102,7 @@ app.ports.setTheme.subscribe(theme => {
     const listener = (e: MediaQueryListEvent) => {
       const nowApplied = e.matches ? 'theme-dark' : 'theme-light';
       applyTheme(nowApplied);
-      // Notify Elm that the selection remains 'theme-system' (do not send the resolved theme)
+      // notify Elm that the selection remains 'theme-system' (do not send the resolved theme)
       setTimeout(() => app.ports.onThemeChange.send(theme), 0);
     };
 
