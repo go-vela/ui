@@ -90,7 +90,7 @@ app.ports.setTheme.subscribe(theme => {
   };
 
   if (theme === 'theme-system') {
-    // Apply the current system preference immediately
+    // apply the current system preference immediately
     const isDark =
       window.matchMedia &&
       window.matchMedia('(prefers-color-scheme: dark)').matches;
