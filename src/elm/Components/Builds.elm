@@ -12,6 +12,7 @@ import Html
         ( Html
         , a
         , br
+        , button
         , code
         , div
         , em
@@ -22,6 +23,7 @@ import Html
         , li
         , ol
         , p
+        , span
         , text
         )
 import Html.Attributes
@@ -29,6 +31,8 @@ import Html.Attributes
         ( attribute
         , checked
         , class
+        , classList
+        , disabled
         , for
         , href
         , id
@@ -36,7 +40,9 @@ import Html.Attributes
         , type_
         )
 import Html.Events exposing (onClick)
+import Http
 import RemoteData exposing (WebData)
+import Route.Path
 import Shared
 import String
 import Utils.Helpers as Util
@@ -69,6 +75,8 @@ type alias Props msg =
     , showRepoLink : Bool
     , linkBuildNumber : Bool
     , pageNumber : Int
+    , enableRepo : Maybe ({ org : String, repo : String } -> msg)
+    , enablingRepo : Bool
     }
 
 
@@ -144,7 +152,7 @@ view shared props =
     in
     case props.builds of
         RemoteData.Success builds ->
-            if List.length builds == 0 then
+            if List.isEmpty builds then
                 none
 
             else
@@ -167,12 +175,58 @@ view shared props =
         RemoteData.NotAsked ->
             Components.Loading.viewSmallLoader
 
-        RemoteData.Failure _ ->
-            div [ Util.testAttribute "builds-error" ]
-                [ p []
-                    [ text "There was an error fetching builds, please refresh or try again later!"
-                    ]
-                ]
+        RemoteData.Failure error ->
+            let
+                basicError : Html msg
+                basicError =
+                    div [ Util.testAttribute "builds-error" ]
+                        [ p []
+                            [ text "There was an error fetching builds, please refresh or try again later!"
+                            ]
+                        ]
+            in
+            case ( props.orgRepo, props.enableRepo, error ) of
+                -- special handling to allow enabling a repo on a repo page;
+                -- it is assumed a 404 is caused by the repo not being found.
+                ( ( org, Just repo ), Just enableRepoMsg, Http.BadStatus statusCode ) ->
+                    case statusCode of
+                        404 ->
+                            div [ Util.testAttribute "builds-error" ]
+                                [ p []
+                                    [ text "This repository may not be enabled yet. Enable it to start tracking builds." ]
+                                , button
+                                    [ classList
+                                        [ ( "button", True )
+                                        , ( "-outline", props.enablingRepo )
+                                        , ( "-loading", props.enablingRepo )
+                                        ]
+                                    , onClick (enableRepoMsg { org = org, repo = repo })
+                                    , disabled props.enablingRepo
+                                    , Util.testAttribute "enable-repo-button"
+                                    ]
+                                    [ if props.enablingRepo then
+                                        text "Enabling"
+
+                                      else
+                                        text "Enable Repository"
+                                    , if props.enablingRepo then
+                                        span [ class "loading-ellipsis" ] []
+
+                                      else
+                                        text ""
+                                    ]
+                                , p []
+                                    [ text "Or "
+                                    , a [ Route.Path.href <| Route.Path.Account_SourceRepos ] [ text "view all available repositories" ]
+                                    , text "."
+                                    ]
+                                ]
+
+                        _ ->
+                            basicError
+
+                ( _, _, _ ) ->
+                    basicError
 
 
 {-| viewHeader : renders builds header including filter and timestamp toggle.

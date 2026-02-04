@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Utils.Errors exposing (Error, addError, addErrorString, detailedErrorToString, showAlertAlways, showAlertNon401, toFailure)
+module Utils.Errors exposing (Error, addError, addErrorString, detailedErrorToString, showAlertAlways, showAlertNon401, showAlertNon404, toFailure)
 
 import Http
 import Http.Detailed
@@ -30,8 +30,7 @@ type alias Error =
 -}
 errorDecoder : Decode.Decoder String
 errorDecoder =
-    Decode.map (\error -> error) <|
-        Decode.at [ "error" ] Decode.string
+    Decode.at [ "error" ] Decode.string
 
 
 {-| detailedErrorToString : extract metadata and convert a Http.Detailed.Error to string value.
@@ -146,6 +145,23 @@ showAlertNon401 error =
         Http.Detailed.BadStatus meta _ ->
             case meta.statusCode of
                 401 ->
+                    False
+
+                _ ->
+                    True
+
+        _ ->
+            True
+
+
+{-| showAlertNon404 : returns an http error predicate that returns true when the error status code anything but 404.
+-}
+showAlertNon404 : Http.Detailed.Error String -> Bool
+showAlertNon404 error =
+    case error of
+        Http.Detailed.BadStatus meta _ ->
+            case meta.statusCode of
+                404 ->
                     False
 
                 _ ->
