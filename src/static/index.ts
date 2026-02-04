@@ -112,7 +112,7 @@ app.ports.setTheme.subscribe(theme => {
     // persist the user's selection of 'theme-system' (not the resolved light/dark)
     localStorage.setItem(themeKey, theme);
 
-    // Notify Elm that the selection is 'theme-system' (do not send the resolved theme)
+    // notify Elm that the selection is 'theme-system' (do not send the resolved theme)
     setTimeout(() => app.ports.onThemeChange.send(theme), 0);
   } else {
     // explicit light or dark
