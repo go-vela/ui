@@ -109,7 +109,7 @@ app.ports.setTheme.subscribe(theme => {
     // listen for changes to the media query
     (mql as any).addEventListener('change', listener);
 
-    // Persist the user's selection of 'theme-system' (not the resolved light/dark)
+    // persist the user's selection of 'theme-system' (not the resolved light/dark)
     localStorage.setItem(themeKey, theme);
 
     // Notify Elm that the selection is 'theme-system' (do not send the resolved theme)
