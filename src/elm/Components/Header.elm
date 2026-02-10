@@ -124,9 +124,6 @@ view shared props =
                     _ ->
                         text ""
                 , li []
-                    [ viewThemeToggle props.theme props.setTheme
-                    ]
-                , li []
                     [ a
                         [ href shared.velaFeedbackURL, attribute "aria-label" "go to feedback" ]
                         [ text "feedback" ]
@@ -145,25 +142,3 @@ view shared props =
                 ]
             ]
         ]
-
-
-{-| viewThemeToggle : renders a theme toggle button.
--}
-viewThemeToggle : Theme.Theme -> (Theme.Theme -> msg) -> Html msg
-viewThemeToggle theme setTheme =
-    let
-        ( newTheme, themeAria ) =
-            case theme of
-                Theme.Dark ->
-                    ( Theme.Light, "enable light mode" )
-
-                Theme.Light ->
-                    ( Theme.Dark, "enable dark mode" )
-    in
-    button
-        [ class "button"
-        , class "-link"
-        , attribute "aria-label" themeAria
-        , onClick (setTheme newTheme)
-        ]
-        [ text "switch theme" ]

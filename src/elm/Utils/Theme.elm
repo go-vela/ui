@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Utils.Theme exposing (Theme(..), decodeTheme, encodeTheme, stringToTheme)
+module Utils.Theme exposing (Theme(..), decodeTheme, encodeTheme, stringToTheme, toString)
 
 import Json.Decode
 import Json.Encode
@@ -14,10 +14,26 @@ import Json.Encode
 type Theme
     = Light
     | Dark
+    | System
 
 
 
 -- THEME
+
+
+{-| toString : convert a theme to a string
+-}
+toString : Theme -> String
+toString theme =
+    case theme of
+        Light ->
+            "theme-light"
+
+        Dark ->
+            "theme-dark"
+
+        System ->
+            "theme-system"
 
 
 {-| stringToTheme : convert a string to a theme.
@@ -27,6 +43,9 @@ stringToTheme theme =
     case theme of
         "theme-light" ->
             Light
+
+        "theme-system" ->
+            System
 
         _ ->
             Dark
@@ -50,6 +69,9 @@ encodeTheme theme =
     case theme of
         Light ->
             Json.Encode.string "theme-light"
+
+        System ->
+            Json.Encode.string "theme-system"
 
         _ ->
             Json.Encode.string "theme-dark"

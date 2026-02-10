@@ -8,6 +8,7 @@ module Pages.Account.Settings exposing (..)
 import Auth
 import Auth.Session exposing (Session(..))
 import Components.Crumbs
+import Components.Form
 import Components.Nav
 import DateFormat.Relative exposing (relativeTime)
 import Effect exposing (Effect)
@@ -20,6 +21,7 @@ import Html
         , div
         , em
         , h2
+        , input
         , label
         , main_
         , p
@@ -30,11 +32,15 @@ import Html
 import Html.Attributes
     exposing
         ( attribute
+        , checked
         , class
         , for
         , id
+        , name
         , readonly
         , rows
+        , type_
+        , value
         , wrap
         )
 import Html.Events exposing (onClick)
@@ -45,6 +51,7 @@ import Route.Path
 import Shared
 import Time
 import Utils.Helpers as Util
+import Utils.Theme as Theme
 import View exposing (View)
 
 
@@ -106,6 +113,7 @@ init () =
 -}
 type Msg
     = NoOp
+    | SetTheme Theme.Theme
       -- ALERTS
     | AddAlertCopiedToClipboard String
 
@@ -118,6 +126,11 @@ update msg model =
         NoOp ->
             ( model
             , Effect.none
+            )
+
+        SetTheme theme ->
+            ( model
+            , Effect.setTheme { theme = theme }
             )
 
         -- ALERTS
@@ -219,6 +232,39 @@ viewAccount_Settings shared model =
                                     |> FeatherIcons.toHtml []
                                 ]
                             ]
+                        ]
+                    ]
+                , section [ class "settings", Util.testAttribute "user-theme" ]
+                    [ h2 [ class "settings-title" ] [ text "Theme" ]
+                    , p [ class "settings-description" ] [ text "Choose your theme preference." ]
+                    , div [ class "form-controls", class "-stack" ]
+                        [ Components.Form.viewRadio
+                            { value = Theme.toString shared.theme
+                            , field = Theme.toString Theme.Light
+                            , title = "Light"
+                            , subtitle = Nothing
+                            , msg = SetTheme Theme.Light
+                            , disabled_ = False
+                            , id_ = Theme.toString Theme.Light
+                            }
+                        , Components.Form.viewRadio
+                            { value = Theme.toString shared.theme
+                            , field = Theme.toString Theme.Dark
+                            , title = "Dark"
+                            , subtitle = Nothing
+                            , msg = SetTheme Theme.Dark
+                            , disabled_ = False
+                            , id_ = Theme.toString Theme.Dark
+                            }
+                        , Components.Form.viewRadio
+                            { value = Theme.toString shared.theme
+                            , field = Theme.toString Theme.System
+                            , title = "System"
+                            , subtitle = Nothing
+                            , msg = SetTheme Theme.System
+                            , disabled_ = False
+                            , id_ = Theme.toString Theme.System
+                            }
                         ]
                     ]
                 ]
