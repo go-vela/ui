@@ -4,14 +4,14 @@
   "elm-version": "0.19.1",
   "dependencies": {
     "direct": {
-      "NoRedInk/elm-json-decode-pipeline": "1.0.1",
+      "NoRedInk/elm-json-decode-pipeline": "1.0.2",
       "basti1302/elm-human-readable-filesize": "1.2.0",
       "danfishgold/base64-bytes": "1.1.0",
       "elm/browser": "1.0.2",
       "elm/bytes": "1.0.8",
       "elm/core": "1.0.5",
       "elm/file": "1.0.5",
-      "elm/html": "1.0.0",
+      "elm/html": "1.0.1",
       "elm/http": "2.0.0",
       "elm/json": "1.1.4",
       "elm/svg": "1.0.1",
@@ -28,7 +28,7 @@
       "krisajenkins/remotedata": "6.1.0",
       "pablen/toasty": "1.2.0",
       "ryan-haskell/date-format": "1.0.0",
-      "vito/elm-ansi": "11.0.0"
+      "vito/elm-ansi": "11.0.1"
     },
     "indirect": {
       "avh4/elm-color": "1.0.0",
@@ -36,7 +36,7 @@
       "elm/parser": "1.1.0",
       "elm/random": "1.0.0",
       "elm/regex": "1.0.0",
-      "elm/virtual-dom": "1.0.4",
+      "elm/virtual-dom": "1.0.5",
       "elm-community/intdict": "3.1.0",
       "elm-community/list-extra": "8.7.0",
       "folkertdev/elm-deque": "3.0.1",
@@ -60,7 +60,7 @@
   },
   "test-dependencies": {
     "direct": {
-      "elm-explorations/test": "2.2.0"
+      "elm-explorations/test": "2.2.1"
     },
     "indirect": {}
   }
