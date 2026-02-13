@@ -62,7 +62,7 @@ jobs:
         run: npm run playwright
         
       - name: upload playwright report
-        if: ${{ !cancelled()}}
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
