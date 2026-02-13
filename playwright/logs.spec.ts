@@ -25,10 +25,11 @@ const waitForServiceLogs = async (
   service: number,
 ) => page.waitForResponse(serviceLogsPattern(service));
 
-const stepDetails = (page: { getByTestId: (id: string) => any }, step: number) =>
-  page
-    .getByTestId(`step-header-${step}`)
-    .locator('xpath=ancestor::details[1]');
+const stepDetails = (
+  page: { getByTestId: (id: string) => any },
+  step: number,
+) =>
+  page.getByTestId(`step-header-${step}`).locator('xpath=ancestor::details[1]');
 
 const serviceDetails = (
   page: { getByTestId: (id: string) => any },
@@ -46,7 +47,12 @@ const expectTrackerInView = async (
 };
 
 const expectLogsScrolledToBottom = async (
-  page: { evaluate: (fn: (logTestId: string) => number | null, arg: string) => Promise<number | null> },
+  page: {
+    evaluate: (
+      fn: (logTestId: string) => number | null,
+      arg: string,
+    ) => Promise<number | null>;
+  },
   logTestId: string,
 ) => {
   await expect
@@ -157,7 +163,9 @@ test.describe('Logs', () => {
     });
 
     test.describe('log with > 25 lines (long)', () => {
-      test('top log actions should contain appropriate log actions', async ({ page }) => {
+      test('top log actions should contain appropriate log actions', async ({
+        page,
+      }) => {
         const actions = page.getByTestId('logs-header-actions-2');
         await expect(actions.getByTestId('jump-to-bottom-2')).toHaveCount(0);
         await expect(actions.getByTestId('download-logs-2')).toHaveCount(1);
@@ -178,10 +186,14 @@ test.describe('Logs', () => {
       });
 
       test('bottom tracker should not have focus', async ({ page }) => {
-        await expect(page.getByTestId('bottom-log-tracker-2')).not.toBeFocused();
+        await expect(
+          page.getByTestId('bottom-log-tracker-2'),
+        ).not.toBeFocused();
       });
 
-      test('click jump to bottom should focus bottom tracker', async ({ page }) => {
+      test('click jump to bottom should focus bottom tracker', async ({
+        page,
+      }) => {
         await page.getByTestId('jump-to-bottom-2').click({ force: true });
         await expectLogsScrolledToBottom(page, 'logs-2');
       });
@@ -195,8 +207,12 @@ test.describe('Logs', () => {
         await expectTrackerInView(page, 'top-log-tracker-2');
       });
 
-      test('click follow logs should focus follow new logs', async ({ page }) => {
-        await expect(page.getByTestId('bottom-log-tracker-2')).not.toBeFocused();
+      test('click follow logs should focus follow new logs', async ({
+        page,
+      }) => {
+        await expect(
+          page.getByTestId('bottom-log-tracker-2'),
+        ).not.toBeFocused();
         await mockStepLog(page, 2, 'log_step_long.json', { times: 1 });
         await Promise.all([
           waitForStepLogs(page, 2),
@@ -288,13 +304,17 @@ test.describe('Logs', () => {
       ).toHaveCount(1);
     });
 
-    test('build services should have collapse/expand actions', async ({ page }) => {
+    test('build services should have collapse/expand actions', async ({
+      page,
+    }) => {
       const actions = page.getByTestId('log-actions');
       await expect(actions.getByTestId('collapse-all')).toHaveCount(1);
       await expect(actions.getByTestId('expand-all')).toHaveCount(1);
     });
 
-    test('click collapse all should collapse all services', async ({ page }) => {
+    test('click collapse all should collapse all services', async ({
+      page,
+    }) => {
       await page.getByTestId('expand-all').click({ force: true });
 
       await expect(serviceDetails(page, 1)).toHaveJSProperty('open', true);
@@ -336,7 +356,9 @@ test.describe('Logs', () => {
     });
 
     test.describe('log with > 25 lines (long)', () => {
-      test('top log actions should contain appropriate log actions', async ({ page }) => {
+      test('top log actions should contain appropriate log actions', async ({
+        page,
+      }) => {
         const actions = page.getByTestId('logs-header-actions-2');
         await expect(actions.getByTestId('jump-to-bottom-2')).toHaveCount(0);
         await expect(actions.getByTestId('download-logs-2')).toHaveCount(1);
@@ -357,10 +379,14 @@ test.describe('Logs', () => {
       });
 
       test('bottom tracker should not have focus', async ({ page }) => {
-        await expect(page.getByTestId('bottom-log-tracker-2')).not.toBeFocused();
+        await expect(
+          page.getByTestId('bottom-log-tracker-2'),
+        ).not.toBeFocused();
       });
 
-      test('click jump to bottom should focus bottom tracker', async ({ page }) => {
+      test('click jump to bottom should focus bottom tracker', async ({
+        page,
+      }) => {
         await page.getByTestId('jump-to-bottom-2').click({ force: true });
         await expectLogsScrolledToBottom(page, 'logs-2');
       });
@@ -374,8 +400,12 @@ test.describe('Logs', () => {
         await expectTrackerInView(page, 'top-log-tracker-2');
       });
 
-      test('click follow logs should focus follow new logs', async ({ page }) => {
-        await expect(page.getByTestId('bottom-log-tracker-2')).not.toBeFocused();
+      test('click follow logs should focus follow new logs', async ({
+        page,
+      }) => {
+        await expect(
+          page.getByTestId('bottom-log-tracker-2'),
+        ).not.toBeFocused();
         await mockServiceLog(page, 2, 'log_service_long.json', { times: 1 });
         await Promise.all([
           waitForServiceLogs(page, 2),
@@ -498,12 +528,16 @@ test.describe('Logs', () => {
       await app.login('/github/octocat/1');
     });
 
-    test('should show skipped step message without making log API call', async ({ page }) => {
+    test('should show skipped step message without making log API call', async ({
+      page,
+    }) => {
       await page.getByTestId('step-header-5').click({ force: true });
 
       await expect(page.getByTestId('logs-5')).toHaveCount(0);
 
-      const container = page.locator('[data-test=step-header-5] + .logs-container');
+      const container = page.locator(
+        '[data-test=step-header-5] + .logs-container',
+      );
       await expect(container.getByTestId('step-skipped')).toHaveCount(1);
       await expect(container.getByTestId('step-skipped')).toContainText(
         'step was skipped',
@@ -518,14 +552,18 @@ test.describe('Logs', () => {
 
       await expect(page.getByTestId('logs-3')).toHaveCount(0);
 
-      const container = page.locator('[data-test=step-header-3] + .logs-container');
+      const container = page.locator(
+        '[data-test=step-header-3] + .logs-container',
+      );
       await expect(container.getByTestId('log-error')).toHaveCount(1);
       await expect(container.getByTestId('log-error')).toContainText(
         'Log not found (may be expired)',
       );
     });
 
-    test('should show both step error and log error when both exist', async ({ page }) => {
+    test('should show both step error and log error when both exist', async ({
+      page,
+    }) => {
       await Promise.all([
         waitForStepLogs(page, 4),
         page.getByTestId('step-header-4').click({ force: true }),
@@ -533,9 +571,13 @@ test.describe('Logs', () => {
 
       await expect(page.getByTestId('logs-4')).toHaveCount(0);
 
-      const container = page.locator('[data-test=step-header-4] + .logs-container');
+      const container = page.locator(
+        '[data-test=step-header-4] + .logs-container',
+      );
       await expect(container.getByTestId('resource-error')).toHaveCount(1);
-      await expect(container.getByTestId('resource-error')).toContainText('error:');
+      await expect(container.getByTestId('resource-error')).toContainText(
+        'error:',
+      );
 
       await expect(container.getByTestId('log-error')).toHaveCount(1);
       await expect(container.getByTestId('log-error')).toContainText(
@@ -555,13 +597,17 @@ test.describe('Logs', () => {
       await expect(logs.getByTestId('step-skipped')).toHaveCount(0);
     });
 
-    test('should show step error but still display logs when error step has logs', async ({ page }) => {
+    test('should show step error but still display logs when error step has logs', async ({
+      page,
+    }) => {
       await Promise.all([
         waitForStepLogs(page, 6),
         page.getByTestId('step-header-6').click({ force: true }),
       ]);
 
-      const container = page.locator('[data-test=step-header-6] + .logs-container');
+      const container = page.locator(
+        '[data-test=step-header-6] + .logs-container',
+      );
       await expect(container.getByTestId('resource-error')).toHaveCount(1);
       await expect(container.getByTestId('resource-error')).toContainText(
         'error: test suite failed',
@@ -569,10 +615,14 @@ test.describe('Logs', () => {
 
       await expect(container.getByTestId('log-error')).toHaveCount(0);
 
-      await expect(page.getByTestId('logs-6').getByTestId('log-line-6-1')).toHaveCount(1);
+      await expect(
+        page.getByTestId('logs-6').getByTestId('log-line-6-1'),
+      ).toHaveCount(1);
     });
 
-    test('should cache logs for finished steps and not refetch on re-expand', async ({ page }) => {
+    test('should cache logs for finished steps and not refetch on re-expand', async ({
+      page,
+    }) => {
       await Promise.all([
         waitForStepLogs(page, 1),
         page.getByTestId('step-header-1').click({ force: true }),
@@ -586,7 +636,9 @@ test.describe('Logs', () => {
       await page.getByTestId('step-header-1').click({ force: true });
 
       await expect(page.getByTestId('logs-1')).toBeVisible();
-      await expect(page.getByTestId('logs-1').getByTestId('log-line-1-1')).toHaveCount(1);
+      await expect(
+        page.getByTestId('logs-1').getByTestId('log-line-1-1'),
+      ).toHaveCount(1);
     });
   });
 });

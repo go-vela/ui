@@ -18,7 +18,9 @@ test.describe('Authentication', () => {
       await expect(page.getByTestId('identity')).toContainText('cookie cat');
     });
 
-    test('redirects back to the overview page when trying to access login page', async ({ page }) => {
+    test('redirects back to the overview page when trying to access login page', async ({
+      page,
+    }) => {
       await page.goto('/account/login');
       await expect(page).toHaveURL(/\/$/);
     });
@@ -50,7 +52,9 @@ test.describe('Authentication', () => {
       await expect(page).toHaveURL(/\/account\/login$/);
     });
 
-    test('visiting non-existent page should show login page', async ({ page }) => {
+    test('visiting non-existent page should show login page', async ({
+      page,
+    }) => {
       await page.goto('/asdf');
       await expect(page.locator('body')).toContainText('Authorize Via');
     });

@@ -52,10 +52,7 @@ async function mockTokenRefresh(
   );
 }
 
-async function mockCurrentUser(
-  page: Page,
-  dataName: string,
-): Promise<void> {
+async function mockCurrentUser(page: Page, dataName: string): Promise<void> {
   const payload = readTestData(dataName);
   await page.route(/^https?:\/\/[^/]+\/api\/v1\/user(\?.*)?$/, route => {
     if (route.request().method() !== 'GET') {

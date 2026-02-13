@@ -122,6 +122,11 @@ export async function mockStepsWithSkippedAndMissingLogs(
   await mockStepLog(page, 2, logs[1]);
   await mockStepLog(page, 3, { message: 'log not found' }, { status: 404 });
   await mockStepLog(page, 4, { message: 'log not found' }, { status: 404 });
-  await mockStepLog(page, 5, { message: 'log not found for killed step' }, { status: 404 });
+  await mockStepLog(
+    page,
+    5,
+    { message: 'log not found for killed step' },
+    { status: 404 },
+  );
   await mockStepLog(page, 6, logs[2]);
 }

@@ -177,7 +177,9 @@ test.describe('Build', () => {
         });
       });
 
-      test('clicking restart build should show error alert', async ({ page }) => {
+      test('clicking restart build should show error alert', async ({
+        page,
+      }) => {
         await page.getByTestId('restart-build').click();
         await expect(page.getByTestId('alert')).toContainText('Error');
       });
@@ -207,7 +209,9 @@ test.describe('Build', () => {
         });
       });
 
-      test('clicking cancel build should show error alert', async ({ page }) => {
+      test('clicking cancel build should show error alert', async ({
+        page,
+      }) => {
         await page.getByTestId('cancel-build').click();
         await expect(page.getByTestId('alert')).toContainText('Error');
       });

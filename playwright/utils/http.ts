@@ -12,7 +12,10 @@ type MockResponse = {
 };
 
 // Helper function to fulfill a route with a JSON response
-export function jsonResponse(route: Route, response: MockResponse): Promise<void> {
+export function jsonResponse(
+  route: Route,
+  response: MockResponse,
+): Promise<void> {
   const headers = {
     'content-type': 'application/json',
     ...response.headers,
