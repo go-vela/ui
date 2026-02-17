@@ -283,7 +283,7 @@ view shared _ model =
                     "Bad response: " ++ body
 
         noRowsView =
-            text "No artifacts found for this build."
+            text "No artifacts are available for this build. They may not have been generated or have expired."
 
         artifactsTable =
             case model.artifacts of

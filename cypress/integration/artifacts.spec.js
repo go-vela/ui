@@ -90,7 +90,7 @@ context('Artifacts', () => {
       cy.get('[data-test=build-artifacts-table]').should('be.visible');
       cy.get('[data-test=build-artifacts-table]').should(
         'contain',
-        'No artifacts found for this build',
+        'No artifacts are available for this build. They may not have been generated or have expired.',
       );
     });
   });
