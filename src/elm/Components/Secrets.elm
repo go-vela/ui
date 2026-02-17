@@ -15,7 +15,6 @@ import Http
 import RemoteData exposing (WebData)
 import Route.Path
 import Shared
-import Url
 import Utils.Helpers as Util
 import Vela
 
@@ -352,19 +351,12 @@ copyButton copyYaml copyMsg =
 -}
 editSecretHref : String -> Vela.SecretType -> Vela.Secret -> Html.Attribute msg
 editSecretHref engine type_ secret =
-    let
-        encodedTeam =
-            Url.percentEncode secret.team
-
-        encodedName =
-            Url.percentEncode secret.name
-    in
     Route.Path.href <|
         case type_ of
             Vela.OrgSecret ->
                 Route.Path.Dash_Secrets_Engine__Org_Org__Name_
                     { org = secret.org
-                    , name = encodedName
+                    , name = secret.name
                     , engine = engine
                     }
 
@@ -372,14 +364,14 @@ editSecretHref engine type_ secret =
                 Route.Path.Dash_Secrets_Engine__Repo_Org__Repo__Name_
                     { org = secret.org
                     , repo = secret.repo
-                    , name = encodedName
+                    , name = secret.name
                     , engine = engine
                     }
 
             Vela.SharedSecret ->
                 Route.Path.Dash_Secrets_Engine__Shared_Org__Team__Name_
                     { org = secret.org
-                    , team = encodedTeam
+                    , team = secret.team
                     , name = secret.name
                     , engine = engine
                     }

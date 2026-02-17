@@ -11,7 +11,7 @@ import Components.Form
 import Components.Nav
 import Components.SecretForm
 import Effect exposing (Effect)
-import Html exposing (div, h2, main_, text)
+import Html exposing (div, em, h2, main_, text)
 import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
@@ -24,6 +24,7 @@ import Shared
 import String.Extra
 import Utils.Errors as Errors
 import Utils.Helpers as Util
+import Utils.Name
 import Vela exposing (defaultSecretPayload)
 import View exposing (View)
 
@@ -140,7 +141,7 @@ update shared route msg model =
                     )
 
         NameOnInput val ->
-            ( { model | form = { form | name = val } }
+            ( { model | form = { form | name = Utils.Name.sanitizeName val } }
             , Effect.none
             )
 
@@ -319,7 +320,14 @@ view shared route model =
                     , div [ class "secret-form" ]
                         [ Components.Form.viewInputSection
                             { title = Just "Name"
-                            , subtitle = Nothing
+                            , subtitle =
+                                Just <|
+                                    em [ class "field-description" ]
+                                        [ text <|
+                                            "(name cannot include: "
+                                                ++ Utils.Name.disallowedNameCharactersText
+                                                ++ ")"
+                                        ]
                             , id_ = "name"
                             , val = model.form.name
                             , placeholder_ = "Secret Name"

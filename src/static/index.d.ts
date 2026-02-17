@@ -98,7 +98,7 @@ export type ToElm<T> = {
  * Supported themes
  *
  */
-export type Theme = 'theme-light' | 'theme-dark';
+export type Theme = 'theme-light' | 'theme-dark' | 'theme-system';
 
 /**
  * Build graph

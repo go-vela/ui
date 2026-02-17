@@ -58,7 +58,7 @@ page user shared route =
 {-| toLayout : takes user, route, model, and passes a build graph (a.k.a. visualize) page info to Layouts.
 -}
 toLayout : Auth.User -> Route { org : String, repo : String, build : String } -> Model -> Layouts.Layout Msg
-toLayout user route model =
+toLayout _ route _ =
     Layouts.Default_Build
         { navButtons = []
         , utilButtons = []
@@ -323,18 +323,49 @@ update shared route msg model =
                 ( ugm_, cmd ) =
                     case interaction.eventType of
                         "href" ->
-                            ( model
-                            , interaction.href
-                                |> String.replace hrefHandle ""
-                                |> Route.Path.fromString
-                                |> Maybe.withDefault
-                                    (Route.Path.Org__Repo__Build__Graph
+                            let
+                                trimmedHref =
+                                    String.replace hrefHandle "" interaction.href
+
+                                ( maybePathString, maybeHash ) =
+                                    case String.split "#" trimmedHref of
+                                        [] ->
+                                            ( Nothing, Nothing )
+
+                                        pathPart :: [] ->
+                                            ( Just pathPart, Nothing )
+
+                                        pathPart :: hashPart :: _ ->
+                                            ( Just pathPart
+                                            , if String.isEmpty hashPart then
+                                                Nothing
+
+                                              else
+                                                Just hashPart
+                                            )
+
+                                maybeRoute =
+                                    maybePathString
+                                        |> Maybe.andThen Route.Path.fromString
+                                        |> Maybe.map
+                                            (\path ->
+                                                { path = path
+                                                , query = Dict.empty
+                                                , hash = maybeHash
+                                                }
+                                            )
+
+                                fallbackPath =
+                                    Route.Path.Org__Repo__Build__Graph
                                         { org = route.params.org
                                         , repo = route.params.repo
                                         , build = route.params.build
                                         }
-                                    )
-                                |> Effect.pushPath
+                            in
+                            ( model
+                            , maybeRoute
+                                |> Maybe.map Effect.pushRoute
+                                |> Maybe.withDefault (Effect.pushPath fallbackPath)
                             )
 
                         "backdrop_click" ->
@@ -834,7 +865,7 @@ nodeLabel shared model graph node showSteps =
                         , repo = graph.repo
                         , build = String.fromInt graph.build
                         }
-                , hash = Just <| hrefHandle ++ String.fromInt step.number
+                , hash = Just <| String.fromInt step.number
                 , query = Dict.empty
                 }
 

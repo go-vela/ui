@@ -7,7 +7,8 @@ module Route.Path exposing (Path(..), fromString, fromUrl, href, toString)
 
 import Html
 import Html.Attributes
-import Url exposing (Url)
+import String
+import Url exposing (Url, percentEncode)
 import Url.Parser exposing ((</>))
 
 
@@ -66,8 +67,18 @@ fromString urlPath =
             urlPath
                 |> String.split "/"
                 |> List.filter (String.trim >> String.isEmpty >> Basics.not)
+
+        decodeSegment : String -> String
+        decodeSegment segment =
+            segment
+                |> Url.percentDecode
+                |> Maybe.withDefault segment
+
+        decodedSegments : List String
+        decodedSegments =
+            List.map decodeSegment urlPathSegments
     in
-    case urlPathSegments of
+    case decodedSegments of
         [] ->
             Just Home_
 
@@ -322,6 +333,10 @@ href path =
 toString : Path -> String
 toString path =
     let
+        encodeSegment : String -> String
+        encodeSegment segment =
+            percentEncode segment
+
         pieces : List String
         pieces =
             case path of
@@ -440,7 +455,8 @@ toString path =
 
                 NotFound_ ->
                     [ "not-found" ]
+
+        encodedSegments =
+            List.map encodeSegment pieces
     in
-    pieces
-        |> String.join "/"
-        |> String.append "/"
+    "/" ++ String.join "/" encodedSegments
