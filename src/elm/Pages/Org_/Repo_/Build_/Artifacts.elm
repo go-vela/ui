@@ -9,7 +9,7 @@ import Auth
 import Components.Table
 import Effect exposing (Effect)
 import Html exposing (a, div, text, tr)
-import Html.Attributes exposing (attribute, class, href)
+import Html.Attributes exposing (class, href, rel, target)
 import Http
 import Http.Detailed
 import Layouts
@@ -20,7 +20,7 @@ import Route.Path
 import Shared
 import Time
 import Utils.Errors as Errors
-import Utils.Helpers as Util
+import Utils.Interval as Interval
 import Vela
 import View exposing (View)
 
@@ -36,6 +36,10 @@ page user shared route =
         , view = view shared route
         }
         |> Page.withLayout (toLayout user route)
+        |> Page.withOnQueryParameterChanged
+            { key = "tab_switch"
+            , onChange = TabSwitched
+            }
 
 
 
@@ -116,7 +120,8 @@ toLayout user route model =
 
 type alias Model =
     { build : WebData Vela.Build
-    , artifacts : WebData (List Vela.Artifact)
+    , artifacts : WebData (List Vela.ArtifactObject)
+    , buildCompleted : Bool
     }
 
 
@@ -126,15 +131,19 @@ init : Shared.Model -> Route { org : String, repo : String, build : String } -> 
 init shared route () =
     ( { build = RemoteData.Loading
       , artifacts = RemoteData.Loading
+      , buildCompleted = False
       }
-    , Effect.getBuildArtifacts
-        { baseUrl = shared.velaAPIBaseURL
-        , session = shared.session
-        , onResponse = GetArtifactsResponse
-        , org = route.params.org
-        , repo = route.params.repo
-        , build = route.params.build
-        }
+    , Effect.batch
+        [ Effect.getBuild
+            { baseUrl = shared.velaAPIBaseURL
+            , session = shared.session
+            , onResponse = GetBuildResponse
+            , org = route.params.org
+            , repo = route.params.repo
+            , build = route.params.build
+            }
+        , fetchArtifacts shared route
+        ]
     )
 
 
@@ -147,13 +156,16 @@ init shared route () =
 type Msg
     = NoOp
     | DownloadTextArtifact { filename : String, content : String, map : String -> String }
-    | GetArtifactsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Artifact ))
+    | GetBuildResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
+    | GetArtifactsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.ArtifactObject ))
+    | TabSwitched { from : Maybe String, to : Maybe String }
+    | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
 {-| update : takes current models, route info, message, and returns an updated model and effect.
 -}
 update : Shared.Model -> Route { org : String, repo : String, build : String } -> Msg -> Model -> ( Model, Effect Msg )
-update _ _ msg model =
+update shared route msg model =
     case msg of
         NoOp ->
             ( model
@@ -164,6 +176,32 @@ update _ _ msg model =
             ( model
             , Effect.downloadFile options
             )
+
+        GetBuildResponse response ->
+            case response of
+                Ok ( _, build ) ->
+                    let
+                        completed =
+                            build.finished /= 0
+
+                        shouldRefreshArtifacts =
+                            completed && not model.buildCompleted
+                    in
+                    ( { model
+                        | build = RemoteData.Success build
+                        , buildCompleted = completed
+                      }
+                    , if shouldRefreshArtifacts then
+                        fetchArtifacts shared route
+
+                      else
+                        Effect.none
+                    )
+
+                Err error ->
+                    ( { model | build = Errors.toFailure error }
+                    , Effect.none
+                    )
 
         GetArtifactsResponse response ->
             case response of
@@ -177,12 +215,45 @@ update _ _ msg model =
                     , Effect.none
                     )
 
+        TabSwitched options ->
+            if options.to == Just "true" then
+                ( { model | artifacts = RemoteData.Loading }
+                , fetchArtifacts shared route
+                )
+
+            else
+                ( model
+                , Effect.none
+                )
+
+        Tick _ ->
+            if buildIsComplete model then
+                ( model
+                , Effect.none
+                )
+
+            else
+                ( model
+                , Effect.getBuild
+                    { baseUrl = shared.velaAPIBaseURL
+                    , session = shared.session
+                    , onResponse = GetBuildResponse
+                    , org = route.params.org
+                    , repo = route.params.repo
+                    , build = route.params.build
+                    }
+                )
+
 
 {-| subscriptions : takes model and returns that there are no subscriptions.
 -}
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    if buildIsComplete model then
+        Sub.none
+
+    else
+        Interval.tickEveryFiveSeconds Tick
 
 
 
@@ -223,7 +294,7 @@ view shared _ model =
                             "build-artifacts"
                             noRowsView
                             tableHeaders
-                            (artifactsToRows shared.zone shared.time (List.sortBy .file_name artifacts))
+                            (artifactsToRows (List.sortBy (\artifact -> objectKeyToFileName artifact.name) artifacts))
                             Nothing
                             1
                         )
@@ -249,27 +320,33 @@ view shared _ model =
 
 {-| artifactsToRows : takes list of artifacts and produces list of Table rows.
 -}
-artifactsToRows : Time.Zone -> Time.Posix -> List Vela.Artifact -> Components.Table.Rows Vela.Artifact Msg
-artifactsToRows zone currentTime artifacts =
+artifactsToRows : List Vela.ArtifactObject -> Components.Table.Rows Vela.ArtifactObject Msg
+artifactsToRows artifacts =
     artifacts
-        |> List.map (\artifact -> Components.Table.Row artifact (viewArtifact zone currentTime))
+        |> List.map (\artifact -> Components.Table.Row artifact viewArtifact)
 
 
-{-| isArtifactExpired : checks if an artifact is expired (older than 7 days).
--}
-isArtifactExpired : Time.Posix -> Int -> Bool
-isArtifactExpired currentTime createdAt =
-    let
-        sevenDaysInSeconds =
-            7 * 24 * 60 * 60
+buildIsComplete : Model -> Bool
+buildIsComplete model =
+    case model.build of
+        RemoteData.Success build ->
+            build.finished /= 0
 
-        expirationTime =
-            createdAt + sevenDaysInSeconds
+        _ ->
+            False
 
-        currentTimeInSeconds =
-            Time.posixToMillis currentTime // 1000
-    in
-    currentTimeInSeconds > expirationTime
+
+fetchArtifacts : Shared.Model -> Route { org : String, repo : String, build : String } -> Effect Msg
+fetchArtifacts shared route =
+    Effect.getBuildArtifacts
+        { baseUrl = shared.velaAPIBaseURL
+        , session = shared.session
+        , onResponse = GetArtifactsResponse
+        , bucket = shared.velaStorageBucket
+        , org = route.params.org
+        , repo = route.params.repo
+        , build = route.params.build
+        }
 
 
 {-| tableHeaders : returns table headers for artifacts table.
@@ -277,66 +354,44 @@ isArtifactExpired currentTime createdAt =
 tableHeaders : Components.Table.Columns
 tableHeaders =
     [ ( Just "name", "name" )
-    , ( Just "created-at-col", "created at" )
-    , ( Just "expires-at-col", "expires at" )
-    , ( Just "file-size-col", "file size" )
     ]
 
 
 {-| viewArtifact : takes an artifact and renders a table row.
 -}
-viewArtifact : Time.Zone -> Time.Posix -> Vela.Artifact -> Html.Html Msg
-viewArtifact zone currentTime artifact =
+viewArtifact : Vela.ArtifactObject -> Html.Html Msg
+viewArtifact artifact =
     let
-        expired =
-            isArtifactExpired currentTime artifact.created_at
+        fileName =
+            objectKeyToFileName artifact.name
 
-        nameCell =
-            if expired then
-                div [ class "artifacts-expired" ]
-                    [ Html.span
-                        [ class "artifact-name-expired"
-                        , attribute "style" "color: var(--color-text-secondary, #888);"
+        artifactContent =
+            case artifact.url of
+                Just url ->
+                    a
+                        [ href url
+                        , target "_blank"
+                        , rel "noopener noreferrer"
                         ]
-                        [ text artifact.file_name ]
-                    , Html.span
-                        [ class "artifact-expired-label"
-                        , attribute "style" "margin-left: 0.5rem; color: var(--color-text-secondary, #888); font-size: 0.875rem;"
-                        ]
-                        [ text "(Expired)" ]
-                    ]
+                        [ text fileName ]
 
-            else
-                a
-                    [ href artifact.presigned_url ]
-                    [ text artifact.file_name ]
+                Nothing ->
+                    text fileName
     in
     tr []
         [ Components.Table.viewItemCell
             { dataLabel = "name"
             , parentClassList = [ ( "name", True ) ]
             , itemClassList = [ ( "-block", True ) ]
-            , children = [ nameCell ]
-            }
-        , Components.Table.viewItemCell
-            { dataLabel = "created-at"
-            , parentClassList = []
-            , itemClassList = []
-            , children =
-                [ text <| Util.humanReadableDateTimeWithDefault zone artifact.created_at ]
-            }
-        , Components.Table.viewItemCell
-            { dataLabel = "expires-at"
-            , parentClassList = []
-            , itemClassList = []
-            , children =
-                [ text <| Util.humanReadableDateTimeWithDefault zone (artifact.created_at + (7 * 24 * 60 * 60)) ]
-            }
-        , Components.Table.viewItemCell
-            { dataLabel = "file-size"
-            , parentClassList = []
-            , itemClassList = []
-            , children =
-                [ text <| Util.humanReadableBytesFormatter artifact.file_size ]
+            , children = [ artifactContent ]
             }
         ]
+
+
+objectKeyToFileName : String -> String
+objectKeyToFileName objectKey =
+    objectKey
+        |> String.split "/"
+        |> List.reverse
+        |> List.head
+        |> Maybe.withDefault objectKey

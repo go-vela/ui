@@ -72,7 +72,6 @@ import Api.Endpoint
 import Auth.Jwt exposing (JwtAccessToken)
 import Auth.Session exposing (Session(..))
 import Dict exposing (Dict)
-import Html exposing (option)
 import Http
 import Json.Decode
 import Vela
@@ -1393,17 +1392,19 @@ getBuildArtifacts :
     -> Session
     ->
         { a
-            | org : String
+            | bucket : String
+            , org : String
             , repo : String
             , build : String
         }
-    -> Request (List Vela.Artifact)
+    -> Request (List Vela.ArtifactObject)
 getBuildArtifacts baseUrl session options =
     get baseUrl
-        (Api.Endpoint.Artifacts
+        (Api.Endpoint.StorageBuildArtifacts
+            options.bucket
             options.org
             options.repo
             options.build
         )
-        Vela.decodeArtifacts
+        Vela.decodeArtifactObjectNames
         |> withAuth session

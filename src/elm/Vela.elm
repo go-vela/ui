@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 module Vela exposing
     ( AllowEvents
     , AllowEventsField(..)
-    , Artifact
+    , ArtifactObject
     , Build
     , BuildGraph
     , BuildGraphEdge
@@ -59,7 +59,7 @@ module Vela exposing
     , allowEventsFilterQueryKeys
     , allowEventsToList
     , buildRepoPayload
-    , decodeArtifacts
+    , decodeArtifactObjectNames
     , decodeBuild
     , decodeBuildGraph
     , decodeBuilds
@@ -269,57 +269,27 @@ decodeDashboardRepo =
 
 
 
--- ARTIFACT
---
--- this database stuff is just informational
---
--- database types in server:
---
--- type Artifact struct {
--- 	ID           sql.NullInt64  `sql:"id"`
--- 	BuildID      sql.NullInt64  `sql:"build_id"`
--- 	FileName     sql.NullString `sql:"file_name"`
--- 	ObjectPath   sql.NullString `sql:"object_path"`
--- 	FileSize     sql.NullInt64  `sql:"file_size"`
--- 	FileType     sql.NullString `sql:"file_type"`
--- 	PresignedUrl sql.NullString `sql:"presigned_url"`
--- 	CreatedAt    sql.NullInt64  `sql:"created_at"`
--- 	// References to related objects
--- 	Build *Build `gorm:"foreignKey:BuildID"`
--- }
+-- ARTIFACTS
 
 
-type alias Artifact =
-    { id : Int
-    , build_id : Int
-    , file_name : String
-    , object_path : String
-    , file_size : Int
-    , file_type : String
-    , presigned_url : String
-    , created_at : Int
+type alias ArtifactObject =
+    { name : String
+    , url : Maybe String
     }
 
 
-decodeArtifacts : Decoder (List Artifact)
-decodeArtifacts =
+decodeArtifactObjectNames : Decoder (List ArtifactObject)
+decodeArtifactObjectNames =
     Json.Decode.oneOf
-        [ Json.Decode.list decodeArtifact
-        , Json.Decode.null []
+        [ Json.Decode.field "names" (Json.Decode.list string)
+            |> Json.Decode.map (List.map (\name -> { name = name, url = Nothing }))
+        , Json.Decode.field "names" (Json.Decode.dict string)
+            |> Json.Decode.map
+                (Dict.toList
+                    >> List.map (\( name, url ) -> { name = name, url = Just url })
+                )
+        , Json.Decode.succeed []
         ]
-
-
-decodeArtifact : Decoder Artifact
-decodeArtifact =
-    Json.Decode.succeed Artifact
-        |> optional "id" int -1
-        |> optional "build_id" int -1
-        |> optional "file_name" string ""
-        |> optional "object_path" string ""
-        |> optional "file_size" int 0
-        |> optional "file_type" string ""
-        |> optional "presigned_url" string ""
-        |> optional "created_at" int -1
 
 
 
