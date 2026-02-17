@@ -188,7 +188,7 @@ toUrl api endpoint =
             url api [ "repos", org, repo, "builds", build, "artifact" ] []
 
         StorageBuildArtifacts bucket org repo build ->
-            url api [ "repos", org, repo, "builds", build, "storage", bucket, "names" ] []
+            url api [ "repos", org, repo, "builds", build, "storage", "names" ] []
 
         Workers maybePage maybePerPage ->
             url api [ "workers" ] <| Pagination.toQueryParams maybePage maybePerPage
