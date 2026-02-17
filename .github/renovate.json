@@ -26,6 +26,11 @@
       "matchPackageNames": ["/^@?parcel/"]
     },
     {
+      "matchPackageNames": ["NoRedInk/elm-json-decode-pipeline"],
+      "description": "This package was tagged out of order at one point, 1.0.2 is older than 1.0.1",
+      "allowedVersions": "!/^1\\.0\\.2$/"
+    },
+    {
       "matchFileNames": ["elm.json"],
       "groupName": "elm"
     }
