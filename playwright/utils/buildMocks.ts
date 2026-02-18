@@ -78,18 +78,28 @@ export async function mockBuildsListPaged(page: Page): Promise<void> {
       const pageNumber = url.searchParams.get('page');
 
       if (pageNumber === '2') {
+        const linkHeader =
+          '<http://localhost:8080/api/v1/repos/github/octocat/builds?page=1&per_page=10>; rel="first", <http://localhost:8080/api/v1/repos/github/octocat/builds?page=1&per_page=10>; rel="prev"';
+
         return jsonResponse(route, {
           body: page2,
           headers: {
-            link: '<http://localhost:8888/api/v1/repos/github/octocat/builds?page=1&per_page=10>; rel="first", <http://localhost:8888/api/v1/repos/github/octocat/builds?page=1&per_page=10>; rel="prev",',
+            Link: linkHeader,
+            link: linkHeader,
+            'access-control-expose-headers': 'link, Link',
           },
         });
       }
 
+      const linkHeader =
+        '<http://localhost:8080/api/v1/repos/github/octocat/builds?page=2&per_page=10>; rel="next", <http://localhost:8080/api/v1/repos/github/octocat/builds?page=2&per_page=10>; rel="last"';
+
       return jsonResponse(route, {
         body: page1,
         headers: {
-          link: '<http://localhost:8888/api/v1/repos/github/octocat/builds?page=2&per_page=10>; rel="next", <http://localhost:8888/api/v1/repos/github/octocat/builds?page=2&per_page=10>; rel="last",',
+          Link: linkHeader,
+          link: linkHeader,
+          'access-control-expose-headers': 'link, Link',
         },
       });
     }),
@@ -124,6 +134,54 @@ export async function mockStepsList(
         body: resolvePayload(payloadOrFixture),
       }),
     ),
+  );
+}
+
+export async function mockBuildsFilter(page: Page): Promise<void> {
+  const fixtures = {
+    all: readTestData('builds_all.json'),
+    push: readTestData('builds_push.json'),
+    pull: readTestData('builds_pull.json'),
+    tag: readTestData('builds_tag.json'),
+    comment: readTestData('builds_comment.json'),
+    schedule: readTestData('builds_schedule.json'),
+  };
+
+  await page.route(buildListPattern, route =>
+    withGet(route, () => {
+      const url = new URL(route.request().url());
+      const event = url.searchParams.get('event');
+
+      if (!event) {
+        return jsonResponse(route, { body: fixtures.all });
+      }
+
+      if (event === 'deploy' || event === 'deployment') {
+        return jsonResponse(route, { body: [] });
+      }
+
+      if (event === 'pull_request' || event === 'pull') {
+        return jsonResponse(route, { body: fixtures.pull });
+      }
+
+      if (event === 'push') {
+        return jsonResponse(route, { body: fixtures.push });
+      }
+
+      if (event === 'tag') {
+        return jsonResponse(route, { body: fixtures.tag });
+      }
+
+      if (event === 'comment') {
+        return jsonResponse(route, { body: fixtures.comment });
+      }
+
+      if (event === 'schedule') {
+        return jsonResponse(route, { body: fixtures.schedule });
+      }
+
+      return jsonResponse(route, { body: fixtures.all });
+    }),
   );
 }
 
