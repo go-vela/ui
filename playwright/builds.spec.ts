@@ -55,18 +55,35 @@ test.describe('Builds', () => {
       await expect(page.getByTestId('builds')).toBeVisible();
     });
 
-    test('cancel build button should be present when running', async ({ page }) => {
+    test('cancel build button should be present when running', async ({
+      page,
+    }) => {
       const buildItems = page.getByTestId('builds').locator(':scope > *');
 
-      await expect(buildItems.nth(0).locator('[data-test=cancel-build]')).toHaveCount(1);
-      await expect(buildItems.nth(1).locator('[data-test=cancel-build]')).toHaveCount(0);
-      await expect(buildItems.nth(2).locator('[data-test=cancel-build]')).toHaveCount(0);
-      await expect(buildItems.nth(3).locator('[data-test=cancel-build]')).toHaveCount(0);
-      await expect(buildItems.nth(4).locator('[data-test=cancel-build]')).toHaveCount(1);
+      await expect(
+        buildItems.nth(0).locator('[data-test=cancel-build]'),
+      ).toHaveCount(1);
+      await expect(
+        buildItems.nth(1).locator('[data-test=cancel-build]'),
+      ).toHaveCount(0);
+      await expect(
+        buildItems.nth(2).locator('[data-test=cancel-build]'),
+      ).toHaveCount(0);
+      await expect(
+        buildItems.nth(3).locator('[data-test=cancel-build]'),
+      ).toHaveCount(0);
+      await expect(
+        buildItems.nth(4).locator('[data-test=cancel-build]'),
+      ).toHaveCount(1);
     });
 
-    test('build menu should expand and close when action is fired', async ({ page }) => {
-      const firstBuild = page.getByTestId('builds').locator(':scope > *').first();
+    test('build menu should expand and close when action is fired', async ({
+      page,
+    }) => {
+      const firstBuild = page
+        .getByTestId('builds')
+        .locator(':scope > *')
+        .first();
       const cancelBuild = firstBuild.getByTestId('cancel-build');
       const restartBuild = firstBuild.getByTestId('restart-build');
 
@@ -95,14 +112,20 @@ test.describe('Builds', () => {
     });
 
     test('builds should display commit message', async ({ page }) => {
-      const firstBuild = page.getByTestId('builds').locator(':scope > *').first();
+      const firstBuild = page
+        .getByTestId('builds')
+        .locator(':scope > *')
+        .first();
       await expect(firstBuild.locator('.commit-msg')).toBeVisible();
     });
 
     test('longer build commit message should be truncated with ellipsis', async ({
       page,
     }) => {
-      const firstBuild = page.getByTestId('builds').locator(':scope > *').first();
+      const firstBuild = page
+        .getByTestId('builds')
+        .locator(':scope > *')
+        .first();
       await expect(firstBuild.locator('.commit-msg')).toHaveCSS(
         'text-overflow',
         'ellipsis',
@@ -114,7 +137,10 @@ test.describe('Builds', () => {
     });
 
     test('timestamp checkbox switches time when checked', async ({ page }) => {
-      const firstBuild = page.getByTestId('builds').locator(':scope > *').first();
+      const firstBuild = page
+        .getByTestId('builds')
+        .locator(':scope > *')
+        .first();
       const age = firstBuild.locator('.time-info .age');
 
       await expect(age).not.toContainText(/\bat\b/);
@@ -144,7 +170,9 @@ test.describe('Builds', () => {
       await expect(buildItems.last()).toContainText('#10');
     });
 
-    test('build page 2 should show the next set of results', async ({ page }) => {
+    test('build page 2 should show the next set of results', async ({
+      page,
+    }) => {
       await page.goto('/github/octocat?page=2');
       const buildItems = page.getByTestId('builds').locator(':scope > *');
       await expect(buildItems.first()).toContainText('#11');
@@ -176,8 +204,13 @@ test.describe('Builds', () => {
     });
 
     test('build should having running style', async ({ page }) => {
-      const firstBuild = page.getByTestId('builds').locator(':scope > *').first();
-      await expect(firstBuild.getByTestId('build-status')).toHaveClass(/-running/);
+      const firstBuild = page
+        .getByTestId('builds')
+        .locator(':scope > *')
+        .first();
+      await expect(firstBuild.getByTestId('build-status')).toHaveClass(
+        /-running/,
+      );
     });
 
     test('build should display commit message', async ({ page }) => {
@@ -200,8 +233,13 @@ test.describe('Builds', () => {
       );
     });
 
-    test('clicking build number should redirect to build page', async ({ page }) => {
-      const firstBuild = page.getByTestId('builds').locator(':scope > *').first();
+    test('clicking build number should redirect to build page', async ({
+      page,
+    }) => {
+      const firstBuild = page
+        .getByTestId('builds')
+        .locator(':scope > *')
+        .first();
       await firstBuild.getByTestId('build-number').first().click();
       await expect(page).toHaveURL(/\/github\/octocat\/1$/);
     });
@@ -254,7 +292,9 @@ test.describe('Builds', () => {
     });
 
     test('should only show two pull events', async ({ page }) => {
-      await page.getByTestId('build-filter-pull_request').click({ force: true });
+      await page
+        .getByTestId('build-filter-pull_request')
+        .click({ force: true });
       await expect(page.getByTestId('build')).toHaveCount(2);
       await expect(page).toHaveURL(/\?event=pull_request/);
     });

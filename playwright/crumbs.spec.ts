@@ -3,7 +3,11 @@
  */
 
 import { test, expect } from './fixtures';
-import { mockBuildsByNumber, mockBuildsList, mockStepsList } from './utils/buildMocks';
+import {
+  mockBuildsByNumber,
+  mockBuildsList,
+  mockStepsList,
+} from './utils/buildMocks';
 import { mockSourceRepos } from './utils/sourceReposMocks';
 import { mockSecretDetail, mockSecretsList } from './utils/secretMocks';
 
@@ -18,7 +22,9 @@ test.describe('Crumbs', () => {
     });
 
     test('visit / should show overview', async ({ page }) => {
-      await expect(page.getByTestId('crumb-overview')).toContainText('Overview');
+      await expect(page.getByTestId('crumb-overview')).toContainText(
+        'Overview',
+      );
     });
 
     test('visit /account/source-repos should have Overview with link', async ({
@@ -124,31 +130,32 @@ test.describe('Crumbs', () => {
       await expect(page).toHaveURL(/\/github\/octocat$/);
     });
 
-    test('Repo Secrets crumb should redirect to repo secrets', async ({ page }) => {
+    test('Repo Secrets crumb should redirect to repo secrets', async ({
+      page,
+    }) => {
       await page.getByTestId('crumb-repo-secrets').click();
-      await expect(page).toHaveURL(/\/-\/secrets\/native\/repo\/github\/octocat$/);
+      await expect(page).toHaveURL(
+        /\/-\/secrets\/native\/repo\/github\/octocat$/,
+      );
     });
   });
 
-  test.describe(
-    'visit shared secret with special characters in team and name',
-    () => {
-      test.beforeEach(async ({ page, app }) => {
-        await mockSecretsList(page, []);
-        await mockSecretDetail(page, 'secret_shared.json');
-        await app.login(
-          '/-/secrets/native/shared/github/some%2Fteam/docker%2Fpassword',
-        );
-      });
+  test.describe('visit shared secret with special characters in team and name', () => {
+    test.beforeEach(async ({ page, app }) => {
+      await mockSecretsList(page, []);
+      await mockSecretDetail(page, 'secret_shared.json');
+      await app.login(
+        '/-/secrets/native/shared/github/some%2Fteam/docker%2Fpassword',
+      );
+    });
 
-      test('should show appropriate secrets crumbs', async ({ page }) => {
-        await expect(page.getByTestId('crumb-github')).toBeVisible();
-        await expect(page.getByTestId('crumb-some/team')).toBeVisible();
-        await expect(page.getByTestId('crumb-shared-secrets')).toBeVisible();
-        await expect(page.getByTestId('crumb-docker/password')).toBeVisible();
-      });
-    },
-  );
+    test('should show appropriate secrets crumbs', async ({ page }) => {
+      await expect(page.getByTestId('crumb-github')).toBeVisible();
+      await expect(page.getByTestId('crumb-some/team')).toBeVisible();
+      await expect(page.getByTestId('crumb-shared-secrets')).toBeVisible();
+      await expect(page.getByTestId('crumb-docker/password')).toBeVisible();
+    });
+  });
 
   test.describe('visit add repo secret', () => {
     test.beforeEach(async ({ page, app }) => {

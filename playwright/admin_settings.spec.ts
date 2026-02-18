@@ -88,9 +88,7 @@ test.describe('Admin Settings', () => {
           page.getByTestId('button-template-depth-update'),
         ).toBeDisabled();
 
-        const maxDashboardInput = page.getByTestId(
-          'input-max-dashboard-repos',
-        );
+        const maxDashboardInput = page.getByTestId('input-max-dashboard-repos');
         await maxDashboardInput.clear();
         await maxDashboardInput.fill('999999');
         await expect(
@@ -122,7 +120,9 @@ test.describe('Admin Settings', () => {
           const queueRoutes = page.getByTestId('editable-list-queue-routes');
           const editButton = page.getByTestId('editable-list-item-vela-edit');
           const saveButton = page.getByTestId('editable-list-item-vela-save');
-          const removeButton = page.getByTestId('editable-list-item-vela-remove');
+          const removeButton = page.getByTestId(
+            'editable-list-item-vela-remove',
+          );
 
           await expect(queueRoutes).toBeVisible();
           await expect(editButton).toBeVisible();
@@ -147,32 +147,37 @@ test.describe('Admin Settings', () => {
           await editButton.click({ force: true });
           await saveButton.click({ force: true });
           await expect(saveButton).toBeHidden();
-          await expect(page.getByTestId('editable-list-item-vela')).toContainText(
-            'vela',
-          );
+          await expect(
+            page.getByTestId('editable-list-item-vela'),
+          ).toContainText('vela');
 
           await editButton.click({ force: true });
           await page.getByTestId('input-editable-list-item-vela').clear();
           await saveButton.click({ force: true });
           await expect(saveButton).toBeHidden();
-          await expect(page.getByTestId('editable-list-item-vela')).toContainText(
-            'vela',
-          );
+          await expect(
+            page.getByTestId('editable-list-item-vela'),
+          ).toContainText('vela');
           await expect(page.getByTestId('alert')).toHaveCount(0);
         });
 
         test('save button should save edits', async ({ page }) => {
-          await page.getByTestId('editable-list-item-vela-edit')
+          await page
+            .getByTestId('editable-list-item-vela-edit')
             .click({ force: true });
-          await page.getByTestId('input-editable-list-item-vela')
+          await page
+            .getByTestId('input-editable-list-item-vela')
             .fill('vela123');
-          await page.getByTestId('editable-list-item-vela-save')
+          await page
+            .getByTestId('editable-list-item-vela-save')
             .click({ force: true });
 
-          await expect(page.getByTestId('editable-list-item-vela-save'))
-            .toBeHidden();
-          await expect(page.getByTestId('editable-list-item-vela123'))
-            .toContainText('vela123');
+          await expect(
+            page.getByTestId('editable-list-item-vela-save'),
+          ).toBeHidden();
+          await expect(
+            page.getByTestId('editable-list-item-vela123'),
+          ).toContainText('vela123');
         });
 
         test('remove button should remove an item', async ({ page }) => {
@@ -181,12 +186,15 @@ test.describe('Admin Settings', () => {
           );
           await expect(scheduleList).toBeVisible();
 
-          await page.locator('[data-test="editable-list-item-*-edit"]')
+          await page
+            .locator('[data-test="editable-list-item-*-edit"]')
             .click({ force: true });
-          await page.locator('[data-test="editable-list-item-*-remove"]')
+          await page
+            .locator('[data-test="editable-list-item-*-remove"]')
             .click({ force: true });
-          await expect(page.locator('[data-test="editable-list-item-*"]'))
-            .toBeHidden();
+          await expect(
+            page.locator('[data-test="editable-list-item-*"]'),
+          ).toBeHidden();
           await expect(
             page.getByTestId('editable-list-schedule-allowlist-no-items'),
           ).toBeVisible();
@@ -200,21 +208,26 @@ test.describe('Admin Settings', () => {
             'editable-list-schedule-allowlist',
           );
           await expect(scheduleList).toBeVisible();
-          await expect(page.locator('[data-test="editable-list-item-*"]'))
-            .toContainText('all repos');
+          await expect(
+            page.locator('[data-test="editable-list-item-*"]'),
+          ).toContainText('all repos');
         });
 
         test('add item input header should add items', async ({ page }) => {
-          await expect(page.getByTestId('editable-list-item-linux-large'))
-            .toHaveCount(0);
+          await expect(
+            page.getByTestId('editable-list-item-linux-large'),
+          ).toHaveCount(0);
 
-          await page.getByTestId('input-editable-list-queue-routes-add')
+          await page
+            .getByTestId('input-editable-list-queue-routes-add')
             .fill('linux-large');
-          await page.getByTestId('button-editable-list-queue-routes-add')
+          await page
+            .getByTestId('button-editable-list-queue-routes-add')
             .click({ force: true });
 
-          await expect(page.getByTestId('editable-list-item-linux-large'))
-            .toBeVisible();
+          await expect(
+            page.getByTestId('editable-list-item-linux-large'),
+          ).toBeVisible();
         });
       });
     });

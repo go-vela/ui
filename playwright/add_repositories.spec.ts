@@ -45,10 +45,12 @@ test.describe('Source Repositories', () => {
       await page.getByTestId('source-org-github').click();
       await page.getByTestId('enable-github-octocat').click();
 
-      await expect(page.getByTestId('enabled-github-octocat').first())
-        .toBeVisible();
-      await expect(page.getByTestId('enabled-github-octocat').first())
-        .toContainText('Enabled');
+      await expect(
+        page.getByTestId('enabled-github-octocat').first(),
+      ).toBeVisible();
+      await expect(
+        page.getByTestId('enabled-github-octocat').first(),
+      ).toContainText('Enabled');
     });
 
     test('shows the failed button and alert when the enable is unsuccessful', async ({
@@ -72,12 +74,15 @@ test.describe('Source Repositories', () => {
       await page.getByTestId('source-org-github').click();
       await page.getByTestId('enable-org-github').click({ force: true });
 
-      await expect(page.getByTestId('source-repo-octocat-1'))
-        .toContainText('Enabling');
-      await expect(page.getByTestId('source-repo-octocat-2'))
-        .toContainText('Enabling');
-      await expect(page.getByTestId('source-repo-server'))
-        .toContainText('Enabling');
+      await expect(page.getByTestId('source-repo-octocat-1')).toContainText(
+        'Enabling',
+      );
+      await expect(page.getByTestId('source-repo-octocat-2')).toContainText(
+        'Enabling',
+      );
+      await expect(page.getByTestId('source-repo-server')).toContainText(
+        'Enabling',
+      );
     });
   });
 
