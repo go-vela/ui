@@ -65,9 +65,9 @@ test.describe('Build Graph', () => {
         'id',
         '#3,init,success,false',
       );
-      await expect(
-        page.locator('.d3-build-graph-node-outline-3'),
-      ).toHaveClass(/-success/);
+      await expect(page.locator('.d3-build-graph-node-outline-3')).toHaveClass(
+        /-success/,
+      );
     });
 
     test('edge should contain build information', async ({ page }) => {
@@ -75,9 +75,9 @@ test.describe('Build Graph', () => {
         'id',
         '#3,4,success,false',
       );
-      await expect(
-        page.locator('.d3-build-graph-edge-path-3-4'),
-      ).toHaveClass(/-success/);
+      await expect(page.locator('.d3-build-graph-edge-path-3-4')).toHaveClass(
+        /-success/,
+      );
     });
 
     test('click node should apply focus', async ({ page }) => {
@@ -85,30 +85,30 @@ test.describe('Build Graph', () => {
       await expect(node).toHaveAttribute('id', '#3,init,success,false');
       await node.locator('a').first().click({ force: true });
       await expect(node).toHaveAttribute('id', '#3,init,success,true');
-      await expect(
-        page.locator('.d3-build-graph-node-outline-3'),
-      ).toHaveClass(/-focus/);
+      await expect(page.locator('.d3-build-graph-node-outline-3')).toHaveClass(
+        /-focus/,
+      );
     });
 
     test('node styles should reflect status', async ({ page }) => {
-      await expect(
-        page.locator('.d3-build-graph-node-outline-0'),
-      ).toHaveClass(/-pending/);
-      await expect(
-        page.locator('.d3-build-graph-node-outline-1'),
-      ).toHaveClass(/-running/);
-      await expect(
-        page.locator('.d3-build-graph-node-outline-2'),
-      ).toHaveClass(/-canceled/);
-      await expect(
-        page.locator('.d3-build-graph-node-outline-3'),
-      ).toHaveClass(/-success/);
-      await expect(
-        page.locator('.d3-build-graph-node-outline-4'),
-      ).toHaveClass(/-failure/);
-      await expect(
-        page.locator('.d3-build-graph-node-outline-5'),
-      ).toHaveClass(/-killed/);
+      await expect(page.locator('.d3-build-graph-node-outline-0')).toHaveClass(
+        /-pending/,
+      );
+      await expect(page.locator('.d3-build-graph-node-outline-1')).toHaveClass(
+        /-running/,
+      );
+      await expect(page.locator('.d3-build-graph-node-outline-2')).toHaveClass(
+        /-canceled/,
+      );
+      await expect(page.locator('.d3-build-graph-node-outline-3')).toHaveClass(
+        /-success/,
+      );
+      await expect(page.locator('.d3-build-graph-node-outline-4')).toHaveClass(
+        /-failure/,
+      );
+      await expect(page.locator('.d3-build-graph-node-outline-5')).toHaveClass(
+        /-killed/,
+      );
     });
 
     test('legend should show', async ({ page }) => {
@@ -166,7 +166,9 @@ test.describe('Build Graph', () => {
       await expect(stageNode).toContainText('sleep');
     });
 
-    test('filter input and clear button should control focus', async ({ page }) => {
+    test('filter input and clear button should control focus', async ({
+      page,
+    }) => {
       const node = page.locator('.elm-build-graph-node-5');
       await expect(node).toHaveAttribute('id', '#5,stage-a,killed,false');
       await expect(
@@ -174,9 +176,9 @@ test.describe('Build Graph', () => {
       ).not.toHaveClass(/-focus/);
       await page.getByTestId('build-graph-action-filter').fill('stage-a');
       await expect(node).toHaveAttribute('id', '#5,stage-a,killed,true');
-      await expect(
-        page.locator('.d3-build-graph-node-outline-5'),
-      ).toHaveClass(/-focus/);
+      await expect(page.locator('.d3-build-graph-node-outline-5')).toHaveClass(
+        /-focus/,
+      );
       await page
         .getByTestId('build-graph-action-filter-clear')
         .click({ force: true });

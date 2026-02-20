@@ -52,7 +52,9 @@ test.describe('Deployment', () => {
 
       await expect(page.getByTestId('alerts')).toContainText('Success');
 
-      await expect(page.getByTestId('button-parameter-remove-key1')).toBeVisible();
+      await expect(
+        page.getByTestId('button-parameter-remove-key1'),
+      ).toBeVisible();
       await expect(inputs.getByTestId('input-parameter-key')).toHaveValue('');
       await expect(inputs.getByTestId('input-parameter-value')).toHaveValue('');
 
@@ -65,7 +67,11 @@ test.describe('Deployment', () => {
       await addButton.click();
 
       const parametersList = page.getByTestId('parameters-list');
-      await parametersList.locator(':scope > *').first().getByText('remove').click();
+      await parametersList
+        .locator(':scope > *')
+        .first()
+        .getByText('remove')
+        .click();
 
       await expect(parametersList.locator(':scope > *').first()).toContainText(
         'key2=val2',
@@ -123,7 +129,9 @@ test.describe('Deployment', () => {
       await expect(selectItem.getByTestId('input-parameter-key')).toHaveValue(
         'entrypoint',
       );
-      await expect(selectItem.getByTestId('input-parameter-key')).toBeDisabled();
+      await expect(
+        selectItem.getByTestId('input-parameter-key'),
+      ).toBeDisabled();
       await expect(selectItem.getByTestId('custom-select')).toBeVisible();
 
       const selectOptions = selectItem.getByTestId('custom-select-options');
@@ -138,8 +146,12 @@ test.describe('Deployment', () => {
         'region',
       );
       await expect(textItem.getByTestId('input-parameter-key')).toBeDisabled();
-      await expect(textItem.getByTestId('input-parameter-value')).toHaveValue('');
-      await expect(textItem.locator('[data-test=input-parameter-value]:invalid')).toHaveCount(1);
+      await expect(textItem.getByTestId('input-parameter-value')).toHaveValue(
+        '',
+      );
+      await expect(
+        textItem.locator('[data-test=input-parameter-value]:invalid'),
+      ).toHaveCount(1);
     });
 
     test('parameter of bar=foo properly prepopulates deployment form', async ({
@@ -148,9 +160,9 @@ test.describe('Deployment', () => {
       await page.goto(
         '/github/octocat/deployments/add?description=Deployment%20request%20from%20Vela&parameters=bar%253Dfoo&ref=master&target=production&task=deploy%3Avela',
       );
-      await expect(page.getByTestId('parameters-list').locator(':scope > *').first()).toContainText(
-        'bar=foo',
-      );
+      await expect(
+        page.getByTestId('parameters-list').locator(':scope > *').first(),
+      ).toContainText('bar=foo');
     });
 
     test('parameter of foo=bar=cat properly prepopulates deployment form', async ({
@@ -159,9 +171,9 @@ test.describe('Deployment', () => {
       await page.goto(
         '/github/octocat/deployments/add?description=Deployment%20request%20from%20Vela&parameters=foo%253Dbar%253Dcat&ref=master&target=production&task=deploy%3Avela',
       );
-      await expect(page.getByTestId('parameters-list').locator(':scope > *').first()).toContainText(
-        'foo=bar=cat',
-      );
+      await expect(
+        page.getByTestId('parameters-list').locator(':scope > *').first(),
+      ).toContainText('foo=bar=cat');
     });
 
     test('multiple parameters properly prepopulate deployment form', async ({
@@ -183,9 +195,9 @@ test.describe('Deployment', () => {
 
     test('deployments table should contain deployments', async ({ page }) => {
       await page.goto('/github/octocat/deployments');
-      await expect(
-        page.getByTestId('deployments-row').first(),
-      ).toContainText('Deployment request from Vela');
+      await expect(page.getByTestId('deployments-row').first()).toContainText(
+        'Deployment request from Vela',
+      );
     });
 
     test('deployments table should list of parameters', async ({ page }) => {

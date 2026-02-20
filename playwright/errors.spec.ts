@@ -33,7 +33,11 @@ test.describe('Errors', () => {
 
   test.describe('over 10 errors', () => {
     test.beforeEach(async ({ page, app }) => {
-      await mockSourceReposError(page, 500, 'error fetching source repositories');
+      await mockSourceReposError(
+        page,
+        500,
+        'error fetching source repositories',
+      );
       await app.login('/account/source-repos');
       for (let i = 0; i < 10; i += 1) {
         const responsePromise = page.waitForResponse(sourceReposPattern);
@@ -43,9 +47,7 @@ test.describe('Errors', () => {
     });
 
     test('should show the errors tray', async ({ page }) => {
-      await expect(page.getByTestId('alerts')).toContainText(
-        'Status 500',
-      );
+      await expect(page.getByTestId('alerts')).toContainText('Status 500');
     });
 
     test('clicking alert should clear it', async ({ page }) => {

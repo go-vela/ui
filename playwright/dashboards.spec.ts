@@ -3,7 +3,11 @@
  */
 
 import { test, expect } from './fixtures';
-import { mockBuildsByNumber, mockBuildsList, mockStepsList } from './utils/buildMocks';
+import {
+  mockBuildsByNumber,
+  mockBuildsList,
+  mockStepsList,
+} from './utils/buildMocks';
 import {
   mockDashboardDetail,
   mockDashboardDetailError,
@@ -75,9 +79,7 @@ test.describe('Dashboards', () => {
         .first()
         .locator('header .-icon')
         .first();
-      await expect(
-        firstHeaderIcon,
-      ).toHaveClass(/-success/);
+      await expect(firstHeaderIcon).toHaveClass(/-success/);
     });
 
     test('shows failure build icon in header in the first card', async ({
@@ -88,18 +90,24 @@ test.describe('Dashboards', () => {
         .nth(1)
         .locator('header .-icon')
         .first();
-      await expect(
-        secondHeaderIcon,
-      ).toHaveClass(/-failure/);
+      await expect(secondHeaderIcon).toHaveClass(/-failure/);
     });
 
     test('org link in card header goes to org page', async ({ page }) => {
-      await page.getByTestId('dashboard-card').first().locator('.card-org').click();
+      await page
+        .getByTestId('dashboard-card')
+        .first()
+        .locator('.card-org')
+        .click();
       await expect(page).toHaveURL(/\/github$/);
     });
 
     test('repo link in card header goes to repo page', async ({ page }) => {
-      await page.getByTestId('dashboard-card').first().locator('.card-repo').click();
+      await page
+        .getByTestId('dashboard-card')
+        .first()
+        .locator('.card-repo')
+        .click();
       await expect(page).toHaveURL(/\/github\/repo1$/);
     });
 
@@ -112,7 +120,9 @@ test.describe('Dashboards', () => {
       await expect(page).toHaveURL(/\/github\/repo1\/25$/);
     });
 
-    test('recent build link goes to respective build page', async ({ page }) => {
+    test('recent build link goes to respective build page', async ({
+      page,
+    }) => {
       await page.getByTestId('recent-build-link-25').click();
       await expect(page).toHaveURL(/\/github\/repo1\/25$/);
     });
@@ -124,7 +134,9 @@ test.describe('Dashboards', () => {
       await app.login('/dashboards/86671eb5-a3ff-49e1-ad85-c3b2f648dcb2');
     });
 
-    test('shows message when there are no repositories added', async ({ page }) => {
+    test('shows message when there are no repositories added', async ({
+      page,
+    }) => {
       await expect(page.getByTestId('dashboard')).toContainText(
         "This dashboard doesn't have repositories added yet",
       );

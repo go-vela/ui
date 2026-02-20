@@ -77,9 +77,9 @@ test.describe('Favorites', () => {
         });
 
         test('star should have favorited class', async ({ page }) => {
-          await expect(page.getByTestId(toggleSelector).locator('svg')).toHaveClass(
-            /favorited/,
-          );
+          await expect(
+            page.getByTestId(toggleSelector).locator('svg'),
+          ).toHaveClass(/favorited/);
         });
 
         test.describe('add favorite github/octocat', () => {
@@ -90,9 +90,9 @@ test.describe('Favorites', () => {
           });
 
           test('star should have favorited class', async ({ page }) => {
-            await expect(page.getByTestId(toggleSelector).locator('svg')).toHaveClass(
-              /favorited/,
-            );
+            await expect(
+              page.getByTestId(toggleSelector).locator('svg'),
+            ).toHaveClass(/favorited/);
           });
 
           test('should show a success alert', async ({ page }) => {
@@ -111,18 +111,20 @@ test.describe('Favorites', () => {
         await page.goto('/github/octocat');
       });
 
-      test('enabling repo should show favorites star toggle', async ({ page }) => {
+      test('enabling repo should show favorites star toggle', async ({
+        page,
+      }) => {
         await expect(page.getByTestId(toggleSelector)).toBeVisible();
       });
 
       test('star should not have favorited class', async ({ page }) => {
-        await expect(page.getByTestId(toggleSelector).locator('svg')).not.toHaveClass(
-          /favorited/,
-        );
+        await expect(
+          page.getByTestId(toggleSelector).locator('svg'),
+        ).not.toHaveClass(/favorited/);
         await page.getByTestId(toggleSelector).click();
-        await expect(page.getByTestId(toggleSelector).locator('svg')).toHaveClass(
-          /favorited/,
-        );
+        await expect(
+          page.getByTestId(toggleSelector).locator('svg'),
+        ).toHaveClass(/favorited/);
       });
 
       test.describe('add favorite github/octocat', () => {
@@ -131,9 +133,9 @@ test.describe('Favorites', () => {
         });
 
         test('star should add favorited class', async ({ page }) => {
-          await expect(page.getByTestId(toggleSelector).locator('svg')).toHaveClass(
-            /favorited/,
-          );
+          await expect(
+            page.getByTestId(toggleSelector).locator('svg'),
+          ).toHaveClass(/favorited/);
         });
 
         test.describe('visit Overview page', () => {
@@ -143,11 +145,13 @@ test.describe('Favorites', () => {
             await page.goto('/');
           });
 
-          test('github/octocat should display in favorites', async ({ page }) => {
+          test('github/octocat should display in favorites', async ({
+            page,
+          }) => {
             await expect(page.getByTestId(toggleSelector)).toBeVisible();
-            await expect(page.getByTestId(toggleSelector).locator('svg')).toHaveClass(
-              /favorited/,
-            );
+            await expect(
+              page.getByTestId(toggleSelector).locator('svg'),
+            ).toHaveClass(/favorited/);
           });
 
           test('clicking star should remove github/octocat from favorites', async ({
@@ -170,9 +174,9 @@ test.describe('Favorites', () => {
           });
 
           test('star should not have favorited class', async ({ page }) => {
-            await expect(page.getByTestId(toggleSelector).locator('svg')).not.toHaveClass(
-              /favorited/,
-            );
+            await expect(
+              page.getByTestId(toggleSelector).locator('svg'),
+            ).not.toHaveClass(/favorited/);
           });
         });
       });
@@ -200,9 +204,9 @@ test.describe('Favorites', () => {
       await clickAndWaitForUserUpdate(page, () =>
         page.getByTestId(toggleSelector).click(),
       );
-      await expect(page.getByTestId(toggleSelector).locator('svg')).not.toHaveClass(
-        /favorited/,
-      );
+      await expect(
+        page.getByTestId(toggleSelector).locator('svg'),
+      ).not.toHaveClass(/favorited/);
     });
   });
 });
