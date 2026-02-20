@@ -20,6 +20,18 @@ export const buildCancelPattern =
 export const buildApprovePattern =
   /\/api\/v1\/repos\/[^/]+\/[^/]+\/builds\/\d+\/approve$/;
 
+export const sourceReposPattern = /\/api\/v1\/user\/source\/repos(\?.*)?$/;
+
+export const repoEnablePattern = /\/api\/v1\/repos(\/[^/]+\/[^/]+)?$/;
+
+export const adminSettingsPattern = /\/api\/v1\/admin\/settings(\?.*)?$/;
+
+export const secretsListPattern =
+  /\/api\/v1\/secrets\/[^/]+\/[^/]+\/[^/]+\/[^/]+(\?.*)?$/;
+
+export const secretDetailPattern =
+  /\/api\/v1\/secrets\/[^/]+\/[^/]+\/[^/]+\/[^/]+\/[^/]+$/;
+
 export function stepLogsPattern(stepNumber: number): RegExp {
   return new RegExp(
     `/api/v1/repos/[^/]+/[^/]+/builds/\\d+/steps/${stepNumber}/logs$`,
