@@ -1,0 +1,7 @@
+{
+  "names": {
+    "github/octocat/1/test-results.xml": "https://example.com/signed-url/test-results.xml",
+    "github/octocat/1/coverage.html": "https://example.com/signed-url/coverage.html",
+    "github/octocat/1/junit-report.json": "https://example.com/signed-url/junit-report.json"
+  }
+}

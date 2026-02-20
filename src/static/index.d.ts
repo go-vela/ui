@@ -44,6 +44,8 @@ export type Flags = {
   readonly isDev: boolean;
   /** @property velaAPI the API of the server that the UI will interface with */
   readonly velaAPI: string;
+  /** @property velaStorageBucket the object storage bucket name */
+  readonly velaStorageBucket: string;
   /** @property velaFeedbackURL allows you to customize the destination of the feedback link */
   readonly velaFeedbackURL: string;
   /** @property velaDocsURL allows you to customize the destination of the docs link */

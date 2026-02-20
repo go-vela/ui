@@ -21,6 +21,7 @@ import Vela
 type alias Model =
     { -- FLAGS
       velaAPIBaseURL : String
+    , velaStorageBucket : String
     , velaFeedbackURL : String
     , velaDocsURL : String
     , velaRedirect : String

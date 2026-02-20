@@ -48,6 +48,7 @@ type Path
     | Org__Repo__Build_ { org : String, repo : String, build : String }
     | Org__Repo__Build__Graph { org : String, repo : String, build : String }
     | Org__Repo__Build__Pipeline { org : String, repo : String, build : String }
+    | Org__Repo__Build__Artifacts { org : String, repo : String, build : String }
     | Org__Repo__Build__Services { org : String, repo : String, build : String }
     | NotFound_
 
@@ -297,6 +298,21 @@ fromString urlPath =
                 }
                 |> Just
 
+        org_ :: repo_ :: build_ :: "artifacts" :: [] ->
+            Org__Repo__Build__Artifacts
+                { org = org_
+                , repo = repo_
+                , build = build_
+                }
+                |> Just
+
+        -- org_ :: repo_ :: build_ :: "artifacts" :: "attachments" :: [] ->
+        --     Org__Repo__Build__Artifacts
+        --         { org = org_
+        --         , repo = repo_
+        --         , build = build_
+        --         }
+        --         |> Just
         org_ :: repo_ :: build_ :: "services" :: [] ->
             Org__Repo__Build__Services
                 { org = org_
@@ -429,6 +445,11 @@ toString path =
                 Org__Repo__Build__Pipeline params ->
                     [ params.org, params.repo, params.build, "pipeline" ]
 
+                Org__Repo__Build__Artifacts params ->
+                    [ params.org, params.repo, params.build, "artifacts" ]
+
+                -- Org__Repo__Build__Artifacts_Attachments params ->
+                --     [ params.org, params.repo, params.build, "artifacts", "attachments" ]
                 Org__Repo__Build__Services params ->
                     [ params.org, params.repo, params.build, "services" ]
 

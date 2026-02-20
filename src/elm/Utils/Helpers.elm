@@ -24,6 +24,7 @@ module Utils.Helpers exposing
     , formatTestTag
     , formatTimeFromFloat
     , getNameFromRef
+    , humanReadableBytesFormatter
     , humanReadableDateTimeFormatter
     , humanReadableDateTimeWithDefault
     , humanReadableDateWithDefault
@@ -214,6 +215,11 @@ humanReadableDateTimeFormatter =
         , DateFormat.text " "
         , DateFormat.amPmUppercase
         ]
+
+
+humanReadableBytesFormatter : Int -> String
+humanReadableBytesFormatter =
+    Filesize.format
 
 
 {-| relativeTimeNoSeconds : helper for using DateFormat.Relative.relativeTime with no seconds granularity.
