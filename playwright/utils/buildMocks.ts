@@ -9,6 +9,7 @@ import {
   buildApprovePattern,
   buildCancelPattern,
   buildDetailPattern,
+  buildGraphPattern,
   buildListPattern,
   stepsListPattern,
 } from './routes';
@@ -64,6 +65,17 @@ export async function mockBuildsList(
         body: resolvePayload(payloadOrFixture),
         headers,
       }),
+    ),
+  );
+}
+
+export async function mockBuildGraph(
+  page: Page,
+  payloadOrFixture: string | unknown,
+): Promise<void> {
+  await page.route(buildGraphPattern, route =>
+    withGet(route, () =>
+      jsonResponse(route, { body: resolvePayload(payloadOrFixture) }),
     ),
   );
 }
