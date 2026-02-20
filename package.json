@@ -7,40 +7,40 @@
     "node": ">=18.12.0"
   },
   "dependencies": {
-    "@hpcc-js/wasm-graphviz": "1.10.0",
+    "@hpcc-js/wasm-graphviz": "1.21.0",
     "clipboard": "2.0.11",
     "d3": "^7.8.5"
   },
   "devDependencies": {
-    "@double-great/stylelint-a11y": "3.0.4",
+    "@double-great/stylelint-a11y": "3.4.3",
     "@fullhuman/postcss-purgecss": "7.0.2",
     "@playwright/test": "1.58.2",
-    "@parcel/transformer-elm": "2.15.4",
-    "@parcel/transformer-sass": "2.15.4",
-    "axe-core": "4.10.3",
+    "@parcel/transformer-elm": "2.16.4",
+    "@parcel/transformer-sass": "2.16.4",
+    "axe-core": "4.11.1",
     "cypress": "5.6.0",
     "cypress-axe": "0.14.0",
     "elm": "0.19.1-6",
     "elm-format": "0.8.8",
-    "elm-test": "0.19.1-revision16",
+    "elm-test": "0.19.1-revision17",
     "make-dir-cli": "4.0.0",
     "ncp": "2.0.0",
-    "parcel": "2.15.4",
+    "parcel": "2.16.4",
     "postcss": "8.5.6",
-    "prettier": "3.6.2",
-    "rimraf": "6.0.1",
-    "start-server-and-test": "2.0.12",
-    "stylelint": "16.23.0",
+    "prettier": "3.8.1",
+    "rimraf": "6.1.3",
+    "start-server-and-test": "2.1.3",
+    "stylelint": "16.26.1",
     "stylelint-color-format": "1.1.0",
     "stylelint-config-recommended-scss": "15.0.1",
     "stylelint-declaration-block-no-ignored-properties": "2.8.0",
-    "stylelint-declaration-strict-value": "1.10.11",
+    "stylelint-declaration-strict-value": "1.11.0",
     "stylelint-high-performance-animation": "1.11.0",
-    "stylelint-order": "7.0.0",
-    "stylelint-scss": "6.12.1"
+    "stylelint-order": "7.0.1",
+    "stylelint-scss": "6.14.0"
   },
   "overrides": {
-    "form-data": "4.0.4"
+    "form-data": "4.0.5"
   },
   "scripts": {
     "predev": "npm run clean",
