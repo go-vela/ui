@@ -14,6 +14,7 @@
   "devDependencies": {
     "@double-great/stylelint-a11y": "3.0.4",
     "@fullhuman/postcss-purgecss": "7.0.2",
+    "@playwright/test": "1.58.2",
     "@parcel/transformer-elm": "2.15.4",
     "@parcel/transformer-sass": "2.15.4",
     "axe-core": "4.10.3",
@@ -59,6 +60,8 @@
     "test:cy-open": "VELA_LOG_BYTES_LIMIT=1000 start-test 8888 cypress:open",
     "cypress": "cypress run",
     "cypress:open": "cypress open",
+    "playwright": "playwright test",
+    "playwright:ui": "playwright test --ui",
     "clean": "rimraf ./.parcel-cache ./.cache ./dist",
     "lint:prettier": "prettier --check '**/*.{js,json,ts,scss,html}'",
     "lint:prettier-fix": "npm run lint:prettier -- --write",

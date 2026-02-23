@@ -199,6 +199,11 @@ typings/
 # vuepress build output
 .vuepress/dist
 
+# Playwright output
+playwright-results/
+playwright-report/
+test-results/
+
 # Serverless directories
 .serverless/
 
