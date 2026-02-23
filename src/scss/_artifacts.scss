@@ -11,9 +11,11 @@
 }
 
 .artifact-output {
-  background: var(--color-bg-dark);
-  text-align: center;
   padding: 1rem;
+
+  text-align: center;
+
+  background: var(--color-bg-dark);
 }
 
 // Table column widths
