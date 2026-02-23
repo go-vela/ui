@@ -736,7 +736,7 @@ Cypress.Commands.add('stubArtifacts', () => {
   };
   cy.route({
     method: 'GET',
-    url: '*api/v1/repos/*/*/builds/*/storage/*/names',
+    url: '*api/v1/repos/*/*/builds/*/storage/',
     status: 200,
     response: artifacts,
   });
@@ -746,7 +746,7 @@ Cypress.Commands.add('stubArtifactsError', () => {
   cy.server();
   cy.route({
     method: 'GET',
-    url: '*api/v1/repos/*/*/builds/*/storage/*/names',
+    url: '*api/v1/repos/*/*/builds/*/storage/',
     status: 500,
     response: { error: 'Internal server error' },
   });

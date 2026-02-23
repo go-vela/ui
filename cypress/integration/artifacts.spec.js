@@ -79,7 +79,7 @@ context('Artifacts', () => {
       cy.stubBuild();
       cy.route({
         method: 'GET',
-        url: '*api/v1/repos/*/*/builds/*/storage/*/names',
+        url: '*api/v1/repos/*/*/builds/*/storage/',
         status: 200,
         response: [],
       });
@@ -124,7 +124,7 @@ context('Artifacts', () => {
       // Delay the artifacts response
       cy.route({
         method: 'GET',
-        url: '*api/v1/repos/*/*/builds/*/storage/*/names',
+        url: '*api/v1/repos/*/*/builds/*/storage/',
         status: 200,
         response: [],
         delay: 1000,
