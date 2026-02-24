@@ -11,6 +11,7 @@ import {
   buildDetailPattern,
   buildGraphPattern,
   buildListPattern,
+  orgBuildsPattern,
   stepsListPattern,
 } from './routes';
 
@@ -77,6 +78,59 @@ export async function mockBuildGraph(
     withGet(route, () =>
       jsonResponse(route, { body: resolvePayload(payloadOrFixture) }),
     ),
+  );
+}
+
+export async function mockOrgBuildsList(
+  page: Page,
+  payloadOrFixture: string | unknown,
+  headers?: Record<string, string>,
+): Promise<void> {
+  await page.route(orgBuildsPattern, route =>
+    withGet(route, () =>
+      jsonResponse(route, {
+        body: resolvePayload(payloadOrFixture),
+        headers,
+      }),
+    ),
+  );
+}
+
+export async function mockOrgBuildsListPaged(page: Page): Promise<void> {
+  const page1 = readTestData('builds_10a.json');
+  const page2 = readTestData('builds_10b.json');
+
+  await page.route(orgBuildsPattern, route =>
+    withGet(route, () => {
+      const url = new URL(route.request().url());
+      const pageNumber = url.searchParams.get('page');
+
+      if (pageNumber === '2') {
+        const linkHeader =
+          '<http://localhost:8080/api/v1/repos/vela/builds?page=1&per_page=10>; rel="first", <http://localhost:8080/api/v1/repos/vela/builds?page=1&per_page=10>; rel="prev"';
+
+        return jsonResponse(route, {
+          body: page2,
+          headers: {
+            Link: linkHeader,
+            link: linkHeader,
+            'access-control-expose-headers': 'link, Link',
+          },
+        });
+      }
+
+      const linkHeader =
+        '<http://localhost:8080/api/v1/repos/vela/builds?page=2&per_page=10>; rel="next", <http://localhost:8080/api/v1/repos/vela/builds?page=2&per_page=10>; rel="last"';
+
+      return jsonResponse(route, {
+        body: page1,
+        headers: {
+          Link: linkHeader,
+          link: linkHeader,
+          'access-control-expose-headers': 'link, Link',
+        },
+      });
+    }),
   );
 }
 

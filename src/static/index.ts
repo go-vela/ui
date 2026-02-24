@@ -64,6 +64,7 @@ const flags: Flags = {
       maximumStarlarkExecLimit,
   ),
   velaScheduleAllowlist:
+    (window as any).__velaEnv?.VELA_SCHEDULE_ALLOWLIST ||
     (window.Cypress && window.Cypress.env('VELA_SCHEDULE_ALLOWLIST')) ||
     process.env.VELA_SCHEDULE_ALLOWLIST ||
     envOrNull('VELA_SCHEDULE_ALLOWLIST', '$VELA_SCHEDULE_ALLOWLIST') ||
