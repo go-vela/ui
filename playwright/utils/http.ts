@@ -57,3 +57,23 @@ export function withGet(
 ): Promise<void> | void {
   return withMethod(route, 'GET', handler);
 }
+
+// Helper to fulfill CORS preflight requests before delegating to a handler.
+export function withCorsPreflight(
+  route: Route,
+  handler: () => Promise<void> | void,
+): Promise<void> | void {
+  if (route.request().method() === 'OPTIONS') {
+    return route.fulfill({
+      status: 204,
+      headers: {
+        'access-control-allow-origin': '*',
+        'access-control-allow-methods':
+          'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+        'access-control-allow-headers': 'content-type, authorization',
+      },
+    });
+  }
+
+  return handler();
+}
