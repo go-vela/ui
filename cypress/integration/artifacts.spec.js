@@ -81,7 +81,7 @@ context('Artifacts', () => {
         method: 'GET',
         url: '*api/v1/repos/*/*/builds/*/storage/',
         status: 200,
-        response: [],
+        response: { names: {} },
       });
       cy.login('/github/octocat/1/artifacts');
     });
@@ -126,7 +126,7 @@ context('Artifacts', () => {
         method: 'GET',
         url: '*api/v1/repos/*/*/builds/*/storage/',
         status: 200,
-        response: [],
+        response: { names: {} },
         delay: 1000,
       });
       cy.login('/github/octocat/1/artifacts');

@@ -723,29 +723,16 @@ Cypress.Commands.add('workerPages', () => {
 });
 
 Cypress.Commands.add('stubArtifacts', () => {
-  cy.server();
-  cy.fixture('artifacts').then(artifacts => {
-    cy.route({
-      method: 'GET',
-      url: '*api/v1/repos/*/*/builds/*/storage/',
-      status: 200,
-      response: artifacts,
-    });
-  });
-});
-
-Cypress.Commands.add('stubArtifactsError', () => {
-  cy.server();
+  cy.fixture('artifacts').as('artifacts');
   cy.route({
     method: 'GET',
     url: '*api/v1/repos/*/*/builds/*/storage/',
     status: 200,
-    response: artifacts,
+    response: '@artifacts',
   });
 });
 
 Cypress.Commands.add('stubArtifactsError', () => {
-  cy.server();
   cy.route({
     method: 'GET',
     url: '*api/v1/repos/*/*/builds/*/storage/',
