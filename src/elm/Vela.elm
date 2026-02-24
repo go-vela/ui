@@ -463,7 +463,7 @@ type alias Repository =
     , enabled : Enabled
     , pipeline_type : String
     , approval_timeout : Int
-    , merge_queue_events: List String
+    , merge_queue_events : List String
     }
 
 
@@ -521,6 +521,7 @@ decodeRepository =
         |> optional "approval_timeout" int 0
         |> optional "merge_queue_events" (Json.Decode.list string) []
 
+
 decodeRepositories : Decoder (List Repository)
 decodeRepositories =
     Json.Decode.list decodeRepository
@@ -542,7 +543,7 @@ type alias RepoPayload =
     , counter : Maybe Int
     , pipeline_type : Maybe String
     , approval_timeout : Maybe Int
-    , merge_queue_events: Maybe (List String)
+    , merge_queue_events : Maybe (List String)
     }
 
 
@@ -593,6 +594,7 @@ type RepoFieldUpdate
     | PipelineType
     | ApprovalTimeout
     | MergeQueueEvents
+
 
 type alias RepoFieldUpdateResponseConfig =
     { successAlert : Repository -> String
