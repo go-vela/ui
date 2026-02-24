@@ -463,6 +463,7 @@ type alias Repository =
     , enabled : Enabled
     , pipeline_type : String
     , approval_timeout : Int
+    , merge_queue_events: List String
     }
 
 
@@ -489,6 +490,7 @@ emptyRepository =
     , enabled = Disabled
     , pipeline_type = ""
     , approval_timeout = 0
+    , merge_queue_events = []
     }
 
 
@@ -517,7 +519,7 @@ decodeRepository =
         |> optional "active" enabledDecoder Disabled
         |> optional "pipeline_type" string ""
         |> optional "approval_timeout" int 0
-
+        |> optional "merge_queue_events" (Json.Decode.list string) []
 
 decodeRepositories : Decoder (List Repository)
 decodeRepositories =
@@ -540,6 +542,7 @@ type alias RepoPayload =
     , counter : Maybe Int
     , pipeline_type : Maybe String
     , approval_timeout : Maybe Int
+    , merge_queue_events: Maybe (List String)
     }
 
 
@@ -557,6 +560,7 @@ encodeRepoPayload repo =
         , ( "counter", encodeOptional Json.Encode.int repo.counter )
         , ( "pipeline_type", encodeOptional Json.Encode.string repo.pipeline_type )
         , ( "approval_timeout", encodeOptional Json.Encode.int repo.approval_timeout )
+        , ( "merge_queue_events", encodeOptional (Json.Encode.list Json.Encode.string) repo.merge_queue_events )
         ]
 
 
@@ -573,6 +577,7 @@ defaultRepoPayload =
     , counter = Nothing
     , pipeline_type = Nothing
     , approval_timeout = Nothing
+    , merge_queue_events = Nothing
     }
 
 
@@ -587,7 +592,7 @@ type RepoFieldUpdate
     | Counter
     | PipelineType
     | ApprovalTimeout
-
+    | MergeQueueEvents
 
 type alias RepoFieldUpdateResponseConfig =
     { successAlert : Repository -> String
@@ -729,6 +734,12 @@ repoFieldUpdateToResponseConfig field =
                 { successAlert =
                     \repo ->
                         "$ build approval timeout set to " ++ String.fromInt repo.approval_timeout ++ " day(s)."
+                }
+
+            MergeQueueEvents ->
+                { successAlert =
+                    \repo ->
+                        "$ merge queue events set to [" ++ String.join ", " repo.merge_queue_events ++ "]."
                 }
 
 
