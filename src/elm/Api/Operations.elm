@@ -1392,8 +1392,7 @@ getBuildArtifacts :
     -> Session
     ->
         { a
-            | bucket : String
-            , org : String
+            | org : String
             , repo : String
             , build : String
         }
@@ -1401,7 +1400,6 @@ getBuildArtifacts :
 getBuildArtifacts baseUrl session options =
     get baseUrl
         (Api.Endpoint.StorageBuildArtifacts
-            options.bucket
             options.org
             options.repo
             options.build

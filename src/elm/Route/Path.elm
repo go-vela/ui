@@ -306,13 +306,6 @@ fromString urlPath =
                 }
                 |> Just
 
-        -- org_ :: repo_ :: build_ :: "artifacts" :: "attachments" :: [] ->
-        --     Org__Repo__Build__Artifacts
-        --         { org = org_
-        --         , repo = repo_
-        --         , build = build_
-        --         }
-        --         |> Just
         org_ :: repo_ :: build_ :: "services" :: [] ->
             Org__Repo__Build__Services
                 { org = org_
