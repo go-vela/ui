@@ -724,16 +724,18 @@ Cypress.Commands.add('workerPages', () => {
 
 Cypress.Commands.add('stubArtifacts', () => {
   cy.server();
-  const artifacts = {
-    names: {
-      'github/octocat/1/test-results.xml':
-        'https://example.com/signed-url/test-results.xml',
-      'github/octocat/1/coverage.html':
-        'https://example.com/signed-url/coverage.html',
-      'github/octocat/1/junit-report.json':
-        'https://example.com/signed-url/junit-report.json',
-    },
-  };
+  cy.fixture('artifacts').then(artifacts => {
+    cy.route({
+      method: 'GET',
+      url: '*api/v1/repos/*/*/builds/*/storage/',
+      status: 200,
+      response: artifacts,
+    });
+  });
+});
+
+Cypress.Commands.add('stubArtifactsError', () => {
+  cy.server();
   cy.route({
     method: 'GET',
     url: '*api/v1/repos/*/*/builds/*/storage/',
