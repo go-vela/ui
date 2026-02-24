@@ -1,0 +1,149 @@
+{
+  "dashboard": {
+    "id": "86671eb5-a3ff-49e1-ad85-c3b2f648dcb2",
+    "name": "example",
+    "created_at": 1715749911,
+    "created_by": "CookieCat",
+    "updated_at": 1715749911,
+    "updated_by": "CookieCat",
+    "admins": [
+      {
+        "id": 1,
+        "name": "CookieCat",
+        "active": true
+      }
+    ],
+    "repos": [
+      {
+        "id": 2,
+        "name": "github/repo1"
+      },
+      {
+        "id": 1,
+        "name": "github/repo2"
+      }
+    ]
+  },
+  "repos": [
+    {
+      "org": "github",
+      "name": "repo1",
+      "counter": 25,
+      "active": true,
+      "builds": [
+        {
+          "number": 25,
+          "started": 1715965620,
+          "finished": 1715965674,
+          "sender": "github",
+          "status": "success",
+          "event": "push",
+          "branch": "main",
+          "link": "/github/repo1/25"
+        },
+        {
+          "number": 24,
+          "started": 1715965597,
+          "finished": 1715965620,
+          "sender": "github",
+          "status": "canceled",
+          "event": "push",
+          "branch": "main",
+          "link": "/github/repo1/24"
+        },
+        {
+          "number": 23,
+          "started": 1715964030,
+          "finished": 1715964083,
+          "sender": "github",
+          "status": "success",
+          "event": "push",
+          "branch": "main",
+          "link": "/github/repo1/23"
+        },
+        {
+          "number": 22,
+          "started": 1715963978,
+          "finished": 1715964028,
+          "sender": "github",
+          "status": "success",
+          "event": "push",
+          "branch": "main",
+          "link": "/github/repo1/22"
+        },
+        {
+          "number": 21,
+          "started": 1715919426,
+          "finished": 1715919479,
+          "sender": "github",
+          "status": "success",
+          "event": "push",
+          "branch": "main",
+          "link": "/github/repo1/21"
+        }
+      ]
+    },
+    {
+      "org": "github",
+      "name": "repo2",
+      "active": true,
+      "builds": [
+        {
+          "number": 15,
+          "started": 1715965620,
+          "finished": 1715965674,
+          "sender": "github",
+          "status": "failure",
+          "event": "push",
+          "branch": "main",
+          "link": "/github/repo2/15"
+        },
+        {
+          "number": 14,
+          "started": 1715965597,
+          "finished": 1715965620,
+          "sender": "github",
+          "status": "canceled",
+          "event": "push",
+          "branch": "main",
+          "link": "/github/repo2/14"
+        },
+        {
+          "number": 13,
+          "started": 1715964030,
+          "finished": 1715964083,
+          "sender": "github",
+          "status": "success",
+          "event": "push",
+          "branch": "main",
+          "link": "/github/repo2/13"
+        },
+        {
+          "number": 12,
+          "started": 1715963978,
+          "finished": 1715964028,
+          "sender": "github",
+          "status": "success",
+          "event": "push",
+          "branch": "main",
+          "link": "/github/repo2/12"
+        },
+        {
+          "number": 11,
+          "started": 1715919426,
+          "finished": 1715919479,
+          "sender": "github",
+          "status": "success",
+          "event": "push",
+          "branch": "main",
+          "link": "/github/repo2/11"
+        }
+      ]
+    },
+    {
+      "org": "github",
+      "name": "repo3",
+      "active": true
+    }
+  ]
+}
