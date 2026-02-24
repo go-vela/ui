@@ -3,6 +3,7 @@
  */
 
 import { Page } from '@playwright/test';
+import { userPattern } from './routes';
 import { readTestData } from './testData';
 
 type AuthTokenOptions = {
@@ -54,7 +55,7 @@ async function mockTokenRefresh(
 
 async function mockCurrentUser(page: Page, dataName: string): Promise<void> {
   const payload = readTestData(dataName);
-  await page.route(/^https?:\/\/[^/]+\/api\/v1\/user(\?.*)?$/, route => {
+  await page.route(userPattern, route => {
     if (route.request().method() !== 'GET') {
       return route.fallback();
     }

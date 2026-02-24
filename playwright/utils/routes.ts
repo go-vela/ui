@@ -20,6 +20,9 @@ export const buildCancelPattern =
 export const buildApprovePattern =
   /\/api\/v1\/repos\/[^/]+\/[^/]+\/builds\/\d+\/approve$/;
 
+export const buildGraphPattern =
+  /\/api\/v1\/repos\/[^/]+\/[^/]+\/builds\/\d+\/graph$/;
+
 export const sourceReposPattern = /\/api\/v1\/user\/source\/repos(\?.*)?$/;
 
 export const repoEnablePattern = /\/api\/v1\/repos(\/[^/]+\/[^/]+)?$/;
@@ -31,6 +34,27 @@ export const secretsListPattern =
 
 export const secretDetailPattern =
   /\/api\/v1\/secrets\/[^/]+\/[^/]+\/[^/]+\/[^/]+\/[^/]+$/;
+
+export const userDashboardsPattern = /\/api\/v1\/user\/dashboards(\?.*)?$/;
+
+export const dashboardDetailPattern = /\/api\/v1\/dashboards\/[^/]+(\?.*)?$/;
+
+export const deploymentsListPattern =
+  /\/api\/v1\/deployments\/[^/]+\/[^/]+(\?.*)?$/;
+
+export const deploymentConfigPattern =
+  /\/api\/v1\/deployments\/[^/]+\/[^/]+\/config(\?.*)?$/;
+
+export const hooksListPattern = /\/api\/v1\/hooks\/[^/]+\/[^/]+(\?.*)?$/;
+
+export const hookRedeliverPattern =
+  /\/api\/v1\/hooks\/[^/]+\/[^/]+\/[^/]+\/redeliver$/;
+
+export const repoDetailPattern = /\/api\/v1\/repos\/[^/]+\/[^/]+(\?.*)?$/;
+
+export const reposListPattern = /\/api\/v1\/repos(\/[^/]+)?(\?.*)?$/;
+
+export const userPattern = /\/api\/v1\/user\/?(\?.*)?$/;
 
 export function stepLogsPattern(stepNumber: number): RegExp {
   return new RegExp(
