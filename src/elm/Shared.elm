@@ -51,7 +51,6 @@ type alias Model =
 type alias Flags =
     { isDev : Bool
     , velaAPI : String
-    , velaStorageBucket : String
     , velaFeedbackURL : String
     , velaDocsURL : String
     , velaTheme : String
@@ -68,7 +67,6 @@ decoder =
     Json.Decode.succeed Flags
         |> required "isDev" Json.Decode.bool
         |> required "velaAPI" Json.Decode.string
-        |> required "velaStorageBucket" Json.Decode.string
         |> required "velaFeedbackURL" Json.Decode.string
         |> required "velaDocsURL" Json.Decode.string
         |> required "velaTheme" Json.Decode.string
@@ -93,7 +91,6 @@ init flagsResult route =
                     -- and how did Elm handle this before manually decoding
                     { isDev = True
                     , velaAPI = ""
-                    , velaStorageBucket = ""
                     , velaFeedbackURL = ""
                     , velaDocsURL = ""
                     , velaTheme = ""
@@ -143,7 +140,6 @@ init flagsResult route =
     in
     ( { -- FLAGS
         velaAPIBaseURL = flags.velaAPI
-      , velaStorageBucket = flags.velaStorageBucket
       , velaFeedbackURL = flags.velaFeedbackURL
       , velaDocsURL = flags.velaDocsURL
       , velaRedirect = flags.velaRedirect

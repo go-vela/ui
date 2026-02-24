@@ -1448,7 +1448,6 @@ getBuildArtifacts :
     { baseUrl : String
     , session : Auth.Session.Session
     , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.ArtifactObject ) -> msg
-    , bucket : String
     , org : String
     , repo : String
     , build : String

@@ -342,7 +342,6 @@ fetchArtifacts shared route =
         { baseUrl = shared.velaAPIBaseURL
         , session = shared.session
         , onResponse = GetArtifactsResponse
-        , bucket = shared.velaStorageBucket
         , org = route.params.org
         , repo = route.params.repo
         , build = route.params.build

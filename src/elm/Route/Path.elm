@@ -441,8 +441,6 @@ toString path =
                 Org__Repo__Build__Artifacts params ->
                     [ params.org, params.repo, params.build, "artifacts" ]
 
-                -- Org__Repo__Build__Artifacts_Attachments params ->
-                --     [ params.org, params.repo, params.build, "artifacts", "attachments" ]
                 Org__Repo__Build__Services params ->
                     [ params.org, params.repo, params.build, "services" ]
 

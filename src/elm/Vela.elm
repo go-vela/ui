@@ -280,16 +280,11 @@ type alias ArtifactObject =
 
 decodeArtifactObjectNames : Decoder (List ArtifactObject)
 decodeArtifactObjectNames =
-    Json.Decode.oneOf
-        [ Json.Decode.field "names" (Json.Decode.list string)
-            |> Json.Decode.map (List.map (\name -> { name = name, url = Nothing }))
-        , Json.Decode.field "names" (Json.Decode.dict string)
-            |> Json.Decode.map
-                (Dict.toList
-                    >> List.map (\( name, url ) -> { name = name, url = Just url })
-                )
-        , Json.Decode.succeed []
-        ]
+    Json.Decode.field "names" (Json.Decode.dict string)
+        |> Json.Decode.map
+            (Dict.toList
+                >> List.map (\( name, url ) -> { name = name, url = Just url })
+            )
 
 
 
