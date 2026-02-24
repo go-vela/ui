@@ -77,8 +77,8 @@ make up
 # execute the `test` target with `make`
 make test
 
-# execute the `test-cypress` target with `make`
-make test-cypress
+# execute the `test-playwright` target with `make`
+make test-playwright
 ```
 
 * (Optional) Analyze the repository code (ensures your code follows best practices):
@@ -113,6 +113,8 @@ git push fork main
 ## Tips
 
 ### Visual Studio Code Users
+
+- Enable the [Playwright Test for VSCode](https://marketplace.visualstudio.com/items?itemName=ms-playwright.playwright) for advanced Playwright integration into your IDE.
 
 - Check out the [Elm extension by Elm tooling](https://marketplace.visualstudio.com/items?itemName=Elmtooling.elm-ls-vscode) (elmtooling.elm-ls-vscode). It will help make `elm-format` and `elm-analyse` and automatic thing and provide other niceties.
 
