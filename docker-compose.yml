@@ -38,9 +38,6 @@ services:
     networks:
       - vela
     environment:
-      CACHE_DRIVER: redis
-      CACHE_ADDR: 'redis://redis:6379'
-      CACHE_INSTALL_TOKEN_KEY: df4b22849583a95cf1d581f234e3249f0ab96bc69ca9dc90da3dfaff173d8b6a
       DATABASE_DRIVER: postgres
       DATABASE_ADDR: 'postgres://vela:zB7mrKDTZqNeNTD8z47yG4DHywspAh@postgres:5432/vela?sslmode=disable'
       DATABASE_COMPRESSION_LEVEL: 3
@@ -48,6 +45,7 @@ services:
       QUEUE_DRIVER: redis
       QUEUE_ADDR: 'redis://redis:6379'
       QUEUE_PRIVATE_KEY: 'tCIevHOBq6DdN5SSBtteXUusjjd0fOqzk2eyi0DMq04NewmShNKQeUbbp3vkvIckb4pCxc+vxUo+mYf/vzOaSg=='
+      QUEUE_PUBLIC_KEY: 'DXsJkoTSkHlG26d75LyHJG+KQsXPr8VKPpmH/78zmko='
       SCM_DRIVER: github
       SCM_CONTEXT: 'continuous-integration/vela'
       SECRET_VAULT: 'true'
@@ -58,25 +56,13 @@ services:
       VELA_LOG_LEVEL: trace
       # comment the line below to use registration flow
       VELA_SECRET: 'zB7mrKDTZqNeNTD8z47yG4DHywspAh'
-      QUEUE_PUBLIC_KEY: 'DXsJkoTSkHlG26d75LyHJG+KQsXPr8VKPpmH/78zmko='
       VELA_SERVER_PRIVATE_KEY: 'F534FF2A080E45F38E05DC70752E6787'
       VELA_USER_REFRESH_TOKEN_DURATION: 90m
       VELA_USER_ACCESS_TOKEN_DURATION: 60m
-      VELA_WORKER_AUTH_TOKEN_DURATION: 3m
       VELA_DISABLE_WEBHOOK_VALIDATION: 'true'
       VELA_ENABLE_SECURE_COOKIE: 'false'
       VELA_REPO_ALLOWLIST: '*'
       VELA_SCHEDULE_ALLOWLIST: '*'
-      VELA_OTEL_TRACING_ENABLE: true
-      VELA_OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
-      VELA_OTEL_TRACING_SAMPLER_RATELIMIT_PER_SECOND: 100
-      VELA_STORAGE_ENABLE: true
-      VELA_STORAGE_DRIVER: minio
-      VELA_STORAGE_ADDRESS: 'http://minio:9001' # Address of the MinIO server
-      VELA_STORAGE_ACCESS_KEY: minioadmin
-      VELA_STORAGE_SECRET_KEY: minioadmin
-      VELA_STORAGE_USE_SSL: 'false'
-      VELA_STORAGE_BUCKET: vela
     env_file:
       - .env
     restart: always
@@ -101,20 +87,17 @@ services:
     environment:
       EXECUTOR_DRIVER: linux
       QUEUE_DRIVER: redis
-      # comment the line below to source Redis address from server
       QUEUE_ADDR: 'redis://redis:6379'
-      VELA_BUILD_LIMIT: 3
+      VELA_BUILD_LIMIT: 1
       VELA_BUILD_TIMEOUT: 30m
       VELA_LOG_LEVEL: trace
       VELA_RUNTIME_DRIVER: docker
       VELA_RUNTIME_PRIVILEGED_IMAGES: 'target/vela-docker'
-      VELA_EXECUTOR_ENFORCE_TRUSTED_REPOS: 'true'
       VELA_SERVER_ADDR: 'http://server:8080'
-      # comment the VELA_SERVER_SECRET line below to use registration flow
+      # comment the line below to use registration flow
       VELA_SERVER_SECRET: 'zB7mrKDTZqNeNTD8z47yG4DHywspAh'
       WORKER_ADDR: 'http://worker:8080'
-      WORKER_CHECK_IN: 2m
-      VELA_EXECUTOR_OUTPUTS_IMAGE: 'busybox:stable'
+      WORKER_CHECK_IN: 5m
     restart: always
     ports:
       - '8081:8080'
@@ -171,35 +154,6 @@ services:
       - '8200:8200'
     cap_add:
       - IPC_LOCK
-
-  minio:
-    container_name: minio
-    image: minio/minio
-    restart: always
-    ports:
-      - '9001:9001'
-      - '9002:9002'
-    networks:
-      - vela
-    environment:
-      - MINIO_ROOT_USER=minioadmin
-      - MINIO_ROOT_PASSWORD=minioadmin
-    command: minio server --address ":9001" --console-address ":9002" /data
-
-  minio-setup:
-    image: minio/mc
-    container_name: minio-setup
-    depends_on:
-      - minio
-    networks:
-      - vela
-    entrypoint: >
-      /bin/sh -c '
-      until mc alias set local http://minio:9001 minioadmin minioadmin; do sleep 1; done;
-      mc mb --ignore-existing local/vela;
-      mc anonymous set none local/vela;
-      '
-    restart: "no"
 
 networks:
   vela:
