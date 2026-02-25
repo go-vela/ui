@@ -4,7 +4,7 @@
 
 import { test, expect } from './fixtures';
 import { mockBuildsByNumber } from './utils/buildMocks';
-import { mockRepoDetail } from './utils/deploymentMocks';
+import { mockRepoDetail } from './utils/repoMocks';
 import {
   mockHooksError,
   mockHooksList,

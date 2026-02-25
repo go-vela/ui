@@ -9,8 +9,8 @@ import {
   mockDeploymentCreate,
   mockDeploymentsList,
   mockHooksList,
-  mockRepoDetail,
 } from './utils/deploymentMocks';
+import { mockRepoDetail } from './utils/repoMocks';
 
 test.describe('Deployment', () => {
   test.describe('server returning deployments', () => {

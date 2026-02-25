@@ -3,7 +3,7 @@
  */
 
 import { Page } from '@playwright/test';
-import { jsonResponse, resolvePayload, withGet } from './http';
+import { jsonResponse, resolvePayload, withGet, textResponse } from './http';
 import { repoEnablePattern, sourceReposPattern } from './routes';
 
 const sleep = (ms: number): Promise<void> =>
@@ -39,13 +39,7 @@ export async function mockSourceReposError(
   body = 'server error',
 ): Promise<void> {
   await page.route(sourceReposPattern, route =>
-    withGet(route, () =>
-      route.fulfill({
-        status,
-        contentType: 'text/plain',
-        body,
-      }),
-    ),
+    withGet(route, () => textResponse(route, { status, body })),
   );
 }
 

@@ -8,7 +8,6 @@ import {
   deploymentConfigPattern,
   deploymentsListPattern,
   hooksListPattern,
-  repoDetailPattern,
 } from './routes';
 
 export async function mockDeploymentsList(
@@ -49,17 +48,6 @@ export async function mockHooksList(
   payloadOrFixture: string | unknown,
 ): Promise<void> {
   await page.route(hooksListPattern, route =>
-    withGet(route, () =>
-      jsonResponse(route, { body: resolvePayload(payloadOrFixture) }),
-    ),
-  );
-}
-
-export async function mockRepoDetail(
-  page: Page,
-  payloadOrFixture: string | unknown,
-): Promise<void> {
-  await page.route(repoDetailPattern, route =>
     withGet(route, () =>
       jsonResponse(route, { body: resolvePayload(payloadOrFixture) }),
     ),

@@ -11,6 +11,21 @@ type MockResponse = {
   body: unknown;
 };
 
+type TextResponse = {
+  status?: number;
+  headers?: Record<string, string>;
+  body: string;
+};
+
+type PagedResponseOptions = {
+  page1: unknown;
+  page2: unknown;
+  linkHeaderPage1: string;
+  linkHeaderPage2: string;
+  pageParam?: string;
+  headers?: Record<string, string>;
+};
+
 // Helper function to fulfill a route with a JSON response
 export function jsonResponse(
   route: Route,
@@ -25,6 +40,23 @@ export function jsonResponse(
     status: response.status ?? 200,
     headers,
     body: JSON.stringify(response.body),
+  });
+}
+
+// Helper function to fulfill a route with a plain text response
+export function textResponse(
+  route: Route,
+  response: TextResponse,
+): Promise<void> {
+  const headers = {
+    'content-type': 'text/plain',
+    ...response.headers,
+  };
+
+  return route.fulfill({
+    status: response.status ?? 200,
+    headers,
+    body: response.body,
   });
 }
 
@@ -56,6 +88,30 @@ export function withGet(
   handler: () => Promise<void> | void,
 ): Promise<void> | void {
   return withMethod(route, 'GET', handler);
+}
+
+// Helper function to fulfill a paged JSON response with Link headers
+export function withPagedResponse(
+  route: Route,
+  options: PagedResponseOptions,
+): Promise<void> {
+  const url = new URL(route.request().url());
+  const pageNumber = url.searchParams.get(options.pageParam ?? 'page');
+  const isSecondPage = pageNumber === '2';
+  const linkHeader = isSecondPage
+    ? options.linkHeaderPage2
+    : options.linkHeaderPage1;
+  const body = isSecondPage ? options.page2 : options.page1;
+
+  return jsonResponse(route, {
+    body,
+    headers: {
+      Link: linkHeader,
+      link: linkHeader,
+      'access-control-expose-headers': 'link, Link',
+      ...options.headers,
+    },
+  });
 }
 
 // Helper to fulfill CORS preflight requests before delegating to a handler.
