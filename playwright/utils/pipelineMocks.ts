@@ -3,7 +3,13 @@
  */
 
 import { Page } from '@playwright/test';
-import { jsonResponse, resolvePayload, withGet, withMethod } from './http';
+import {
+  jsonResponse,
+  resolvePayload,
+  withGet,
+  withMethod,
+  textResponse,
+} from './http';
 import {
   pipelineConfigPattern,
   pipelineExpandPattern,
@@ -68,13 +74,7 @@ export async function mockPipelineExpand(
       const body =
         typeof payload === 'string' ? payload : JSON.stringify(payload);
 
-      return route.fulfill({
-        status: 200,
-        headers: {
-          'content-type': 'text/plain',
-        },
-        body,
-      });
+      return textResponse(route, { body });
     }),
   );
 }

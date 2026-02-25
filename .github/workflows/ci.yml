@@ -40,12 +40,6 @@ jobs:
           key: ${{ runner.os }}-modules-v2-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-modules-v2-
-      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        with:
-          path: ~/.cache/Cypress
-          key: cypress-${{ runner.os }}-bin-v2-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            cypress-${{ runner.os }}-bin-v2-
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: ".nvmrc"
@@ -87,12 +81,6 @@ jobs:
           key: ${{ runner.os }}-modules-v2-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-modules-v2-
-      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        with:
-          path: ~/.cache/Cypress
-          key: cypress-${{ runner.os }}-bin-v2-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            cypress-${{ runner.os }}-bin-v2-
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: ".nvmrc"
@@ -128,12 +116,6 @@ jobs:
           key: ${{ runner.os }}-modules-v2-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-modules-v2-
-      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        with:
-          path: ~/.cache/Cypress
-          key: cypress-${{ runner.os }}-bin-v2-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            cypress-${{ runner.os }}-bin-v2-
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: ".nvmrc"
@@ -143,54 +125,6 @@ jobs:
       - name: run linter
         run: npm run lint
 
-  # ┌─┐┬ ┬┌─┐┬─┐┌─┐┌─┐┌─┐
-  # │  └┬┘├─┘├┬┘├┤ └─┐└─┐
-  # └─┘ ┴ ┴  ┴└─└─┘└─┘└─┘
-  integration:
-    name: run cypress tests
-    runs-on: ubuntu-latest
-    env:
-      VELA_API: "http://localhost:8080"
-      TERM: xterm
-
-    permissions:
-      actions: write # for actions/cache to write to cache location
-
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        with:
-          path: ~/.elm
-          key: ${{ runner.os }}-elm-v3-${{ hashFiles('**/elm.json') }}
-          restore-keys: |
-            ${{ runner.os }}-elm-v3-
-      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-v2-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-v2-
-      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-modules-v2-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-modules-v2-
-      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        with:
-          path: ~/.cache/Cypress
-          key: cypress-${{ runner.os }}-bin-v2-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            cypress-${{ runner.os }}-bin-v2-
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version-file: ".nvmrc"
-
-      - name: install dependencies
-        run: npm ci --prefer-offline --no-audit
-      - name: run cypress tests
-        run: npm run test:cy
-
   # ┌─┐┬ ┬┌┐ ┬  ┬┌─┐┬ ┬
   # ├─┘│ │├┴┐│  │└─┐├─┤
   # ┴  └─┘└─┘┴─┘┴└─┘┴ ┴
@@ -198,7 +132,7 @@ jobs:
     name: build and push to docker
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'go-vela/ui'
-    needs: [lint, elm-format, elm-test, integration]
+    needs: [lint, elm-format, elm-test]
 
     permissions:
       actions: write # for actions/cache to write to cache location

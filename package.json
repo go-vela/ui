@@ -4,7 +4,7 @@
   "description": "Vela UI",
   "author": "Vela Team",
   "engines": {
-    "node": ">=18.12.0"
+    "node": ">=22.00.0"
   },
   "dependencies": {
     "@hpcc-js/wasm-graphviz": "1.10.0",
@@ -12,16 +12,14 @@
     "d3": "^7.8.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.11.1",
     "@double-great/stylelint-a11y": "3.0.4",
     "@fullhuman/postcss-purgecss": "7.0.2",
-    "@axe-core/playwright": "4.11.1",
-    "@playwright/test": "1.58.2",
-    "@types/node": "25.3.0",
     "@parcel/transformer-elm": "2.15.4",
     "@parcel/transformer-sass": "2.15.4",
-    "axe-core": "4.10.3",
-    "cypress": "5.6.0",
-    "cypress-axe": "0.14.0",
+    "@playwright/test": "1.58.2",
+    "@types/node": "25.3.0",
+    "axe-core": "4.11.1",
     "elm": "0.19.1-6",
     "elm-format": "0.8.8",
     "elm-test": "0.19.1-revision16",
@@ -31,7 +29,6 @@
     "postcss": "8.5.6",
     "prettier": "3.6.2",
     "rimraf": "6.0.1",
-    "start-server-and-test": "2.0.12",
     "stylelint": "16.23.0",
     "stylelint-color-format": "1.1.0",
     "stylelint-config-recommended-scss": "15.0.1",
@@ -58,10 +55,6 @@
     "copy:static": "make-dir ./dist && ncp ./src/static/images ./dist/images",
     "test": "elm-test",
     "test:watch": "elm-test --watch",
-    "test:cy": "VELA_LOG_BYTES_LIMIT=1000 start-test 8888 cypress",
-    "test:cy-open": "VELA_LOG_BYTES_LIMIT=1000 start-test 8888 cypress:open",
-    "cypress": "cypress run",
-    "cypress:open": "cypress open",
     "playwright": "playwright test",
     "playwright:ui": "playwright test --ui",
     "clean": "rimraf ./.parcel-cache ./.cache ./dist",

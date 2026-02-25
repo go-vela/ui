@@ -1,8 +1,0 @@
-{
-  "id": 1,
-  "name": "octocat",
-  "token": "token",
-  "favorites": ["org/repo_a", "org/repo_b"],
-  "active": true,
-  "admin": false
-}

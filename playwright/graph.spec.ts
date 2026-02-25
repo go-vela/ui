@@ -12,7 +12,7 @@ import {
   mockBuildsList,
   mockStepsErrors,
 } from './utils/buildMocks';
-import { mockRepoDetail } from './utils/deploymentMocks';
+import { mockRepoDetail } from './utils/repoMocks';
 
 async function setCheckbox(
   checkbox: Locator,

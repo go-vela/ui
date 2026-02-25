@@ -9,6 +9,8 @@ import {
   withCorsPreflight,
   withGet,
   withMethod,
+  withPagedResponse,
+  textResponse,
 } from './http';
 import {
   orgReposPattern,
@@ -50,36 +52,16 @@ export async function mockOrgReposListPaged(page: Page): Promise<void> {
   const page2 = resolvePayload('repositories_10b.json');
 
   await page.route(orgReposPattern, route =>
-    withGet(route, () => {
-      const url = new URL(route.request().url());
-      const pageNumber = url.searchParams.get('page');
-
-      if (pageNumber === '2') {
-        const linkHeader =
-          '<http://localhost:8080/api/v1/repos/vela?page=1&per_page=10>; rel="first", <http://localhost:8080/api/v1/repos/vela?page=1&per_page=10>; rel="prev"';
-
-        return jsonResponse(route, {
-          body: page2,
-          headers: {
-            Link: linkHeader,
-            link: linkHeader,
-            'access-control-expose-headers': 'link, Link',
-          },
-        });
-      }
-
-      const linkHeader =
-        '<http://localhost:8080/api/v1/repos/vela?page=2&per_page=10>; rel="next", <http://localhost:8080/api/v1/repos/vela?page=2&per_page=10>; rel="last"';
-
-      return jsonResponse(route, {
-        body: page1,
-        headers: {
-          Link: linkHeader,
-          link: linkHeader,
-          'access-control-expose-headers': 'link, Link',
-        },
-      });
-    }),
+    withGet(route, () =>
+      withPagedResponse(route, {
+        page1,
+        page2,
+        linkHeaderPage1:
+          '<http://localhost:8080/api/v1/repos/vela?page=2&per_page=10>; rel="next", <http://localhost:8080/api/v1/repos/vela?page=2&per_page=10>; rel="last"',
+        linkHeaderPage2:
+          '<http://localhost:8080/api/v1/repos/vela?page=1&per_page=10>; rel="first", <http://localhost:8080/api/v1/repos/vela?page=1&per_page=10>; rel="prev"',
+      }),
+    ),
   );
 }
 
@@ -112,11 +94,7 @@ export async function mockRepoDisable(
   await page.route(repoDetailPattern, route =>
     withMethod(route, 'DELETE', () =>
       typeof payloadOrFixture === 'string'
-        ? route.fulfill({
-            status: 200,
-            headers: { 'content-type': 'text/plain' },
-            body: payloadOrFixture,
-          })
+        ? textResponse(route, { body: payloadOrFixture })
         : jsonResponse(route, { body: resolvePayload(payloadOrFixture) }),
     ),
   );
@@ -154,11 +132,7 @@ export async function mockRepoChown(
   await page.route(repoChownPattern, route =>
     withMethod(route, 'PATCH', () =>
       typeof payloadOrFixture === 'string'
-        ? route.fulfill({
-            status: 200,
-            headers: { 'content-type': 'text/plain' },
-            body: payloadOrFixture,
-          })
+        ? textResponse(route, { body: payloadOrFixture })
         : jsonResponse(route, { body: resolvePayload(payloadOrFixture) }),
     ),
   );
@@ -181,11 +155,7 @@ export async function mockRepoRepair(
   await page.route(repoRepairPattern, route =>
     withMethod(route, 'PATCH', () =>
       typeof payloadOrFixture === 'string'
-        ? route.fulfill({
-            status: 200,
-            headers: { 'content-type': 'text/plain' },
-            body: payloadOrFixture,
-          })
+        ? textResponse(route, { body: payloadOrFixture })
         : jsonResponse(route, { body: resolvePayload(payloadOrFixture) }),
     ),
   );
