@@ -3,7 +3,12 @@
  */
 
 import { Page } from '@playwright/test';
-import { jsonResponse, resolvePayload, withGet, withPagedResponse } from './http';
+import {
+  jsonResponse,
+  resolvePayload,
+  withGet,
+  withPagedResponse,
+} from './http';
 import { workersListPattern } from './routes';
 
 export async function mockWorkersList(
