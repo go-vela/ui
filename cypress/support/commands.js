@@ -722,6 +722,25 @@ Cypress.Commands.add('workerPages', () => {
   });
 });
 
+Cypress.Commands.add('stubArtifacts', () => {
+  cy.fixture('artifacts').as('artifacts');
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/repos/*/*/builds/*/storage/',
+    status: 200,
+    response: '@artifacts',
+  });
+});
+
+Cypress.Commands.add('stubArtifactsError', () => {
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/repos/*/*/builds/*/storage/',
+    status: 500,
+    response: { error: 'Internal server error' },
+  });
+});
+
 Cypress.Commands.add('checkA11yForPage', (path = '/', opts = {}) => {
   cy.login(path);
   cy.injectAxe();

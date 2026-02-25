@@ -28,6 +28,7 @@ import Pages.Org_
 import Pages.Org_.Builds
 import Pages.Org_.Repo_
 import Pages.Org_.Repo_.Build_
+import Pages.Org_.Repo_.Build_.Artifacts
 import Pages.Org_.Repo_.Build_.Graph
 import Pages.Org_.Repo_.Build_.Pipeline
 import Pages.Org_.Repo_.Build_.Services
@@ -80,5 +81,6 @@ type Msg
     | Org__Repo__Build_ Pages.Org_.Repo_.Build_.Msg
     | Org__Repo__Build__Graph Pages.Org_.Repo_.Build_.Graph.Msg
     | Org__Repo__Build__Pipeline Pages.Org_.Repo_.Build_.Pipeline.Msg
+    | Org__Repo__Build__Artifacts Pages.Org_.Repo_.Build_.Artifacts.Msg
     | Org__Repo__Build__Services Pages.Org_.Repo_.Build_.Services.Msg
     | NotFound_ Pages.NotFound_.Msg
