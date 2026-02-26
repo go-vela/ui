@@ -47,6 +47,8 @@ test.describe('Build Graph', () => {
   });
 
   test.describe('logged in and server returning build graph, build, and steps', () => {
+    test.use({ viewport: { width: 1600, height: 1000 } });
+
     test.beforeEach(async ({ page, app }) => {
       await mockBuildsList(page, 'builds_5.json');
       await mockBuildsByNumber(page, { 4: 'build_success.json' });
