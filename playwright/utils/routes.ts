@@ -23,6 +23,9 @@ export const buildApprovePattern =
 export const buildGraphPattern =
   /\/api\/v1\/repos\/[^/]+\/[^/]+\/builds\/\d+\/graph$/;
 
+export const buildArtifactsPattern =
+  /\/api\/v1\/repos\/[^/]+\/[^/]+\/builds\/\d+\/storage\/?$/;
+
 export const orgBuildsPattern = /\/api\/v1\/repos\/[^/]+\/builds(\?.*)?$/;
 
 export const pipelineConfigPattern =

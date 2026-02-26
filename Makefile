@@ -155,13 +155,13 @@ test: format-validate ## Test the Elm source code
 	@echo -e "\n### Testing Elm source code"
 	@elm-test
 
-# The `test-cypress` target is intended to run
-# the Cypress tests for the UI.
+# The `test-playwright` target is intended to run
+# the playwright tests for the UI.
 #
-# Usage: `make test-cypress`
-.PHONY: test-cypress
-test-cypress: ## Run Cypress tests
-	@echo -e "\n### Running Cypress tests"
+# Usage: `make test-playwright`
+.PHONY: test-playwright
+test-playwright: ## Run playwright tests
+	@echo -e "\n### Running playwright tests"
 	@npm run test:cy
 
 # The `format-validate` target is intended to
@@ -214,9 +214,9 @@ bump-deps: clean bump-deps-npm bump-deps-elm ## Bump NPM and Elm dependencies
 
 # The `bump-deps-test` target is intended to
 # upgrade NPM and Elm dependencies followed
-# by running Cypress tests to validate that
+# by running playwright tests to validate that
 # the dependency upgrades didn't introduce issues.
 #
 # Usage: `make bump-deps-test`
 .PHONY: bump-deps-test
-bump-deps-test: bump-deps test-cypress ## Bump dependencies and run Cypress tests
+bump-deps-test: bump-deps test-playwright ## Bump dependencies and run playwright tests

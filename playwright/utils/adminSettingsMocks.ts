@@ -3,7 +3,13 @@
  */
 
 import { Page } from '@playwright/test';
-import { jsonResponse, resolvePayload, withGet, withMethod } from './http';
+import {
+  jsonResponse,
+  resolvePayload,
+  withGet,
+  withMethod,
+  textResponse,
+} from './http';
 import { adminSettingsPattern } from './routes';
 
 export async function mockAdminSettings(
@@ -23,13 +29,7 @@ export async function mockAdminSettingsError(
   body = 'server error',
 ): Promise<void> {
   await page.route(adminSettingsPattern, route =>
-    withGet(route, () =>
-      route.fulfill({
-        status,
-        contentType: 'text/plain',
-        body,
-      }),
-    ),
+    withGet(route, () => textResponse(route, { status, body })),
   );
 }
 

@@ -24,6 +24,7 @@ module Api.Operations exposing
     , getAllBuildSteps
     , getAllBuilds
     , getBuild
+    , getBuildArtifacts
     , getBuildGraph
     , getBuildServiceLog
     , getBuildServices
@@ -71,7 +72,6 @@ import Api.Endpoint
 import Auth.Jwt exposing (JwtAccessToken)
 import Auth.Session exposing (Session(..))
 import Dict exposing (Dict)
-import Html exposing (option)
 import Http
 import Json.Decode
 import Vela
@@ -1382,4 +1382,27 @@ getDashboards baseUrl session =
     get baseUrl
         Api.Endpoint.Dashboards
         Vela.decodeDashboards
+        |> withAuth session
+
+
+{-| getBuildArtifacts : retrieves the artifacts for the current build.
+-}
+getBuildArtifacts :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , build : String
+        }
+    -> Request (List Vela.ArtifactObject)
+getBuildArtifacts baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.StorageBuildArtifacts
+            options.org
+            options.repo
+            options.build
+        )
+        Vela.decodeArtifactObjectNames
         |> withAuth session

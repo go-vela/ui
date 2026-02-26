@@ -6,6 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 module Vela exposing
     ( AllowEvents
     , AllowEventsField(..)
+    , ArtifactObject
     , Build
     , BuildGraph
     , BuildGraphEdge
@@ -58,6 +59,7 @@ module Vela exposing
     , allowEventsFilterQueryKeys
     , allowEventsToList
     , buildRepoPayload
+    , decodeArtifactObjectNames
     , decodeBuild
     , decodeBuildGraph
     , decodeBuilds
@@ -264,6 +266,25 @@ decodeDashboardRepo =
         |> optional "name" string ""
         |> optional "branches" (Json.Decode.list string) []
         |> optional "events" (Json.Decode.list string) []
+
+
+
+-- ARTIFACTS
+
+
+type alias ArtifactObject =
+    { name : String
+    , url : Maybe String
+    }
+
+
+decodeArtifactObjectNames : Decoder (List ArtifactObject)
+decodeArtifactObjectNames =
+    Json.Decode.field "names" (Json.Decode.dict string)
+        |> Json.Decode.map
+            (Dict.toList
+                >> List.map (\( name, url ) -> { name = name, url = Just url })
+            )
 
 
 
