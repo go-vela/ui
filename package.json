@@ -4,7 +4,7 @@
   "description": "Vela UI",
   "author": "Vela Team",
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "dependencies": {
     "@hpcc-js/wasm-graphviz": "1.21.0",
@@ -14,11 +14,11 @@
   "devDependencies": {
     "@axe-core/playwright": "4.11.1",
     "@double-great/stylelint-a11y": "3.4.3",
-    "@fullhuman/postcss-purgecss": "7.0.2",
+    "@fullhuman/postcss-purgecss": "8.0.0",
     "@parcel/transformer-elm": "2.16.4",
     "@parcel/transformer-sass": "2.16.4",
     "@playwright/test": "1.58.2",
-    "@types/node": "25.3.1",
+    "@types/node": "25.3.2",
     "axe-core": "4.11.1",
     "elm": "0.19.1-6",
     "elm-format": "0.8.8",
