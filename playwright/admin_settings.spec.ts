@@ -56,6 +56,30 @@ test.describe('Admin Settings', () => {
       await expect(page.getByTestId('input-queue-restart-limit')).toBeVisible();
     });
 
+    test('scm org role map should show', async ({ page }) => {
+      const orgRoleMap = page.getByTestId('editable-list-scm-org-role-map');
+      await expect(orgRoleMap).toBeVisible();
+      await expect(
+        orgRoleMap.getByTestId('editable-list-item-admin'),
+      ).toContainText('admin=admin');
+    });
+
+    test('scm repo role map should show', async ({ page }) => {
+      const repoRoleMap = page.getByTestId('editable-list-scm-repo-role-map');
+      await expect(repoRoleMap).toBeVisible();
+      await expect(
+        repoRoleMap.getByTestId('editable-list-item-maintain'),
+      ).toContainText('maintain=write');
+    });
+
+    test('scm team role map should show', async ({ page }) => {
+      const teamRoleMap = page.getByTestId('editable-list-scm-team-role-map');
+      await expect(teamRoleMap).toBeVisible();
+      await expect(
+        teamRoleMap.getByTestId('editable-list-item-maintainer'),
+      ).toContainText('maintainer=admin');
+    });
+
     test.describe('form should allow editing', () => {
       test.beforeEach(async ({ page }) => {
         await mockAdminSettingsUpdate(page, 'settings_updated.json');
@@ -228,6 +252,46 @@ test.describe('Admin Settings', () => {
           await expect(
             page.getByTestId('editable-list-item-linux-large'),
           ).toBeVisible();
+        });
+      });
+
+      test.describe('scm role maps should allow editing', () => {
+        test('org role map should allow editing entries', async ({ page }) => {
+          const orgRoleMap = page.getByTestId('editable-list-scm-org-role-map');
+
+          await orgRoleMap
+            .getByTestId('editable-list-item-member-edit')
+            .click({ force: true });
+          await orgRoleMap
+            .getByTestId('input-editable-list-item-member')
+            .fill('member=write');
+          await orgRoleMap
+            .getByTestId('editable-list-item-member-save')
+            .click({ force: true });
+
+          await expect(
+            orgRoleMap.getByTestId('editable-list-item-member'),
+          ).toContainText('member=write');
+        });
+
+        test('repo role map should allow editing entries', async ({ page }) => {
+          const repoRoleMap = page.getByTestId(
+            'editable-list-scm-repo-role-map',
+          );
+
+          await repoRoleMap
+            .getByTestId('editable-list-item-triage-edit')
+            .click({ force: true });
+          await repoRoleMap
+            .getByTestId('input-editable-list-item-triage')
+            .fill('triage=write');
+          await repoRoleMap
+            .getByTestId('editable-list-item-triage-save')
+            .click({ force: true });
+
+          await expect(
+            repoRoleMap.getByTestId('editable-list-item-triage'),
+          ).toContainText('triage=write');
         });
       });
     });

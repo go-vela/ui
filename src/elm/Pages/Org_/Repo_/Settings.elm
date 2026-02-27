@@ -113,6 +113,7 @@ type alias Model =
     , inLimit : Maybe Int
     , inCounter : Maybe Int
     , inTimeout : Maybe Int
+    , inMergeQueueEvents : Maybe (List String)
     }
 
 
@@ -125,6 +126,7 @@ init shared route () =
       , inLimit = Nothing
       , inCounter = Nothing
       , inTimeout = Nothing
+      , inMergeQueueEvents = Nothing
       }
     , Effect.getRepo
         { baseUrl = shared.velaAPIBaseURL
@@ -166,6 +168,8 @@ type Msg
     | BuildTimeoutUpdate Int
     | BuildCounterOnInput String
     | BuildCounterUpdate Int
+    | MergeQueueEventsToggle String Bool
+    | MergeQueueEventsSave (List String)
     | PipelineTypeUpdate String
       -- ALERTS
     | AddAlertCopiedToClipboard String
@@ -682,6 +686,50 @@ update shared route msg model =
                 }
             )
 
+        MergeQueueEventsToggle eventName checked_ ->
+            let
+                currentMergeQueueEvents =
+                    Maybe.withDefault
+                        (RemoteData.unwrap [] .merge_queue_events model.repo)
+                        model.inMergeQueueEvents
+
+                updatedMergeQueueEvents =
+                    normalizeMergeQueueEvents <|
+                        if checked_ then
+                            if List.member eventName currentMergeQueueEvents then
+                                currentMergeQueueEvents
+
+                            else
+                                eventName :: currentMergeQueueEvents
+
+                        else
+                            List.filter ((/=) eventName) currentMergeQueueEvents
+            in
+            ( { model | inMergeQueueEvents = Just updatedMergeQueueEvents }
+            , Effect.none
+            )
+
+        MergeQueueEventsSave mergeQueueEvents ->
+            let
+                payload =
+                    { defaultRepoPayload
+                        | merge_queue_events = Just mergeQueueEvents
+                    }
+
+                body =
+                    Http.jsonBody <| Vela.encodeRepoPayload payload
+            in
+            ( model
+            , Effect.updateRepo
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse = UpdateRepoResponse { field = Vela.MergeQueueEvents }
+                , org = route.params.org
+                , repo = route.params.repo
+                , body = body
+                }
+            )
+
         PipelineTypeUpdate val ->
             let
                 payload =
@@ -760,6 +808,7 @@ view shared route model =
                     , viewBadge shared repo AddAlertCopiedToClipboard
                     , viewAdminActions repo DisableRepo EnableRepo ChownRepo RepairRepo
                     , viewPipelineType repo PipelineTypeUpdate
+                    , viewMergeQueueEvents repo model.inMergeQueueEvents MergeQueueEventsToggle MergeQueueEventsSave
                     ]
 
             _ ->
@@ -1444,4 +1493,58 @@ viewPipelineType repo msg =
                 , id_ = "type-starlark"
                 }
             ]
+        ]
+
+
+{-| mergeQueueEventOptions : the supported merge queue events that can be selected.
+-}
+mergeQueueEventOptions : List String
+mergeQueueEventOptions =
+    [ "push", "pull_request", "comment" ]
+
+
+{-| normalizeMergeQueueEvents : normalizes merge queue event selection in a stable order.
+-}
+normalizeMergeQueueEvents : List String -> List String
+normalizeMergeQueueEvents mergeQueueEvents =
+    List.filter (\eventName -> List.member eventName mergeQueueEvents) mergeQueueEventOptions
+
+
+{-| viewMergeQueueEvents : renders settings category for updating merge queue events.
+-}
+viewMergeQueueEvents : Vela.Repository -> Maybe (List String) -> (String -> Bool -> msg) -> (List String -> msg) -> Html msg
+viewMergeQueueEvents repo inMergeQueueEvents toggleMsg saveMsg =
+    let
+        currentMergeQueueEvents =
+            Maybe.withDefault repo.merge_queue_events inMergeQueueEvents |> normalizeMergeQueueEvents
+    in
+    section [ class "settings", Util.testAttribute "repo-settings-merge-queue-events" ]
+        [ h2 [ class "settings-title" ] [ text "Merge Queue Events" ]
+        , p [ class "settings-description" ] [ text "Choose which event contexts Vela will report to for merge queue builds." ]
+        , div [ class "form-controls", class "-stack" ]
+            (List.map
+                (\eventName ->
+                    Components.Form.viewCheckbox
+                        { id_ = "repo-merge-queue-events"
+                        , title = eventName
+                        , subtitle = Nothing
+                        , field = eventName
+                        , state = List.member eventName currentMergeQueueEvents
+                        , wrapperClassList = []
+                        , msg = toggleMsg eventName
+                        , disabled_ = False
+                        }
+                )
+                mergeQueueEventOptions
+                ++ [ button
+                        [ classList
+                            [ ( "button", True )
+                            , ( "-outline", True )
+                            ]
+                        , onClick <| saveMsg currentMergeQueueEvents
+                        , disabled <| currentMergeQueueEvents == normalizeMergeQueueEvents repo.merge_queue_events
+                        ]
+                        [ text "save" ]
+                   ]
+            )
         ]
