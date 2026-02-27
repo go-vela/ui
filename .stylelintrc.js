@@ -48,7 +48,7 @@ module.exports = {
     'selector-max-compound-selectors': 3,
     'selector-max-specificity': [
       // setting for interim, try to lower especially last number (id,class,type)
-      '0,3,3',
+      '0,4,3',
       { ignoreSelectors: ['/:.*/', '/^\\.-[^-].*/'] },
     ],
     'selector-no-vendor-prefix': true,
