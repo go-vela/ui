@@ -21,11 +21,12 @@ import Page exposing (Page)
 import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
+import String
 import Time
 import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Utils.Interval as Interval
-import Vela exposing (defaultCompilerPayload, defaultQueuePayload, defaultSettingsPayload)
+import Vela exposing (defaultCompilerPayload, defaultQueuePayload, defaultScmPayload, defaultSettingsPayload)
 import View exposing (View)
 
 
@@ -85,6 +86,9 @@ type alias Model =
     , queueRoutes : Components.Form.EditableListForm
     , repoAllowlist : Components.Form.EditableListForm
     , scheduleAllowlist : Components.Form.EditableListForm
+    , scmOrgRoleMap : Components.Form.EditableListForm
+    , scmRepoRoleMap : Components.Form.EditableListForm
+    , scmTeamRoleMap : Components.Form.EditableListForm
     , maxDashboardReposIn : String
     , queueRestartLimitIn : String
     }
@@ -103,6 +107,9 @@ init shared () =
       , queueRoutes = { val = "", editing = Dict.empty }
       , repoAllowlist = { val = "", editing = Dict.empty }
       , scheduleAllowlist = { val = "", editing = Dict.empty }
+      , scmOrgRoleMap = { val = "", editing = Dict.empty }
+      , scmRepoRoleMap = { val = "", editing = Dict.empty }
+      , scmTeamRoleMap = { val = "", editing = Dict.empty }
       , maxDashboardReposIn = ""
       , queueRestartLimitIn = ""
       }
@@ -153,6 +160,25 @@ type Msg
     | ScheduleAllowlistSaveOnClick { id : String, val : String }
     | ScheduleAllowlistEditOnInput { id : String } String
     | ScheduleAllowlistRemoveOnClick String
+      -- SCM ROLE MAPS
+    | ScmOrgRoleMapOnInput String
+    | ScmOrgRoleMapAddOnClick String
+    | ScmOrgRoleMapEditOnClick { id : String }
+    | ScmOrgRoleMapSaveOnClick { id : String, val : String }
+    | ScmOrgRoleMapEditOnInput { id : String } String
+    | ScmOrgRoleMapRemoveOnClick String
+    | ScmRepoRoleMapOnInput String
+    | ScmRepoRoleMapAddOnClick String
+    | ScmRepoRoleMapEditOnClick { id : String }
+    | ScmRepoRoleMapSaveOnClick { id : String, val : String }
+    | ScmRepoRoleMapEditOnInput { id : String } String
+    | ScmRepoRoleMapRemoveOnClick String
+    | ScmTeamRoleMapOnInput String
+    | ScmTeamRoleMapAddOnClick String
+    | ScmTeamRoleMapEditOnClick { id : String }
+    | ScmTeamRoleMapSaveOnClick { id : String, val : String }
+    | ScmTeamRoleMapEditOnInput { id : String } String
+    | ScmTeamRoleMapRemoveOnClick String
       -- DASHBOARDS
     | MaxDashboardReposOnInput String
     | MaxDashboardReposOnUpdate String
@@ -808,6 +834,796 @@ update shared route msg model =
             , Effect.none
             )
 
+        -- SCM ROLE MAPS
+        ScmOrgRoleMapOnInput val ->
+            let
+                editableListForm =
+                    model.scmOrgRoleMap
+            in
+            ( { model
+                | scmOrgRoleMap = { editableListForm | val = val }
+              }
+            , Effect.none
+            )
+
+        ScmOrgRoleMapAddOnClick val ->
+            let
+                trimmedVal =
+                    String.trim val
+
+                parts =
+                    Util.splitFirst "=" trimmedVal
+
+                editableListForm =
+                    model.scmOrgRoleMap
+            in
+            case parts of
+                key :: value :: [] ->
+                    let
+                        trimmedKey =
+                            String.trim key
+
+                        trimmedValue =
+                            String.trim value
+                    in
+                    if String.isEmpty trimmedKey || String.isEmpty trimmedValue then
+                        ( model
+                        , Effect.addAlertSuccess
+                            { content = "SCM org role mapping must include a non-empty key and value."
+                            , addToastIfUnique = False
+                            , link = Nothing
+                            }
+                        )
+
+                    else
+                        let
+                            currentMap =
+                                RemoteData.unwrap Dict.empty (.scm >> .orgRoleMap) model.settings
+
+                            effect =
+                                if Dict.member trimmedKey currentMap then
+                                    Effect.addAlertSuccess
+                                        { content = "SCM org role mapping '" ++ trimmedKey ++ "' already exists."
+                                        , addToastIfUnique = False
+                                        , link = Nothing
+                                        }
+
+                                else
+                                    let
+                                        scmPayload =
+                                            { defaultScmPayload
+                                                | orgRoleMap = Just <| Dict.insert trimmedKey trimmedValue currentMap
+                                            }
+
+                                        payload =
+                                            { defaultSettingsPayload
+                                                | scm = Just scmPayload
+                                            }
+
+                                        body =
+                                            Http.jsonBody <| Vela.encodeSettingsPayload payload
+                                    in
+                                    Effect.updateSettings
+                                        { baseUrl = shared.velaAPIBaseURL
+                                        , session = shared.session
+                                        , onResponse =
+                                            UpdateSettingsResponse
+                                                { field = Vela.SCMOrgRoleMapAdd trimmedKey
+                                                }
+                                        , body = body
+                                        }
+                        in
+                        ( { model | scmOrgRoleMap = { editableListForm | val = "" } }
+                        , effect
+                        )
+
+                _ ->
+                    ( model
+                    , Effect.addAlertSuccess
+                        { content = "SCM org role mapping must be in key=value format."
+                        , addToastIfUnique = False
+                        , link = Nothing
+                        }
+                    )
+
+        ScmOrgRoleMapRemoveOnClick key ->
+            let
+                currentMap =
+                    RemoteData.unwrap Dict.empty (.scm >> .orgRoleMap) model.settings
+
+                scmPayload =
+                    { defaultScmPayload
+                        | orgRoleMap = Just <| Dict.remove key currentMap
+                    }
+
+                payload =
+                    { defaultSettingsPayload
+                        | scm = Just scmPayload
+                    }
+
+                body =
+                    Http.jsonBody <| Vela.encodeSettingsPayload payload
+
+                editableListForm =
+                    model.scmOrgRoleMap
+            in
+            ( { model | scmOrgRoleMap = { editableListForm | editing = Dict.remove key editableListForm.editing } }
+            , Effect.updateSettings
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse =
+                    UpdateSettingsResponse
+                        { field = Vela.SCMOrgRoleMapRemove key
+                        }
+                , body = body
+                }
+            )
+
+        ScmOrgRoleMapEditOnClick options ->
+            let
+                editableListForm =
+                    model.scmOrgRoleMap
+
+                currentMap =
+                    RemoteData.unwrap Dict.empty (.scm >> .orgRoleMap) model.settings
+
+                currentValue =
+                    Maybe.withDefault "" <| Dict.get options.id currentMap
+
+                currentEditValue =
+                    options.id ++ "=" ++ currentValue
+            in
+            ( { model
+                | scmOrgRoleMap =
+                    { editableListForm
+                        | editing = Dict.insert options.id currentEditValue editableListForm.editing
+                    }
+              }
+            , Effect.focusOn { target = saveButtonHtmlId scmOrgRoleMapHtmlId options.id }
+            )
+
+        ScmOrgRoleMapSaveOnClick options ->
+            let
+                currentMap =
+                    RemoteData.unwrap Dict.empty (.scm >> .orgRoleMap) model.settings
+
+                existingValue =
+                    Maybe.withDefault "" <| Dict.get options.id currentMap
+
+                trimmedVal =
+                    String.trim options.val
+
+                parts =
+                    Util.splitFirst "=" trimmedVal
+
+                effect =
+                    case parts of
+                        key :: value :: [] ->
+                            let
+                                trimmedKey =
+                                    String.trim key
+
+                                trimmedValue =
+                                    String.trim value
+
+                                existingKey =
+                                    options.id
+
+                                isSame =
+                                    trimmedKey == existingKey && trimmedValue == existingValue
+                            in
+                            if String.isEmpty trimmedKey || String.isEmpty trimmedValue then
+                                Effect.addAlertSuccess
+                                    { content = "SCM org role mapping must include a non-empty key and value."
+                                    , addToastIfUnique = False
+                                    , link = Nothing
+                                    }
+
+                            else if isSame then
+                                Effect.none
+
+                            else if trimmedKey /= existingKey && Dict.member trimmedKey currentMap then
+                                Effect.addAlertSuccess
+                                    { content = "SCM org role mapping '" ++ trimmedKey ++ "' already exists."
+                                    , addToastIfUnique = False
+                                    , link = Nothing
+                                    }
+
+                            else
+                                let
+                                    updatedMap =
+                                        currentMap
+                                            |> Dict.remove existingKey
+                                            |> Dict.insert trimmedKey trimmedValue
+
+                                    scmPayload =
+                                        { defaultScmPayload
+                                            | orgRoleMap = Just updatedMap
+                                        }
+
+                                    payload =
+                                        { defaultSettingsPayload
+                                            | scm = Just scmPayload
+                                        }
+
+                                    body =
+                                        Http.jsonBody <| Vela.encodeSettingsPayload payload
+
+                                    fromLabel =
+                                        existingKey ++ "=" ++ existingValue
+
+                                    toLabel =
+                                        trimmedKey ++ "=" ++ trimmedValue
+                                in
+                                Effect.updateSettings
+                                    { baseUrl = shared.velaAPIBaseURL
+                                    , session = shared.session
+                                    , onResponse =
+                                        UpdateSettingsResponse
+                                            { field = Vela.SCMOrgRoleMapUpdate fromLabel toLabel
+                                            }
+                                    , body = body
+                                    }
+
+                        _ ->
+                            Effect.addAlertSuccess
+                                { content = "SCM org role mapping must be in key=value format."
+                                , addToastIfUnique = False
+                                , link = Nothing
+                                }
+
+                editableListForm =
+                    model.scmOrgRoleMap
+            in
+            ( { model
+                | scmOrgRoleMap =
+                    { editableListForm
+                        | editing = Dict.remove options.id editableListForm.editing
+                    }
+              }
+            , effect
+            )
+
+        ScmOrgRoleMapEditOnInput options val ->
+            let
+                editableListForm =
+                    model.scmOrgRoleMap
+            in
+            ( { model
+                | scmOrgRoleMap =
+                    { editableListForm
+                        | editing = Dict.insert options.id val editableListForm.editing
+                    }
+              }
+            , Effect.none
+            )
+
+        ScmRepoRoleMapOnInput val ->
+            let
+                editableListForm =
+                    model.scmRepoRoleMap
+            in
+            ( { model
+                | scmRepoRoleMap = { editableListForm | val = val }
+              }
+            , Effect.none
+            )
+
+        ScmRepoRoleMapAddOnClick val ->
+            let
+                trimmedVal =
+                    String.trim val
+
+                parts =
+                    Util.splitFirst "=" trimmedVal
+
+                editableListForm =
+                    model.scmRepoRoleMap
+            in
+            case parts of
+                key :: value :: [] ->
+                    let
+                        trimmedKey =
+                            String.trim key
+
+                        trimmedValue =
+                            String.trim value
+                    in
+                    if String.isEmpty trimmedKey || String.isEmpty trimmedValue then
+                        ( model
+                        , Effect.addAlertSuccess
+                            { content = "SCM repo role mapping must include a non-empty key and value."
+                            , addToastIfUnique = False
+                            , link = Nothing
+                            }
+                        )
+
+                    else
+                        let
+                            currentMap =
+                                RemoteData.unwrap Dict.empty (.scm >> .repoRoleMap) model.settings
+
+                            effect =
+                                if Dict.member trimmedKey currentMap then
+                                    Effect.addAlertSuccess
+                                        { content = "SCM repo role mapping '" ++ trimmedKey ++ "' already exists."
+                                        , addToastIfUnique = False
+                                        , link = Nothing
+                                        }
+
+                                else
+                                    let
+                                        scmPayload =
+                                            { defaultScmPayload
+                                                | repoRoleMap = Just <| Dict.insert trimmedKey trimmedValue currentMap
+                                            }
+
+                                        payload =
+                                            { defaultSettingsPayload
+                                                | scm = Just scmPayload
+                                            }
+
+                                        body =
+                                            Http.jsonBody <| Vela.encodeSettingsPayload payload
+                                    in
+                                    Effect.updateSettings
+                                        { baseUrl = shared.velaAPIBaseURL
+                                        , session = shared.session
+                                        , onResponse =
+                                            UpdateSettingsResponse
+                                                { field = Vela.SCMRepoRoleMapAdd trimmedKey
+                                                }
+                                        , body = body
+                                        }
+                        in
+                        ( { model | scmRepoRoleMap = { editableListForm | val = "" } }
+                        , effect
+                        )
+
+                _ ->
+                    ( model
+                    , Effect.addAlertSuccess
+                        { content = "SCM repo role mapping must be in key=value format."
+                        , addToastIfUnique = False
+                        , link = Nothing
+                        }
+                    )
+
+        ScmRepoRoleMapRemoveOnClick key ->
+            let
+                currentMap =
+                    RemoteData.unwrap Dict.empty (.scm >> .repoRoleMap) model.settings
+
+                scmPayload =
+                    { defaultScmPayload
+                        | repoRoleMap = Just <| Dict.remove key currentMap
+                    }
+
+                payload =
+                    { defaultSettingsPayload
+                        | scm = Just scmPayload
+                    }
+
+                body =
+                    Http.jsonBody <| Vela.encodeSettingsPayload payload
+
+                editableListForm =
+                    model.scmRepoRoleMap
+            in
+            ( { model | scmRepoRoleMap = { editableListForm | editing = Dict.remove key editableListForm.editing } }
+            , Effect.updateSettings
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse =
+                    UpdateSettingsResponse
+                        { field = Vela.SCMRepoRoleMapRemove key
+                        }
+                , body = body
+                }
+            )
+
+        ScmRepoRoleMapEditOnClick options ->
+            let
+                editableListForm =
+                    model.scmRepoRoleMap
+
+                currentMap =
+                    RemoteData.unwrap Dict.empty (.scm >> .repoRoleMap) model.settings
+
+                currentValue =
+                    Maybe.withDefault "" <| Dict.get options.id currentMap
+
+                currentEditValue =
+                    options.id ++ "=" ++ currentValue
+            in
+            ( { model
+                | scmRepoRoleMap =
+                    { editableListForm
+                        | editing = Dict.insert options.id currentEditValue editableListForm.editing
+                    }
+              }
+            , Effect.focusOn { target = saveButtonHtmlId scmRepoRoleMapHtmlId options.id }
+            )
+
+        ScmRepoRoleMapSaveOnClick options ->
+            let
+                currentMap =
+                    RemoteData.unwrap Dict.empty (.scm >> .repoRoleMap) model.settings
+
+                existingValue =
+                    Maybe.withDefault "" <| Dict.get options.id currentMap
+
+                trimmedVal =
+                    String.trim options.val
+
+                parts =
+                    Util.splitFirst "=" trimmedVal
+
+                effect =
+                    case parts of
+                        key :: value :: [] ->
+                            let
+                                trimmedKey =
+                                    String.trim key
+
+                                trimmedValue =
+                                    String.trim value
+
+                                existingKey =
+                                    options.id
+
+                                isSame =
+                                    trimmedKey == existingKey && trimmedValue == existingValue
+                            in
+                            if String.isEmpty trimmedKey || String.isEmpty trimmedValue then
+                                Effect.addAlertSuccess
+                                    { content = "SCM repo role mapping must include a non-empty key and value."
+                                    , addToastIfUnique = False
+                                    , link = Nothing
+                                    }
+
+                            else if isSame then
+                                Effect.none
+
+                            else if trimmedKey /= existingKey && Dict.member trimmedKey currentMap then
+                                Effect.addAlertSuccess
+                                    { content = "SCM repo role mapping '" ++ trimmedKey ++ "' already exists."
+                                    , addToastIfUnique = False
+                                    , link = Nothing
+                                    }
+
+                            else
+                                let
+                                    updatedMap =
+                                        currentMap
+                                            |> Dict.remove existingKey
+                                            |> Dict.insert trimmedKey trimmedValue
+
+                                    scmPayload =
+                                        { defaultScmPayload
+                                            | repoRoleMap = Just updatedMap
+                                        }
+
+                                    payload =
+                                        { defaultSettingsPayload
+                                            | scm = Just scmPayload
+                                        }
+
+                                    body =
+                                        Http.jsonBody <| Vela.encodeSettingsPayload payload
+
+                                    fromLabel =
+                                        existingKey ++ "=" ++ existingValue
+
+                                    toLabel =
+                                        trimmedKey ++ "=" ++ trimmedValue
+                                in
+                                Effect.updateSettings
+                                    { baseUrl = shared.velaAPIBaseURL
+                                    , session = shared.session
+                                    , onResponse =
+                                        UpdateSettingsResponse
+                                            { field = Vela.SCMRepoRoleMapUpdate fromLabel toLabel
+                                            }
+                                    , body = body
+                                    }
+
+                        _ ->
+                            Effect.addAlertSuccess
+                                { content = "SCM repo role mapping must be in key=value format."
+                                , addToastIfUnique = False
+                                , link = Nothing
+                                }
+
+                editableListForm =
+                    model.scmRepoRoleMap
+            in
+            ( { model
+                | scmRepoRoleMap =
+                    { editableListForm
+                        | editing = Dict.remove options.id editableListForm.editing
+                    }
+              }
+            , effect
+            )
+
+        ScmRepoRoleMapEditOnInput options val ->
+            let
+                editableListForm =
+                    model.scmRepoRoleMap
+            in
+            ( { model
+                | scmRepoRoleMap =
+                    { editableListForm
+                        | editing = Dict.insert options.id val editableListForm.editing
+                    }
+              }
+            , Effect.none
+            )
+
+        ScmTeamRoleMapOnInput val ->
+            let
+                editableListForm =
+                    model.scmTeamRoleMap
+            in
+            ( { model
+                | scmTeamRoleMap = { editableListForm | val = val }
+              }
+            , Effect.none
+            )
+
+        ScmTeamRoleMapAddOnClick val ->
+            let
+                trimmedVal =
+                    String.trim val
+
+                parts =
+                    Util.splitFirst "=" trimmedVal
+
+                editableListForm =
+                    model.scmTeamRoleMap
+            in
+            case parts of
+                key :: value :: [] ->
+                    let
+                        trimmedKey =
+                            String.trim key
+
+                        trimmedValue =
+                            String.trim value
+                    in
+                    if String.isEmpty trimmedKey || String.isEmpty trimmedValue then
+                        ( model
+                        , Effect.addAlertSuccess
+                            { content = "SCM team role mapping must include a non-empty key and value."
+                            , addToastIfUnique = False
+                            , link = Nothing
+                            }
+                        )
+
+                    else
+                        let
+                            currentMap =
+                                RemoteData.unwrap Dict.empty (.scm >> .teamRoleMap) model.settings
+
+                            effect =
+                                if Dict.member trimmedKey currentMap then
+                                    Effect.addAlertSuccess
+                                        { content = "SCM team role mapping '" ++ trimmedKey ++ "' already exists."
+                                        , addToastIfUnique = False
+                                        , link = Nothing
+                                        }
+
+                                else
+                                    let
+                                        scmPayload =
+                                            { defaultScmPayload
+                                                | teamRoleMap = Just <| Dict.insert trimmedKey trimmedValue currentMap
+                                            }
+
+                                        payload =
+                                            { defaultSettingsPayload
+                                                | scm = Just scmPayload
+                                            }
+
+                                        body =
+                                            Http.jsonBody <| Vela.encodeSettingsPayload payload
+                                    in
+                                    Effect.updateSettings
+                                        { baseUrl = shared.velaAPIBaseURL
+                                        , session = shared.session
+                                        , onResponse =
+                                            UpdateSettingsResponse
+                                                { field = Vela.SCMTeamRoleMapAdd trimmedKey
+                                                }
+                                        , body = body
+                                        }
+                        in
+                        ( { model | scmTeamRoleMap = { editableListForm | val = "" } }
+                        , effect
+                        )
+
+                _ ->
+                    ( model
+                    , Effect.addAlertSuccess
+                        { content = "SCM team role mapping must be in key=value format."
+                        , addToastIfUnique = False
+                        , link = Nothing
+                        }
+                    )
+
+        ScmTeamRoleMapRemoveOnClick key ->
+            let
+                currentMap =
+                    RemoteData.unwrap Dict.empty (.scm >> .teamRoleMap) model.settings
+
+                scmPayload =
+                    { defaultScmPayload
+                        | teamRoleMap = Just <| Dict.remove key currentMap
+                    }
+
+                payload =
+                    { defaultSettingsPayload
+                        | scm = Just scmPayload
+                    }
+
+                body =
+                    Http.jsonBody <| Vela.encodeSettingsPayload payload
+
+                editableListForm =
+                    model.scmTeamRoleMap
+            in
+            ( { model | scmTeamRoleMap = { editableListForm | editing = Dict.remove key editableListForm.editing } }
+            , Effect.updateSettings
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse =
+                    UpdateSettingsResponse
+                        { field = Vela.SCMTeamRoleMapRemove key
+                        }
+                , body = body
+                }
+            )
+
+        ScmTeamRoleMapEditOnClick options ->
+            let
+                editableListForm =
+                    model.scmTeamRoleMap
+
+                currentMap =
+                    RemoteData.unwrap Dict.empty (.scm >> .teamRoleMap) model.settings
+
+                currentValue =
+                    Maybe.withDefault "" <| Dict.get options.id currentMap
+
+                currentEditValue =
+                    options.id ++ "=" ++ currentValue
+            in
+            ( { model
+                | scmTeamRoleMap =
+                    { editableListForm
+                        | editing = Dict.insert options.id currentEditValue editableListForm.editing
+                    }
+              }
+            , Effect.focusOn { target = saveButtonHtmlId scmTeamRoleMapHtmlId options.id }
+            )
+
+        ScmTeamRoleMapSaveOnClick options ->
+            let
+                currentMap =
+                    RemoteData.unwrap Dict.empty (.scm >> .teamRoleMap) model.settings
+
+                existingValue =
+                    Maybe.withDefault "" <| Dict.get options.id currentMap
+
+                trimmedVal =
+                    String.trim options.val
+
+                parts =
+                    Util.splitFirst "=" trimmedVal
+
+                effect =
+                    case parts of
+                        key :: value :: [] ->
+                            let
+                                trimmedKey =
+                                    String.trim key
+
+                                trimmedValue =
+                                    String.trim value
+
+                                existingKey =
+                                    options.id
+
+                                isSame =
+                                    trimmedKey == existingKey && trimmedValue == existingValue
+                            in
+                            if String.isEmpty trimmedKey || String.isEmpty trimmedValue then
+                                Effect.addAlertSuccess
+                                    { content = "SCM team role mapping must include a non-empty key and value."
+                                    , addToastIfUnique = False
+                                    , link = Nothing
+                                    }
+
+                            else if isSame then
+                                Effect.none
+
+                            else if trimmedKey /= existingKey && Dict.member trimmedKey currentMap then
+                                Effect.addAlertSuccess
+                                    { content = "SCM team role mapping '" ++ trimmedKey ++ "' already exists."
+                                    , addToastIfUnique = False
+                                    , link = Nothing
+                                    }
+
+                            else
+                                let
+                                    updatedMap =
+                                        currentMap
+                                            |> Dict.remove existingKey
+                                            |> Dict.insert trimmedKey trimmedValue
+
+                                    scmPayload =
+                                        { defaultScmPayload
+                                            | teamRoleMap = Just updatedMap
+                                        }
+
+                                    payload =
+                                        { defaultSettingsPayload
+                                            | scm = Just scmPayload
+                                        }
+
+                                    body =
+                                        Http.jsonBody <| Vela.encodeSettingsPayload payload
+
+                                    fromLabel =
+                                        existingKey ++ "=" ++ existingValue
+
+                                    toLabel =
+                                        trimmedKey ++ "=" ++ trimmedValue
+                                in
+                                Effect.updateSettings
+                                    { baseUrl = shared.velaAPIBaseURL
+                                    , session = shared.session
+                                    , onResponse =
+                                        UpdateSettingsResponse
+                                            { field = Vela.SCMTeamRoleMapUpdate fromLabel toLabel
+                                            }
+                                    , body = body
+                                    }
+
+                        _ ->
+                            Effect.addAlertSuccess
+                                { content = "SCM team role mapping must be in key=value format."
+                                , addToastIfUnique = False
+                                , link = Nothing
+                                }
+
+                editableListForm =
+                    model.scmTeamRoleMap
+            in
+            ( { model
+                | scmTeamRoleMap =
+                    { editableListForm
+                        | editing = Dict.remove options.id editableListForm.editing
+                    }
+              }
+            , effect
+            )
+
+        ScmTeamRoleMapEditOnInput options val ->
+            let
+                editableListForm =
+                    model.scmTeamRoleMap
+            in
+            ( { model
+                | scmTeamRoleMap =
+                    { editableListForm
+                        | editing = Dict.insert options.id val editableListForm.editing
+                    }
+              }
+            , Effect.none
+            )
+
         -- DASHBOARDS
         MaxDashboardReposOnInput val ->
             ( { model
@@ -1287,6 +2103,132 @@ view shared route model =
                     , itemRemoveOnClickMsg = ScheduleAllowlistRemoveOnClick
                     }
                 ]
+            , section
+                [ class "settings"
+                ]
+                [ viewFieldHeader "SCM Org Role Map"
+                , viewFieldDescription "Role mapping used for SCM organization membership."
+                , viewFieldEnvKeyValue "VELA_SCM_ORG_ROLE_MAP"
+                , Components.Form.viewEditableList
+                    { id_ = scmOrgRoleMapHtmlId
+                    , webdata = model.settings
+                    , toItems = .scm >> .orgRoleMap >> Dict.toList
+                    , toId = Tuple.first
+                    , toLabel = \( key, value ) -> key ++ "=" ++ value
+                    , addProps =
+                        Just
+                            { placeholder_ = "org=admin"
+                            , addOnInputMsg = ScmOrgRoleMapOnInput
+                            , addOnClickMsg = ScmOrgRoleMapAddOnClick
+                            }
+                    , viewHttpError =
+                        \error ->
+                            span [ Util.testAttribute <| scmOrgRoleMapHtmlId ++ "-error" ]
+                                [ text <|
+                                    case error of
+                                        Http.BadStatus statusCode ->
+                                            case statusCode of
+                                                401 ->
+                                                    "No settings found"
+
+                                                _ ->
+                                                    "No settings found, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+
+                                        _ ->
+                                            "No settings found"
+                                ]
+                    , viewNoItems = text "No org role mappings"
+                    , form = model.scmOrgRoleMap
+                    , itemEditOnClickMsg = ScmOrgRoleMapEditOnClick
+                    , itemSaveOnClickMsg = ScmOrgRoleMapSaveOnClick
+                    , itemEditOnInputMsg = ScmOrgRoleMapEditOnInput
+                    , itemRemoveOnClickMsg = ScmOrgRoleMapRemoveOnClick
+                    }
+                ]
+            , section
+                [ class "settings"
+                ]
+                [ viewFieldHeader "SCM Repo Role Map"
+                , viewFieldDescription "Role mapping used for SCM repository access."
+                , viewFieldEnvKeyValue "VELA_SCM_REPO_ROLE_MAP"
+                , Components.Form.viewEditableList
+                    { id_ = scmRepoRoleMapHtmlId
+                    , webdata = model.settings
+                    , toItems = .scm >> .repoRoleMap >> Dict.toList
+                    , toId = Tuple.first
+                    , toLabel = \( key, value ) -> key ++ "=" ++ value
+                    , addProps =
+                        Just
+                            { placeholder_ = "octocat/hello-world=write"
+                            , addOnInputMsg = ScmRepoRoleMapOnInput
+                            , addOnClickMsg = ScmRepoRoleMapAddOnClick
+                            }
+                    , viewHttpError =
+                        \error ->
+                            span [ Util.testAttribute <| scmRepoRoleMapHtmlId ++ "-error" ]
+                                [ text <|
+                                    case error of
+                                        Http.BadStatus statusCode ->
+                                            case statusCode of
+                                                401 ->
+                                                    "No settings found"
+
+                                                _ ->
+                                                    "No settings found, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+
+                                        _ ->
+                                            "No settings found"
+                                ]
+                    , viewNoItems = text "No repo role mappings"
+                    , form = model.scmRepoRoleMap
+                    , itemEditOnClickMsg = ScmRepoRoleMapEditOnClick
+                    , itemSaveOnClickMsg = ScmRepoRoleMapSaveOnClick
+                    , itemEditOnInputMsg = ScmRepoRoleMapEditOnInput
+                    , itemRemoveOnClickMsg = ScmRepoRoleMapRemoveOnClick
+                    }
+                ]
+            , section
+                [ class "settings"
+                ]
+                [ viewFieldHeader "SCM Team Role Map"
+                , viewFieldDescription "Role mapping used for SCM team membership."
+                , viewFieldEnvKeyValue "VELA_SCM_TEAM_ROLE_MAP"
+                , Components.Form.viewEditableList
+                    { id_ = scmTeamRoleMapHtmlId
+                    , webdata = model.settings
+                    , toItems = .scm >> .teamRoleMap >> Dict.toList
+                    , toId = Tuple.first
+                    , toLabel = \( key, value ) -> key ++ "=" ++ value
+                    , addProps =
+                        Just
+                            { placeholder_ = "team=admin"
+                            , addOnInputMsg = ScmTeamRoleMapOnInput
+                            , addOnClickMsg = ScmTeamRoleMapAddOnClick
+                            }
+                    , viewHttpError =
+                        \error ->
+                            span [ Util.testAttribute <| scmTeamRoleMapHtmlId ++ "-error" ]
+                                [ text <|
+                                    case error of
+                                        Http.BadStatus statusCode ->
+                                            case statusCode of
+                                                401 ->
+                                                    "No settings found"
+
+                                                _ ->
+                                                    "No settings found, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+
+                                        _ ->
+                                            "No settings found"
+                                ]
+                    , viewNoItems = text "No team role mappings"
+                    , form = model.scmTeamRoleMap
+                    , itemEditOnClickMsg = ScmTeamRoleMapEditOnClick
+                    , itemSaveOnClickMsg = ScmTeamRoleMapSaveOnClick
+                    , itemEditOnInputMsg = ScmTeamRoleMapEditOnInput
+                    , itemRemoveOnClickMsg = ScmTeamRoleMapRemoveOnClick
+                    }
+                ]
             ]
         , case model.settings of
             RemoteData.Success settings ->
@@ -1412,6 +2354,27 @@ repoAllowlistHtmlId =
 scheduleAllowlistHtmlId : String
 scheduleAllowlistHtmlId =
     "schedule-allowlist"
+
+
+{-| scmOrgRoleMapHtmlId : returns reusable id for SCM org role map
+-}
+scmOrgRoleMapHtmlId : String
+scmOrgRoleMapHtmlId =
+    "scm-org-role-map"
+
+
+{-| scmRepoRoleMapHtmlId : returns reusable id for SCM repo role map
+-}
+scmRepoRoleMapHtmlId : String
+scmRepoRoleMapHtmlId =
+    "scm-repo-role-map"
+
+
+{-| scmTeamRoleMapHtmlId : returns reusable id for SCM team role map
+-}
+scmTeamRoleMapHtmlId : String
+scmTeamRoleMapHtmlId =
+    "scm-team-role-map"
 
 
 {-| saveButtonHtmlId : returns reusable id for save button

@@ -40,6 +40,8 @@ module Vela exposing
     , RepoFieldUpdateResponseConfig
     , RepoPayload
     , Repository
+    , SCM
+    , SCMPayload
     , Schedule
     , SchedulePayload
     , Secret
@@ -98,6 +100,7 @@ module Vela exposing
     , defaultQueuePayload
     , defaultRepoPayload
     , defaultSchedulePayload
+    , defaultScmPayload
     , defaultSecretPayload
     , defaultSettingsPayload
     , defaultUpdateUserPayload
@@ -2185,6 +2188,7 @@ type alias PlatformSettings =
     { id : Int
     , compiler : Compiler
     , queue : Queue
+    , scm : SCM
     , repoAllowlist : List String
     , scheduleAllowlist : List String
     , maxDashboardRepos : Int
@@ -2201,6 +2205,7 @@ decodeSettings =
         |> optional "id" int -1
         |> required "compiler" decodeCompiler
         |> required "queue" decodeQueue
+        |> optional "scm" decodeSCM defaultScm
         |> required "repo_allowlist" (Json.Decode.list Json.Decode.string)
         |> required "schedule_allowlist" (Json.Decode.list Json.Decode.string)
         |> required "max_dashboard_repos" int
@@ -2278,9 +2283,63 @@ encodeQueuePayload queue =
         ]
 
 
+type alias SCM =
+    { orgRoleMap : Dict String String
+    , repoRoleMap : Dict String String
+    , teamRoleMap : Dict String String
+    }
+
+
+defaultScm : SCM
+defaultScm =
+    { orgRoleMap = Dict.empty
+    , repoRoleMap = Dict.empty
+    , teamRoleMap = Dict.empty
+    }
+
+
+decodeSCM : Decoder SCM
+decodeSCM =
+    Json.Decode.succeed SCM
+        |> optional "org_role_map" (Json.Decode.dict string) Dict.empty
+        |> optional "repo_role_map" (Json.Decode.dict string) Dict.empty
+        |> optional "team_role_map" (Json.Decode.dict string) Dict.empty
+
+
+encodeStringDict : Dict String String -> Json.Encode.Value
+encodeStringDict dict =
+    Json.Encode.object
+        (List.map (\( key, value ) -> ( key, Json.Encode.string value )) (Dict.toList dict))
+
+
+type alias SCMPayload =
+    { orgRoleMap : Maybe (Dict String String)
+    , repoRoleMap : Maybe (Dict String String)
+    , teamRoleMap : Maybe (Dict String String)
+    }
+
+
+defaultScmPayload : SCMPayload
+defaultScmPayload =
+    { orgRoleMap = Nothing
+    , repoRoleMap = Nothing
+    , teamRoleMap = Nothing
+    }
+
+
+encodeScmPayload : SCMPayload -> Json.Encode.Value
+encodeScmPayload scm =
+    Json.Encode.object
+        [ ( "org_role_map", encodeOptional encodeStringDict scm.orgRoleMap )
+        , ( "repo_role_map", encodeOptional encodeStringDict scm.repoRoleMap )
+        , ( "team_role_map", encodeOptional encodeStringDict scm.teamRoleMap )
+        ]
+
+
 type alias SettingsPayload =
     { compiler : Maybe CompilerPayload
     , queue : Maybe QueuePayload
+    , scm : Maybe SCMPayload
     , repoAllowlist : Maybe (List String)
     , scheduleAllowlist : Maybe (List String)
     , maxDashboardRepos : Maybe Int
@@ -2292,6 +2351,7 @@ defaultSettingsPayload : SettingsPayload
 defaultSettingsPayload =
     { compiler = Nothing
     , queue = Nothing
+    , scm = Nothing
     , repoAllowlist = Nothing
     , scheduleAllowlist = Nothing
     , maxDashboardRepos = Nothing
@@ -2304,6 +2364,7 @@ encodeSettingsPayload settings =
     Json.Encode.object
         [ ( "compiler", encodeOptional encodeCompilerPayload settings.compiler )
         , ( "queue", encodeOptional encodeQueuePayload settings.queue )
+        , ( "scm", encodeOptional encodeScmPayload settings.scm )
         , ( "repo_allowlist", encodeOptional (Json.Encode.list Json.Encode.string) settings.repoAllowlist )
         , ( "schedule_allowlist", encodeOptional (Json.Encode.list Json.Encode.string) settings.scheduleAllowlist )
         , ( "max_dashboard_repos", encodeOptional Json.Encode.int settings.maxDashboardRepos )
@@ -2326,6 +2387,15 @@ type PlatformSettingsFieldUpdate
     | ScheduleAllowlistAdd String
     | ScheduleAllowlistUpdate String String
     | ScheduleAllowlistRemove String
+    | SCMOrgRoleMapAdd String
+    | SCMOrgRoleMapUpdate String String
+    | SCMOrgRoleMapRemove String
+    | SCMRepoRoleMapAdd String
+    | SCMRepoRoleMapUpdate String String
+    | SCMRepoRoleMapRemove String
+    | SCMTeamRoleMapAdd String
+    | SCMTeamRoleMapUpdate String String
+    | SCMTeamRoleMapRemove String
 
 
 type alias PlatformSettingsUpdateResponseConfig =
@@ -2428,6 +2498,60 @@ platformSettingsFieldUpdateToResponseConfig field =
             { successAlert =
                 \_ ->
                     "Repo '" ++ route ++ "' removed from the schedules allowlist."
+            }
+
+        SCMOrgRoleMapAdd org ->
+            { successAlert =
+                \_ ->
+                    "SCM org role mapping '" ++ org ++ "' added."
+            }
+
+        SCMOrgRoleMapUpdate from to ->
+            { successAlert =
+                \_ ->
+                    "SCM org role mapping '" ++ from ++ "' updated to '" ++ to ++ "'."
+            }
+
+        SCMOrgRoleMapRemove org ->
+            { successAlert =
+                \_ ->
+                    "SCM org role mapping '" ++ org ++ "' removed."
+            }
+
+        SCMRepoRoleMapAdd repo ->
+            { successAlert =
+                \_ ->
+                    "SCM repo role mapping '" ++ repo ++ "' added."
+            }
+
+        SCMRepoRoleMapUpdate from to ->
+            { successAlert =
+                \_ ->
+                    "SCM repo role mapping '" ++ from ++ "' updated to '" ++ to ++ "'."
+            }
+
+        SCMRepoRoleMapRemove repo ->
+            { successAlert =
+                \_ ->
+                    "SCM repo role mapping '" ++ repo ++ "' removed."
+            }
+
+        SCMTeamRoleMapAdd team ->
+            { successAlert =
+                \_ ->
+                    "SCM team role mapping '" ++ team ++ "' added."
+            }
+
+        SCMTeamRoleMapUpdate from to ->
+            { successAlert =
+                \_ ->
+                    "SCM team role mapping '" ++ from ++ "' updated to '" ++ to ++ "'."
+            }
+
+        SCMTeamRoleMapRemove team ->
+            { successAlert =
+                \_ ->
+                    "SCM team role mapping '" ++ team ++ "' removed."
             }
 
 

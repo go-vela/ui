@@ -8,6 +8,23 @@
   "queue": {
     "routes": ["vela"]
   },
+  "scm": {
+    "repo_role_map": {
+      "admin": "admin",
+      "maintain": "write",
+      "read": "read",
+      "triage": "read",
+      "write": "write"
+    },
+    "org_role_map": {
+      "admin": "admin",
+      "member": "read"
+    },
+    "team_role_map": {
+      "maintainer": "admin",
+      "member": "read"
+    }
+  },
   "repo_allowlist": ["octocat/hello-world"],
   "schedule_allowlist": ["*"],
   "max_dashboard_repos": 10,
