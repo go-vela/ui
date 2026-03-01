@@ -45,6 +45,10 @@ suite =
                 \_ ->
                     Utils.Helpers.formatRunTime (Time.millisToPosix currentTimeMillis) 0 0
                         |> Expect.equal "--:--"
+            , test "started and finished match (sub-second)" <|
+                \_ ->
+                    Utils.Helpers.formatRunTime (Time.millisToPosix currentTimeMillis) currentTime currentTime
+                        |> Expect.equal "< 00:01"
             , test "started is invalid (0), finished one second ago" <|
                 \_ ->
                     Utils.Helpers.formatRunTime (Time.millisToPosix currentTimeMillis) 0 (currentTime - 1)

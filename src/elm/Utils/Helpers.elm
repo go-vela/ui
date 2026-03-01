@@ -310,10 +310,17 @@ formatRunTime now started finished =
 
         seconds =
             runTimeSeconds runtime
+
+        isSubSecondFinished =
+            started > 0 && finished > 0 && started == finished
     in
     -- treating 00:00 as an unreasonable runtime state
     if minutes == "00" && seconds == "00" then
-        "--:--"
+        if isSubSecondFinished then
+            "< 00:01"
+
+        else
+            "--:--"
 
     else
         String.join ":" [ minutes, seconds ]
