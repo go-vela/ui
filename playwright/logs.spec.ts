@@ -3,7 +3,8 @@
  */
 
 import { test, expect } from './fixtures';
-import { mockBuildsByNumber } from './utils/buildMocks';
+import { mockBuildsByNumber, mockStepsList } from './utils/buildMocks';
+import { jsonResponse, withGet } from './utils/http';
 import {
   mockServiceLog,
   mockServicesWithAnsiLogs,
@@ -14,6 +15,7 @@ import {
   mockStepsWithSkippedAndMissingLogs,
 } from './utils/logMocks';
 import { serviceLogsPattern, stepLogsPattern } from './utils/routes';
+import { readTestData } from './utils/testData';
 
 const waitForStepLogs = async (
   page: { waitForResponse: (arg0: RegExp) => Promise<unknown> },
@@ -474,6 +476,42 @@ test.describe('Logs', () => {
 
     test('download button should show', async ({ page }) => {
       await expect(page.getByTestId('download-logs-1')).toHaveCount(1);
+    });
+  });
+
+  test.describe('visit Build with finished step logs that continue writing', () => {
+    test.beforeEach(async ({ page, app }) => {
+      await mockBuildsByNumber(page);
+      await mockStepsList(page, 'steps_5.json');
+      let logFetches = 0;
+      await page.route(stepLogsPattern(1), route =>
+        withGet(route, () => {
+          logFetches += 1;
+          const fixture =
+            logFetches === 1
+              ? 'log_step_finished_initial.json'
+              : 'log_step_finished_final.json';
+          return jsonResponse(route, { body: readTestData(fixture) });
+        }),
+      );
+      await Promise.all([
+        waitForStepLogs(page, 1),
+        app.login('/github/octocat/1#1'),
+      ]);
+    });
+
+    test('should keep refreshing finished step logs while build is running', async ({
+      page,
+    }) => {
+      await expect(page.getByTestId('log-line-1-1')).toContainText(
+        'initial line',
+      );
+
+      await page.waitForTimeout(7000);
+
+      await expect(page.getByTestId('log-line-1-2')).toContainText(
+        'final line',
+      );
     });
   });
 
