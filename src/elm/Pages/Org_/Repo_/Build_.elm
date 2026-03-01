@@ -181,6 +181,7 @@ type alias Model =
     , viewing : List Int
     , focus : Focus.Focus
     , logFollow : Int
+    , logGrace : Dict Int Int
     }
 
 
@@ -193,6 +194,7 @@ init shared route () =
       , viewing = []
       , focus = Focus.fromString route.hash
       , logFollow = 0
+      , logGrace = Dict.empty
       }
     , Effect.batch
         [ Effect.getAllBuildSteps
@@ -326,29 +328,98 @@ update shared route msg model =
         GetBuildStepsRefreshResponse response ->
             case response of
                 Ok ( _, steps ) ->
-                    ( { model | steps = RemoteData.succeed <| List.sortBy .number steps }
-                    , steps
-                        |> List.filter (\step -> List.member step.number model.viewing)
-                        -- note: it's possible that there are log updates in flight
-                        -- even after the step has a status of finished, especially
-                        -- for large logs. we get the most recent version of logs
-                        -- on page load or when a step log is expanded, so potentially
-                        -- seeing incomplete logs here is only a concern when someone
-                        -- is following the logs live.
-                        |> List.filter (\step -> step.finished == 0)
-                        |> List.map
-                            (\step ->
-                                Effect.getBuildStepLog
-                                    { baseUrl = shared.velaAPIBaseURL
-                                    , session = shared.session
-                                    , onResponse = GetBuildStepLogRefreshResponse { step = step }
-                                    , org = route.params.org
-                                    , repo = route.params.repo
-                                    , build = route.params.build
-                                    , stepNumber = String.fromInt step.number
-                                    }
-                            )
-                        |> Effect.batch
+                    let
+                        graceTicks =
+                            1
+
+                        previousSteps =
+                            RemoteData.withDefault [] model.steps
+
+                        previousById =
+                            previousSteps
+                                |> List.map (\step -> ( step.id, step ))
+                                |> Dict.fromList
+
+                        graceWithFinishes =
+                            steps
+                                |> List.foldl
+                                    (\step acc ->
+                                        case Dict.get step.id previousById of
+                                            Just previousStep ->
+                                                if previousStep.finished == 0 && step.finished /= 0 then
+                                                    Dict.insert step.id graceTicks acc
+
+                                                else
+                                                    acc
+
+                                            Nothing ->
+                                                acc
+                                    )
+                                    model.logGrace
+
+                        graceRunningCleared =
+                            steps
+                                |> List.foldl
+                                    (\step acc ->
+                                        if step.finished == 0 then
+                                            Dict.remove step.id acc
+
+                                        else
+                                            acc
+                                    )
+                                    graceWithFinishes
+
+                        refreshableSteps =
+                            steps
+                                |> List.filter (\step -> List.member step.number model.viewing)
+
+                        ( effects, updatedGrace ) =
+                            refreshableSteps
+                                |> List.foldl
+                                    (\step ( accEffects, accGrace ) ->
+                                        let
+                                            graceRemaining =
+                                                Dict.get step.id accGrace
+                                                    |> Maybe.withDefault 0
+
+                                            shouldRefresh =
+                                                step.finished == 0 || graceRemaining > 0
+
+                                            nextGrace =
+                                                if step.finished /= 0 && graceRemaining > 0 then
+                                                    if graceRemaining == 1 then
+                                                        Dict.remove step.id accGrace
+
+                                                    else
+                                                        Dict.insert step.id (graceRemaining - 1) accGrace
+
+                                                else
+                                                    accGrace
+                                        in
+                                        ( if shouldRefresh then
+                                            Effect.getBuildStepLog
+                                                { baseUrl = shared.velaAPIBaseURL
+                                                , session = shared.session
+                                                , onResponse = GetBuildStepLogRefreshResponse { step = step }
+                                                , org = route.params.org
+                                                , repo = route.params.repo
+                                                , build = route.params.build
+                                                , stepNumber = String.fromInt step.number
+                                                }
+                                                :: accEffects
+
+                                          else
+                                            accEffects
+                                        , nextGrace
+                                        )
+                                    )
+                                    ( [], graceRunningCleared )
+                    in
+                    ( { model
+                        | steps = RemoteData.succeed <| List.sortBy .number steps
+                        , logGrace = updatedGrace
+                      }
+                    , effects |> Effect.batch
                     )
 
                 Err error ->
@@ -514,6 +585,9 @@ update shared route msg model =
 
         ExpandStep options ->
             let
+                graceTicks =
+                    1
+
                 isFromHashChanged =
                     options.previousFocus /= Nothing
 
@@ -590,9 +664,22 @@ update shared route msg model =
                       else
                         Effect.none
                     ]
+
+                updatedLogGrace =
+                    if options.step.finished /= 0 then
+                        let
+                            existingGrace =
+                                Dict.get options.step.id model.logGrace
+                                    |> Maybe.withDefault 0
+                        in
+                        Dict.insert options.step.id (max existingGrace graceTicks) model.logGrace
+
+                    else
+                        model.logGrace
             in
             ( { model
                 | viewing = List.Extra.unique <| options.step.number :: model.viewing
+                , logGrace = updatedLogGrace
               }
             , Effect.batch runEffects
             )
