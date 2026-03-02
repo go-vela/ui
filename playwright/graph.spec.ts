@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Locator } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 import { test, expect } from './fixtures';
 import {
   mockBuildErrors,
@@ -32,6 +32,13 @@ async function setCheckbox(
   }
 }
 
+async function waitForGraphReady(page: Page) {
+  const node = page.locator('.elm-build-graph-node-3');
+
+  await expect(page.locator('.elm-build-graph-root')).toBeVisible();
+  await expect(node).toBeAttached();
+}
+
 test.describe('Build Graph', () => {
   test.describe('logged in and server returning build graph error', () => {
     test.beforeEach(async ({ page, app }) => {
@@ -55,11 +62,7 @@ test.describe('Build Graph', () => {
       await mockBuildGraph(page, 'build_graph.json');
       await mockRepoDetail(page, 'repository.json');
       await app.login('/github/octocat/4/graph');
-      await expect(page.locator('.elm-build-graph-root')).toBeVisible();
-    });
-
-    test('build graph root should be visible', async ({ page }) => {
-      await expect(page.locator('.elm-build-graph-root')).toBeVisible();
+      await waitForGraphReady(page);
     });
 
     test('node should reflect build information', async ({ page }) => {
