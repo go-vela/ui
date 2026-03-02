@@ -13,6 +13,7 @@ import {
   mockStepsErrors,
 } from './utils/buildMocks';
 import { mockRepoDetail } from './utils/repoMocks';
+import { buildGraphPattern } from './utils/routes';
 
 async function setCheckbox(
   checkbox: Locator,
@@ -62,6 +63,10 @@ test.describe('Build Graph', () => {
       await mockBuildGraph(page, 'build_graph.json');
       await mockRepoDetail(page, 'repository.json');
       await app.login('/github/octocat/4/graph');
+      await page.waitForResponse(
+        response =>
+          buildGraphPattern.test(response.url()) && response.status() === 200,
+      );
       await waitForGraphReady(page);
     });
 
