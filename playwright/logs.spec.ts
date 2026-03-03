@@ -74,6 +74,72 @@ const expectLogsScrolledToBottom = async (
 };
 
 test.describe('Logs', () => {
+  test.describe('visit Build with sub-second step duration', () => {
+    test.beforeEach(async ({ page, app }) => {
+      await mockBuildsByNumber(page, { 1: 'build_success_steps.json' });
+      await mockStepsList(page, [
+        {
+          id: 1,
+          build_id: 1,
+          repo_id: 1,
+          number: 1,
+          name: 'clone',
+          stage: '',
+          status: 'success',
+          error: '',
+          exit_code: 0,
+          created: 1572029883,
+          started: 1572029935,
+          finished: 1572029935,
+          host: '',
+          runtime: 'docker',
+          distribution: 'linux',
+        },
+        {
+          id: 2,
+          build_id: 1,
+          repo_id: 1,
+          number: 2,
+          name: 'build',
+          stage: '',
+          status: 'success',
+          error: '',
+          exit_code: 0,
+          created: 1572029883,
+          started: 1572029936,
+          finished: 1572029942,
+          host: '',
+          runtime: 'docker',
+          distribution: 'linux',
+        },
+        {
+          id: 3,
+          build_id: 1,
+          repo_id: 1,
+          number: 3,
+          name: 'test',
+          stage: '',
+          status: 'success',
+          error: '',
+          exit_code: 0,
+          created: 1572029883,
+          started: 1572029943,
+          finished: 1572029952,
+          host: '',
+          runtime: 'docker',
+          distribution: 'linux',
+        },
+      ]);
+
+      await app.login('/github/octocat/1');
+    });
+
+    test('step duration should show sub-second runtime', async ({ page }) => {
+      const duration = page.getByTestId('step-header-1').locator('.-duration');
+      await expect(duration).toHaveText('< 00:01');
+    });
+  });
+
   test.describe('visit Build with steps and ansi encoded logs using url line fragment', () => {
     test.beforeEach(async ({ page, app }) => {
       await mockBuildsByNumber(page);
