@@ -830,6 +830,7 @@ nodeLabel shared model graph node showSteps =
 
         runtime =
             Util.formatRunTime shared.time node.startedAt node.finishedAt
+                |> htmlEscape
 
         header =
             "<tr>"
@@ -922,6 +923,16 @@ nodeLabel shared model graph node showSteps =
                 []
     in
     table <| header :: rows
+
+
+htmlEscape : String -> String
+htmlEscape value =
+    value
+        |> String.replace "&" "&amp;"
+        |> String.replace "<" "&lt;"
+        |> String.replace ">" "&gt;"
+        |> String.replace "\"" "&quot;"
+        |> String.replace "'" "&#039;"
 
 
 {-| nodeLabel : takes model and a node, and returns the DOT string representation.
