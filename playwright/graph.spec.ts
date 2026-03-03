@@ -13,6 +13,7 @@ import {
   mockStepsErrors,
 } from './utils/buildMocks';
 import { mockRepoDetail } from './utils/repoMocks';
+import { buildGraphPattern } from './utils/routes';
 
 async function setCheckbox(
   checkbox: Locator,
@@ -54,15 +55,18 @@ test.describe('Build Graph', () => {
   });
 
   test.describe('logged in and server returning build graph, build, and steps', () => {
-    test.use({ viewport: { width: 1600, height: 1000 } });
-
     test.beforeEach(async ({ page, app }) => {
       await mockBuildsList(page, 'builds_5.json');
       await mockBuildsByNumber(page, { 4: 'build_success.json' });
       await mockBuildGraph(page, 'build_graph.json');
       await mockRepoDetail(page, 'repository.json');
       await app.login('/github/octocat/4/graph');
+      await page.waitForResponse(
+        response =>
+          buildGraphPattern.test(response.url()) && response.status() === 200,
+      );
       await waitForGraphReady(page);
+      await page.getByTestId('build-graph-action-center').click();
     });
 
     test('node should reflect build information', async ({ page }) => {
