@@ -438,6 +438,7 @@ view shared route model =
                             , class "-icon"
                             , id "action-center"
                             , title "Recenter visualization"
+                            , Util.testAttribute "build-graph-action-center"
                             ]
                             [ FeatherIcons.minimize
                                 |> FeatherIcons.withSize 20
