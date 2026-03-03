@@ -26,6 +26,12 @@
       "matchPackageNames": ["/^@?parcel/"]
     },
     {
+      "matchFileNames": ["elm.json"],
+      "matchUpdateTypes": ["major"],
+      "description": "Major upgrades of dependencies that are compatible likely require code changes, so we disable them to avoid noise.",
+      "enabled": false
+    },
+    {
       "matchPackageNames": ["NoRedInk/elm-json-decode-pipeline"],
       "description": "This package was tagged out of order at one point, 1.0.2 is older than 1.0.1",
       "allowedVersions": "!/^1\\.0\\.2$/"
