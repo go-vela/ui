@@ -56,6 +56,26 @@ test.describe('Admin Settings', () => {
       await expect(page.getByTestId('input-queue-restart-limit')).toBeVisible();
     });
 
+    test('secrets toggles should show', async ({ page }) => {
+      const orgSecrets = page
+        .getByTestId('checkbox-admin-secrets-org')
+        .locator('input');
+      const repoSecrets = page
+        .getByTestId('checkbox-admin-secrets-repo')
+        .locator('input');
+      const sharedSecrets = page
+        .getByTestId('checkbox-admin-secrets-shared')
+        .locator('input');
+
+      await expect(orgSecrets).toBeVisible();
+      await expect(repoSecrets).toBeVisible();
+      await expect(sharedSecrets).toBeVisible();
+
+      await expect(orgSecrets).toBeChecked();
+      await expect(repoSecrets).not.toBeChecked();
+      await expect(sharedSecrets).toBeChecked();
+    });
+
     test('scm org role map should show', async ({ page }) => {
       const orgRoleMap = page.getByTestId('editable-list-scm-org-role-map');
       await expect(orgRoleMap).toBeVisible();
@@ -135,6 +155,19 @@ test.describe('Admin Settings', () => {
         await expect(
           page.getByTestId('button-queue-restart-limit-update'),
         ).toBeDisabled();
+      });
+
+      test('secrets toggles should update', async ({ page }) => {
+        const orgSecrets = page.getByTestId('checkbox-admin-secrets-org');
+        const orgSecretsInput = orgSecrets.locator('input[type="checkbox"]');
+
+        await expect(orgSecretsInput).toBeChecked();
+
+        await orgSecrets.locator('label').click({ force: true });
+
+        await expect(page.getByTestId('alert')).toBeVisible();
+        await expect(page.getByTestId('alert')).toContainText('Success');
+        await expect(orgSecretsInput).not.toBeChecked();
       });
 
       test.describe('list item should allow editing', () => {

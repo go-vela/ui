@@ -91,6 +91,9 @@ type alias Model =
     , scmTeamRoleMap : Components.Form.EditableListForm
     , maxDashboardReposIn : String
     , queueRestartLimitIn : String
+    , enableOrgSecrets : Bool
+    , enableRepoSecrets : Bool
+    , enableSharedSecrets : Bool
     }
 
 
@@ -112,6 +115,9 @@ init shared () =
       , scmTeamRoleMap = { val = "", editing = Dict.empty }
       , maxDashboardReposIn = ""
       , queueRestartLimitIn = ""
+      , enableOrgSecrets = False
+      , enableRepoSecrets = False
+      , enableSharedSecrets = False
       }
     , Effect.getSettings
         { baseUrl = shared.velaAPIBaseURL
@@ -185,6 +191,10 @@ type Msg
       -- QUEUE LIMIT
     | QueueRestartLimitOnInput String
     | QueueRestartLimitOnUpdate String
+      -- SECRETS
+    | ToggleOrgSecrets Bool
+    | ToggleRepoSecrets Bool
+    | ToggleSharedSecrets Bool
       -- REFRESH
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
@@ -205,6 +215,9 @@ update shared route msg model =
                         , templateDepthIn = String.fromInt settings.compiler.templateDepth
                         , maxDashboardReposIn = String.fromInt settings.maxDashboardRepos
                         , queueRestartLimitIn = String.fromInt settings.queueRestartLimit
+                        , enableOrgSecrets = settings.enableOrgSecrets
+                        , enableRepoSecrets = settings.enableRepoSecrets
+                        , enableSharedSecrets = settings.enableSharedSecrets
                       }
                     , Effect.none
                     )
@@ -1688,6 +1701,79 @@ update shared route msg model =
                 }
             )
 
+        -- SECRETS
+        ToggleOrgSecrets enabled ->
+            let
+                payload =
+                    { defaultSettingsPayload
+                        | enableOrgSecrets = Just enabled
+                    }
+
+                body =
+                    Http.jsonBody <| Vela.encodeSettingsPayload payload
+            in
+            ( { model
+                | enableOrgSecrets = enabled
+              }
+            , Effect.updateSettings
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse =
+                    UpdateSettingsResponse
+                        { field = Vela.EnableOrgSecrets
+                        }
+                , body = body
+                }
+            )
+
+        ToggleRepoSecrets enabled ->
+            let
+                payload =
+                    { defaultSettingsPayload
+                        | enableRepoSecrets = Just enabled
+                    }
+
+                body =
+                    Http.jsonBody <| Vela.encodeSettingsPayload payload
+            in
+            ( { model
+                | enableRepoSecrets = enabled
+              }
+            , Effect.updateSettings
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse =
+                    UpdateSettingsResponse
+                        { field = Vela.EnableRepoSecrets
+                        }
+                , body = body
+                }
+            )
+
+        ToggleSharedSecrets enabled ->
+            let
+                payload =
+                    { defaultSettingsPayload
+                        | enableSharedSecrets = Just enabled
+                    }
+
+                body =
+                    Http.jsonBody <| Vela.encodeSettingsPayload payload
+            in
+            ( { model
+                | enableSharedSecrets = enabled
+              }
+            , Effect.updateSettings
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse =
+                    UpdateSettingsResponse
+                        { field = Vela.EnableSharedSecrets
+                        }
+                , body = body
+                }
+            )
+
         -- REFRESH
         Tick options ->
             ( model
@@ -1718,6 +1804,15 @@ subscriptions model =
 -}
 view : Shared.Model -> Route () -> Model -> View Msg
 view shared route model =
+    let
+        disableSecretsControls =
+            case model.settings of
+                RemoteData.Success _ ->
+                    False
+
+                _ ->
+                    True
+    in
     { title = ""
     , body =
         [ div [ class "admin-settings" ]
@@ -1964,6 +2059,47 @@ view shared route model =
                 , viewFieldPreviousValue model
                     (\s -> String.fromInt s.queueRestartLimit)
                     (\ms -> Maybe.Extra.unwrap "" (.queueRestartLimit >> String.fromInt) ms)
+                ]
+            , section
+                [ class "settings"
+                ]
+                [ viewFieldHeader "Secrets"
+                , viewFieldDescription "Toggle which secret types can be created. Disabling a type only prevents new secrets from being created."
+                , viewFieldEnvKeyValue "VELA_ENABLE_ORG_SECRETS"
+                , viewFieldEnvKeyValue "VELA_ENABLE_REPO_SECRETS"
+                , viewFieldEnvKeyValue "VELA_ENABLE_SHARED_SECRETS"
+                , div [ class "form-controls", class "-two-col" ]
+                    [ Components.Form.viewCheckbox
+                        { id_ = "admin-secrets"
+                        , title = "Organization"
+                        , subtitle = Nothing
+                        , field = "org"
+                        , state = model.enableOrgSecrets
+                        , wrapperClassList = []
+                        , msg = ToggleOrgSecrets
+                        , disabled_ = disableSecretsControls
+                        }
+                    , Components.Form.viewCheckbox
+                        { id_ = "admin-secrets"
+                        , title = "Repository"
+                        , subtitle = Nothing
+                        , field = "repo"
+                        , state = model.enableRepoSecrets
+                        , wrapperClassList = []
+                        , msg = ToggleRepoSecrets
+                        , disabled_ = disableSecretsControls
+                        }
+                    , Components.Form.viewCheckbox
+                        { id_ = "admin-secrets"
+                        , title = "Shared"
+                        , subtitle = Nothing
+                        , field = "shared"
+                        , state = model.enableSharedSecrets
+                        , wrapperClassList = []
+                        , msg = ToggleSharedSecrets
+                        , disabled_ = disableSecretsControls
+                        }
+                    ]
                 ]
             , section
                 [ class "settings"
