@@ -29,6 +29,9 @@
   "schedule_allowlist": ["*"],
   "max_dashboard_repos": 10,
   "queue_restart_limit": 30,
+  "enable_org_secrets": true,
+  "enable_repo_secrets": false,
+  "enable_shared_secrets": true,
   "created_at": 1572980375,
   "updated_at": 1572980675,
   "updated_by": "octocat"

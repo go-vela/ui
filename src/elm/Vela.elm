@@ -2206,6 +2206,9 @@ type alias PlatformSettings =
     , scheduleAllowlist : List String
     , maxDashboardRepos : Int
     , queueRestartLimit : Int
+    , enableOrgSecrets : Bool
+    , enableRepoSecrets : Bool
+    , enableSharedSecrets : Bool
     , createdAt : Int
     , updatedAt : Int
     , updatedBy : String
@@ -2223,6 +2226,9 @@ decodeSettings =
         |> required "schedule_allowlist" (Json.Decode.list Json.Decode.string)
         |> required "max_dashboard_repos" int
         |> required "queue_restart_limit" int
+        |> optional "enable_org_secrets" bool True
+        |> optional "enable_repo_secrets" bool True
+        |> optional "enable_shared_secrets" bool True
         |> required "created_at" int
         |> required "updated_at" int
         |> required "updated_by" string
@@ -2357,6 +2363,9 @@ type alias SettingsPayload =
     , scheduleAllowlist : Maybe (List String)
     , maxDashboardRepos : Maybe Int
     , queueRestartLimit : Maybe Int
+    , enableOrgSecrets : Maybe Bool
+    , enableRepoSecrets : Maybe Bool
+    , enableSharedSecrets : Maybe Bool
     }
 
 
@@ -2369,6 +2378,9 @@ defaultSettingsPayload =
     , scheduleAllowlist = Nothing
     , maxDashboardRepos = Nothing
     , queueRestartLimit = Nothing
+    , enableOrgSecrets = Nothing
+    , enableRepoSecrets = Nothing
+    , enableSharedSecrets = Nothing
     }
 
 
@@ -2382,6 +2394,9 @@ encodeSettingsPayload settings =
         , ( "schedule_allowlist", encodeOptional (Json.Encode.list Json.Encode.string) settings.scheduleAllowlist )
         , ( "max_dashboard_repos", encodeOptional Json.Encode.int settings.maxDashboardRepos )
         , ( "queue_restart_limit", encodeOptional Json.Encode.int settings.queueRestartLimit )
+        , ( "enable_org_secrets", encodeOptional Json.Encode.bool settings.enableOrgSecrets )
+        , ( "enable_repo_secrets", encodeOptional Json.Encode.bool settings.enableRepoSecrets )
+        , ( "enable_shared_secrets", encodeOptional Json.Encode.bool settings.enableSharedSecrets )
         ]
 
 
@@ -2391,6 +2406,9 @@ type PlatformSettingsFieldUpdate
     | CompilerStarlarkExecLimit
     | MaxDashboardRepos
     | QueueRestartLimit
+    | EnableOrgSecrets
+    | EnableRepoSecrets
+    | EnableSharedSecrets
     | QueueRouteAdd String
     | QueueRouteUpdate String String
     | QueueRouteRemove String
@@ -2457,6 +2475,36 @@ platformSettingsFieldUpdateToResponseConfig field =
                     "Queue restart limit set to '"
                         ++ String.fromInt settings.queueRestartLimit
                         ++ "'."
+            }
+
+        EnableOrgSecrets ->
+            { successAlert =
+                \settings ->
+                    if settings.enableOrgSecrets then
+                        "Organization secrets enabled."
+
+                    else
+                        "Organization secrets disabled."
+            }
+
+        EnableRepoSecrets ->
+            { successAlert =
+                \settings ->
+                    if settings.enableRepoSecrets then
+                        "Repository secrets enabled."
+
+                    else
+                        "Repository secrets disabled."
+            }
+
+        EnableSharedSecrets ->
+            { successAlert =
+                \settings ->
+                    if settings.enableSharedSecrets then
+                        "Shared secrets enabled."
+
+                    else
+                        "Shared secrets disabled."
             }
 
         QueueRouteAdd added ->
