@@ -8,23 +8,31 @@ module Layouts.Default.Repo exposing (Model, Msg, Props, layout, map)
 import Components.Crumbs
 import Components.Favorites
 import Components.Help
+import Components.Loading
 import Components.Nav
 import Components.Tabs
 import Components.Util
 import Dict exposing (Dict)
 import Effect exposing (Effect)
-import Html exposing (Html, main_)
-import Html.Attributes exposing (class)
+import Html exposing (Html, a, button, div, main_, p, span, text)
+import Html.Attributes exposing (class, classList, disabled)
+import Html.Events exposing (onClick)
+import Http
+import Http.Detailed
 import Layout exposing (Layout)
 import Layouts.Default
+import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Route.Path
 import Shared
 import Time
 import Url exposing (Url)
+import Utils.Errors as Errors
 import Utils.Favicons as Favicons
 import Utils.Favorites as Favorites
+import Utils.Helpers as Util
 import Utils.Interval as Interval
+import Vela
 import View exposing (View)
 
 
@@ -60,7 +68,7 @@ layout : Props contentMsg -> Shared.Model -> Route () -> Layout Layouts.Default.
 layout props shared route =
     Layout.new
         { init = init props shared route
-        , update = update props route
+        , update = update props shared route
         , view = view props shared route
         , subscriptions = subscriptions
         }
@@ -77,7 +85,10 @@ layout props shared route =
 {-| Model : alias for a model object for the default repo layout.
 -}
 type alias Model =
-    { tabHistory : Dict String Url }
+    { tabHistory : Dict String Url
+    , repo : WebData Vela.Repository
+    , enablingRepo : Bool
+    }
 
 
 {-| init : takes in properties, shared model, route, and a content object and returns a model and effect.
@@ -85,10 +96,19 @@ type alias Model =
 init : Props contentMsg -> Shared.Model -> Route () -> () -> ( Model, Effect Msg )
 init props shared route _ =
     ( { tabHistory = Dict.empty
+      , repo = RemoteData.Loading
+      , enablingRepo = False
       }
     , Effect.batch
         [ Effect.updateFavicon { favicon = Favicons.defaultFavicon }
         , Effect.getCurrentUserShared {}
+        , Effect.getRepo
+            { baseUrl = shared.velaAPIBaseURL
+            , session = shared.session
+            , onResponse = GetRepoResponse
+            , org = props.org
+            , repo = props.repo
+            }
         , Effect.getRepoBuildsShared
             { pageNumber = Nothing
             , perPage = Nothing
@@ -119,14 +139,18 @@ type Msg
       OnUrlChanged { from : Route (), to : Route () }
       -- FAVORITES
     | ToggleFavorite String (Maybe String)
+      -- REPO
+    | GetRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
+    | EnableRepo { org : String, repo : String }
+    | EnableRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
       -- REFRESH
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
 
-{-| update : takes in properties, route, message, and model and returns a new model and effect.
+{-| update : takes in properties, shared model, route, message, and model and returns a new model and effect.
 -}
-update : Props contentMsg -> Route () -> Msg -> Model -> ( Model, Effect Msg )
-update props route msg model =
+update : Props contentMsg -> Shared.Model -> Route () -> Msg -> Model -> ( Model, Effect Msg )
+update props shared route msg model =
     case msg of
         -- BROWSER
         OnUrlChanged options ->
@@ -146,6 +170,72 @@ update props route msg model =
                 , updateType = Favorites.Toggle
                 }
             )
+
+        -- REPO
+        GetRepoResponse response ->
+            case response of
+                Ok ( _, repo ) ->
+                    ( { model | repo = RemoteData.succeed repo }
+                    , Effect.none
+                    )
+
+                Err error ->
+                    ( { model | repo = Errors.toFailure error }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Errors.showAlertNon404
+                        }
+                    )
+
+        EnableRepo options ->
+            let
+                payload : Vela.EnableRepoPayload
+                payload =
+                    { org = options.org
+                    , name = options.repo
+                    , full_name = options.org ++ "/" ++ options.repo
+                    , link = ""
+                    , clone = ""
+                    , private = False
+                    , trusted = False
+                    , active = True
+                    , allowEvents = Vela.defaultAllowEvents
+                    }
+
+                body : Http.Body
+                body =
+                    Http.jsonBody <| Vela.encodeEnableRepository payload
+            in
+            ( { model | enablingRepo = True }
+            , Effect.enableRepo
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse = EnableRepoResponse
+                , body = body
+                }
+            )
+
+        EnableRepoResponse response ->
+            case response of
+                Ok ( _, repo ) ->
+                    ( { model | enablingRepo = False, repo = RemoteData.succeed repo }
+                    , Effect.batch
+                        [ Effect.addAlertSuccess
+                            { content = repo.org ++ "/" ++ repo.name ++ " has been enabled."
+                            , addToastIfUnique = True
+                            , link = Nothing
+                            }
+                        , Effect.updateFavorite { org = repo.org, maybeRepo = Just repo.name, updateType = Favorites.Add }
+                        ]
+                    )
+
+                Err error ->
+                    ( { model | enablingRepo = False }
+                    , Effect.handleHttpError
+                        { error = error
+                        , shouldShowAlertFn = Errors.showAlertAlways
+                        }
+                    )
 
         -- REFRESH
         Tick options ->
@@ -188,35 +278,92 @@ subscriptions model =
 -}
 view : Props contentMsg -> Shared.Model -> Route () -> { toContentMsg : Msg -> contentMsg, content : View contentMsg, model : Model } -> View contentMsg
 view props shared route { toContentMsg, model, content } =
+    let
+        nav =
+            Components.Nav.view shared
+                route
+                { buttons =
+                    (Components.Favorites.viewStarToggle
+                        { org = props.org
+                        , repo = props.repo
+                        , user = shared.user
+                        , msg = ToggleFavorite
+                        }
+                        |> Html.map toContentMsg
+                    )
+                        :: props.navButtons
+                , crumbs = Components.Crumbs.view route.path props.crumbs
+                }
+
+        tabs =
+            Components.Tabs.viewRepoTabs
+                shared
+                { org = props.org
+                , repo = props.repo
+                , currentPath = route.path
+                , tabHistory = model.tabHistory
+                }
+
+        body =
+            case model.repo of
+                RemoteData.Loading ->
+                    [ Components.Loading.viewSmallLoader ]
+
+                RemoteData.Failure error ->
+                    case error of
+                        Http.BadStatus 404 ->
+                            [ viewNotEnabled props model toContentMsg ]
+
+                        _ ->
+                            content.body
+
+                _ ->
+                    content.body
+    in
     { title = props.org ++ "/" ++ props.repo ++ " " ++ content.title
     , body =
-        [ Components.Nav.view shared
-            route
-            { buttons =
-                (Components.Favorites.viewStarToggle
-                    { org = props.org
-                    , repo = props.repo
-                    , user = shared.user
-                    , msg = ToggleFavorite
-                    }
-                    |> Html.map toContentMsg
-                )
-                    :: props.navButtons
-            , crumbs = Components.Crumbs.view route.path props.crumbs
-            }
+        [ nav
         , main_ [ class "content-wrap" ]
             (Components.Util.view shared
                 route
-                (Components.Tabs.viewRepoTabs
-                    shared
-                    { org = props.org
-                    , repo = props.repo
-                    , currentPath = route.path
-                    , tabHistory = model.tabHistory
-                    }
-                    :: props.utilButtons
-                )
-                :: content.body
+                (tabs :: props.utilButtons)
+                :: body
             )
         ]
     }
+
+
+{-| viewNotEnabled : renders empty state when a repo has not been enabled in Vela yet.
+-}
+viewNotEnabled : Props contentMsg -> Model -> (Msg -> contentMsg) -> Html contentMsg
+viewNotEnabled props model toContentMsg =
+    div [ class "overview", Util.testAttribute "repo-not-enabled" ]
+        [ p []
+            [ text "This repository may not be enabled yet. Enable it to start tracking builds." ]
+        , button
+            [ classList
+                [ ( "button", True )
+                , ( "-outline", model.enablingRepo )
+                , ( "-loading", model.enablingRepo )
+                ]
+            , onClick (toContentMsg (EnableRepo { org = props.org, repo = props.repo }))
+            , disabled model.enablingRepo
+            , Util.testAttribute "enable-repo-button"
+            ]
+            [ if model.enablingRepo then
+                text "Enabling"
+
+              else
+                text "Enable Repository"
+            , if model.enablingRepo then
+                span [ class "loading-ellipsis" ] []
+
+              else
+                text ""
+            ]
+        , p []
+            [ text "Or "
+            , a [ Route.Path.href Route.Path.Account_SourceRepos ] [ text "view all available repositories" ]
+            , text "."
+            ]
+        ]

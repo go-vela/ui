@@ -27,7 +27,6 @@ import Route.Path
 import Shared
 import Time
 import Utils.Errors as Errors
-import Utils.Favorites exposing (UpdateType(..))
 import Utils.Helpers as Util
 import Utils.Interval as Interval
 import Vela
@@ -90,7 +89,6 @@ type alias Model =
     , showFullTimestamps : Bool
     , showActionsMenus : List Int
     , showFilter : Bool
-    , enablingRepo : Bool
     }
 
 
@@ -103,7 +101,6 @@ init shared route () =
       , showFullTimestamps = False
       , showActionsMenus = []
       , showFilter = False
-      , enablingRepo = False
       }
     , Effect.getRepoBuilds
         { baseUrl = shared.velaAPIBaseURL
@@ -140,9 +137,6 @@ type Msg
     | ShowHideActionsMenus (Maybe Int) (Maybe Bool)
     | FilterByEvent (Maybe String)
     | ShowHideFullTimestamps
-      -- ENABLE REPO
-    | EnableRepo { org : String, repo : String }
-    | EnableRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
       -- REFRESH
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
@@ -193,7 +187,20 @@ update shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | builds = Errors.toFailure error }
+                    let
+                        is404 =
+                            case error of
+                                Http.Detailed.BadStatus metadata _ ->
+                                    metadata.statusCode == 404
+
+                                _ ->
+                                    False
+                    in
+                    ( if is404 then
+                        model
+
+                      else
+                        { model | builds = Errors.toFailure error }
                     , Effect.handleHttpError
                         { error = error
                         , shouldShowAlertFn = Errors.showAlertNon404
@@ -425,57 +432,6 @@ update shared route msg model =
         ShowHideFullTimestamps ->
             ( { model | showFullTimestamps = not model.showFullTimestamps }, Effect.none )
 
-        -- ENABLE REPO
-        EnableRepo options ->
-            let
-                payload : Vela.EnableRepoPayload
-                payload =
-                    { org = options.org
-                    , name = options.repo
-                    , full_name = options.org ++ "/" ++ options.repo
-                    , link = ""
-                    , clone = ""
-                    , private = False
-                    , trusted = False
-                    , active = True
-                    , allowEvents = Vela.defaultAllowEvents
-                    }
-
-                body : Http.Body
-                body =
-                    Http.jsonBody <| Vela.encodeEnableRepository payload
-            in
-            ( { model | enablingRepo = True }
-            , Effect.enableRepo
-                { baseUrl = shared.velaAPIBaseURL
-                , session = shared.session
-                , onResponse = EnableRepoResponse
-                , body = body
-                }
-            )
-
-        EnableRepoResponse response ->
-            case response of
-                Ok ( _, repo ) ->
-                    ( { model | enablingRepo = False, builds = RemoteData.Success [] }
-                    , Effect.batch
-                        [ Effect.addAlertSuccess
-                            { content = repo.org ++ "/" ++ repo.name ++ " has been enabled."
-                            , addToastIfUnique = True
-                            , link = Nothing
-                            }
-                        , Effect.updateFavorite { org = repo.org, maybeRepo = Just repo.name, updateType = Add }
-                        ]
-                    )
-
-                Err error ->
-                    ( { model | enablingRepo = False }
-                    , Effect.handleHttpError
-                        { error = error
-                        , shouldShowAlertFn = Errors.showAlertAlways
-                        }
-                    )
-
         -- REFRESH
         Tick options ->
             ( model
@@ -575,8 +531,6 @@ view shared route model =
             , showRepoLink = False
             , linkBuildNumber = True
             , pageNumber = pageNum
-            , enableRepo = Just EnableRepo
-            , enablingRepo = model.enablingRepo
             }
         , Components.Pager.view
             { show = RemoteData.unwrap False (\builds -> List.length builds > 0) model.builds

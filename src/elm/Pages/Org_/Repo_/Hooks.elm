@@ -178,7 +178,7 @@ update shared route msg model =
                         ( { model | hooks = Errors.toFailure error }
                         , Effect.handleHttpError
                             { error = error
-                            , shouldShowAlertFn = Errors.showAlertAlways
+                            , shouldShowAlertFn = Errors.showAlertNon404
                             }
                         )
 

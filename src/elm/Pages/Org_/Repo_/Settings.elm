@@ -194,7 +194,7 @@ update shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertNon404
                         }
                     )
 
@@ -216,7 +216,7 @@ update shared route msg model =
                     ( model
                     , Effect.handleHttpError
                         { error = error
-                        , shouldShowAlertFn = Errors.showAlertAlways
+                        , shouldShowAlertFn = Errors.showAlertNon404
                         }
                     )
 
