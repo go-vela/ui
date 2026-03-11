@@ -7,9 +7,14 @@ import { test, expect } from './fixtures';
 import { mockBuildsByNumber, mockBuildsList } from './utils/buildMocks';
 import { mockHooksListPaged } from './utils/hookMocks';
 import { mockSecretsList } from './utils/secretMocks';
-import { mockRepoEnable, mockRepoEnableError } from './utils/repoMocks';
+import {
+  mockRepoDetail,
+  mockRepoEnable,
+  mockRepoEnableError,
+} from './utils/repoMocks';
 import { mockUserUpdate } from './utils/userMocks';
-import { buildListPattern, repoEnablePattern } from './utils/routes';
+import { repoDetailPattern, repoEnablePattern } from './utils/routes';
+import { withGet } from './utils/http';
 
 async function clickAndWaitForEnable(page: Page) {
   await Promise.all([
@@ -25,6 +30,7 @@ async function clickAndWaitForEnable(page: Page) {
 test.describe('Repo', () => {
   test.describe('logged in and server returning 5 builds', () => {
     test.beforeEach(async ({ page, app }) => {
+      await mockRepoDetail(page, 'repository.json');
       await mockBuildsList(page, 'builds_5.json');
       await mockBuildsByNumber(page);
       await mockHooksListPaged(page);
@@ -123,12 +129,14 @@ test.describe('Repo', () => {
 
   test.describe('logged in and repo not enabled (404 error)', () => {
     test.beforeEach(async ({ page, app }) => {
-      await page.route(buildListPattern, route =>
-        route.fulfill({
-          status: 404,
-          contentType: 'application/json',
-          body: JSON.stringify({ error: 'repo github/octocat not found' }),
-        }),
+      await page.route(repoDetailPattern, route =>
+        withGet(route, () =>
+          route.fulfill({
+            status: 404,
+            contentType: 'application/json',
+            body: JSON.stringify({ error: 'repo github/octocat not found' }),
+          }),
+        ),
       );
       await mockRepoEnable(page, 'enable_repo_response.json');
       await mockUserUpdate(page, 'user.json');
@@ -136,14 +144,14 @@ test.describe('Repo', () => {
     });
 
     test('should not show the generic error message', async ({ page }) => {
-      await expect(page.getByTestId('builds-error')).toBeVisible();
-      await expect(page.getByTestId('builds-error')).not.toContainText(
+      await expect(page.getByTestId('repo-not-enabled')).toBeVisible();
+      await expect(page.getByTestId('repo-not-enabled')).not.toContainText(
         'There was an error fetching builds.',
       );
     });
 
     test('should show the enable repo message and button', async ({ page }) => {
-      await expect(page.getByTestId('builds-error')).toContainText(
+      await expect(page.getByTestId('repo-not-enabled')).toContainText(
         'This repository may not be enabled yet',
       );
       await expect(page.getByTestId('enable-repo-button')).toBeVisible();
@@ -170,7 +178,8 @@ test.describe('Repo', () => {
           'github/octocat has been enabled',
         );
 
-        await page.unroute(buildListPattern);
+        await page.unroute(repoDetailPattern);
+        await mockRepoDetail(page, 'enable_repo_response.json');
         await mockBuildsList(page, 'builds_5.json');
         await page.reload();
         await expect(page.getByTestId('builds')).toBeVisible();

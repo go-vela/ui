@@ -487,8 +487,6 @@ view shared route model =
             , showRepoLink = True
             , linkBuildNumber = True
             , pageNumber = pageNum
-            , enableRepo = Nothing
-            , enablingRepo = False
             }
         , Components.Pager.view
             { show = RemoteData.unwrap False (\builds -> List.length builds > 0) model.builds
