@@ -15,6 +15,27 @@ import {
 import { mockRepoDetail } from './utils/repoMocks';
 import { buildGraphPattern } from './utils/routes';
 
+// Matches the CSP in nginx/default.conf so graphviz/wasm rendering is exercised under production CSP.
+const cspHeader =
+  "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self' http://localhost:8080; img-src 'self' http://localhost:8080; style-src 'self'; frame-ancestors 'none'; form-action 'self'";
+
+async function applyCspHeader(page: Page): Promise<void> {
+  await page.route('**/*', async route => {
+    if (route.request().resourceType() !== 'document') {
+      await route.continue();
+      return;
+    }
+
+    const response = await route.fetch();
+    const headers = {
+      ...response.headers(),
+      'content-security-policy': cspHeader,
+    };
+
+    await route.fulfill({ response, headers });
+  });
+}
+
 async function setCheckbox(
   checkbox: Locator,
   label: Locator,
@@ -41,6 +62,10 @@ async function waitForGraphReady(page: Page) {
 }
 
 test.describe('Build Graph', () => {
+  test.beforeEach(async ({ page }) => {
+    await applyCspHeader(page);
+  });
+
   test.describe('logged in and server returning build graph error', () => {
     test.beforeEach(async ({ page, app }) => {
       await mockBuildErrors(page);
