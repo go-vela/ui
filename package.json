@@ -13,12 +13,12 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "4.11.1",
-    "@double-great/stylelint-a11y": "3.4.5",
+    "@double-great/stylelint-a11y": "3.4.6",
     "@fullhuman/postcss-purgecss": "8.0.0",
     "@parcel/transformer-elm": "2.16.4",
     "@parcel/transformer-sass": "2.16.4",
     "@playwright/test": "1.58.2",
-    "@types/node": "25.4.0",
+    "@types/node": "25.5.0",
     "axe-core": "4.11.1",
     "elm": "0.19.1-6",
     "elm-format": "0.8.8",
@@ -35,7 +35,7 @@
     "stylelint-declaration-block-no-ignored-properties": "3.0.0",
     "stylelint-declaration-strict-value": "1.11.1",
     "stylelint-high-performance-animation": "2.0.0",
-    "stylelint-order": "8.0.0",
+    "stylelint-order": "8.1.1",
     "stylelint-scss": "7.0.0"
   },
   "overrides": {
