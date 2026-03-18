@@ -17,39 +17,3 @@
 
   background: var(--color-bg-dark);
 }
-
-// Table column widths
-// give the Name column half the table width for long artifact names
-// which will help even out word wrapping consistency across all columns
-// on smaller window sizes
-// td = table data cell
-// th = table header cell
-.table-base td.name,
-.table-base th.name {
-  width: 50%;
-}
-
-.table-base td.created-at-col,
-.table-base th.created-at-col {
-  max-width: 14rem;
-}
-
-.table-base td.created-at-col {
-  white-space: normal;
-  overflow-wrap: break-word;
-}
-
-.table-base td.expires-at-col,
-.table-base th.expires-at-col {
-  max-width: 14rem;
-}
-
-.table-base td.expires-at-col {
-  white-space: normal;
-  overflow-wrap: break-word;
-}
-
-.table-base td.file-size-col,
-.table-base th.file-size-col {
-  max-width: 8rem;
-}
