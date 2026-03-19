@@ -129,6 +129,8 @@ test.describe('Repo', () => {
 
   test.describe('logged in and repo not enabled (404 error)', () => {
     test.beforeEach(async ({ page, app }) => {
+      await mockBuildsList(page, []);
+      await mockHooksListPaged(page);
       await page.route(repoDetailPattern, route =>
         withGet(route, () =>
           route.fulfill({
@@ -169,7 +171,7 @@ test.describe('Repo', () => {
         await clickAndWaitForEnable(page);
       });
 
-      test('should show success alert and builds after enabling', async ({
+      test('should show success alert and instructional empty state after enabling', async ({
         page,
       }) => {
         await clickAndWaitForEnable(page);
@@ -177,12 +179,12 @@ test.describe('Repo', () => {
         await expect(page.getByTestId('alerts')).toContainText(
           'github/octocat has been enabled',
         );
-
-        await page.unroute(repoDetailPattern);
-        await mockRepoDetail(page, 'enable_repo_response.json');
-        await mockBuildsList(page, 'builds_5.json');
-        await page.reload();
-        await expect(page.getByTestId('builds')).toBeVisible();
+        await expect(
+          page.getByText('Your repository has been enabled!'),
+        ).toBeVisible();
+        await expect(
+          page.getByText('Builds will show up here once you have:'),
+        ).toBeVisible();
       });
     });
 
