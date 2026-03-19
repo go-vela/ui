@@ -491,9 +491,12 @@ view shared route model =
                     1
 
         defaultBuildsQuery =
-            pageNum == 1
-                && Dict.get "event" route.query == Nothing
-                && Dict.get "after" route.query == Nothing
+            pageNum
+                == 1
+                && Dict.get "event" route.query
+                == Nothing
+                && Dict.get "after" route.query
+                == Nothing
 
         displayedBuilds =
             case ( model.builds, shared.builds, defaultBuildsQuery ) of
