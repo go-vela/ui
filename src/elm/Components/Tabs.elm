@@ -191,6 +191,17 @@ viewRepoTabs shared props =
                         _ ->
                             hook.created > build.created
 
+                ( Just hook, Nothing ) ->
+                    case hook.status of
+                        "success" ->
+                            False
+
+                        "skipped" ->
+                            False
+
+                        _ ->
+                            True
+
                 _ ->
                     False
 
