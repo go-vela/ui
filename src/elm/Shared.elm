@@ -593,12 +593,30 @@ update route msg model =
                     )
 
                 Err error ->
-                    ( { model | builds = Errors.toFailure error }
-                    , Effect.handleHttpError
-                        { error = error
-                        , shouldShowAlertFn = Errors.showAlertNon404
-                        }
-                    )
+                    let
+                        preserveOptimisticEmptyBuilds =
+                            case ( error, model.builds ) of
+                                ( Http.Detailed.BadStatus metadata _, RemoteData.Success builds ) ->
+                                    metadata.statusCode == 404 && List.isEmpty builds
+
+                                _ ->
+                                    False
+                    in
+                    if preserveOptimisticEmptyBuilds then
+                        ( model, Effect.none )
+
+                    else
+                        ( { model | builds = Errors.toFailure error }
+                        , Effect.handleHttpError
+                            { error = error
+                            , shouldShowAlertFn = Errors.showAlertNon404
+                            }
+                        )
+
+        Shared.Msg.UpdateRepoBuilds options ->
+            ( { model | builds = options.builds }
+            , Effect.none
+            )
 
         -- HOOKS
         Shared.Msg.GetRepoHooks options ->

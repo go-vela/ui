@@ -489,6 +489,34 @@ view shared route model =
 
                 Nothing ->
                     1
+
+        defaultBuildsQuery =
+            pageNum
+                == 1
+                && Dict.get "event" route.query
+                == Nothing
+                && Dict.get "after" route.query
+                == Nothing
+
+        displayedBuilds =
+            case ( model.builds, shared.builds, defaultBuildsQuery ) of
+                -- Prefer optimistic shared empty state after enabling while local fetch is in flight.
+                ( RemoteData.Loading, RemoteData.Success sharedBuilds, True ) ->
+                    if List.isEmpty sharedBuilds then
+                        shared.builds
+
+                    else
+                        model.builds
+
+                ( RemoteData.NotAsked, RemoteData.Success sharedBuilds, True ) ->
+                    if List.isEmpty sharedBuilds then
+                        shared.builds
+
+                    else
+                        model.builds
+
+                _ ->
+                    model.builds
     in
     { title = "Builds" ++ Util.pageToString (Dict.get "page" route.query)
     , body =
@@ -504,7 +532,7 @@ view shared route model =
             ]
             [ span [] []
             , Components.Pager.view
-                { show = RemoteData.unwrap False (\builds -> List.length builds > 0 || pageNum > 1) model.builds
+                { show = RemoteData.unwrap False (\builds -> List.length builds > 0 || pageNum > 1) displayedBuilds
                 , links = model.pager
                 , labels = Components.Pager.defaultLabels
                 , msg = GotoPage
@@ -512,7 +540,7 @@ view shared route model =
             ]
         , Components.Builds.view shared
             { msgs = msgs
-            , builds = model.builds
+            , builds = displayedBuilds
             , orgRepo = ( route.params.org, Just route.params.repo )
             , maybeEvent = Dict.get "event" route.query
             , showFullTimestamps = model.showFullTimestamps
@@ -533,7 +561,7 @@ view shared route model =
             , pageNumber = pageNum
             }
         , Components.Pager.view
-            { show = RemoteData.unwrap False (\builds -> List.length builds > 0) model.builds
+            { show = RemoteData.unwrap False (\builds -> List.length builds > 0) displayedBuilds
             , links = model.pager
             , labels = Components.Pager.defaultLabels
             , msg = GotoPage
