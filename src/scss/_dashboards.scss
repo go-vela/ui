@@ -235,30 +235,30 @@
     &.-running {
       border-color: var(--color-yellow);
 
-      stroke: var(--color-yellow);
+      stroke: var(--color-bg-darkest);
     }
 
     &.-success {
       border-color: var(--color-green);
 
-      stroke: var(--color-green);
+      stroke: var(--color-bg-darkest);
     }
 
     &.-canceled {
-      background-color: var(
-        --recent-build-canceled-bg,
-        var(--color-bg-darkest)
-      );
-      border-color: var(--recent-build-canceled-color, var(--color-cyan-dark));
+      background-color: var(--recent-build-canceled-color,
+          var(--color-cyan-dark));
+      border-color: var(--recent-build-canceled-color,
+          var(--color-cyan-dark));
 
-      stroke: var(--recent-build-canceled-color, var(--color-cyan-dark));
+      stroke: var(--recent-build-canceled-bg,
+          var(--color-bg-darkest));
     }
 
     &.-failure,
     &.-error {
       border-color: var(--color-red);
 
-      stroke: var(--color-red);
+      stroke: var(--color-bg-darkest);
     }
   }
 
@@ -302,10 +302,8 @@
     }
 
     &:has(.-canceled)::before {
-      background-color: var(
-        --recent-build-canceled-color,
-        var(--color-cyan-dark)
-      );
+      background-color: var(--recent-build-canceled-color,
+          var(--color-cyan-dark));
     }
 
     &:has(.-error)::before,

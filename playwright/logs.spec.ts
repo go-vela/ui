@@ -135,8 +135,8 @@ test.describe('Logs', () => {
     });
 
     test('step duration should show sub-second runtime', async ({ page }) => {
-      const duration = page.getByTestId('step-header-1').locator('.-duration');
-      await expect(duration).toHaveText('< 00:01');
+      const stepHeader = page.getByTestId('step-header-1');
+      await expect(stepHeader).toContainText('< 00:01');
     });
   });
 

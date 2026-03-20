@@ -263,10 +263,10 @@ viewRepoSchedules shared model org repo pageNum =
                                     , repo = repo
                                     }
                             ]
-                            [ text <| "Add Schedule"
-                            , FeatherIcons.plus
+                            [ FeatherIcons.plus
                                 |> FeatherIcons.withSize 18
                                 |> FeatherIcons.toHtml []
+                            , text "Add Schedule"
                             ]
                         , Components.Pager.view
                             { show = True

@@ -288,10 +288,10 @@ viewDeployments shared model route =
                         , Route.Path.href <|
                             Route.Path.Org__Repo__Deployments_Add { org = route.params.org, repo = route.params.repo }
                         ]
-                        [ text "Add Deployment"
-                        , FeatherIcons.plus
+                        [ FeatherIcons.plus
                             |> FeatherIcons.withSize 18
                             |> FeatherIcons.toHtml []
+                        , text "Add Deployment"
                         ]
                     , Components.Pager.view
                         { show = True

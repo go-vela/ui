@@ -255,10 +255,10 @@ view shared route model =
                                 , repo = route.params.repo
                                 }
                         ]
-                        [ text "Add Repo Secret"
-                        , FeatherIcons.plus
+                        [ FeatherIcons.plus
                             |> FeatherIcons.withSize 18
                             |> FeatherIcons.toHtml []
+                        , text "Add Repo Secret"
                         ]
                     , Components.Pager.view
                         { show = True

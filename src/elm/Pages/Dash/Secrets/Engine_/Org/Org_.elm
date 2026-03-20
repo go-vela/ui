@@ -270,10 +270,10 @@ view shared route model =
                                 , org = route.params.org
                                 }
                         ]
-                        [ text "Add Org Secret"
-                        , FeatherIcons.plus
+                        [ FeatherIcons.plus
                             |> FeatherIcons.withSize 18
                             |> FeatherIcons.toHtml []
+                        , text "Add Org Secret"
                         ]
                     , Components.Pager.view
                         { show = True
@@ -309,10 +309,10 @@ view shared route model =
                                 , team = "*"
                                 }
                         ]
-                        [ text "Manage Shared Secrets"
-                        , FeatherIcons.plus
+                        [ FeatherIcons.plus
                             |> FeatherIcons.withSize 18
                             |> FeatherIcons.toHtml []
+                        , text "Manage Shared Secrets"
                         ]
                     ]
             , pageNumber = 1
