@@ -180,12 +180,25 @@ update props shared route msg model =
                     )
 
                 Err error ->
-                    ( { model | repo = Errors.toFailure error }
-                    , Effect.handleHttpError
-                        { error = error
-                        , shouldShowAlertFn = Errors.showAlertNon404
-                        }
-                    )
+                    let
+                        keepEnabledRepoState =
+                            case ( error, model.repo ) of
+                                ( Http.Detailed.BadStatus metadata _, RemoteData.Success _ ) ->
+                                    metadata.statusCode == 404
+
+                                _ ->
+                                    False
+                    in
+                    if keepEnabledRepoState then
+                        ( model, Effect.none )
+
+                    else
+                        ( { model | repo = Errors.toFailure error }
+                        , Effect.handleHttpError
+                            { error = error
+                            , shouldShowAlertFn = Errors.showAlertNon404
+                            }
+                        )
 
         EnableRepo options ->
             let
@@ -226,6 +239,15 @@ update props shared route msg model =
                             , link = Nothing
                             }
                         , Effect.updateFavorite { org = repo.org, maybeRepo = Just repo.name, updateType = Favorites.Add }
+                        , Effect.updateRepoBuildsShared { builds = RemoteData.succeed [] }
+                        , Effect.getRepoBuildsShared
+                            { pageNumber = Nothing
+                            , perPage = Nothing
+                            , maybeEvent = Nothing
+                            , maybeAfter = Nothing
+                            , org = repo.org
+                            , repo = repo.name
+                            }
                         ]
                     )
 

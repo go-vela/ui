@@ -5,7 +5,7 @@
 import { Page } from '@playwright/test';
 import { test, expect } from './fixtures';
 import { mockBuildsByNumber, mockBuildsList } from './utils/buildMocks';
-import { mockHooksListPaged } from './utils/hookMocks';
+import { mockHooksList, mockHooksListPaged } from './utils/hookMocks';
 import { mockSecretsList } from './utils/secretMocks';
 import {
   mockRepoDetail,
@@ -129,6 +129,8 @@ test.describe('Repo', () => {
 
   test.describe('logged in and repo not enabled (404 error)', () => {
     test.beforeEach(async ({ page, app }) => {
+      await mockBuildsList(page, []);
+      await mockHooksListPaged(page);
       await page.route(repoDetailPattern, route =>
         withGet(route, () =>
           route.fulfill({
@@ -169,7 +171,7 @@ test.describe('Repo', () => {
         await clickAndWaitForEnable(page);
       });
 
-      test('should show success alert and builds after enabling', async ({
+      test('should show success alert and instructional empty state after enabling', async ({
         page,
       }) => {
         await clickAndWaitForEnable(page);
@@ -177,12 +179,12 @@ test.describe('Repo', () => {
         await expect(page.getByTestId('alerts')).toContainText(
           'github/octocat has been enabled',
         );
-
-        await page.unroute(repoDetailPattern);
-        await mockRepoDetail(page, 'enable_repo_response.json');
-        await mockBuildsList(page, 'builds_5.json');
-        await page.reload();
-        await expect(page.getByTestId('builds')).toBeVisible();
+        await expect(
+          page.getByText('Your repository has been enabled!'),
+        ).toBeVisible();
+        await expect(
+          page.getByText('Builds will show up here once you have:'),
+        ).toBeVisible();
       });
     });
 
@@ -207,6 +209,127 @@ test.describe('Repo', () => {
         await expect(page.getByTestId('enable-repo-button')).toBeVisible();
         await expect(page.getByTestId('enable-repo-button')).toBeEnabled();
       });
+    });
+  });
+
+  test.describe('logged in with no builds', () => {
+    test('should show audit indicator when latest hook fails and there are no builds', async ({
+      page,
+      app,
+    }) => {
+      await mockRepoDetail(page, 'repository.json');
+      await mockBuildsList(page, []);
+      await mockHooksList(page, [
+        {
+          id: 1,
+          number: 1,
+          repo_id: 1,
+          build_id: 0,
+          source_id: 'source-id',
+          created: 200,
+          host: 'github.com',
+          event: 'push',
+          branch: 'main',
+          error: 'unable to process webhook',
+          status: 'failure',
+          link: 'https://github.com/github/octocat/settings/hooks',
+        },
+      ]);
+
+      await app.login('/github/octocat');
+      await page.getByTestId('jump-bar-repo').waitFor();
+
+      await expect(page.getByTestId('jump-Audit')).toHaveClass(/alerting/);
+    });
+
+    test('should not show audit indicator when latest hook succeeds and there are no builds', async ({
+      page,
+      app,
+    }) => {
+      await mockRepoDetail(page, 'repository.json');
+      await mockBuildsList(page, []);
+      await mockHooksList(page, [
+        {
+          id: 1,
+          number: 1,
+          repo_id: 1,
+          build_id: 0,
+          source_id: 'source-id',
+          created: 200,
+          host: 'github.com',
+          event: 'push',
+          branch: 'main',
+          error: '',
+          status: 'success',
+          link: 'https://github.com/github/octocat/settings/hooks',
+        },
+      ]);
+
+      await app.login('/github/octocat');
+      await page.getByTestId('jump-bar-repo').waitFor();
+
+      await expect(page.getByTestId('jump-Audit')).not.toHaveClass(/alerting/);
+    });
+
+    test('should not show audit indicator when latest hook is skipped and there are no builds', async ({
+      page,
+      app,
+    }) => {
+      await mockRepoDetail(page, 'repository.json');
+      await mockBuildsList(page, []);
+      await mockHooksList(page, [
+        {
+          id: 1,
+          number: 1,
+          repo_id: 1,
+          build_id: 0,
+          source_id: 'source-id',
+          created: 200,
+          host: 'github.com',
+          event: 'push',
+          branch: 'main',
+          error: 'no matching ruleset',
+          status: 'skipped',
+          link: 'https://github.com/github/octocat/settings/hooks',
+        },
+      ]);
+
+      await app.login('/github/octocat');
+      await page.getByTestId('jump-bar-repo').waitFor();
+
+      await expect(page.getByTestId('jump-Audit')).not.toHaveClass(/alerting/);
+    });
+  });
+
+  test.describe('logged in with builds and failed latest hook', () => {
+    test('should show audit indicator when latest hook fails and is newer than latest build', async ({
+      page,
+      app,
+    }) => {
+      await mockRepoDetail(page, 'repository.json');
+      await mockBuildsList(page, 'builds_5.json');
+      await mockBuildsByNumber(page);
+      await mockHooksList(page, [
+        {
+          id: 1,
+          number: 1,
+          repo_id: 1,
+          build_id: 0,
+          source_id: 'source-id',
+          created: 9999999999,
+          host: 'github.com',
+          event: 'push',
+          branch: 'main',
+          error: 'unable to process webhook',
+          status: 'failure',
+          link: 'https://github.com/github/octocat/settings/hooks',
+        },
+      ]);
+
+      await app.login('/github/octocat');
+      await page.getByTestId('jump-bar-repo').waitFor();
+
+      await expect(page.getByTestId('jump-Audit')).toHaveClass(/alerting/);
     });
   });
 });
