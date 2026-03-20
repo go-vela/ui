@@ -663,22 +663,20 @@ view shared route model =
                             , Util.testAttribute "log-actions"
                             ]
                             [ button
-                                [ class "button"
-                                , class "-link"
+                                [ class "button -link"
                                 , onClick CollapseAll
                                 , Util.testAttribute "collapse-all"
                                 ]
                                 [ small [] [ text "collapse all" ] ]
                             , button
-                                [ class "button"
-                                , class "-link"
+                                [ class "button -link"
                                 , onClick ExpandAll
                                 , Util.testAttribute "expand-all"
                                 ]
                                 [ small [] [ text "expand all" ] ]
                             ]
                         , div [ class "services" ]
-                            [ div [ class "-items", Util.testAttribute "services" ] <|
+                            [ div [ class "service-items", Util.testAttribute "services" ] <|
                                 List.map (viewService shared model route) <|
                                     List.sortBy .number <|
                                         RemoteData.withDefault [] model.services
@@ -705,8 +703,8 @@ viewService shared model route service =
             ]
         , Util.testAttribute "service"
         ]
-        [ div [ class "-status" ]
-            [ div [ class "-icon-container" ] [ Components.Svgs.statusToIcon service.status ] ]
+        [ div [ class "service-status" ]
+            [ div [ class "service-icon-container" ] [ Components.Svgs.statusToIcon service.status ] ]
         , details
             (classList
                 [ ( "details", True )
@@ -726,9 +724,9 @@ viewService shared model route service =
                     }
                 ]
                 [ div
-                    [ class "-info" ]
-                    [ div [ class "-name" ] [ text service.name ]
-                    , div [ class "-duration" ] [ text <| Util.formatRunTime shared.time service.started service.finished ]
+                    [ class "service-info" ]
+                    [ div [ class "service-name" ] [ text service.name ]
+                    , div [ class "service-duration" ] [ text <| Util.formatRunTime shared.time service.started service.finished ]
                     ]
                 , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml [ attribute "aria-label" "show build actions" ]
                 ]

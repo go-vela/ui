@@ -458,7 +458,7 @@ details.build-toggle {
   justify-content: flex-start;
 }
 
-.large-loader .-spinner {
+.large-loader .loader-spinner {
   width: 40px;
   height: 40px;
 
@@ -475,7 +475,7 @@ details.build-toggle {
   justify-content: flex-start;
 }
 
-.small-loader .-spinner {
+.small-loader .loader-spinner {
   width: 20px;
   height: 20px;
 
@@ -486,7 +486,7 @@ details.build-toggle {
   animation: spin 3s linear infinite;
 }
 
-.small-loader .-label {
+.small-loader .loader-label {
   margin-left: 0.8em;
 
   font-weight: 300;
@@ -700,11 +700,11 @@ details.build-toggle {
   pointer-events: none;
 }
 
-.-running-start {
+.anim-running-start {
   stroke: none;
 }
 
-.-running-particles {
+.anim-running-particles {
   stroke: var(--color-yellow);
 }
 
@@ -778,15 +778,15 @@ details.build-toggle {
   border-bottom: 2px solid var(--color-cyan-dark);
 }
 
-.-animation-dashes-1 {
+.anim-dashes-1 {
   stroke-dasharray: 20 220 5 360;
 }
 
-.-animation-dashes-2 {
+.anim-dashes-2 {
   stroke-dasharray: 70 270 8 300;
 }
 
-.-animation-dashes-3 {
+.anim-dashes-3 {
   stroke-dasharray: 1 240 8 220 12 400 10 180;
 }
 
@@ -807,7 +807,7 @@ details.build-toggle {
   font-size: 0.8em;
 }
 
-.-icon {
+.icon-state {
   fill: none;
   stroke: var(--color-primary);
 
@@ -844,7 +844,7 @@ details.build-toggle {
     stroke: var(--color-bg-light);
   }
 
-  .-inner {
+  .icon-state-inner {
     fill: var(--color-primary);
   }
 
@@ -877,7 +877,7 @@ details.build-toggle {
   margin: 0 0.2rem 0 0;
 }
 
-.recent-build-link .-icon {
+.recent-build-link svg {
   fill: none;
   stroke: var(--color-bg);
 
@@ -1017,15 +1017,15 @@ details.build-toggle {
   background-size: 100% 2em;
 }
 
-.step .-status,
-.service .-status {
+.step-status,
+.service-status {
   margin-top: 2rem;
   margin-right: 1rem;
   margin-left: 1.6rem;
 }
 
-.step .-icon-container,
-.service .-icon-container {
+.step-icon-container,
+.service-icon-container {
   padding-top: 12px;
   padding-bottom: 12px;
 
@@ -1038,8 +1038,8 @@ details.build-toggle {
   margin-left: 36px;
 }
 
-.step .-icon.-pending,
-.service .-icon.-pending {
+.step svg.-pending,
+.service svg.-pending {
   padding: 8px;
 
   border: 2px solid var(--color-bg-light);
@@ -1048,15 +1048,15 @@ details.build-toggle {
   fill: var(--color-bg-light);
 }
 
-.step .-info,
-.service .-info {
+.step-info,
+.service-info {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
 }
 
-.step .-info .-duration,
-.service .-info .-duration {
+.step-duration,
+.service-duration {
   font-family: var(--font-code);
 }
 
@@ -1118,7 +1118,7 @@ details.build-toggle {
   }
 }
 
-.logs .-focus {
+.logs .line-focus {
   background: var(--color-focus);
 }
 
@@ -1308,7 +1308,7 @@ details.build-toggle {
   cursor: pointer;
 }
 
-.alert-container .-title {
+.alert-container .alert-title {
   display: flex;
   justify-content: space-between;
   margin: 0;
@@ -1316,7 +1316,7 @@ details.build-toggle {
   font-size: 1em;
 }
 
-.alert-container .-message {
+.alert-container .alert-message {
   display: flex;
   flex-direction: row;
   justify-content: space-between;

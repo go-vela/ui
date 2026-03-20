@@ -246,9 +246,7 @@ view shared route model =
             , tableButtons =
                 Just
                     [ a
-                        [ class "button"
-                        , class "-outline"
-                        , class "button-with-icon"
+                        [ class "button -outline -with-icon"
                         , Util.testAttribute "add-repo-secret"
                         , Route.Path.href <|
                             Route.Path.Dash_Secrets_Engine__Repo_Org__Repo__Add
@@ -260,7 +258,7 @@ view shared route model =
                         [ text "Add Repo Secret"
                         , FeatherIcons.plus
                             |> FeatherIcons.withSize 18
-                            |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
+                            |> FeatherIcons.toHtml []
                         ]
                     , Components.Pager.view
                         { show = True
@@ -281,8 +279,7 @@ view shared route model =
             , tableButtons =
                 Just
                     [ a
-                        [ class "button"
-                        , class "-outline"
+                        [ class "button -outline"
                         , Route.Path.href <|
                             Route.Path.Dash_Secrets_Engine__Org_Org_
                                 { engine = route.params.engine

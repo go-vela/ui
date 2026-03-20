@@ -506,8 +506,7 @@ view shared route model =
                 RemoteData.Success pipeline ->
                     div [ class "action" ]
                         [ button
-                            [ class "button"
-                            , class "-link"
+                            [ class "button -link"
                             , Util.testAttribute <| "download-yml"
                             , onClick <|
                                 DownloadPipeline
@@ -535,8 +534,7 @@ view shared route model =
             RemoteData.Success p ->
                 if List.length p.warnings > 0 then
                     div
-                        [ class "logs-container"
-                        , class "-pipeline"
+                        [ class "logs-container -pipeline"
                         ]
                         [ table
                             [ class "logs-table"
@@ -571,7 +569,7 @@ view shared route model =
                 RemoteData.Success templates ->
                     if not <| Dict.isEmpty templates then
                         viewTemplatesDetails model <|
-                            div [ class "content", class "-success" ] <|
+                            div [ class "content -success" ] <|
                                 (templates
                                     |> Dict.toList
                                     |> List.map viewTemplate
@@ -582,7 +580,7 @@ view shared route model =
 
                 RemoteData.Failure error ->
                     viewTemplatesDetails model <|
-                        div [ class "content", class "-error" ]
+                        div [ class "content -error" ]
                             [ span [ Util.testAttribute "pipeline-templates-error" ]
                                 [ text <|
                                     case error of
@@ -601,8 +599,8 @@ view shared route model =
 
                 _ ->
                     viewTemplatesDetails model <|
-                        div [ class "content", class "-success" ] [ Components.Loading.viewSmallLoaderWithText "loading pipeline templates" ]
-            , div [ class "logs-container", class "-pipeline" ]
+                        div [ class "content -success" ] [ Components.Loading.viewSmallLoaderWithText "loading pipeline templates" ]
+            , div [ class "logs-container -pipeline" ]
                 [ table
                     [ class "logs-table"
                     , class "pipeline"
@@ -627,7 +625,7 @@ view shared route model =
                                 div [ class "no-pipeline" ] [ small [] [ code [] [ text "The pipeline found for this build/ref contains no data." ] ] ]
 
                         RemoteData.Failure error ->
-                            div [ class "content", class "-error" ]
+                            div [ class "content -error" ]
                                 [ span [ Util.testAttribute "pipeline-configuration-error" ]
                                     [ text <|
                                         case error of
@@ -676,8 +674,7 @@ viewTemplatesDetails model body =
 viewExpandToggleButton : Model -> Html Msg
 viewExpandToggleButton model =
     button
-        [ class "button"
-        , class "-link"
+        [ class "button -link"
         , Util.onClickPreventDefault ToggleExpand
         , Util.testAttribute "pipeline-expand-toggle"
         ]
@@ -747,7 +744,7 @@ viewLine expand shiftKeyDown lineNumber line warnings focus =
                             |> Maybe.Extra.filter (\_ -> not expand)
                             |> Maybe.Extra.unwrap (class "-hide") (\_ -> class "-show")
                         ]
-                        [ Components.Svgs.annotationCircle "-warning" ]
+                        [ Components.Svgs.annotationCircle "annotation-warning" ]
                     , td
                         [ Html.Attributes.title <| "Jump to line " ++ String.fromInt lineNumber
                         ]
@@ -764,8 +761,7 @@ viewLine expand shiftKeyDown lineNumber line warnings focus =
                                 , b = Nothing
                                 }
                             , class "line-number"
-                            , class "button"
-                            , class "-link"
+                            , class "button -link"
                             , attribute "aria-label" "focus this line"
                             , title <| "Focus line " ++ String.fromInt lineNumber
                             ]
@@ -795,8 +791,8 @@ viewWarningAsLogLine model shared idx warning =
         [ class "warning"
         , Util.testAttribute <| String.join "-" [ "warning", String.fromInt idx ]
         ]
-        [ td [ class "annotation", class "-show" ]
-            [ Components.Svgs.annotationCircle "-warning"
+        [ td [ class "annotation -show" ]
+            [ Components.Svgs.annotationCircle "annotation-warning"
             ]
         , td []
             [ case maybeLineNumber of
@@ -820,10 +816,9 @@ viewWarningAsLogLine model shared idx warning =
                                         Focus.toString <| Focus.updateLineRange shared.shift Nothing lineNumber model.focus
                                     }
                         , Util.testAttribute <| String.join "-" [ "warning", "line", "num", String.fromInt lineNumber ]
-                        , class "button"
-                        , class "-link"
+                        , class "button -link"
                         , if model.expand then
-                            class "-disabled"
+                            class "warning-disabled"
 
                           else
                             class ""

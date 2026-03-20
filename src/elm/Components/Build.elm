@@ -484,7 +484,7 @@ buildAnimation buildStatus build =
             div [ class "build-animation" ] <| topParticles build ++ bottomParticles build
 
         _ ->
-            div [ class "build-animation", class "-not-running", statusToClass buildStatus ] []
+            div [ class "build-animation -not-running", statusToClass buildStatus ] []
 
 
 {-| topParticles : returns an svg frame to parallax scroll on a running build, set to the top of the build.
@@ -531,13 +531,13 @@ topBuildNumberDashes : Int -> String
 topBuildNumberDashes build =
     case modBy 3 build of
         1 ->
-            "-animation-dashes-1"
+            "anim-dashes-1"
 
         2 ->
-            "-animation-dashes-2"
+            "anim-dashes-2"
 
         _ ->
-            "-animation-dashes-3"
+            "anim-dashes-3"
 
 
 {-| bottomBuildNumberDashes : returns a different particle effect based on a module of the build number.
@@ -546,13 +546,13 @@ bottomBuildNumberDashes : Int -> String
 bottomBuildNumberDashes build =
     case modBy 3 build of
         1 ->
-            "-animation-dashes-3"
+            "anim-dashes-3"
 
         2 ->
-            "-animation-dashes-1"
+            "anim-dashes-1"
 
         _ ->
-            "-animation-dashes-2"
+            "anim-dashes-2"
 
 
 

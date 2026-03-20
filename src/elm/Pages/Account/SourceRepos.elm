@@ -501,7 +501,7 @@ viewSourceOrgDetails :
     -> (List Vela.Repository -> msg)
     -> Html msg
 viewSourceOrgDetails filters org repos filtered content search enableRepos =
-    details [ class "details", class "-with-border" ] <|
+    details [ class "details -with-border" ] <|
         viewSourceOrgSummary filters org repos filtered content search enableRepos
 
 
@@ -522,7 +522,7 @@ viewSourceOrgSummary filters org repos filtered content search enableRepos =
         , viewRepoCount repos
         , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
         ]
-        :: div [ class "form-controls", class "-no-x-pad" ]
+        :: div [ class "form-controls -no-x-pad" ]
             [ Components.Search.viewRepoSearchBarLocal filters org search
             , enableReposButton org repos filtered enableRepos
             ]
@@ -567,7 +567,7 @@ viewRepoCount repos =
 -}
 enableReposButton : Vela.Org -> List Vela.Repository -> Bool -> (List Vela.Repository -> msg) -> Html msg
 enableReposButton org repos filtered enableRepos =
-    button [ class "button", class "-outline", Util.testAttribute <| "enable-org-" ++ org, onClick (enableRepos repos) ]
+    button [ class "button -outline", Util.testAttribute <| "enable-org-" ++ org, onClick (enableRepos repos) ]
         [ text <|
             if filtered then
                 "Enable Results"
@@ -592,8 +592,7 @@ enableRepoButton repo enableRepo toggleFavorite user =
 
         Vela.Enabling ->
             button
-                [ class "button"
-                , class "-outline"
+                [ class "button -outline"
                 , class "-loading"
                 , Util.testAttribute <| String.join "-" [ "loading", repo.org, repo.name ]
                 ]
@@ -608,8 +607,7 @@ enableRepoButton repo enableRepo toggleFavorite user =
                     , repo = repo.name
                     }
                 , button
-                    [ class "button"
-                    , class "-outline"
+                    [ class "button -outline"
                     , class "-success"
                     , attribute "tabindex" "-1" -- in this scenario we are merely showing state, this is not interactive
                     , Util.testAttribute <| String.join "-" [ "enabled", repo.org, repo.name ]
@@ -632,8 +630,7 @@ enableRepoButton repo enableRepo toggleFavorite user =
                     , repo = repo.name
                     }
                 , button
-                    [ class "button"
-                    , class "-outline"
+                    [ class "button -outline"
                     , class "-success"
                     , attribute "tabindex" "-1" -- in this scenario we are merely showing state, this is not interactive
                     , Util.testAttribute <| String.join "-" [ "enabled", repo.org, repo.name ]
@@ -649,8 +646,7 @@ enableRepoButton repo enableRepo toggleFavorite user =
 
         Vela.Disabling ->
             button
-                [ class "button"
-                , class "-outline"
+                [ class "button -outline"
                 , class "-loading"
                 , Util.testAttribute <| String.join "-" [ "loading", repo.org, repo.name ]
                 ]
@@ -658,10 +654,7 @@ enableRepoButton repo enableRepo toggleFavorite user =
 
         Vela.Failed ->
             button
-                [ class "button"
-                , class "-outline"
-                , class "-failure"
-                , class "-animate-rotate"
+                [ class "button -outline -failure -animate-rotate"
                 , Util.testAttribute <| String.join "-" [ "failed", repo.org, repo.name ]
                 , onClick (enableRepo { repo = repo, showAlertOnResponse = True, addFavoriteOnResponse = True })
                 ]
