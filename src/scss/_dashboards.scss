@@ -245,13 +245,13 @@
     }
 
     &.-canceled {
-      background-color: var(--recent-build-canceled-color,
-          var(--color-cyan-dark));
-      border-color: var(--recent-build-canceled-color,
-          var(--color-cyan-dark));
+      background-color: var(
+        --recent-build-canceled-color,
+        var(--color-cyan-dark)
+      );
+      border-color: var(--recent-build-canceled-color, var(--color-cyan-dark));
 
-      stroke: var(--recent-build-canceled-bg,
-          var(--color-bg-darkest));
+      stroke: var(--recent-build-canceled-bg, var(--color-bg-darkest));
     }
 
     &.-failure,
@@ -302,8 +302,10 @@
     }
 
     &:has(.-canceled)::before {
-      background-color: var(--recent-build-canceled-color,
-          var(--color-cyan-dark));
+      background-color: var(
+        --recent-build-canceled-color,
+        var(--color-cyan-dark)
+      );
     }
 
     &:has(.-error)::before,

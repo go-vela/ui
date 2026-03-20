@@ -43,7 +43,7 @@
   // for buttons with icons
   // expects SVG icon and
   // assumes it is rendered first
-  >svg {
+  > svg {
     display: inline-block;
     margin-right: 0.5rem;
 
@@ -93,7 +93,7 @@
 // a failure state button
 // TODO: move to separate file?
 .button.-failure.-animate-rotate {
-  >svg {
+  > svg {
     transition: transform 0.2s ease-in-out;
   }
 
@@ -160,7 +160,6 @@
   &.-failure,
   &.-loading,
   &.-running {
-
     &:hover,
     &:focus {
       background-color: var(--color-bg);
@@ -203,7 +202,7 @@
 
   background-color: transparent;
 
-  >svg {
+  > svg {
     margin: 0;
 
     vertical-align: middle;
@@ -220,7 +219,7 @@
   padding-right: 0.9rem;
   padding-left: 0.9rem;
 
-  >svg {
+  > svg {
     vertical-align: middle;
   }
 }
