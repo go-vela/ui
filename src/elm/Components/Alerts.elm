@@ -75,12 +75,12 @@ wrapAlert variantClass title message link copy =
     in
     div
         [ class "alert-container", class variantClass ]
-        [ h1 [ class "-title" ] [ text title, copyButton message copy ]
+        [ h1 [ class "alert-title" ] [ text title, copyButton message copy ]
         , if String.isEmpty message then
             text ""
 
           else
-            p [ class "-message" ] [ text message, hyperlink ]
+            p [ class "alert-message" ] [ text message, hyperlink ]
         ]
 
 
@@ -93,8 +93,7 @@ copyButton copyContent copy =
             button
                 [ class "copy-button"
                 , attribute "aria-label" <| "copy error message '" ++ copyContent ++ "' to clipboard "
-                , class "button"
-                , class "-icon"
+                , class "button -icon"
                 , onClick <| copyMsg copyContent
                 , attribute "data-clipboard-text" copyContent
                 ]

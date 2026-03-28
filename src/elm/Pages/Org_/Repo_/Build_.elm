@@ -822,22 +822,20 @@ view shared route model =
                             , Util.testAttribute "log-actions"
                             ]
                             [ button
-                                [ class "button"
-                                , class "-link"
+                                [ class "button -link"
                                 , onClick CollapseAll
                                 , Util.testAttribute "collapse-all"
                                 ]
                                 [ small [] [ text "collapse all" ] ]
                             , button
-                                [ class "button"
-                                , class "-link"
+                                [ class "button -link"
                                 , onClick ExpandAll
                                 , Util.testAttribute "expand-all"
                                 ]
                                 [ small [] [ text "expand all" ] ]
                             ]
                         , div [ class "steps" ]
-                            [ div [ class "-items", Util.testAttribute "steps" ] <|
+                            [ div [ class "step-items", Util.testAttribute "steps" ] <|
                                 if hasStages steps then
                                     viewStages shared model route steps
 
@@ -898,8 +896,8 @@ viewStep shared model route step =
             ]
         , Util.testAttribute "step"
         ]
-        [ div [ class "-status" ]
-            [ div [ class "-icon-container" ] [ Components.Svgs.statusToIcon step.status ] ]
+        [ div [ class "step-status" ]
+            [ div [ class "step-icon-container" ] [ Components.Svgs.statusToIcon step.status ] ]
         , details
             (classList
                 [ ( "details", True )
@@ -919,9 +917,9 @@ viewStep shared model route step =
                     }
                 ]
                 [ div
-                    [ class "-info" ]
-                    [ div [ class "-name" ] [ text step.name ]
-                    , div [ class "-duration" ] [ text <| Util.formatRunTime shared.time step.started step.finished ]
+                    [ class "step-info" ]
+                    [ div [ class "step-name" ] [ text step.name ]
+                    , div [ class "step-duration" ] [ text <| Util.formatRunTime shared.time step.started step.finished ]
                     ]
                 , FeatherIcons.chevronDown
                     |> FeatherIcons.withSize 20

@@ -283,17 +283,15 @@ viewDeployments shared model route =
             Just <|
                 div [ class "buttons" ]
                     [ a
-                        [ class "button"
-                        , class "-outline"
-                        , class "button-with-icon"
+                        [ class "button -outline -with-icon"
                         , Util.testAttribute "add-deployment"
                         , Route.Path.href <|
                             Route.Path.Org__Repo__Deployments_Add { org = route.params.org, repo = route.params.repo }
                         ]
-                        [ text "Add Deployment"
-                        , FeatherIcons.plus
+                        [ FeatherIcons.plus
                             |> FeatherIcons.withSize 18
-                            |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
+                            |> FeatherIcons.toHtml []
+                        , text "Add Deployment"
                         ]
                     , Components.Pager.view
                         { show = True
@@ -395,7 +393,7 @@ tableHeaders =
 -}
 viewDeployment : Shared.Model -> Vela.Repository -> Vela.Deployment -> Html Msg
 viewDeployment shared repo deployment =
-    tr [ Util.testAttribute <| "deployments-row", class "status-success" ]
+    tr [ Util.testAttribute "deployments-row", class "status-success" ]
         [ Components.Table.viewIconCell
             { dataLabel = "status"
             , parentClassList = []

@@ -68,12 +68,12 @@ body.theme-light {
     background-color: var(--color-secondary-dark);
   }
 
-  .recent-build-link .-icon.-canceled {
+  .recent-build-status-canceled .recent-build-link svg {
     background-color: var(--color-secondary-dark);
   }
 
-  .steps .-icon.-canceled,
-  .services .-icon.-canceled {
+  .steps svg.-canceled,
+  .services svg.-canceled {
     stroke: var(--color-secondary-dark);
   }
 
@@ -121,6 +121,7 @@ body.theme-light {
   .build:not(.-canceled) .error {
     color: var(--color-red);
   }
+
   /* stylelint-enable selector-max-specificity */
 
   .logs-container {
@@ -167,7 +168,7 @@ body.theme-light {
     color: var(--color-red-dark);
   }
 
-  .small-loader .-spinner {
+  .small-loader .loader-spinner {
     border-color: var(--color-bg-light);
     border-top-color: var(--color-bg);
   }
@@ -252,25 +253,13 @@ body.theme-light {
 }
 
 // dashboards
-.theme-light .card-header .-canceled {
+.theme-light .card-header svg.-canceled {
   background-color: var(--color-cyan-semi-dark);
 }
 
-/* stylelint-disable selector-max-compound-selectors,selector-max-specificity */
-.theme-light
-  .dashboard-recent-builds
-  .recent-build:not(:first-child)
-  .-canceled {
-  background-color: var(--color-gray-lightest);
-  border-color: var(--color-secondary-dark);
-
-  stroke: var(--color-secondary-dark);
-}
-
-/* stylelint-enable selector-max-compound-selectors,selector-max-specificity */
-
-.theme-light .recent-build-link.-current:has(.-canceled)::before {
-  background-color: var(--color-secondary-dark);
+.theme-light .dashboard-recent-builds {
+  --recent-build-canceled-bg: var(--color-gray-lightest);
+  --recent-build-canceled-color: var(--color-secondary-dark);
 }
 
 /*! purgecss end ignore */

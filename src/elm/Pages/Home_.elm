@@ -172,15 +172,13 @@ view shared route model =
             route
             { buttons =
                 [ a
-                    [ class "button"
-                    , class "-outline"
+                    [ class "button -outline"
                     , Util.testAttribute "dashboards-button"
                     , Route.Path.href Route.Path.Dashboards
                     ]
                     [ text "Dashboards" ]
                 , a
-                    [ class "button"
-                    , class "-outline"
+                    [ class "button -outline"
                     , Util.testAttribute "source-repos"
                     , Route.Path.href Route.Path.Account_SourceRepos
                     ]
@@ -283,7 +281,7 @@ toOrgFavorites favorites =
 -}
 viewOrg : Shared.Model -> String -> List String -> Html Msg
 viewOrg shared org favorites =
-    details [ class "details", class "-with-border", attribute "open" "open", Util.testAttribute "repo-org" ]
+    details [ class "details -with-border", attribute "open" "open", Util.testAttribute "repo-org" ]
         (summary [ class "summary" ]
             [ a [ Route.Path.href <| Route.Path.Org_ { org = org } ] [ text org ]
             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
