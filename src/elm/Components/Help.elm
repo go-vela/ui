@@ -75,7 +75,7 @@ view shared props =
 -}
 viewCommand : Shared.Model -> Props msg -> Command -> Html msg
 viewCommand shared props command =
-    div [ class "form-controls", class "-stack", Util.testAttribute "help-cmd-header" ]
+    div [ class "form-controls -stack", Util.testAttribute "help-cmd-header" ]
         [ span []
             [ label [ class "form-label", for <| "" ] [ text <| command.name ++ " " ]
             , case command.docs of
@@ -109,8 +109,7 @@ viewCommand shared props command =
                     [ button
                         [ Util.testAttribute "help-copy"
                         , attribute "aria-label" <| "copy " ++ command.content ++ " to clipboard"
-                        , class "button"
-                        , class "-icon"
+                        , class "button -icon"
                         , onClick <| props.showCopyAlert command.content
                         , class "copy-button"
                         , attribute "data-clipboard-text" command.content

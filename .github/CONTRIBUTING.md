@@ -110,6 +110,58 @@ git push fork main
 
 * Open a pull request. Thank you for your contribution!
 
+## CSS Conventions
+
+We follow the Cutestrap Popsicle approach for component class naming and modifiers.
+
+### Resources
+
+- [Cutestrap Popsicle Overview](https://www.cutestrap.com/features/popsicle)
+- [Cutestrap Core Docs](https://docs.cutestrap.com/section-1.html)
+- [Cutestrap Utilities Docs](https://docs.cutestrap.com/section-7.html)
+- [stylelint selector-disallowed-list](https://stylelint.io/user-guide/rules/selector-disallowed-list/)
+
+### Project Rules
+
+- Use box plus modifier chaining on the same element for component variants.
+  - Do: `.button.-outline`
+  - Do: `.alert-container.-success`
+  - Do: `.line.-warning`
+  - Do not: `.button .-outline`
+  - Do not: `.alert-container .-success`
+- Do not introduce bare modifier selectors in SCSS.
+  - Do not: `.-warning { ... }`
+  - Do not: `.-success { ... }`
+- When styling child elements, prefer semantic child classes or element selectors over modifier-like child classes.
+  - Prefer: `.alert-container .alert-title`
+  - Prefer: `.recent-build-link svg`
+  - Avoid: `.alert-container .-title`
+  - Avoid: `.recent-build-link .-icon`
+- Utility layers are allowed when they are explicit and namespaced.
+  - Use `icon-*` for icon utilities.
+  - Use `anim-*` for animation utilities.
+  - Use `state-*` for shared state utilities where appropriate.
+- Keep valid component modifiers as modifiers.
+  - Example: `.button.-success` remains the preferred component variant style.
+  - Example: `.line.-warning` remains valid for line-row variant state.
+
+### Elm Class Construction
+
+- For static base + modifier combinations, prefer one class string.
+  - Preferred: `class "button -outline"`
+  - Preferred: `class "hook-status -success"`
+- Splitting classes is still valid Elm and is allowed when composition is dynamic or improves readability.
+  - Allowed: `class "build-animation -not-running", statusToClass status`
+  - Allowed: `class "button", class dynamicModifier`
+- Avoid splitting static base + modifier pairs by default.
+
+### Review Checklist
+
+- Verify there are no new bare modifier selectors in `src/scss`.
+- Verify no descendant modifier misuse was introduced (for example `.box .-modifier`).
+- Verify utility classes are namespaced (`icon-*`, `anim-*`, `state-*`) when used.
+- Run `npm run lint:css` before opening a pull request.
+
 ## Tips
 
 ### Visual Studio Code Users

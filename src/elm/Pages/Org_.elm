@@ -210,8 +210,7 @@ view shared route model =
                         [ h1 [] [ text "No Repositories are enabled for this Organization!" ]
                         , p [] [ text "Enable repositories" ]
                         , a
-                            [ class "button"
-                            , class "-outline"
+                            [ class "button -outline"
                             , Util.testAttribute "source-repos"
                             , Route.Path.href Route.Path.Account_SourceRepos
                             ]

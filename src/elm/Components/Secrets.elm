@@ -252,7 +252,7 @@ viewSecret engine type_ copyMsg secret =
         , Components.Table.viewItemCell
             { dataLabel = "name"
             , parentClassList = [ ( "name", True ) ]
-            , itemClassList = [ ( "-block", True ) ]
+            , itemClassList = [ ( "table-cell-block", True ) ]
             , children = [ a [ editSecretHref engine type_ secret ] [ text secret.name ] ]
             }
         , Components.Table.viewListItemCell
@@ -334,8 +334,7 @@ copyButton copyYaml copyMsg =
         [ button
             [ class "copy-button"
             , attribute "aria-label" "copy secret yaml to clipboard "
-            , class "button"
-            , class "-icon"
+            , class "button -icon"
             , onClick <| copyMsg copyYaml
             , attribute "data-clipboard-text" copyYaml
             , Util.testAttribute "copy-secret"

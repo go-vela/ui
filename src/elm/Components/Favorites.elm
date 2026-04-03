@@ -33,8 +33,7 @@ viewStarToggle { msg, user, org, repo } =
         [ Util.testAttribute <| "star-toggle-" ++ org ++ "-" ++ repo
         , onClick <| msg org (Just repo)
         , starToggleAriaLabel org repo <| Favorites.isFavorited org repo user
-        , class "button"
-        , class "-icon"
+        , class "button -icon"
         ]
         [ star <| Favorites.isFavorited org repo user ]
 

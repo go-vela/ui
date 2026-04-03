@@ -262,9 +262,7 @@ view shared route model =
             , tableButtons =
                 Just
                     [ a
-                        [ class "button"
-                        , class "-outline"
-                        , class "button-with-icon"
+                        [ class "button -outline -with-icon"
                         , Util.testAttribute "add-org-secret"
                         , Route.Path.href <|
                             Route.Path.Dash_Secrets_Engine__Org_Org__Add
@@ -272,10 +270,10 @@ view shared route model =
                                 , org = route.params.org
                                 }
                         ]
-                        [ text "Add Org Secret"
-                        , FeatherIcons.plus
+                        [ FeatherIcons.plus
                             |> FeatherIcons.withSize 18
-                            |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
+                            |> FeatherIcons.toHtml []
+                        , text "Add Org Secret"
                         ]
                     , Components.Pager.view
                         { show = True
@@ -302,9 +300,7 @@ view shared route model =
             , tableButtons =
                 Just
                     [ a
-                        [ class "button"
-                        , class "-outline"
-                        , class "button-with-icon"
+                        [ class "button -outline -with-icon"
                         , Util.testAttribute "manage-shared-secrets"
                         , Route.Path.href <|
                             Route.Path.Dash_Secrets_Engine__Shared_Org__Team_
@@ -313,10 +309,10 @@ view shared route model =
                                 , team = "*"
                                 }
                         ]
-                        [ text "Manage Shared Secrets"
-                        , FeatherIcons.plus
+                        [ FeatherIcons.plus
                             |> FeatherIcons.withSize 18
-                            |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
+                            |> FeatherIcons.toHtml []
+                        , text "Manage Shared Secrets"
                         ]
                     ]
             , pageNumber = 1

@@ -204,7 +204,7 @@ viewAccount_Settings shared model =
                 [ section [ class "settings", Util.testAttribute "user-token" ]
                     [ h2 [ class "settings-title" ] [ text "Authentication Token" ]
                     , p [ class "settings-description" ] [ text timeRemaining, br [] [], em [] [ text "Token will refresh before it expires." ] ]
-                    , div [ class "form-controls", class "-no-x-pad" ]
+                    , div [ class "form-controls -no-x-pad" ]
                         [ label [ class "form-label", class "visually-hidden", for "token" ] [ text "Auth Token" ]
                         , textarea
                             [ class "form-control"
@@ -219,8 +219,7 @@ viewAccount_Settings shared model =
                         , div [ class "vert-icon-container" ]
                             [ button
                                 [ class "copy-button"
-                                , class "button"
-                                , class "-icon"
+                                , class "button -icon"
                                 , class "-white"
                                 , attribute "data-clipboard-text" auth.token
                                 , attribute "aria-label" "copy token"
@@ -237,7 +236,7 @@ viewAccount_Settings shared model =
                 , section [ class "settings", Util.testAttribute "user-theme" ]
                     [ h2 [ class "settings-title" ] [ text "Theme" ]
                     , p [ class "settings-description" ] [ text "Choose your theme preference." ]
-                    , div [ class "form-controls", class "-stack" ]
+                    , div [ class "form-controls -stack" ]
                         [ Components.Form.viewRadio
                             { value = Theme.toString shared.theme
                             , field = Theme.toString Theme.Light

@@ -46,6 +46,7 @@ module.exports = {
     // since we're going for http://www.cutestrap.com/features/popsicle
     'selector-class-pattern': '^((?!(-|_)\\2{1,})[a-z0-9\\-])*$',
     'selector-max-compound-selectors': 3,
+    'selector-disallowed-list': ['/^\\.-/', '/\\s\\.-/'],
     'selector-max-specificity': [
       // setting for interim, try to lower especially last number (id,class,type)
       '0,4,3',

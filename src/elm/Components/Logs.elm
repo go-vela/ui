@@ -188,8 +188,7 @@ viewLine pushUrlHashMsg resourceType resourceNumber shift focus logLine lineNumb
                         , b = Nothing
                         }
                     , class "line-number"
-                    , class "button"
-                    , class "-link"
+                    , class "button -link"
                     , attribute "aria-label" <| "focus log for resource " ++ resourceNumber
                     ]
                     [ span [] [ text <| String.fromInt lineNumber ] ]
@@ -358,8 +357,7 @@ viewLogsSidebar props =
 viewJumpToBottomButton : Props msg -> Html msg
 viewJumpToBottomButton props =
     button
-        [ class "button"
-        , class "-icon"
+        [ class "button -icon"
         , class "tooltip-left"
         , attribute "data-tooltip" "jump to bottom"
         , Util.testAttribute <| "jump-to-bottom-" ++ props.resourceNumber
@@ -379,8 +377,7 @@ viewJumpToBottomButton props =
 viewJumpToTopButton : Props msg -> Html msg
 viewJumpToTopButton props =
     button
-        [ class "button"
-        , class "-icon"
+        [ class "button -icon"
         , class "tooltip-left"
         , attribute "data-tooltip" "jump to top"
         , Util.testAttribute <| "jump-to-top-" ++ props.resourceNumber
@@ -408,8 +405,7 @@ viewDownloadButton props log =
                 ++ ".txt"
     in
     button
-        [ class "button"
-        , class "-link"
+        [ class "button -link"
         , disabled logEmpty
         , Util.attrIf logEmpty <| class "-hidden"
         , Util.attrIf logEmpty <| Util.ariaHidden
@@ -442,8 +438,7 @@ viewFollowButton props =
                 ( "start following resource logs", FeatherIcons.play, num )
     in
     button
-        [ class "button"
-        , class "-icon"
+        [ class "button -icon"
         , class "tooltip-left"
         , attribute "data-tooltip" tooltip
         , Util.testAttribute <| "follow-logs-" ++ props.resourceNumber
