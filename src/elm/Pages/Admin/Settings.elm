@@ -8,7 +8,7 @@ module Pages.Admin.Settings exposing (Model, Msg, page)
 import Auth
 import Components.Form
 import Components.Loading
-import Dict
+import Dict exposing (Dict)
 import Effect exposing (Effect)
 import Html exposing (Html, div, h2, i, li, p, section, span, strong, text, ul)
 import Html.Attributes exposing (class)
