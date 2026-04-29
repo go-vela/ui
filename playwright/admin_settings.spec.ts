@@ -37,25 +37,25 @@ test.describe('Admin Settings', () => {
       await expect(page.getByTestId('input-template-depth')).toBeVisible();
     });
 
-      test('compiler starlark exec limit should show', async ({ page }) => {
-        await expect(page.getByTestId('input-starlark-exec-limit')).toBeVisible();
-      });
+    test('compiler starlark exec limit should show', async ({ page }) => {
+      await expect(page.getByTestId('input-starlark-exec-limit')).toBeVisible();
+    });
 
-      test('blocked images list should show', async ({ page }) => {
-        const blockedImages = page.getByTestId('editable-list-blocked-images');
-        await expect(blockedImages).toBeVisible();
-        await expect(
-          page.getByTestId('editable-list-item-alpine:latest'),
-        ).toContainText('alpine:latest');
-      });
+    test('blocked images list should show', async ({ page }) => {
+      const blockedImages = page.getByTestId('editable-list-blocked-images');
+      await expect(blockedImages).toBeVisible();
+      await expect(
+        page.getByTestId('editable-list-item-alpine:latest'),
+      ).toContainText('alpine:latest');
+    });
 
-      test('warn images list should show', async ({ page }) => {
-        const warnImages = page.getByTestId('editable-list-warn-images');
-        await expect(warnImages).toBeVisible();
-        await expect(
-          page.getByTestId('editable-list-item-busybox:latest'),
-        ).toContainText('busybox:latest');
-      });
+    test('warn images list should show', async ({ page }) => {
+      const warnImages = page.getByTestId('editable-list-warn-images');
+      await expect(warnImages).toBeVisible();
+      await expect(
+        page.getByTestId('editable-list-item-busybox:latest'),
+      ).toContainText('busybox:latest');
+    });
 
     test('queue routes list should show', async ({ page }) => {
       const queueRoutes = page.getByTestId('editable-list-queue-routes');
@@ -187,7 +187,7 @@ test.describe('Admin Settings', () => {
         await expect(orgSecretsInput).not.toBeChecked();
       });
 
-        test.describe('list item should allow editing', () => {
+      test.describe('list item should allow editing', () => {
         test('edit button should toggle save and remove buttons', async ({
           page,
         }) => {
@@ -213,7 +213,9 @@ test.describe('Admin Settings', () => {
 
         test.describe('image restriction lists should allow editing', () => {
           test('blocked images list should add item', async ({ page }) => {
-            const blockedList = page.getByTestId('editable-list-blocked-images');
+            const blockedList = page.getByTestId(
+              'editable-list-blocked-images',
+            );
 
             await expect(blockedList).toBeVisible();
             await expect(
@@ -239,7 +241,9 @@ test.describe('Admin Settings', () => {
           });
 
           test('blocked images list should update reason', async ({ page }) => {
-            const blockedList = page.getByTestId('editable-list-blocked-images');
+            const blockedList = page.getByTestId(
+              'editable-list-blocked-images',
+            );
 
             await expect(blockedList).toBeVisible();
             await blockedList
@@ -260,11 +264,15 @@ test.describe('Admin Settings', () => {
           });
 
           test('blocked images list should remove item', async ({ page }) => {
-            const settings = readTestData<Record<string, any>>('settings_updated.json');
+            const settings = readTestData<Record<string, any>>(
+              'settings_updated.json',
+            );
             settings.compiler.blocked_images = [];
             await mockAdminSettingsUpdate(page, settings);
 
-            const blockedList = page.getByTestId('editable-list-blocked-images');
+            const blockedList = page.getByTestId(
+              'editable-list-blocked-images',
+            );
 
             await expect(blockedList).toBeVisible();
             await blockedList
@@ -285,9 +293,9 @@ test.describe('Admin Settings', () => {
             const warnList = page.getByTestId('editable-list-warn-images');
 
             await expect(warnList).toBeVisible();
-            await expect(page.getByTestId('editable-list-item-node:20')).toHaveCount(
-              0,
-            );
+            await expect(
+              page.getByTestId('editable-list-item-node:20'),
+            ).toHaveCount(0);
 
             await page
               .getByTestId('input-editable-list-warn-images-image-add')
@@ -329,7 +337,9 @@ test.describe('Admin Settings', () => {
           });
 
           test('warn images list should remove item', async ({ page }) => {
-            const settings = readTestData<Record<string, any>>('settings_updated.json');
+            const settings = readTestData<Record<string, any>>(
+              'settings_updated.json',
+            );
             settings.compiler.warn_images = [];
             await mockAdminSettingsUpdate(page, settings);
 
@@ -366,7 +376,7 @@ test.describe('Admin Settings', () => {
 
             await expect(page.getByTestId('alert')).toBeVisible();
             await expect(page.getByTestId('alert')).toContainText(
-              "already exists in the blocked images list",
+              'already exists in the blocked images list',
             );
           });
         });
