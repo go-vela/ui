@@ -148,8 +148,7 @@ viewImagesInput { onInput_, addImage, removeImage, images, imageValue, disabled_
     section []
         [ div
             [ id "image-select"
-            , class "form-control"
-            , class "-stack"
+            , class "form-control -stack"
             , class "images-container"
             ]
             [ label
@@ -179,8 +178,7 @@ viewImagesInput { onInput_, addImage, removeImage, images, imageValue, disabled_
                     , required = False
                     }
                 , button
-                    [ class "button"
-                    , class "-outline"
+                    [ class "button -outline"
                     , class "add-image"
                     , Util.testAttribute "add-image-button"
                     , onClick <| addImage <| String.toLower imageValue
@@ -213,8 +211,7 @@ viewImage { msg, image } =
     div [ class "image", class "chevron" ]
         [ div [ class "name" ] [ text image ]
         , button
-            [ class "button"
-            , class "-outline"
+            [ class "button -outline"
             , onClick <| msg image
             ]
             [ text "remove"
@@ -239,8 +236,7 @@ viewRepoAllowlistInput { onOrgInput_, onRepoInput_, addRepo, removeRepo, repos, 
     section []
         [ div
             [ id "image-select"
-            , class "form-control"
-            , class "-stack"
+            , class "form-control -stack"
             , class "images-container"
             ]
             [ label
@@ -286,8 +282,7 @@ viewRepoAllowlistInput { onOrgInput_, onRepoInput_, addRepo, removeRepo, repos, 
                     , required = False
                     }
                 , button
-                    [ class "button"
-                    , class "-outline"
+                    [ class "button -outline"
                     , class "add-image"
                     , Util.testAttribute "add-image-button"
                     , onClick <| addRepo <| orgValue ++ "/" ++ repoValue
@@ -320,8 +315,7 @@ viewRepo { msg, repo } =
     div [ class "image", class "chevron" ]
         [ div [ class "name" ] [ text repo ]
         , button
-            [ class "button"
-            , class "-outline"
+            [ class "button -outline"
             , onClick <| msg repo
             ]
             [ text "remove"
@@ -346,7 +340,7 @@ viewAllowCommandsInput { msg, value, disabled_ } =
                 ]
             ]
         , div
-            [ class "form-controls", class "-stack" ]
+            [ class "form-controls -stack" ]
             [ Components.Form.viewRadio
                 { value = Util.boolToYesNo value
                 , field = "yes"
@@ -385,7 +379,7 @@ viewAllowSubstitutionInput { msg, value, disabled_ } =
                 ]
             ]
         , div
-            [ class "form-controls", class "-stack" ]
+            [ class "form-controls -stack" ]
             [ Components.Form.viewRadio
                 { value = Util.boolToYesNo value
                 , field = "yes"

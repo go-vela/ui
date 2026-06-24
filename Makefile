@@ -162,7 +162,7 @@ test: format-validate ## Test the Elm source code
 .PHONY: test-playwright
 test-playwright: ## Run playwright tests
 	@echo -e "\n### Running playwright tests"
-	@npm run test:cy
+	@npm run playwright
 
 # The `format-validate` target is intended to
 # check the format of the Elm source code.

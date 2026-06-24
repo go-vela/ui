@@ -46,7 +46,7 @@
 
   background-color: var(--color-bg-darkest);
 
-  .-icon {
+  svg {
     width: 1rem;
     height: 1rem;
 
@@ -119,7 +119,7 @@
   background-color: var(--color-bg-darkest);
 
   // custom styling for the status icon
-  .-icon {
+  svg {
     width: 2.5rem;
     height: 2.5rem;
 
@@ -215,13 +215,13 @@
   }
 
   // icons for recent builds are larger
-  .-icon {
+  svg {
     width: 5rem;
     height: 5rem;
   }
 
   // overrides for recent builds component due to custom styling
-  .recent-build:not(:first-child) .-icon {
+  .recent-build-not-first svg {
     background-color: var(--color-bg-darkest); // too many levels
     border-style: solid;
     border-width: 2px 0;
@@ -235,26 +235,30 @@
     &.-running {
       border-color: var(--color-yellow);
 
-      stroke: var(--color-yellow);
+      stroke: var(--color-bg-darkest);
     }
 
     &.-success {
       border-color: var(--color-green);
 
-      stroke: var(--color-green);
+      stroke: var(--color-bg-darkest);
     }
 
     &.-canceled {
-      border-color: var(--color-cyan-dark);
+      background-color: var(
+        --recent-build-canceled-color,
+        var(--color-cyan-dark)
+      );
+      border-color: var(--recent-build-canceled-color, var(--color-cyan-dark));
 
-      stroke: var(--color-cyan-dark);
+      stroke: var(--recent-build-canceled-bg, var(--color-bg-darkest));
     }
 
     &.-failure,
     &.-error {
       border-color: var(--color-red);
 
-      stroke: var(--color-red);
+      stroke: var(--color-bg-darkest);
     }
   }
 
@@ -298,7 +302,10 @@
     }
 
     &:has(.-canceled)::before {
-      background-color: var(--color-cyan-dark);
+      background-color: var(
+        --recent-build-canceled-color,
+        var(--color-cyan-dark)
+      );
     }
 
     &:has(.-error)::before,

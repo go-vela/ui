@@ -118,40 +118,40 @@ svg.elm-build-graph-root {
   fill: var(--color-bg-dark);
   stroke: var(--color-gray);
 
-  .-pending,
-  .-running {
+  .state-pending,
+  .state-running {
     stroke-dasharray: 7, 4;
   }
 
-  .-canceled,
-  .-failure {
+  .state-canceled,
+  .state-failure {
     stroke-dasharray: 3 3;
   }
 
-  .-running {
+  .state-running {
     stroke: var(--color-yellow);
   }
 
-  .-success {
+  .state-success {
     stroke: var(--color-green);
   }
 
-  .-failure {
+  .state-failure {
     stroke: var(--color-red);
   }
 
-  .-canceled {
+  .state-canceled {
     stroke: var(--color-cyan-dark);
   }
 
-  .-killed,
-  .-skipped {
+  .state-killed,
+  .state-skipped {
     stroke: var(--color-lavender);
     stroke-dasharray: 2, 4;
     stroke-linecap: round;
   }
 
-  .-selected {
+  .state-selected {
     stroke: var(--color-primary);
     stroke-width: 5;
   }
@@ -167,24 +167,24 @@ svg.elm-build-graph-root {
   fill: var(--color-bg-dark);
   stroke: var(--color-gray);
 
-  .-pending {
+  .state-pending {
     stroke-dasharray: 5, 3;
   }
 
-  .-running {
+  .state-running {
     stroke: var(--color-yellow);
     stroke-dasharray: 7, 4;
   }
 
-  .-success {
+  .state-success {
     stroke: var(--color-green);
   }
 
-  .-failure {
+  .state-failure {
     stroke: var(--color-red);
   }
 
-  .-selected {
+  .state-selected {
     stroke: var(--color-primary);
   }
 

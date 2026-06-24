@@ -117,7 +117,7 @@ view shared props =
                     , age = dash
                     , sender = dash
                     , duration = "--:--"
-                    , recentBuilds = div [ class "dashboard-recent-builds", class "-none" ] [ text "waiting for builds" ]
+                    , recentBuilds = div [ class "dashboard-recent-builds -none" ] [ text "waiting for builds" ]
                     }
     in
     section [ class "card", Util.testAttribute "dashboard-card" ]

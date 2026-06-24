@@ -77,7 +77,7 @@ test.describe('Dashboards', () => {
       const firstHeaderIcon = page
         .getByTestId('dashboard-card')
         .first()
-        .locator('header .-icon')
+        .locator('header .icon-state')
         .first();
       await expect(firstHeaderIcon).toHaveClass(/-success/);
     });
@@ -88,7 +88,7 @@ test.describe('Dashboards', () => {
       const secondHeaderIcon = page
         .getByTestId('dashboard-card')
         .nth(1)
-        .locator('header .-icon')
+        .locator('header .icon-state')
         .first();
       await expect(secondHeaderIcon).toHaveClass(/-failure/);
     });

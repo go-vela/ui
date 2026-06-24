@@ -238,7 +238,7 @@ viewFilter maybeEvent filterByEventMsg =
 -}
 viewTimeToggle : Bool -> msg -> Html msg
 viewTimeToggle showTimestamp showHideFullTimestampMsg =
-    div [ class "form-controls", class "-stack", class "time-toggle" ]
+    div [ class "form-controls -stack", class "time-toggle" ]
         [ div [ class "form-control" ]
             [ input [ type_ "checkbox", checked showTimestamp, onClick showHideFullTimestampMsg, id "checkbox-time-toggle", Util.testAttribute "time-toggle" ] []
             , label [ class "form-label", for "checkbox-time-toggle" ] [ text "show full timestamps" ]

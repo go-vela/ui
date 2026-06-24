@@ -845,7 +845,7 @@ viewAccess repo msg =
     section [ class "settings", Util.testAttribute "repo-settings-access" ]
         [ h2 [ class "settings-title" ] [ text "Access" ]
         , p [ class "settings-description" ] [ text "Change who can access build information." ]
-        , div [ class "form-controls", class "-stack" ]
+        , div [ class "form-controls -stack" ]
             [ Components.Form.viewRadio
                 { title = "Private"
                 , subtitle = Just (text "(restricted to those with repository access)")
@@ -875,7 +875,7 @@ viewForkPolicy repo msg =
     section [ class "settings", Util.testAttribute "repo-settings-fork-policy" ]
         [ h2 [ class "settings-title" ] [ text "Outside Contributor Permissions" ]
         , p [ class "settings-description" ] [ text "Change which pull request builds from forks need approval to run a build." ]
-        , div [ class "form-controls", class "-stack" ]
+        , div [ class "form-controls -stack" ]
             [ Components.Form.viewRadio
                 { title = "Always Require Admin Approval"
                 , subtitle = Just (text "(repository admin must approve all builds from outside contributors)")
@@ -1265,7 +1265,7 @@ viewBadge shared repo copyMsg =
             [ p [ class "build-badge" ]
                 [ img [ alt "build status badge", src badgeURL ] [] ]
             , text "Markdown"
-            , div [ class "form-controls", class "-no-x-pad" ]
+            , div [ class "form-controls -no-x-pad" ]
                 [ textarea
                     [ class "form-control"
                     , class "copy-display"
@@ -1278,8 +1278,7 @@ viewBadge shared repo copyMsg =
                     [ text mdCode ]
                 , button
                     [ class "copy-button"
-                    , class "button"
-                    , class "-icon"
+                    , class "button -icon"
                     , class "-white"
                     , attribute "data-clipboard-text" mdCode
                     , attribute "aria-label" "copy status badge markdown code"
@@ -1326,8 +1325,7 @@ viewAdminActions repo disableRepoMsg enableRepoMsg chownRepoMsg repairRepoMsg =
                     [ em [] [ text <| "Current owner: " ++ repo.owner.name ] ]
                 ]
             , button
-                [ class "button"
-                , class "-outline"
+                [ class "button -outline"
                 , attribute "aria-label" <| "become owner of the webhook for " ++ repo.full_name
                 , Util.testAttribute "repo-chown"
                 , onClick (chownRepoMsg { repo = repo })
@@ -1341,8 +1339,7 @@ viewAdminActions repo disableRepoMsg enableRepoMsg chownRepoMsg repairRepoMsg =
                     [ em [] [ text "This will repair the webhook for this repository." ] ]
                 ]
             , button
-                [ class "button"
-                , class "-outline"
+                [ class "button -outline"
                 , attribute "aria-label" <| "repair the webhook for " ++ repo.full_name
                 , Util.testAttribute "repo-repair"
                 , onClick (repairRepoMsg { repo = repo })
@@ -1402,8 +1399,7 @@ viewEnableButton disableRepoMsg enableRepoMsg repo =
         Vela.Disabling ->
             button
                 [ inProgressClasses
-                , class "button"
-                , class "-outline"
+                , class "button -outline"
                 , class "-loading"
                 , Util.testAttribute "repo-disabling"
                 ]
@@ -1414,8 +1410,7 @@ viewEnableButton disableRepoMsg enableRepoMsg repo =
         Vela.Enabling ->
             div
                 [ inProgressClasses
-                , class "button"
-                , class "-outline"
+                , class "button -outline"
                 , class "-loading"
                 , Util.testAttribute "repo-enabling"
                 ]
@@ -1464,7 +1459,7 @@ viewPipelineType repo msg =
     section [ class "settings", Util.testAttribute "repo-settings-pipeline-type" ]
         [ h2 [ class "settings-title" ] [ text "Pipeline Type" ]
         , p [ class "settings-description" ] [ text "Change how the compiler treats the base vela config." ]
-        , div [ class "form-controls", class "-stack" ]
+        , div [ class "form-controls -stack" ]
             [ Components.Form.viewRadio
                 { value = repo.pipeline_type
                 , field = "yaml"
@@ -1521,7 +1516,7 @@ viewMergeQueueEvents repo inMergeQueueEvents toggleMsg saveMsg =
     section [ class "settings", Util.testAttribute "repo-settings-merge-queue-events" ]
         [ h2 [ class "settings-title" ] [ text "Merge Queue Events" ]
         , p [ class "settings-description" ] [ text "Choose which event contexts Vela will report to for merge queue builds." ]
-        , div [ class "form-controls", class "-stack" ]
+        , div [ class "form-controls -stack" ]
             (List.map
                 (\eventName ->
                     Components.Form.viewCheckbox

@@ -272,14 +272,14 @@ lineRangeStyles group lineNumber focus =
                         ( lineB, lineA )
             in
             if group == focus.group && lineNumber >= a && lineNumber <= b then
-                "-focus"
+                "line-focus"
 
             else
                 ""
 
         ( _, Just lineA, Nothing ) ->
             if group == focus.group && lineA == lineNumber then
-                "-focus"
+                "line-focus"
 
             else
                 ""

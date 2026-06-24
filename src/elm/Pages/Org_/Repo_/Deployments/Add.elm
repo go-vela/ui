@@ -559,8 +559,7 @@ view shared route model =
                                 , required = False
                                 }
                             , button
-                                [ class "button"
-                                , class "-outline"
+                                [ class "button -outline"
                                 , onClick AddParameter
                                 , Util.testAttribute "button-parameter-add"
                                 , disabled (String.isEmpty model.parameterKey || String.isEmpty model.parameterValue)
@@ -576,8 +575,7 @@ view shared route model =
                                             [ div [ class "parameter", class "chevron" ]
                                                 [ div [ class "name" ] [ text (parameter.key ++ "=" ++ parameter.value) ]
                                                 , button
-                                                    [ class "button"
-                                                    , class "-outline"
+                                                    [ class "button -outline"
                                                     , Util.testAttribute ("button-parameter-remove-" ++ parameter.key)
                                                     , onClick <| RemoveParameter parameter
                                                     ]
@@ -593,8 +591,7 @@ view shared route model =
                                                 , div [ class "vert-icon-container" ]
                                                     [ button
                                                         [ class "copy-button"
-                                                        , class "button"
-                                                        , class "-icon"
+                                                        , class "button -icon"
                                                         , class "-white"
                                                         , attribute "data-clipboard-text" ("$DEPLOYMENT_PARAMETER_" ++ String.toUpper parameter.key)
                                                         , attribute "aria-label" "copy token"
@@ -646,7 +643,7 @@ viewDeploymentConfigTarget targets current msg =
     section [ class "settings", Util.testAttribute "deployment-config-target" ]
         [ Html.label [ class "form-label" ] [ Html.strong [] [ text "Target" ] ]
         , div
-            [ class "form-controls", class "-stack" ]
+            [ class "form-controls -stack" ]
           <|
             List.map
                 (\target ->
@@ -722,8 +719,7 @@ viewDeploymentConfigParameter mdl key param =
                             , required = param.required
                             }
                         , button
-                            [ class "button"
-                            , class "-outline"
+                            [ class "button -outline"
                             , onClick <| AddConfigParameter key (mdl.configParameters |> Dict.get key |> Maybe.withDefault "")
                             , Util.testAttribute "button-parameter-add"
                             , disabled <| String.isEmpty (mdl.configParameters |> Dict.get key |> Maybe.withDefault "")
@@ -783,8 +779,7 @@ viewDeploymentConfigParameter mdl key param =
                                 ]
                             ]
                         , button
-                            [ class "button"
-                            , class "-outline"
+                            [ class "button -outline"
                             , onClick <| AddConfigParameter key (mdl.configParameters |> Dict.get key |> Maybe.withDefault "")
                             , Util.testAttribute "button-parameter-add"
                             , disabled <| String.isEmpty (Dict.get key mdl.configParameters |> Maybe.withDefault "")
@@ -841,8 +836,7 @@ viewDeploymentConfigParameter mdl key param =
                             , required = param.required
                             }
                         , button
-                            [ class "button"
-                            , class "-outline"
+                            [ class "button -outline"
                             , onClick <| AddConfigParameter key (mdl.configParameters |> Dict.get key |> Maybe.withDefault "")
                             , Util.testAttribute "button-parameter-add"
                             , disabled <| String.isEmpty (mdl.configParameters |> Dict.get key |> Maybe.withDefault "")
@@ -920,8 +914,7 @@ viewDeploymentConfigParameter mdl key param =
                         )
                     ]
                 , button
-                    [ class "button"
-                    , class "-outline"
+                    [ class "button -outline"
                     , onClick <| AddConfigParameter key (mdl.configParameters |> Dict.get key |> Maybe.withDefault "")
                     , Util.testAttribute "button-parameter-add"
                     , disabled <| String.isEmpty (mdl.configParameters |> Dict.get key |> Maybe.withDefault "")

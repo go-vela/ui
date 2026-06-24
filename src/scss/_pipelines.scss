@@ -75,7 +75,7 @@
 
     border-top: 1px solid var(--color-secondary);
 
-    .-error {
+    &.-error {
       padding: 0.8rem 1rem;
 
       border-left: 1px solid var(--color-red);
@@ -227,18 +227,18 @@ tr.warning,
   position: relative;
 }
 
-.warnings .-disabled {
+.warnings .warning-disabled {
   color: var(--color-bg-light);
 }
 
-.theme-light .warnings .-disabled {
+.theme-light .warnings .warning-disabled {
   color: var(--color-coal-light);
 }
 
 .annotation {
   padding: 0;
 
-  .-warning {
+  .annotation-warning {
     fill: var(--color-yellow);
     stroke: var(--color-yellow);
   }

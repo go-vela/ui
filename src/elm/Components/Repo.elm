@@ -58,21 +58,18 @@ view shared { toggleFavoriteMsg, org, repo, favorites, filtered } =
                 , repo = repo
                 }
             , a
-                [ class "button"
-                , class "-outline"
+                [ class "button -outline"
                 , Route.Path.href <| Route.Path.Org__Repo__Settings { org = org, repo = repo }
                 ]
                 [ text "Settings" ]
             , a
-                [ class "button"
-                , class "-outline"
+                [ class "button -outline"
                 , Util.testAttribute "repo-hooks"
                 , Route.Path.href <| Route.Path.Org__Repo__Hooks { org = org, repo = repo }
                 ]
                 [ text "Audit" ]
             , a
-                [ class "button"
-                , class "-outline"
+                [ class "button -outline"
                 , Util.testAttribute "repo-secrets"
                 , Route.Path.href <| Route.Path.Dash_Secrets_Engine__Repo_Org__Repo_ { org = org, repo = repo, engine = "native" }
                 ]

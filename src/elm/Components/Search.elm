@@ -57,7 +57,7 @@ type alias SimpleSearch msg =
 -}
 viewHomeSearchBar : String -> SimpleSearch msg -> Html msg
 viewHomeSearchBar filter search =
-    div [ class "form-control", class "-with-icon", class "-is-expanded", Util.testAttribute "home-search-bar" ]
+    div [ class "form-control -with-icon -is-expanded", Util.testAttribute "home-search-bar" ]
         [ input
             [ Util.testAttribute "home-search-input"
             , autofocus True
@@ -74,7 +74,7 @@ viewHomeSearchBar filter search =
 -}
 viewRepoSearchBarGlobal : Dict Vela.Org String -> Search msg -> Html msg
 viewRepoSearchBarGlobal searchFilters search =
-    div [ class "form-control", class "-with-icon", class "-is-expanded", Util.testAttribute "global-search-bar" ]
+    div [ class "form-control -with-icon -is-expanded", Util.testAttribute "global-search-bar" ]
         [ input
             [ Util.testAttribute "global-search-input"
             , placeholder "Type to filter all repositories..."
@@ -91,7 +91,7 @@ viewRepoSearchBarGlobal searchFilters search =
 -}
 viewRepoSearchBarLocal : Dict Vela.Org String -> Vela.Org -> Search msg -> Html msg
 viewRepoSearchBarLocal searchFilters org search =
-    div [ class "form-control", class "-with-icon", class "-is-expanded", Util.testAttribute "local-search-bar" ]
+    div [ class "form-control -with-icon -is-expanded", Util.testAttribute "local-search-bar" ]
         [ input
             [ Util.testAttribute <| "local-search-input-" ++ org
             , placeholder <|

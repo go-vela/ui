@@ -49,8 +49,7 @@ viewInputSection { id_, title, subtitle, val, placeholder_, classList_, rows_, w
             String.join "-" [ "input", id_ ]
     in
     section
-        [ class "form-control"
-        , class "-stack"
+        [ class "form-control -stack"
         ]
         [ Maybe.Extra.unwrap (text "")
             (\l ->
@@ -207,8 +206,7 @@ viewTextareaSection { id_, title, subtitle, val, placeholder_, classList_, rows_
             String.join "-" [ "textarea", id_ ]
     in
     section
-        [ class "form-control"
-        , class "-stack"
+        [ class "form-control -stack"
         ]
         [ Maybe.Extra.unwrap (text "")
             (\l ->
@@ -365,8 +363,7 @@ viewCopyButton { id_, msg, text_, classList_, disabled_, content } =
         [ button
             [ class "copy-button"
             , attribute "aria-label" ("copy " ++ id_ ++ "content to clipboard")
-            , class "button"
-            , class "-icon"
+            , class "button -icon"
             , disabled disabled_
             , classList classList_
             , onClick <| msg content
@@ -401,7 +398,7 @@ viewAllowEvents :
     -> List (Html msg)
 viewAllowEvents shared { msg, allowEvents } =
     [ h3 [ class "settings-subtitle" ] [ text "Push" ]
-    , div [ class "form-controls", class "-two-col" ]
+    , div [ class "form-controls -two-col" ]
         [ viewCheckbox
             { title = "Push"
             , subtitle = Nothing
@@ -424,7 +421,7 @@ viewAllowEvents shared { msg, allowEvents } =
             }
         ]
     , h3 [ class "settings-subtitle" ] [ text "Pull Request" ]
-    , div [ class "form-controls", class "-two-col" ]
+    , div [ class "form-controls -two-col" ]
         [ viewCheckbox
             { title = "Opened"
             , subtitle = Nothing
@@ -487,7 +484,7 @@ viewAllowEvents shared { msg, allowEvents } =
             }
         ]
     , h3 [ class "settings-subtitle" ] [ text "Deployments" ]
-    , div [ class "form-controls", class "-two-col" ]
+    , div [ class "form-controls -two-col" ]
         [ viewCheckbox
             { title = "Created"
             , subtitle = Nothing
@@ -500,7 +497,7 @@ viewAllowEvents shared { msg, allowEvents } =
             }
         ]
     , h3 [ class "settings-subtitle" ] [ text "Comment" ]
-    , div [ class "form-controls", class "-two-col" ]
+    , div [ class "form-controls -two-col" ]
         [ viewCheckbox
             { title = "Created"
             , subtitle = Nothing
@@ -523,7 +520,7 @@ viewAllowEvents shared { msg, allowEvents } =
             }
         ]
     , h3 [ class "settings-subtitle" ] [ text "Delete" ]
-    , div [ class "form-controls", class "-two-col" ]
+    , div [ class "form-controls -two-col" ]
         [ viewCheckbox
             { title = "Branch"
             , subtitle = Nothing
@@ -546,7 +543,7 @@ viewAllowEvents shared { msg, allowEvents } =
             }
         ]
     , h3 [ class "settings-subtitle" ] [ text "Schedule" ]
-    , div [ class "form-controls", class "-two-col" ]
+    , div [ class "form-controls -two-col" ]
         [ viewCheckbox
             { title = "Schedule"
             , subtitle = Nothing
@@ -715,8 +712,7 @@ viewEditableListItem props item =
                     span []
                         [ button
                             [ class "remove-button"
-                            , class "button"
-                            , class "-icon"
+                            , class "button -icon"
                             , attribute "aria-label" <| "remove list item " ++ itemId
                             , onClick <| props.itemRemoveOnClickMsg <| itemId
                             , Util.testAttribute <| target ++ "-remove"
@@ -728,8 +724,7 @@ viewEditableListItem props item =
                             ]
                         , button
                             [ class "save-button"
-                            , class "button"
-                            , class "-icon"
+                            , class "button -icon"
                             , attribute "aria-label" <| "save list item " ++ itemId
                             , onClick <| props.itemSaveOnClickMsg { id = itemId, val = val }
                             , Util.testAttribute <| target ++ "-save"
@@ -745,8 +740,7 @@ viewEditableListItem props item =
                     span []
                         [ button
                             [ class "edit-button"
-                            , class "button"
-                            , class "-icon"
+                            , class "button -icon"
                             , attribute "aria-label" <| "edit list item " ++ itemId
                             , onClick <| props.itemEditOnClickMsg { id = itemId }
                             , Util.testAttribute <| target ++ "-edit"

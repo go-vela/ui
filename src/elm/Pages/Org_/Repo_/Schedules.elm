@@ -255,9 +255,7 @@ viewRepoSchedules shared model org repo pageNum =
                 Just <|
                     div [ class "buttons" ]
                         [ a
-                            [ class "button"
-                            , class "button-with-icon"
-                            , class "-outline"
+                            [ class "button -with-icon -outline"
                             , Util.testAttribute "add-repo-schedule"
                             , Route.Path.href <|
                                 Route.Path.Org__Repo__Schedules_Add
@@ -265,10 +263,10 @@ viewRepoSchedules shared model org repo pageNum =
                                     , repo = repo
                                     }
                             ]
-                            [ text <| "Add Schedule"
-                            , FeatherIcons.plus
+                            [ FeatherIcons.plus
                                 |> FeatherIcons.withSize 18
-                                |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
+                                |> FeatherIcons.toHtml []
+                            , text "Add Schedule"
                             ]
                         , Components.Pager.view
                             { show = True
@@ -360,7 +358,7 @@ viewSchedule zone org repo schedule =
         [ Components.Table.viewItemCell
             { dataLabel = "name"
             , parentClassList = [ ( "name", True ) ]
-            , itemClassList = [ ( "-block", True ) ]
+            , itemClassList = [ ( "table-cell-block", True ) ]
             , children =
                 [ a
                     [ Route.Path.href <|
