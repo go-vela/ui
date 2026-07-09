@@ -38,7 +38,7 @@
     },
     {
       "matchFileNames": ["elm.json"],
-      "groupName": "elm"
+      "groupName": "elm dependencies"
     },
     {
       "matchPackageNames": ["@hpcc-js/wasm-graphviz"],
