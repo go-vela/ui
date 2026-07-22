@@ -104,6 +104,7 @@ module Vela exposing
     , defaultSecretPayload
     , defaultSettingsPayload
     , defaultUpdateUserPayload
+    , emptyRepository
     , enableUpdate
     , encodeBuildGraphRenderData
     , encodeDeploymentPayload
@@ -1286,7 +1287,7 @@ decodeTemplate =
 
 type alias Build =
     { id : Int
-    , repository_id : Int
+    , repository : Repository
     , number : Int
     , parent : Int
     , event : String
@@ -1322,7 +1323,7 @@ decodeBuild : Decoder Build
 decodeBuild =
     Json.Decode.succeed Build
         |> optional "id" int -1
-        |> optional "repository_id" int -1
+        |> optional "repository" decodeRepository emptyRepository
         |> optional "number" int -1
         |> optional "parent" int -1
         |> optional "event" string ""

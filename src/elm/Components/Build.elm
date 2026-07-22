@@ -38,16 +38,18 @@ view shared props =
     case props.build of
         RemoteData.Success build ->
             let
-                ( org, repo ) =
-                    Util.orgRepoFromBuildLink build.link
-
                 buildLink =
                     ("#" ++ String.fromInt build.number)
                         |> (\t ->
                                 [ if props.linkBuildNumber then
                                     a
                                         [ Util.testAttribute "build-number"
-                                        , href build.link
+                                        , Route.Path.href <|
+                                            Route.Path.Org__Repo__Build_
+                                                { org = build.repository.org
+                                                , repo = build.repository.name
+                                                , build = String.fromInt build.number
+                                                }
                                         ]
                                         [ text t ]
 
@@ -65,11 +67,11 @@ view shared props =
                             [ a
                                 [ Route.Path.href <|
                                     Route.Path.Org__Repo_
-                                        { org = org
-                                        , repo = repo
+                                        { org = build.repository.org
+                                        , repo = build.repository.name
                                         }
                                 ]
-                                [ text repo ]
+                                [ text build.repository.name ]
                             , text ": "
                             ]
 
@@ -300,9 +302,6 @@ viewActionsMenu :
     -> Html msg
 viewActionsMenu props =
     let
-        ( org, repo ) =
-            Util.orgRepoFromBuildLink props.build.link
-
         buildMenuBaseClassList =
             classList
                 [ ( "details", True )
@@ -320,18 +319,18 @@ viewActionsMenu props =
                     text ""
 
                 _ ->
-                    viewRestartMenuLink org repo (String.fromInt props.build.number) props.msgs.restartBuild
+                    viewRestartMenuLink props.build props.msgs.restartBuild
 
         viewCancelLink =
             case props.build.status of
                 Vela.Running ->
-                    viewCancelMenuLink org repo (String.fromInt props.build.number) props.msgs.cancelBuild
+                    viewCancelMenuLink props.build props.msgs.cancelBuild
 
                 Vela.Pending ->
-                    viewCancelMenuLink org repo (String.fromInt props.build.number) props.msgs.cancelBuild
+                    viewCancelMenuLink props.build props.msgs.cancelBuild
 
                 Vela.PendingApproval ->
-                    viewCancelMenuLink org repo (String.fromInt props.build.number) props.msgs.cancelBuild
+                    viewCancelMenuLink props.build props.msgs.cancelBuild
 
                 _ ->
                     text ""
@@ -339,7 +338,7 @@ viewActionsMenu props =
         viewApproveLink =
             case props.build.status of
                 Vela.PendingApproval ->
-                    viewApproveMenuLink org repo (String.fromInt props.build.number) props.msgs.approveBuild
+                    viewApproveMenuLink props.build props.msgs.approveBuild
 
                 _ ->
                     text ""
@@ -415,21 +414,23 @@ viewError build =
                             -- into a link to the respective build
                             Just _ ->
                                 let
-                                    linkList =
-                                        String.split "/" build.link
-                                            |> List.reverse
-
-                                    newLink =
-                                        linkList
-                                            |> List.Extra.setAt 0 tgtBuild
-                                            |> List.reverse
-                                            |> String.join "/"
-
                                     msg =
                                         String.replace tgtBuild "" build.error
                                 in
                                 ( text "auto canceled:"
-                                , span [] [ text msg, a [ href newLink, Util.testAttribute "new-build-link" ] [ text ("#" ++ tgtBuild) ] ]
+                                , span []
+                                    [ text msg
+                                    , a
+                                        [ Route.Path.href <|
+                                            Route.Path.Org__Repo__Build_
+                                                { org = build.repository.org
+                                                , repo = build.repository.name
+                                                , build = tgtBuild
+                                                }
+                                        , Util.testAttribute "new-build-link"
+                                        ]
+                                        [ text ("#" ++ tgtBuild) ]
+                                    ]
                                 )
             in
             div [ class "error", Util.testAttribute "build-error" ]
@@ -607,19 +608,19 @@ viewApproveButton org repo build approveBuild =
         ]
 
 
-{-| viewRestartMenuLink : takes org, repo, and build number, and renders actions menu link to restart a build.
+{-| viewRestartMenuLink : takes a build and renders actions menu link to restart it.
 -}
-viewRestartMenuLink : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } -> msg) -> Html msg
-viewRestartMenuLink org repo build restartBuild =
+viewRestartMenuLink : Vela.Build -> ({ org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } -> msg) -> Html msg
+viewRestartMenuLink build restartBuild =
     li [ class "build-menu-item" ]
         [ a
             [ href "#"
             , class "menu-item"
             , Util.onClickPreventDefault <|
                 restartBuild
-                    { org = org
-                    , repo = repo
-                    , build = build
+                    { org = build.repository.org
+                    , repo = build.repository.name
+                    , build = String.fromInt build.number
                     }
             , Util.testAttribute "restart-build"
             ]
@@ -628,19 +629,19 @@ viewRestartMenuLink org repo build restartBuild =
         ]
 
 
-{-| viewCancelMenuLink : takes org, repo, and build number, and renders actions menu link to cancel a build.
+{-| viewCancelMenuLink : takes a build and renders actions menu link to cancel it.
 -}
-viewCancelMenuLink : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } -> msg) -> Html msg
-viewCancelMenuLink org repo build cancelBuild =
+viewCancelMenuLink : Vela.Build -> ({ org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } -> msg) -> Html msg
+viewCancelMenuLink build cancelBuild =
     li [ class "build-menu-item" ]
         [ a
             [ href "#"
             , class "menu-item"
             , Util.onClickPreventDefault <|
                 cancelBuild
-                    { org = org
-                    , repo = repo
-                    , build = build
+                    { org = build.repository.org
+                    , repo = build.repository.name
+                    , build = String.fromInt build.number
                     }
             , Util.testAttribute "cancel-build"
             ]
@@ -649,19 +650,19 @@ viewCancelMenuLink org repo build cancelBuild =
         ]
 
 
-{-| viewApproveMenuLink : takes org, repo, and build number, and renders actions menu link to approve a build run.
+{-| viewApproveMenuLink : takes a build and renders actions menu link to approve it.
 -}
-viewApproveMenuLink : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> ({ org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } -> msg) -> Html msg
-viewApproveMenuLink org repo build approveBuild =
+viewApproveMenuLink : Vela.Build -> ({ org : Vela.Org, repo : Vela.Repo, build : Vela.BuildNumber } -> msg) -> Html msg
+viewApproveMenuLink build approveBuild =
     li [ class "build-menu-item" ]
         [ a
             [ href "#"
             , class "menu-item"
             , Util.onClickPreventDefault <|
                 approveBuild
-                    { org = org
-                    , repo = repo
-                    , build = build
+                    { org = build.repository.org
+                    , repo = build.repository.name
+                    , build = String.fromInt build.number
                     }
             , Util.testAttribute "approve-build"
             ]

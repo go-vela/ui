@@ -64,7 +64,7 @@ test.describe('Workers', () => {
         );
         await expect(
           firstWorker.getByTestId('cell-running-builds'),
-        ).toContainText('github/octocat/1');
+        ).toContainText('github/octocat/2');
       });
 
       test('should have error styles', async ({ page }) => {

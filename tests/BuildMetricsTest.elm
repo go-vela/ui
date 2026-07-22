@@ -32,7 +32,7 @@ createSampleBuild created duration queueTime buildStatus event branch =
             startedAt + duration
     in
     { id = 1
-    , repository_id = 1
+    , repository = Vela.emptyRepository
     , number = 1
     , parent = 0
     , event = event

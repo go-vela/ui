@@ -1,7 +1,56 @@
 [
   {
     "id": 101,
-    "repo_id": 1,
+    "repository": {
+      "id": 1,
+      "user_id": 1,
+      "owner": {
+        "id": 1,
+        "name": "octocat"
+      },
+      "org": "github",
+      "name": "octocat",
+      "full_name": "github/octocat",
+      "link": "/github/octocat",
+      "clone": "https://github.com/github/octocat.git",
+      "branch": "main",
+      "build_limit": 0,
+      "timeout": 0,
+      "counter": 0,
+      "visibility": "public",
+      "approve_build": "",
+      "private": false,
+      "trusted": false,
+      "active": true,
+      "allow_events": {
+        "push": {
+          "branch": true,
+          "tag": true,
+          "delete_branch": true,
+          "delete_tag": true
+        },
+        "pull_request": {
+          "opened": true,
+          "synchronize": true,
+          "edited": true,
+          "reopened": true
+        },
+        "deployment": {
+          "created": true
+        },
+        "comment": {
+          "created": true,
+          "edited": true
+        },
+        "schedule": {
+          "run": true
+        }
+      },
+      "enabled": "enabled",
+      "pipeline_type": "yaml",
+      "approval_timeout": 0,
+      "merge_queue_events": []
+    },
     "number": 101,
     "parent": 1,
     "event": "push",
@@ -30,7 +79,56 @@
   },
   {
     "id": 102,
-    "repo_id": 1,
+    "repository": {
+      "id": 1,
+      "user_id": 1,
+      "owner": {
+        "id": 1,
+        "name": "octocat"
+      },
+      "org": "github",
+      "name": "octocat",
+      "full_name": "github/octocat",
+      "link": "/github/octocat",
+      "clone": "https://github.com/github/octocat.git",
+      "branch": "main",
+      "build_limit": 0,
+      "timeout": 0,
+      "counter": 0,
+      "visibility": "public",
+      "approve_build": "",
+      "private": false,
+      "trusted": false,
+      "active": true,
+      "allow_events": {
+        "push": {
+          "branch": true,
+          "tag": true,
+          "delete_branch": true,
+          "delete_tag": true
+        },
+        "pull_request": {
+          "opened": true,
+          "synchronize": true,
+          "edited": true,
+          "reopened": true
+        },
+        "deployment": {
+          "created": true
+        },
+        "comment": {
+          "created": true,
+          "edited": true
+        },
+        "schedule": {
+          "run": true
+        }
+      },
+      "enabled": "enabled",
+      "pipeline_type": "yaml",
+      "approval_timeout": 0,
+      "merge_queue_events": []
+    },
     "number": 102,
     "parent": 1,
     "event": "push",
@@ -59,7 +157,56 @@
   },
   {
     "id": 103,
-    "repo_id": 1,
+    "repository": {
+      "id": 1,
+      "user_id": 1,
+      "owner": {
+        "id": 1,
+        "name": "octocat"
+      },
+      "org": "github",
+      "name": "octocat",
+      "full_name": "github/octocat",
+      "link": "/github/octocat",
+      "clone": "https://github.com/github/octocat.git",
+      "branch": "main",
+      "build_limit": 0,
+      "timeout": 0,
+      "counter": 0,
+      "visibility": "public",
+      "approve_build": "",
+      "private": false,
+      "trusted": false,
+      "active": true,
+      "allow_events": {
+        "push": {
+          "branch": true,
+          "tag": true,
+          "delete_branch": true,
+          "delete_tag": true
+        },
+        "pull_request": {
+          "opened": true,
+          "synchronize": true,
+          "edited": true,
+          "reopened": true
+        },
+        "deployment": {
+          "created": true
+        },
+        "comment": {
+          "created": true,
+          "edited": true
+        },
+        "schedule": {
+          "run": true
+        }
+      },
+      "enabled": "enabled",
+      "pipeline_type": "yaml",
+      "approval_timeout": 0,
+      "merge_queue_events": []
+    },
     "number": 103,
     "parent": 1,
     "event": "push",
@@ -88,7 +235,56 @@
   },
   {
     "id": 104,
-    "repo_id": 1,
+    "repository": {
+      "id": 1,
+      "user_id": 1,
+      "owner": {
+        "id": 1,
+        "name": "octocat"
+      },
+      "org": "github",
+      "name": "octocat",
+      "full_name": "github/octocat",
+      "link": "/github/octocat",
+      "clone": "https://github.com/github/octocat.git",
+      "branch": "main",
+      "build_limit": 0,
+      "timeout": 0,
+      "counter": 0,
+      "visibility": "public",
+      "approve_build": "",
+      "private": false,
+      "trusted": false,
+      "active": true,
+      "allow_events": {
+        "push": {
+          "branch": true,
+          "tag": true,
+          "delete_branch": true,
+          "delete_tag": true
+        },
+        "pull_request": {
+          "opened": true,
+          "synchronize": true,
+          "edited": true,
+          "reopened": true
+        },
+        "deployment": {
+          "created": true
+        },
+        "comment": {
+          "created": true,
+          "edited": true
+        },
+        "schedule": {
+          "run": true
+        }
+      },
+      "enabled": "enabled",
+      "pipeline_type": "yaml",
+      "approval_timeout": 0,
+      "merge_queue_events": []
+    },
     "number": 104,
     "parent": 1,
     "event": "push",
@@ -117,7 +313,56 @@
   },
   {
     "id": 105,
-    "repo_id": 1,
+    "repository": {
+      "id": 1,
+      "user_id": 1,
+      "owner": {
+        "id": 1,
+        "name": "octocat"
+      },
+      "org": "github",
+      "name": "octocat",
+      "full_name": "github/octocat",
+      "link": "/github/octocat",
+      "clone": "https://github.com/github/octocat.git",
+      "branch": "main",
+      "build_limit": 0,
+      "timeout": 0,
+      "counter": 0,
+      "visibility": "public",
+      "approve_build": "",
+      "private": false,
+      "trusted": false,
+      "active": true,
+      "allow_events": {
+        "push": {
+          "branch": true,
+          "tag": true,
+          "delete_branch": true,
+          "delete_tag": true
+        },
+        "pull_request": {
+          "opened": true,
+          "synchronize": true,
+          "edited": true,
+          "reopened": true
+        },
+        "deployment": {
+          "created": true
+        },
+        "comment": {
+          "created": true,
+          "edited": true
+        },
+        "schedule": {
+          "run": true
+        }
+      },
+      "enabled": "enabled",
+      "pipeline_type": "yaml",
+      "approval_timeout": 0,
+      "merge_queue_events": []
+    },
     "number": 105,
     "parent": 1,
     "event": "push",

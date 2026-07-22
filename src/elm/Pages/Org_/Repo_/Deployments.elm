@@ -537,15 +537,15 @@ viewDeploymentBuildsLinks deployment =
         |> List.map
             (\build ->
                 a
-                    [ href build.link ]
+                    [ Route.Path.href <|
+                        Route.Path.Org__Repo__Build_
+                            { org = build.repository.org
+                            , repo = build.repository.name
+                            , build = String.fromInt build.number
+                            }
+                    ]
                     [ text
-                        (build.link
-                            |> String.split "/"
-                            |> List.reverse
-                            |> List.head
-                            |> Maybe.withDefault ""
-                            |> String.append "#"
-                        )
+                        ("#" ++ String.fromInt build.number)
                     ]
             )
         |> List.intersperse (text ", ")

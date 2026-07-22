@@ -38,7 +38,6 @@ module Utils.Helpers exposing
     , oneDaySeconds
     , oneSecondMillis
     , open
-    , orgRepoFromBuildLink
     , overwriteById
     , pageToString
     , relativeTimeNoSeconds
@@ -67,11 +66,9 @@ import Json.Decode
 import List.Extra
 import Maybe.Extra
 import RemoteData exposing (WebData)
-import Route.Path
 import String.Extra
 import Task exposing (perform, succeed)
 import Time exposing (Posix, Zone, posixToMillis, toHour, toMinute, utc)
-import Url
 
 
 {-| onMouseDownShowHelp : takes model and returns subscriptions for handling onMouseDown events at the browser level.
@@ -677,27 +674,6 @@ pageToString maybePage =
 buildRefURL : String -> String -> String
 buildRefURL clone ref =
     String.dropRight 4 clone ++ "/tree/" ++ ref
-
-
-{-| orgRepoFromBuildLink : takes build and uses the link field to parse out org and repo
-if the build link has a host, then URL is used to parse, otherwise it splits on '/'.
--}
-orgRepoFromBuildLink : String -> ( String, String )
-orgRepoFromBuildLink link =
-    let
-        path =
-            link
-                |> Url.fromString
-                |> Maybe.Extra.unwrap link .path
-    in
-    case Route.Path.fromString path of
-        Just (Route.Path.Org__Repo__Build_ params) ->
-            ( params.org, params.repo )
-
-        _ ->
-            ( Maybe.withDefault "" <| List.head (List.drop 1 (String.split "/" path))
-            , Maybe.withDefault "" <| List.head (List.drop 2 (String.split "/" path))
-            )
 
 
 {-| buildPRCommitURL : creates a direct link to a commit in a PR.
