@@ -8,6 +8,7 @@ import {
   mockAdminSettingsError,
   mockAdminSettingsUpdate,
 } from './utils/adminSettingsMocks';
+import { readTestData } from './utils/testData';
 
 test.describe('Admin Settings', () => {
   test.describe('server returning error', () => {
@@ -38,6 +39,22 @@ test.describe('Admin Settings', () => {
 
     test('compiler starlark exec limit should show', async ({ page }) => {
       await expect(page.getByTestId('input-starlark-exec-limit')).toBeVisible();
+    });
+
+    test('blocked images list should show', async ({ page }) => {
+      const blockedImages = page.getByTestId('editable-list-blocked-images');
+      await expect(blockedImages).toBeVisible();
+      await expect(
+        page.getByTestId('editable-list-item-alpine:latest'),
+      ).toContainText('alpine:latest');
+    });
+
+    test('warn images list should show', async ({ page }) => {
+      const warnImages = page.getByTestId('editable-list-warn-images');
+      await expect(warnImages).toBeVisible();
+      await expect(
+        page.getByTestId('editable-list-item-busybox:latest'),
+      ).toContainText('busybox:latest');
     });
 
     test('queue routes list should show', async ({ page }) => {
@@ -192,6 +209,176 @@ test.describe('Admin Settings', () => {
 
           await saveButton.click({ force: true });
           await expect(saveButton).toBeHidden();
+        });
+
+        test.describe('image restriction lists should allow editing', () => {
+          test('blocked images list should add item', async ({ page }) => {
+            const blockedList = page.getByTestId(
+              'editable-list-blocked-images',
+            );
+
+            await expect(blockedList).toBeVisible();
+            await expect(
+              page.getByTestId('editable-list-item-python:3.12'),
+            ).toHaveCount(0);
+
+            await page
+              .getByTestId('input-editable-list-blocked-images-image-add')
+              .fill('python:3.12');
+            await page
+              .getByTestId('input-editable-list-blocked-images-reason-add')
+              .fill('new blocked image');
+
+            await page
+              .getByTestId('button-editable-list-blocked-images-add')
+              .click({ force: true });
+
+            await expect(page.getByTestId('alert')).toBeVisible();
+            await expect(page.getByTestId('alert')).toContainText('Success');
+            await expect(
+              page.getByTestId('editable-list-item-python:3.12'),
+            ).toContainText('python:3.12');
+          });
+
+          test('blocked images list should update reason', async ({ page }) => {
+            const blockedList = page.getByTestId(
+              'editable-list-blocked-images',
+            );
+
+            await expect(blockedList).toBeVisible();
+            await blockedList
+              .getByTestId('button-editable-list-item-alpine:latest-edit')
+              .click({ force: true });
+            await blockedList
+              .getByTestId('input-editable-list-item-alpine:latest')
+              .fill('updated blocked reason');
+            await blockedList
+              .getByRole('button', { name: 'save' })
+              .click({ force: true });
+
+            await expect(page.getByTestId('alert')).toBeVisible();
+            await expect(page.getByTestId('alert')).toContainText('Success');
+            await expect(
+              page.getByTestId('editable-list-item-alpine:latest'),
+            ).toContainText('updated blocked reason');
+          });
+
+          test('blocked images list should remove item', async ({ page }) => {
+            const settings = readTestData<Record<string, any>>(
+              'settings_updated.json',
+            );
+            settings.compiler.blocked_images = [];
+            await mockAdminSettingsUpdate(page, settings);
+
+            const blockedList = page.getByTestId(
+              'editable-list-blocked-images',
+            );
+
+            await expect(blockedList).toBeVisible();
+            await blockedList
+              .getByTestId('button-editable-list-item-alpine:latest-edit')
+              .click({ force: true });
+            await blockedList
+              .getByRole('button', { name: 'remove' })
+              .click({ force: true });
+
+            await expect(page.getByTestId('alert')).toBeVisible();
+            await expect(page.getByTestId('alert')).toContainText('Success');
+            await expect(
+              page.getByTestId('editable-list-item-alpine:latest'),
+            ).toHaveCount(0);
+          });
+
+          test('warn images list should add item', async ({ page }) => {
+            const warnList = page.getByTestId('editable-list-warn-images');
+
+            await expect(warnList).toBeVisible();
+            await expect(
+              page.getByTestId('editable-list-item-node:20'),
+            ).toHaveCount(0);
+
+            await page
+              .getByTestId('input-editable-list-warn-images-image-add')
+              .fill('node:20');
+            await page
+              .getByTestId('input-editable-list-warn-images-reason-add')
+              .fill('new warn image');
+
+            await page
+              .getByTestId('button-editable-list-warn-images-add')
+              .click({ force: true });
+
+            await expect(page.getByTestId('alert')).toBeVisible();
+            await expect(page.getByTestId('alert')).toContainText('Success');
+            await expect(
+              page.getByTestId('editable-list-item-node:20'),
+            ).toContainText('node:20');
+          });
+
+          test('warn images list should update reason', async ({ page }) => {
+            const warnList = page.getByTestId('editable-list-warn-images');
+
+            await expect(warnList).toBeVisible();
+            await warnList
+              .getByTestId('button-editable-list-item-busybox:latest-edit')
+              .click({ force: true });
+            await warnList
+              .getByTestId('input-editable-list-item-busybox:latest')
+              .fill('updated warn reason');
+            await warnList
+              .getByRole('button', { name: 'save' })
+              .click({ force: true });
+
+            await expect(page.getByTestId('alert')).toBeVisible();
+            await expect(page.getByTestId('alert')).toContainText('Success');
+            await expect(
+              page.getByTestId('editable-list-item-busybox:latest'),
+            ).toContainText('updated warn reason');
+          });
+
+          test('warn images list should remove item', async ({ page }) => {
+            const settings = readTestData<Record<string, any>>(
+              'settings_updated.json',
+            );
+            settings.compiler.warn_images = [];
+            await mockAdminSettingsUpdate(page, settings);
+
+            const warnList = page.getByTestId('editable-list-warn-images');
+
+            await expect(warnList).toBeVisible();
+            await warnList
+              .getByTestId('button-editable-list-item-busybox:latest-edit')
+              .click({ force: true });
+            await warnList
+              .getByRole('button', { name: 'remove' })
+              .click({ force: true });
+
+            await expect(page.getByTestId('alert')).toBeVisible();
+            await expect(page.getByTestId('alert')).toContainText('Success');
+            await expect(
+              page.getByTestId('editable-list-item-busybox:latest'),
+            ).toHaveCount(0);
+          });
+
+          test('duplicate image add should show already exists message', async ({
+            page,
+          }) => {
+            await page
+              .getByTestId('input-editable-list-blocked-images-image-add')
+              .fill('alpine:latest');
+            await page
+              .getByTestId('input-editable-list-blocked-images-reason-add')
+              .fill('duplicate blocked image');
+
+            await page
+              .getByTestId('button-editable-list-blocked-images-add')
+              .click({ force: true });
+
+            await expect(page.getByTestId('alert')).toBeVisible();
+            await expect(page.getByTestId('alert')).toContainText(
+              'already exists in the blocked images list',
+            );
+          });
         });
 
         test('save button should skip non-edits', async ({ page }) => {

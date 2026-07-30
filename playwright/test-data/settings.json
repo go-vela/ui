@@ -3,7 +3,19 @@
   "compiler": {
     "clone_image": "target/vela-git:latest",
     "template_depth": 10,
-    "starlark_exec_limit": 500
+    "starlark_exec_limit": 500,
+    "blocked_images": [
+      {
+        "image": "alpine:latest",
+        "reason": "blocked for test coverage"
+      }
+    ],
+    "warn_images": [
+      {
+        "image": "busybox:latest",
+        "reason": "warning for test coverage"
+      }
+    ]
   },
   "queue": {
     "routes": ["vela"]

@@ -7,9 +7,10 @@ module Pages.Admin.Settings exposing (Model, Msg, page)
 
 import Auth
 import Components.Form
-import Dict
+import Components.Loading
+import Dict exposing (Dict)
 import Effect exposing (Effect)
-import Html exposing (Html, div, h2, i, p, section, span, strong, text)
+import Html exposing (Html, div, h2, i, li, p, section, span, strong, text, ul)
 import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
@@ -28,6 +29,15 @@ import Utils.Helpers as Util
 import Utils.Interval as Interval
 import Vela exposing (defaultCompilerPayload, defaultQueuePayload, defaultScmPayload, defaultSettingsPayload)
 import View exposing (View)
+
+
+{-| ImageRestrictionListForm : form state for managing the two-field image restriction lists.
+-}
+type alias ImageRestrictionListForm =
+    { imageVal : String
+    , reasonVal : String
+    , editing : Dict String String
+    }
 
 
 {-| page : shared model, route, and returns the page.
@@ -94,6 +104,8 @@ type alias Model =
     , enableOrgSecrets : Bool
     , enableRepoSecrets : Bool
     , enableSharedSecrets : Bool
+    , blockedImages : ImageRestrictionListForm
+    , warnImages : ImageRestrictionListForm
     }
 
 
@@ -118,6 +130,8 @@ init shared () =
       , enableOrgSecrets = False
       , enableRepoSecrets = False
       , enableSharedSecrets = False
+      , blockedImages = { imageVal = "", reasonVal = "", editing = Dict.empty }
+      , warnImages = { imageVal = "", reasonVal = "", editing = Dict.empty }
       }
     , Effect.getSettings
         { baseUrl = shared.velaAPIBaseURL
@@ -195,6 +209,22 @@ type Msg
     | ToggleOrgSecrets Bool
     | ToggleRepoSecrets Bool
     | ToggleSharedSecrets Bool
+      -- BLOCKED IMAGES
+    | BlockedImagesImageOnInput String
+    | BlockedImagesReasonOnInput String
+    | BlockedImagesAddOnClick String String
+    | BlockedImagesEditOnClick { id : String }
+    | BlockedImagesSaveOnClick { id : String, val : String }
+    | BlockedImagesEditOnInput { id : String } String
+    | BlockedImagesRemoveOnClick String
+      -- WARN IMAGES
+    | WarnImagesImageOnInput String
+    | WarnImagesReasonOnInput String
+    | WarnImagesAddOnClick String String
+    | WarnImagesEditOnClick { id : String }
+    | WarnImagesSaveOnClick { id : String, val : String }
+    | WarnImagesEditOnInput { id : String } String
+    | WarnImagesRemoveOnClick String
       -- REFRESH
     | Tick { time : Time.Posix, interval : Interval.Interval }
 
@@ -1784,6 +1814,338 @@ update shared route msg model =
                 }
             )
 
+        -- BLOCKED IMAGES
+        BlockedImagesImageOnInput val ->
+            let
+                form =
+                    model.blockedImages
+            in
+            ( { model | blockedImages = { form | imageVal = val } }
+            , Effect.none
+            )
+
+        BlockedImagesReasonOnInput val ->
+            let
+                form =
+                    model.blockedImages
+            in
+            ( { model | blockedImages = { form | reasonVal = val } }
+            , Effect.none
+            )
+
+        BlockedImagesAddOnClick imageVal reasonVal ->
+            let
+                currentImages =
+                    RemoteData.unwrap [] (.compiler >> .blockedImages) model.settings
+
+                effect =
+                    if not <| List.any (\r -> r.image == imageVal) currentImages then
+                        let
+                            newEntry =
+                                Vela.ImageRestriction imageVal reasonVal
+
+                            payload =
+                                { defaultSettingsPayload
+                                    | compiler =
+                                        Just
+                                            { defaultCompilerPayload
+                                                | blockedImages = Just <| newEntry :: currentImages
+                                            }
+                                }
+
+                            body =
+                                Http.jsonBody <| Vela.encodeSettingsPayload payload
+                        in
+                        Effect.updateSettings
+                            { baseUrl = shared.velaAPIBaseURL
+                            , session = shared.session
+                            , onResponse =
+                                UpdateSettingsResponse
+                                    { field = Vela.BlockedImageAdd imageVal
+                                    }
+                            , body = body
+                            }
+
+                    else
+                        Effect.addAlertSuccess
+                            { content = "Image '" ++ imageVal ++ "' already exists in the blocked images list."
+                            , addToastIfUnique = False
+                            , link = Nothing
+                            }
+
+                form =
+                    model.blockedImages
+            in
+            ( { model | blockedImages = { form | imageVal = "", reasonVal = "" } }
+            , effect
+            )
+
+        BlockedImagesRemoveOnClick imageVal ->
+            let
+                payload =
+                    { defaultSettingsPayload
+                        | compiler =
+                            Just
+                                { defaultCompilerPayload
+                                    | blockedImages =
+                                        Just <|
+                                            List.filter (\r -> r.image /= imageVal) <|
+                                                RemoteData.unwrap [] (.compiler >> .blockedImages) model.settings
+                                }
+                    }
+
+                body =
+                    Http.jsonBody <| Vela.encodeSettingsPayload payload
+
+                form =
+                    model.blockedImages
+            in
+            ( { model | blockedImages = { form | editing = Dict.remove imageVal form.editing } }
+            , Effect.updateSettings
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse =
+                    UpdateSettingsResponse
+                        { field = Vela.BlockedImageRemove imageVal
+                        }
+                , body = body
+                }
+            )
+
+        BlockedImagesEditOnClick options ->
+            let
+                currentReason =
+                    RemoteData.unwrap [] (.compiler >> .blockedImages) model.settings
+                        |> List.Extra.find (\r -> r.image == options.id)
+                        |> Maybe.map .reason
+                        |> Maybe.withDefault ""
+
+                form =
+                    model.blockedImages
+            in
+            ( { model | blockedImages = { form | editing = Dict.insert options.id currentReason form.editing } }
+            , Effect.focusOn { target = saveButtonHtmlId blockedImagesHtmlId options.id }
+            )
+
+        BlockedImagesSaveOnClick options ->
+            let
+                effect =
+                    let
+                        updatedImages =
+                            RemoteData.unwrap [] (.compiler >> .blockedImages) model.settings
+                                |> List.map
+                                    (\r ->
+                                        if r.image == options.id then
+                                            { r | reason = options.val }
+
+                                        else
+                                            r
+                                    )
+
+                        payload =
+                            { defaultSettingsPayload
+                                | compiler =
+                                    Just
+                                        { defaultCompilerPayload
+                                            | blockedImages = Just updatedImages
+                                        }
+                            }
+
+                        body =
+                            Http.jsonBody <| Vela.encodeSettingsPayload payload
+                    in
+                    Effect.updateSettings
+                        { baseUrl = shared.velaAPIBaseURL
+                        , session = shared.session
+                        , onResponse =
+                            UpdateSettingsResponse
+                                { field = Vela.BlockedImageUpdate options.id options.val
+                                }
+                        , body = body
+                        }
+
+                form =
+                    model.blockedImages
+            in
+            ( { model | blockedImages = { form | editing = Dict.remove options.id form.editing } }
+            , effect
+            )
+
+        BlockedImagesEditOnInput options val ->
+            let
+                form =
+                    model.blockedImages
+            in
+            ( { model | blockedImages = { form | editing = Dict.insert options.id val form.editing } }
+            , Effect.none
+            )
+
+        -- WARN IMAGES
+        WarnImagesImageOnInput val ->
+            let
+                form =
+                    model.warnImages
+            in
+            ( { model | warnImages = { form | imageVal = val } }
+            , Effect.none
+            )
+
+        WarnImagesReasonOnInput val ->
+            let
+                form =
+                    model.warnImages
+            in
+            ( { model | warnImages = { form | reasonVal = val } }
+            , Effect.none
+            )
+
+        WarnImagesAddOnClick imageVal reasonVal ->
+            let
+                currentImages =
+                    RemoteData.unwrap [] (.compiler >> .warnImages) model.settings
+
+                effect =
+                    if not <| List.any (\r -> r.image == imageVal) currentImages then
+                        let
+                            newEntry =
+                                Vela.ImageRestriction imageVal reasonVal
+
+                            payload =
+                                { defaultSettingsPayload
+                                    | compiler =
+                                        Just
+                                            { defaultCompilerPayload
+                                                | warnImages = Just <| newEntry :: currentImages
+                                            }
+                                }
+
+                            body =
+                                Http.jsonBody <| Vela.encodeSettingsPayload payload
+                        in
+                        Effect.updateSettings
+                            { baseUrl = shared.velaAPIBaseURL
+                            , session = shared.session
+                            , onResponse =
+                                UpdateSettingsResponse
+                                    { field = Vela.WarnImageAdd imageVal
+                                    }
+                            , body = body
+                            }
+
+                    else
+                        Effect.addAlertSuccess
+                            { content = "Image '" ++ imageVal ++ "' already exists in the warn images list."
+                            , addToastIfUnique = False
+                            , link = Nothing
+                            }
+
+                form =
+                    model.warnImages
+            in
+            ( { model | warnImages = { form | imageVal = "", reasonVal = "" } }
+            , effect
+            )
+
+        WarnImagesRemoveOnClick imageVal ->
+            let
+                payload =
+                    { defaultSettingsPayload
+                        | compiler =
+                            Just
+                                { defaultCompilerPayload
+                                    | warnImages =
+                                        Just <|
+                                            List.filter (\r -> r.image /= imageVal) <|
+                                                RemoteData.unwrap [] (.compiler >> .warnImages) model.settings
+                                }
+                    }
+
+                body =
+                    Http.jsonBody <| Vela.encodeSettingsPayload payload
+
+                form =
+                    model.warnImages
+            in
+            ( { model | warnImages = { form | editing = Dict.remove imageVal form.editing } }
+            , Effect.updateSettings
+                { baseUrl = shared.velaAPIBaseURL
+                , session = shared.session
+                , onResponse =
+                    UpdateSettingsResponse
+                        { field = Vela.WarnImageRemove imageVal
+                        }
+                , body = body
+                }
+            )
+
+        WarnImagesEditOnClick options ->
+            let
+                currentReason =
+                    RemoteData.unwrap [] (.compiler >> .warnImages) model.settings
+                        |> List.Extra.find (\r -> r.image == options.id)
+                        |> Maybe.map .reason
+                        |> Maybe.withDefault ""
+
+                form =
+                    model.warnImages
+            in
+            ( { model | warnImages = { form | editing = Dict.insert options.id currentReason form.editing } }
+            , Effect.focusOn { target = saveButtonHtmlId warnImagesHtmlId options.id }
+            )
+
+        WarnImagesSaveOnClick options ->
+            let
+                effect =
+                    let
+                        updatedImages =
+                            RemoteData.unwrap [] (.compiler >> .warnImages) model.settings
+                                |> List.map
+                                    (\r ->
+                                        if r.image == options.id then
+                                            { r | reason = options.val }
+
+                                        else
+                                            r
+                                    )
+
+                        payload =
+                            { defaultSettingsPayload
+                                | compiler =
+                                    Just
+                                        { defaultCompilerPayload
+                                            | warnImages = Just updatedImages
+                                        }
+                            }
+
+                        body =
+                            Http.jsonBody <| Vela.encodeSettingsPayload payload
+                    in
+                    Effect.updateSettings
+                        { baseUrl = shared.velaAPIBaseURL
+                        , session = shared.session
+                        , onResponse =
+                            UpdateSettingsResponse
+                                { field = Vela.WarnImageUpdate options.id options.val
+                                }
+                        , body = body
+                        }
+
+                form =
+                    model.warnImages
+            in
+            ( { model | warnImages = { form | editing = Dict.remove options.id form.editing } }
+            , effect
+            )
+
+        WarnImagesEditOnInput options val ->
+            let
+                form =
+                    model.warnImages
+            in
+            ( { model | warnImages = { form | editing = Dict.insert options.id val form.editing } }
+            , Effect.none
+            )
+
 
 
 -- SUBSCRIPTIONS
@@ -2365,6 +2727,40 @@ view shared route model =
                     , itemRemoveOnClickMsg = ScmTeamRoleMapRemoveOnClick
                     }
                 ]
+            , viewImageRestrictionSection
+                { id_ = blockedImagesHtmlId
+                , header = "Blocked Images"
+                , description = "Image patterns that are blocked from use in pipelines. Builds using a blocked image will fail to compile."
+                , imagePlaceholder = "docker.io/org/image:*"
+                , reasonPlaceholder = "This image is no longer supported."
+                , form = model.blockedImages
+                , webdata = model.settings
+                , toItems = .compiler >> .blockedImages
+                , imageOnInputMsg = BlockedImagesImageOnInput
+                , reasonOnInputMsg = BlockedImagesReasonOnInput
+                , addOnClickMsg = BlockedImagesAddOnClick
+                , itemEditOnClickMsg = BlockedImagesEditOnClick
+                , itemSaveOnClickMsg = BlockedImagesSaveOnClick
+                , itemEditOnInputMsg = BlockedImagesEditOnInput
+                , itemRemoveOnClickMsg = BlockedImagesRemoveOnClick
+                }
+            , viewImageRestrictionSection
+                { id_ = warnImagesHtmlId
+                , header = "Warn Images"
+                , description = "Image patterns that trigger a warning on the Pipeline tab when used in a pipeline."
+                , imagePlaceholder = "docker.io/org/image:*"
+                , reasonPlaceholder = "This image will be blocked in a future release."
+                , form = model.warnImages
+                , webdata = model.settings
+                , toItems = .compiler >> .warnImages
+                , imageOnInputMsg = WarnImagesImageOnInput
+                , reasonOnInputMsg = WarnImagesReasonOnInput
+                , addOnClickMsg = WarnImagesAddOnClick
+                , itemEditOnClickMsg = WarnImagesEditOnClick
+                , itemSaveOnClickMsg = WarnImagesSaveOnClick
+                , itemEditOnInputMsg = WarnImagesEditOnInput
+                , itemRemoveOnClickMsg = WarnImagesRemoveOnClick
+                }
             ]
         , case model.settings of
             RemoteData.Success settings ->
@@ -2513,6 +2909,20 @@ scmTeamRoleMapHtmlId =
     "scm-team-role-map"
 
 
+{-| blockedImagesHtmlId : returns reusable id for blocked images
+-}
+blockedImagesHtmlId : String
+blockedImagesHtmlId =
+    "blocked-images"
+
+
+{-| warnImagesHtmlId : returns reusable id for warn images
+-}
+warnImagesHtmlId : String
+warnImagesHtmlId =
+    "warn-images"
+
+
 {-| saveButtonHtmlId : returns reusable id for save button
 -}
 saveButtonHtmlId : String -> String -> String
@@ -2550,3 +2960,203 @@ starlarkExecLimitMin =
 starlarkExecLimitMax : Shared.Model -> Int
 starlarkExecLimitMax shared =
     shared.velaMaxStarlarkExecLimit
+
+
+{-| viewImageRestrictionSection : renders a settings section for managing an image restriction list
+(blocked or warn). Each entry has an image pattern and an optional reason string.
+-}
+viewImageRestrictionSection :
+    { id_ : String
+    , header : String
+    , description : String
+    , imagePlaceholder : String
+    , reasonPlaceholder : String
+    , form : ImageRestrictionListForm
+    , webdata : WebData Vela.PlatformSettings
+    , toItems : Vela.PlatformSettings -> List Vela.ImageRestriction
+    , imageOnInputMsg : String -> Msg
+    , reasonOnInputMsg : String -> Msg
+    , addOnClickMsg : String -> String -> Msg
+    , itemEditOnClickMsg : { id : String } -> Msg
+    , itemSaveOnClickMsg : { id : String, val : String } -> Msg
+    , itemEditOnInputMsg : { id : String } -> String -> Msg
+    , itemRemoveOnClickMsg : String -> Msg
+    }
+    -> Html Msg
+viewImageRestrictionSection props =
+    let
+        target =
+            String.join "-" [ "editable-list", props.id_ ]
+    in
+    section
+        [ class "settings"
+        ]
+        [ viewFieldHeader props.header
+        , viewFieldDescription props.description
+        , div [ class "form-controls" ]
+            [ Components.Form.viewInput
+                { title = Nothing
+                , subtitle = Nothing
+                , id_ = target ++ "-image-add"
+                , val = props.form.imageVal
+                , placeholder_ = props.imagePlaceholder
+                , classList_ = []
+                , wrapperClassList = [ ( "-wide", True ) ]
+                , rows_ = Nothing
+                , wrap_ = Nothing
+                , msg = props.imageOnInputMsg
+                , disabled_ = False
+                , min = Nothing
+                , max = Nothing
+                , required = False
+                }
+            , Components.Form.viewInput
+                { title = Nothing
+                , subtitle = Nothing
+                , id_ = target ++ "-reason-add"
+                , val = props.form.reasonVal
+                , placeholder_ = props.reasonPlaceholder
+                , classList_ = []
+                , wrapperClassList = [ ( "-wide", True ) ]
+                , rows_ = Nothing
+                , wrap_ = Nothing
+                , msg = props.reasonOnInputMsg
+                , disabled_ = False
+                , min = Nothing
+                , max = Nothing
+                , required = False
+                }
+            , Components.Form.viewButton
+                { id_ = target ++ "-add"
+                , msg = props.addOnClickMsg props.form.imageVal props.form.reasonVal
+                , text_ = "add"
+                , classList_ = [ ( "-outline", True ) ]
+                , disabled_ =
+                    String.isEmpty props.form.imageVal
+                        || not (RemoteData.isSuccess props.webdata)
+                }
+            ]
+        , div
+            [ class "editable-list"
+            , Util.testAttribute target
+            ]
+            [ ul [] <|
+                case props.webdata of
+                    RemoteData.Success settings ->
+                        let
+                            items =
+                                props.toItems settings
+                        in
+                        if List.isEmpty items then
+                            [ li [ Util.testAttribute <| target ++ "-no-items" ]
+                                [ text "No images configured" ]
+                            ]
+
+                        else
+                            List.map (viewImageRestrictionItem props) items
+
+                    RemoteData.Failure error ->
+                        [ li []
+                            [ span [ Util.testAttribute <| target ++ "-error" ]
+                                [ text <|
+                                    case error of
+                                        Http.BadStatus statusCode ->
+                                            case statusCode of
+                                                401 ->
+                                                    "No settings found"
+
+                                                _ ->
+                                                    "No settings found, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+
+                                        _ ->
+                                            "No settings found"
+                                ]
+                            ]
+                        ]
+
+                    _ ->
+                        [ li [] [ Components.Loading.viewSmallLoader ] ]
+            ]
+        ]
+
+
+{-| viewImageRestrictionItem : renders a single image restriction list item with edit-in-place for the reason field.
+-}
+viewImageRestrictionItem :
+    { a
+        | id_ : String
+        , itemEditOnClickMsg : { id : String } -> Msg
+        , itemSaveOnClickMsg : { id : String, val : String } -> Msg
+        , itemEditOnInputMsg : { id : String } -> String -> Msg
+        , itemRemoveOnClickMsg : String -> Msg
+        , form : ImageRestrictionListForm
+    }
+    -> Vela.ImageRestriction
+    -> Html Msg
+viewImageRestrictionItem props item =
+    let
+        target =
+            String.join "-" [ "editable-list", "item", item.image ]
+
+        editing =
+            Dict.get item.image props.form.editing
+    in
+    li [ Util.testAttribute target ]
+        [ case editing of
+            Just reasonVal ->
+                Components.Form.viewInput
+                    { title = Nothing
+                    , subtitle = Nothing
+                    , id_ = target
+                    , val = reasonVal
+                    , placeholder_ = item.image
+                    , wrapperClassList = []
+                    , classList_ = []
+                    , rows_ = Nothing
+                    , wrap_ = Nothing
+                    , msg = props.itemEditOnInputMsg { id = item.image }
+                    , disabled_ = False
+                    , min = Nothing
+                    , max = Nothing
+                    , required = False
+                    }
+
+            Nothing ->
+                span []
+                    [ text item.image
+                    , if String.isEmpty item.reason then
+                        text ""
+
+                      else
+                        span [ class "settings-info" ]
+                            [ text <| " — " ++ item.reason ]
+                    ]
+        , span [] <|
+            case editing of
+                Just reasonVal ->
+                    [ Components.Form.viewButton
+                        { id_ = saveButtonHtmlId props.id_ item.image
+                        , msg = props.itemSaveOnClickMsg { id = item.image, val = reasonVal }
+                        , text_ = "save"
+                        , classList_ = [ ( "-icon", True ) ]
+                        , disabled_ = False
+                        }
+                    , Components.Form.viewButton
+                        { id_ = target ++ "-remove"
+                        , msg = props.itemRemoveOnClickMsg item.image
+                        , text_ = "remove"
+                        , classList_ = [ ( "-icon", True ) ]
+                        , disabled_ = False
+                        }
+                    ]
+
+                Nothing ->
+                    [ Components.Form.viewButton
+                        { id_ = target ++ "-edit"
+                        , msg = props.itemEditOnClickMsg { id = item.image }
+                        , text_ = "edit"
+                        , classList_ = [ ( "-icon", True ) ]
+                        , disabled_ = False
+                        }
+                    ]
+        ]

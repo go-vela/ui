@@ -26,6 +26,7 @@ module Vela exposing
     , Event
     , Hook
     , HookNumber
+    , ImageRestriction
     , Key
     , KeyValuePair
     , Log
@@ -73,6 +74,7 @@ module Vela exposing
     , decodeDeployments
     , decodeGraphInteraction
     , decodeHooks
+    , decodeImageRestriction
     , decodeLog
     , decodeOnGraphInteraction
     , decodePipelineConfig
@@ -108,6 +110,7 @@ module Vela exposing
     , encodeBuildGraphRenderData
     , encodeDeploymentPayload
     , encodeEnableRepository
+    , encodeImageRestriction
     , encodeRepoPayload
     , encodeSchedulePayload
     , encodeSecretPayload
@@ -2238,6 +2241,8 @@ type alias Compiler =
     { cloneImage : String
     , templateDepth : Int
     , starlarkExecLimit : Int
+    , blockedImages : List ImageRestriction
+    , warnImages : List ImageRestriction
     }
 
 
@@ -2247,12 +2252,37 @@ decodeCompiler =
         |> optional "clone_image" string ""
         |> optional "template_depth" int -1
         |> optional "starlark_exec_limit" int -1
+        |> optional "blocked_images" (Json.Decode.list decodeImageRestriction) []
+        |> optional "warn_images" (Json.Decode.list decodeImageRestriction) []
+
+
+type alias ImageRestriction =
+    { image : String
+    , reason : String
+    }
+
+
+decodeImageRestriction : Decoder ImageRestriction
+decodeImageRestriction =
+    Json.Decode.succeed ImageRestriction
+        |> required "image" string
+        |> optional "reason" string ""
+
+
+encodeImageRestriction : ImageRestriction -> Json.Encode.Value
+encodeImageRestriction restriction =
+    Json.Encode.object
+        [ ( "image", Json.Encode.string restriction.image )
+        , ( "reason", Json.Encode.string restriction.reason )
+        ]
 
 
 type alias CompilerPayload =
     { cloneImage : Maybe String
     , templateDepth : Maybe Int
     , starlarkExecLimit : Maybe Int
+    , blockedImages : Maybe (List ImageRestriction)
+    , warnImages : Maybe (List ImageRestriction)
     }
 
 
@@ -2261,6 +2291,8 @@ defaultCompilerPayload =
     { cloneImage = Nothing
     , templateDepth = Nothing
     , starlarkExecLimit = Nothing
+    , blockedImages = Nothing
+    , warnImages = Nothing
     }
 
 
@@ -2270,6 +2302,8 @@ encodeCompilerPayload compiler =
         [ ( "clone_image", encodeOptional Json.Encode.string compiler.cloneImage )
         , ( "template_depth", encodeOptional Json.Encode.int compiler.templateDepth )
         , ( "starlark_exec_limit", encodeOptional Json.Encode.int compiler.starlarkExecLimit )
+        , ( "blocked_images", encodeOptional (Json.Encode.list encodeImageRestriction) compiler.blockedImages )
+        , ( "warn_images", encodeOptional (Json.Encode.list encodeImageRestriction) compiler.warnImages )
         ]
 
 
@@ -2427,6 +2461,12 @@ type PlatformSettingsFieldUpdate
     | SCMTeamRoleMapAdd String
     | SCMTeamRoleMapUpdate String String
     | SCMTeamRoleMapRemove String
+    | BlockedImageAdd String
+    | BlockedImageUpdate String String
+    | BlockedImageRemove String
+    | WarnImageAdd String
+    | WarnImageUpdate String String
+    | WarnImageRemove String
 
 
 type alias PlatformSettingsUpdateResponseConfig =
@@ -2613,6 +2653,42 @@ platformSettingsFieldUpdateToResponseConfig field =
             { successAlert =
                 \_ ->
                     "SCM team role mapping '" ++ team ++ "' removed."
+            }
+
+        BlockedImageAdd image ->
+            { successAlert =
+                \_ ->
+                    "Image '" ++ image ++ "' added to the blocked images list."
+            }
+
+        BlockedImageUpdate image reason ->
+            { successAlert =
+                \_ ->
+                    "Blocked image '" ++ image ++ "' reason updated to '" ++ reason ++ "'."
+            }
+
+        BlockedImageRemove image ->
+            { successAlert =
+                \_ ->
+                    "Image '" ++ image ++ "' removed from the blocked images list."
+            }
+
+        WarnImageAdd image ->
+            { successAlert =
+                \_ ->
+                    "Image '" ++ image ++ "' added to the warn images list."
+            }
+
+        WarnImageUpdate image reason ->
+            { successAlert =
+                \_ ->
+                    "Warn image '" ++ image ++ "' reason updated to '" ++ reason ++ "'."
+            }
+
+        WarnImageRemove image ->
+            { successAlert =
+                \_ ->
+                    "Image '" ++ image ++ "' removed from the warn images list."
             }
 
 
