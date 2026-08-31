@@ -434,8 +434,7 @@ view shared route model =
                 [ ul []
                     [ li []
                         [ button
-                            [ class "button"
-                            , class "-icon"
+                            [ class "button -icon"
                             , id "action-center"
                             , title "Recenter visualization"
                             , Util.testAttribute "build-graph-action-center"
@@ -448,8 +447,7 @@ view shared route model =
                         ]
                     , li []
                         [ button
-                            [ class "button"
-                            , class "-icon"
+                            [ class "button -icon"
                             , class "build-graph-action-refresh"
                             , title "Refresh visualization"
                             , onClick <| Refresh { freshDraw = True, setToLoading = True, clear = True }
@@ -462,8 +460,7 @@ view shared route model =
                         ]
                     , li []
                         [ button
-                            [ class "button"
-                            , class "-icon"
+                            [ class "button -icon"
                             , class "build-graph-action-rotate"
                             , class <|
                                 case model.rankDir of
@@ -544,8 +541,7 @@ view shared route model =
                                 ]
                             ]
                         , button
-                            [ class "button"
-                            , class "-icon"
+                            [ class "button -icon"
                             , Util.testAttribute "build-graph-action-filter-clear"
                             , onClick (UpdateFilter "")
                             ]
@@ -561,49 +557,49 @@ view shared route model =
                 [ ul [ class "elm-build-graph-legend" ]
                     [ li []
                         [ Components.Svgs.buildVizLegendNode
-                            [ Svg.Attributes.class "-pending"
+                            [ Svg.Attributes.class "state-pending"
                             ]
                         , text "pending"
                         ]
                     , li [ class "-running-hover" ]
                         [ Components.Svgs.buildVizLegendNode
-                            [ Svg.Attributes.class "-running"
+                            [ Svg.Attributes.class "state-running"
                             ]
                         , text "running"
                         ]
                     , li []
                         [ Components.Svgs.buildVizLegendNode
-                            [ Svg.Attributes.class "-success"
+                            [ Svg.Attributes.class "state-success"
                             ]
                         , text "success"
                         ]
                     , li []
                         [ Components.Svgs.buildVizLegendNode
-                            [ Svg.Attributes.class "-failure"
+                            [ Svg.Attributes.class "state-failure"
                             ]
                         , text "failed"
                         ]
                     , li []
                         [ Components.Svgs.buildVizLegendNode
-                            [ Svg.Attributes.class "-canceled"
+                            [ Svg.Attributes.class "state-canceled"
                             ]
                         , text "canceled"
                         ]
                     , li []
                         [ Components.Svgs.buildVizLegendNode
-                            [ Svg.Attributes.class "-killed"
+                            [ Svg.Attributes.class "state-killed"
                             ]
                         , text "skipped"
                         ]
                     , li []
                         [ Components.Svgs.buildVizLegendNode
-                            [ Svg.Attributes.class "-selected"
+                            [ Svg.Attributes.class "state-selected"
                             ]
                         , text "selected"
                         ]
                     , li []
                         [ Components.Svgs.buildVizLegendEdge
-                            [ Svg.Attributes.class "-pending"
+                            [ Svg.Attributes.class "state-pending"
                             ]
                         , text "pending"
                         ]

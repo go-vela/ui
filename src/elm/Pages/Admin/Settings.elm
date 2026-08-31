@@ -2068,7 +2068,7 @@ view shared route model =
                 , viewFieldEnvKeyValue "VELA_ENABLE_ORG_SECRETS"
                 , viewFieldEnvKeyValue "VELA_ENABLE_REPO_SECRETS"
                 , viewFieldEnvKeyValue "VELA_ENABLE_SHARED_SECRETS"
-                , div [ class "form-controls", class "-two-col" ]
+                , div [ class "form-controls -two-col" ]
                     [ Components.Form.viewCheckbox
                         { id_ = "admin-secrets"
                         , title = "Organization"

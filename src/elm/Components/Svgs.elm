@@ -173,10 +173,10 @@ buildStatusAnimation dashes y classNames =
     let
         runningAnimationClass =
             if dashes == "none" then
-                class "-running-start"
+                class "anim-running-start"
 
             else
-                class "-running-particles"
+                class "anim-running-particles"
 
         classes =
             List.map (\c -> class c) classNames
@@ -200,7 +200,7 @@ buildStatusAnimation dashes y classNames =
 stepPending : Html msg
 stepPending =
     svg
-        [ class "-icon -pending"
+        [ class "icon-state -pending"
         , viewBox "0 0 408 408"
         , width "32"
         , height "32"
@@ -219,7 +219,7 @@ stepPending =
 stepRunning : Html msg
 stepRunning =
     svg
-        [ class "-icon -running"
+        [ class "icon-state -running"
         , strokeWidth "2"
         , viewBox "0 0 44 44"
         , width "32"
@@ -244,7 +244,7 @@ stepRunning =
 stepSuccess : Html msg
 stepSuccess =
     svg
-        [ class "-icon -success"
+        [ class "icon-state -success"
         , strokeWidth "2"
         , viewBox "0 0 44 44"
         , width "32"
@@ -269,7 +269,7 @@ stepSuccess =
 stepFailure : Html msg
 stepFailure =
     svg
-        [ class "-icon -failure"
+        [ class "icon-state -failure"
         , strokeWidth "2"
         , viewBox "0 0 44 44"
         , width "32"
@@ -294,7 +294,7 @@ stepFailure =
 stepError : Html msg
 stepError =
     svg
-        [ class "-icon -error"
+        [ class "icon-state -error"
         , strokeWidth "2"
         , viewBox "0 0 44 44"
         , width "32"
@@ -324,7 +324,7 @@ stepError =
 stepCanceled : Html msg
 stepCanceled =
     svg
-        [ class "-icon -canceled"
+        [ class "icon-state -canceled"
         , strokeWidth "2"
         , viewBox "0 0 44 44"
         , width "32"
@@ -350,7 +350,7 @@ Note: killed/skipped are the same thing.
 stepSkipped : Html msg
 stepSkipped =
     svg
-        [ class "-icon -skip"
+        [ class "icon-state -skip"
         , strokeWidth "2"
         , viewBox "0 0 44 44"
         , width "32"
@@ -409,8 +409,7 @@ stepSkipped =
 hookSuccess : Html msg
 hookSuccess =
     svg
-        [ class "hook-status"
-        , class "-success"
+        [ class "hook-status -success"
         , strokeWidth "2"
         , viewBox "0 0 44 44"
         , width "20"
@@ -427,8 +426,7 @@ hookSuccess =
 hookSkipped : Html msg
 hookSkipped =
     svg
-        [ class "hook-status"
-        , class "-skipped"
+        [ class "hook-status -skipped"
         , strokeWidth "2"
         , viewBox "0 0 44 44"
         , width "20"
@@ -487,8 +485,7 @@ hookSkipped =
 hookFailure : Html msg
 hookFailure =
     svg
-        [ class "hook-status"
-        , class "-failure"
+        [ class "hook-status -failure"
         , strokeWidth "2"
         , viewBox "0 0 44 44"
         , width "20"
@@ -504,7 +501,7 @@ hookFailure =
 buildHistoryPending : Int -> Html msg
 buildHistoryPending _ =
     svg
-        [ class "-icon -pending"
+        [ class "icon-state -pending"
         , viewBox "0 0 28 28"
         , width "26"
         , height "26"
@@ -517,7 +514,7 @@ buildHistoryPending _ =
 buildHistoryRunning : Int -> Html msg
 buildHistoryRunning _ =
     svg
-        [ class "-icon -running"
+        [ class "icon-state -running"
         , strokeWidth "2"
         , viewBox "0 0 28 28"
         , width "26"
@@ -531,7 +528,7 @@ buildHistoryRunning _ =
 buildHistorySuccess : Int -> Html msg
 buildHistorySuccess _ =
     svg
-        [ class "-icon -success"
+        [ class "icon-state -success"
         , strokeWidth "2"
         , viewBox "0 0 28 28"
         , width "26"
@@ -545,7 +542,7 @@ buildHistorySuccess _ =
 buildHistoryFailure : Int -> Html msg
 buildHistoryFailure _ =
     svg
-        [ class "-icon -failure"
+        [ class "icon-state -failure"
         , strokeWidth "2"
         , viewBox "0 0 28 28"
         , width "26"
@@ -559,7 +556,7 @@ buildHistoryFailure _ =
 buildHistoryError : Int -> Html msg
 buildHistoryError _ =
     svg
-        [ class "-icon -error"
+        [ class "icon-state -error"
         , strokeWidth "2"
         , viewBox "0 0 28 28"
         , width "26"
@@ -575,7 +572,7 @@ buildHistoryError _ =
 buildHistoryCanceled : Int -> Html msg
 buildHistoryCanceled _ =
     svg
-        [ class "-icon -canceled"
+        [ class "icon-state -canceled"
         , strokeWidth "2"
         , viewBox "0 0 28 28"
         , width "26"
@@ -800,7 +797,7 @@ buildVizLegendEdge attrs =
 annotationCircle : String -> Html msg
 annotationCircle cls =
     svg
-        [ class "-icon"
+        [ class "icon-state"
         , class cls
         , viewBox "0 0 48 48"
         , width "22"

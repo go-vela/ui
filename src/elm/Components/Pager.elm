@@ -133,8 +133,7 @@ view props =
             [ button
                 [ disabled <| isFirst || (List.length props.links == 0)
                 , Util.testAttribute "pager-previous"
-                , class "button"
-                , class "-outline"
+                , class "button -outline"
                 , class "pager-icon-prev"
                 , onClick (props.msg prevPage)
                 ]
@@ -146,8 +145,7 @@ view props =
             , button
                 [ disabled <| isLast || (List.length props.links == 0)
                 , Util.testAttribute "pager-next"
-                , class "button"
-                , class "-outline"
+                , class "button -outline"
                 , class "pager-icon-next"
                 , onClick (props.msg nextPage)
                 ]

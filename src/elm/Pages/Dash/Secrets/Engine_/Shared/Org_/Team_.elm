@@ -236,17 +236,15 @@ view shared route model =
                 , tableButtons =
                     Just
                         [ a
-                            [ class "button"
-                            , class "-outline"
-                            , class "button-with-icon"
+                            [ class "button -outline -with-icon"
                             , Util.testAttribute "add-shared-secret"
                             , Route.Path.href <|
                                 Route.Path.Dash_Secrets_Engine__Shared_Org__Team__Add { engine = route.params.engine, org = route.params.org, team = route.params.team }
                             ]
-                            [ text "Add Shared Secret"
-                            , FeatherIcons.plus
+                            [ FeatherIcons.plus
                                 |> FeatherIcons.withSize 18
-                                |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
+                                |> FeatherIcons.toHtml []
+                            , text "Add Shared Secret"
                             ]
                         , Components.Pager.view
                             { show = True

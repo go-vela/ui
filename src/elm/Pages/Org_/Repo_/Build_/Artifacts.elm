@@ -381,7 +381,7 @@ viewArtifact artifact =
         [ Components.Table.viewItemCell
             { dataLabel = "name"
             , parentClassList = [ ( "name", True ) ]
-            , itemClassList = [ ( "-block", True ) ]
+            , itemClassList = [ ( "table-cell-block", True ) ]
             , children = [ artifactContent ]
             }
         ]

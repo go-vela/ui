@@ -66,7 +66,7 @@ viewEnabledInput { msg, value, disabled_ } =
                 ]
             ]
         , div
-            [ class "form-controls", class "-stack" ]
+            [ class "form-controls -stack" ]
             [ Components.Form.viewRadio
                 { value = Util.boolToYesNo value
                 , field = "yes"

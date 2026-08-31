@@ -8,7 +8,7 @@ module Components.RecentBuilds exposing (view)
 import Components.Loading
 import Components.Svgs
 import Html exposing (Html, a, div, em, li, p, span, text, ul)
-import Html.Attributes exposing (attribute, class)
+import Html.Attributes exposing (attribute, class, classList)
 import RemoteData exposing (WebData)
 import Route.Path
 import Shared
@@ -71,9 +71,15 @@ view shared props =
 -}
 viewRecentBuild : Shared.Model -> Props -> Int -> Vela.Build -> Html msg
 viewRecentBuild shared props idx build =
-    li [ class "recent-build" ]
-        [ recentBuildLink shared props idx build
-        , recentBuildTooltip shared props build
+    li
+        [ classList
+            [ ( "recent-build", True )
+            , ( "recent-build-not-first", idx > 0 )
+            , ( statusToRecentBuildClass build.status, True )
+            ]
+        ]
+        [ recentBuildLink props idx build
+        , recentBuildTooltip shared build
         ]
 
 
@@ -82,8 +88,8 @@ viewRecentBuild shared props idx build =
     focusing and hovering this element will display the tooltip
 
 -}
-recentBuildLink : Shared.Model -> Props -> Int -> Vela.Build -> Html msg
-recentBuildLink shared props idx build =
+recentBuildLink : Props -> Int -> Vela.Build -> Html msg
+recentBuildLink props idx build =
     let
         icon =
             Components.Svgs.recentBuildStatusToIcon build.status idx
@@ -115,8 +121,8 @@ recentBuildLink shared props idx build =
     tooltip is visible when the recent build link is focused or hovered
 
 -}
-recentBuildTooltip : Shared.Model -> Props -> Vela.Build -> Html msg
-recentBuildTooltip shared props build =
+recentBuildTooltip : Shared.Model -> Vela.Build -> Html msg
+recentBuildTooltip shared build =
     div [ class "recent-build-tooltip", Util.testAttribute "build-history-tooltip" ]
         [ ul [ class "info" ]
             [ li [ class "line" ]
@@ -163,3 +169,33 @@ viewTooltipField key value =
             [ span [] [ text key ]
             , span [] [ text value ]
             ]
+
+
+{-| statusToRecentBuildClass : maps build status to explicit status class for recent-build wrappers.
+-}
+statusToRecentBuildClass : Vela.Status -> String
+statusToRecentBuildClass status =
+    case status of
+        Vela.Pending ->
+            "recent-build-status-pending"
+
+        Vela.PendingApproval ->
+            "recent-build-status-pending"
+
+        Vela.Running ->
+            "recent-build-status-running"
+
+        Vela.Success ->
+            "recent-build-status-success"
+
+        Vela.Failure ->
+            "recent-build-status-failure"
+
+        Vela.Killed ->
+            "recent-build-status-failure"
+
+        Vela.Canceled ->
+            "recent-build-status-canceled"
+
+        Vela.Error ->
+            "recent-build-status-error"
