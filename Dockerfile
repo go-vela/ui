@@ -1,4 +1,4 @@
-FROM fholzer/nginx-brotli:v1.31.1@sha256:3e391ee5432231ef5c08b15f8f8a6afdbf9ac7bcc654b7903505745f78f41efc
+FROM fholzer/nginx-brotli:v1.31.3@sha256:488d47b52df1acc19cd1fb69996d05a572e5b5fc02b3e7a5e60faedf63cf7e59
 
 RUN apk update && \
     apk add --no-cache ca-certificates && \
