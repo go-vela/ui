@@ -7,7 +7,7 @@
     "node": ">=24"
   },
   "dependencies": {
-    "@hpcc-js/wasm-graphviz": "1.17.0",
+    "@hpcc-js/wasm-graphviz": "1.30.0",
     "clipboard": "2.0.11",
     "d3": "7.9.0"
   },
@@ -20,9 +20,9 @@
     "@playwright/test": "1.64.1",
     "@types/node": "25.9.9",
     "axe-core": "4.14.0",
-    "elm": "0.19.2-0",
+    "elm": "0.19.3-0",
     "elm-format": "0.8.8",
-    "elm-test": "0.19.2-1",
+    "elm-test": "0.19.3-0",
     "make-dir-cli": "4.0.0",
     "ncp": "2.0.0",
     "parcel": "2.16.4",
@@ -41,7 +41,7 @@
   "overrides": {
     "form-data": "4.0.6",
     "cross-spawn": "7.0.6",
-    "elm": "0.19.2-0"
+    "elm": "0.19.3-0"
   },
   "scripts": {
     "predev": "npm run clean",

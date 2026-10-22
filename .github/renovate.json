@@ -39,11 +39,6 @@
     {
       "matchFileNames": ["elm.json"],
       "groupName": "elm dependencies"
-    },
-    {
-      "matchPackageNames": ["@hpcc-js/wasm-graphviz"],
-      "groupName": "graphviz",
-      "description": "Keep graphviz/wasm upgrades isolated from other dependency updates."
     }
   ]
 }
