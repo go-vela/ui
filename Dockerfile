@@ -50,6 +50,13 @@ RUN set -eux; \
     tar -xzf "nginx-${NGINX_VERSION}.tar.gz"
 
 RUN set -eux; \
+    cmake -S /usr/src/ngx_brotli/deps/brotli \
+      -B /usr/src/ngx_brotli/deps/brotli/out \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DBUILD_SHARED_LIBS=OFF; \
+    cmake --build /usr/src/ngx_brotli/deps/brotli/out \
+      --config Release \
+      --target brotlienc; \
     cd "/usr/src/nginx-${NGINX_VERSION}"; \
     ./configure \
       --prefix=/etc/nginx \
