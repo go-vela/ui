@@ -18,9 +18,35 @@
       ],
       "datasourceTemplate": "github-tags",
       "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^Dockerfile$/"],
+      "matchStrings": [
+        "ARG NGINX_VERSION=(?<currentValue>\\d+\\.(?:0|[1-9]\\d*[02468])\\.\\d+)"
+      ],
+      "depNameTemplate": "nginx/nginx",
+      "datasourceTemplate": "github-tags",
+      "extractVersionTemplate": "^release-(?<version>.*)$",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^Dockerfile$/"],
+      "matchStrings": ["ARG NGX_BROTLI_COMMIT=(?<currentDigest>[a-f0-9]{40})"],
+      "currentValueTemplate": "master",
+      "depNameTemplate": "google/ngx_brotli",
+      "packageNameTemplate": "https://github.com/google/ngx_brotli",
+      "datasourceTemplate": "git-refs"
     }
   ],
   "packageRules": [
+    {
+      "matchManagers": ["custom.regex"],
+      "matchPackageNames": ["nginx/nginx"],
+      "allowedVersions": "/^\\d+\\.(?:0|[02468]\\d*)\\./",
+      "description": "Track NGINX stable releases, which use even-numbered minor versions."
+    },
     {
       "allowedVersions": "!/nightly\\.\\d+$/",
       "matchPackageNames": ["/^@?parcel/"]
