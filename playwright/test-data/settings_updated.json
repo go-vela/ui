@@ -3,7 +3,27 @@
   "compiler": {
     "clone_image": "target/vela-git:abc123",
     "template_depth": 1,
-    "starlark_exec_limit": 5
+    "starlark_exec_limit": 5,
+    "blocked_images": [
+      {
+        "image": "alpine:latest",
+        "reason": "updated blocked reason"
+      },
+      {
+        "image": "python:3.12",
+        "reason": "new blocked image"
+      }
+    ],
+    "warn_images": [
+      {
+        "image": "busybox:latest",
+        "reason": "updated warn reason"
+      },
+      {
+        "image": "node:20",
+        "reason": "new warn image"
+      }
+    ]
   },
   "queue": {
     "routes": ["vela123", "linux-large"]
