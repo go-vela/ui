@@ -107,7 +107,9 @@ This method of running the application enables hot-reloading of the code.
   # ui:
   #   build:
   #     context: .
-  #     dockerfile: Dockerfile.local
+  #     dockerfile: Dockerfile
+  #     args:
+  #       NGINX_CONFIG: nginx/local.conf
   #   container_name: ui
   #   image: ui:local
   #   networks:
@@ -124,8 +126,8 @@ This method of running the application enables hot-reloading of the code.
 * Run the rest of the compose stack:
 
 ```bash
-# execute the `up` target with `make`
-make up
+# select the local NGINX config, then execute the `up` target
+VELA_UI_NGINX_CONFIG=nginx/local.conf make up
 ```
 
 * Run the repository code:

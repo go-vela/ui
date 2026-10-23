@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
 
-version: '3'
-
 services:
   # The `ui` compose service hosts the Vela UI.
   #
@@ -13,6 +11,8 @@ services:
     build:
       context: .
       dockerfile: ${VELA_UI_DOCKERFILE:-Dockerfile}
+      args:
+        NGINX_CONFIG: ${VELA_UI_NGINX_CONFIG:-nginx/default.conf}
     container_name: ui
     networks:
       - vela
