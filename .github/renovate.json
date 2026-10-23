@@ -22,7 +22,9 @@
     {
       "customType": "regex",
       "managerFilePatterns": ["/^Dockerfile$/"],
-      "matchStrings": ["ARG NGINX_VERSION=(?<currentValue>\\d+\\.(?:0|[1-9]\\d*[02468])\\.\\d+)"],
+      "matchStrings": [
+        "ARG NGINX_VERSION=(?<currentValue>\\d+\\.(?:0|[1-9]\\d*[02468])\\.\\d+)"
+      ],
       "depNameTemplate": "nginx/nginx",
       "datasourceTemplate": "github-tags",
       "extractVersionTemplate": "^release-(?<version>.*)$",
