@@ -118,6 +118,8 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 RUN ln -s /usr/local/bin/docker-entrypoint.sh /docker-entrypoint.sh
 
+STOPSIGNAL SIGQUIT
+
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 EXPOSE 80
