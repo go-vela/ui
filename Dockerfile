@@ -6,7 +6,7 @@ ARG NGINX_VERSION=1.30.6
 # renovate: datasource=git-refs depName=google/ngx_brotli
 ARG NGX_BROTLI_COMMIT=53e0fb55f250f48fe80c0ddbf6c0f7103cdbaae1
 
-FROM alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS base
+FROM alpine:3.24.4@sha256:93b41ef40b1677fce8fcc64ff4af09daddfacf5040afde618bc46c1e2d1cc7d4 AS base
 
 RUN apk add --no-cache ca-certificates
 
